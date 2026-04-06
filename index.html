@@ -2,756 +2,838 @@
 <html lang="is">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Lesum">
-<title>Lesum – Mælaborð</title>
+<title>Lesum</title>
 <script>
 (function(){
-  const c = document.createElement('canvas');
-  c.width = 180; c.height = 180;
-  const ctx = c.getContext('2d');
-  const g = ctx.createLinearGradient(0,0,180,180);
-  g.addColorStop(0,'#2A6EBB'); g.addColorStop(1,'#1A3A5C');
-  ctx.fillStyle = g;
-  const r = 38;
-  ctx.beginPath();
-  ctx.moveTo(r,0); ctx.lineTo(180-r,0); ctx.quadraticCurveTo(180,0,180,r);
-  ctx.lineTo(180,180-r); ctx.quadraticCurveTo(180,180,180-r,180);
-  ctx.lineTo(r,180); ctx.quadraticCurveTo(0,180,0,180-r);
-  ctx.lineTo(0,r); ctx.quadraticCurveTo(0,0,r,0); ctx.closePath(); ctx.fill();
-  ctx.fillStyle='white'; ctx.font='bold 118px Georgia,serif';
-  ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText('L',90,96);
-  ctx.fillStyle='#FFB830'; ctx.font='28px serif'; ctx.fillText('⭐',130,48);
-  const link = document.createElement('link');
-  link.rel='apple-touch-icon'; link.href=c.toDataURL('image/png');
-  document.head.appendChild(link);
+  const c=document.createElement('canvas');c.width=180;c.height=180;
+  const ctx=c.getContext('2d');
+  const g=ctx.createLinearGradient(0,0,180,180);
+  g.addColorStop(0,'#2A6EBB');g.addColorStop(1,'#1A3A5C');
+  ctx.fillStyle=g;
+  const r=38;ctx.beginPath();ctx.moveTo(r,0);ctx.lineTo(180-r,0);
+  ctx.quadraticCurveTo(180,0,180,r);ctx.lineTo(180,180-r);
+  ctx.quadraticCurveTo(180,180,180-r,180);ctx.lineTo(r,180);
+  ctx.quadraticCurveTo(0,180,0,180-r);ctx.lineTo(0,r);
+  ctx.quadraticCurveTo(0,0,r,0);ctx.closePath();ctx.fill();
+  ctx.fillStyle='white';ctx.font='bold 118px Georgia,serif';
+  ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('L',90,96);
+  ctx.fillStyle='#FFB830';ctx.font='28px serif';ctx.fillText('⭐',130,48);
+  const l=document.createElement('link');l.rel='apple-touch-icon';l.href=c.toDataURL('image/png');
+  document.head.appendChild(l);
 })();
 </script>
 <style>
 :root {
-  --sky: #E8F4FD;
-  --ocean: #2A6EBB;
-  --deep: #1A3A5C;
-  --sun: #FFB830;
-  --sun-light: #FFE0A3;
-  --moss: #4CAF7D;
-  --moss-light: #C8EFD8;
-  --coral: #FF6B6B;
-  --pebble: #F4EFE8;
-  --ink: #1E1E2E;
-  --mist: #8A9BB0;
-  --card-shadow: 0 4px 20px rgba(26,58,92,0.10);
-  --card-shadow-hover: 0 8px 32px rgba(26,58,92,0.18);
+  --sky:#E8F4FD;--ocean:#2A6EBB;--deep:#1A3A5C;--sun:#FFB830;--sun-light:#FFE0A3;
+  --moss:#4CAF7D;--moss-light:#C8EFD8;--coral:#FF6B6B;--pebble:#F4EFE8;
+  --ink:#1E1E2E;--mist:#8A9BB0;--purple:#7c3aed;--purple-light:#f3eeff;
+  --card-shadow:0 4px 20px rgba(26,58,92,0.10);--card-shadow-hover:0 8px 32px rgba(26,58,92,0.18);
 }
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: -apple-system, 'Segoe UI', sans-serif; background: var(--sky); min-height: 100vh; color: var(--ink); }
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;}
+body{font-family:-apple-system,'Segoe UI',sans-serif;background:var(--sky);color:var(--ink);}
 
-.screen { display: none; min-height: 100vh; flex-direction: column; animation: fadeIn 0.3s ease; }
-.screen.active { display: flex; }
-@keyframes fadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+.screen{display:none;min-height:100vh;flex-direction:column;animation:fadeIn 0.3s ease;}
+.screen.active{display:flex;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
 
-/* TOPBAR */
-.topbar {
-  background: var(--ocean); color: white; padding: 16px 20px;
-  display: flex; align-items: center; justify-content: space-between;
-  position: sticky; top: 0; z-index: 100;
-  box-shadow: 0 2px 12px rgba(42,110,187,0.25);
-}
-.logo { font-family: Georgia,serif; font-size: 20px; font-weight: 700; color: white; display: flex; align-items: center; gap: 8px; }
-.logo-icon { width: 32px; height: 32px; background: white; border-radius: 7px; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 900; color: var(--ocean); font-family: Georgia,serif; }
-.back-btn { background: rgba(255,255,255,0.18); border: none; border-radius: 50px; color: white; font-size: 14px; font-weight: 700; padding: 8px 16px; cursor: pointer; }
-.mode-tag { background: var(--sun); color: var(--deep); border-radius: 50px; font-size: 11px; font-weight: 800; padding: 5px 12px; text-transform: uppercase; letter-spacing: 0.5px; }
-.mode-tag.teacher { background: #e8d5ff; color: #5a2d82; }
+.topbar{background:var(--ocean);color:white;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;box-shadow:0 2px 12px rgba(42,110,187,0.25);position:sticky;top:0;z-index:100;}
+.logo{font-family:Georgia,serif;font-size:20px;font-weight:700;color:white;display:flex;align-items:center;gap:8px;}
+.logo-icon{width:30px;height:30px;background:white;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:900;color:var(--ocean);font-family:Georgia,serif;flex-shrink:0;}
+.back-btn{background:rgba(255,255,255,0.18);border:none;border-radius:50px;color:white;font-size:13px;font-weight:700;padding:7px 14px;cursor:pointer;}
+.mode-tag{background:var(--sun);color:var(--deep);border-radius:50px;font-size:10px;font-weight:800;padding:4px 11px;text-transform:uppercase;letter-spacing:0.5px;}
+.mode-tag.green{background:var(--moss-light);color:#2e7a4f;}
+.mode-tag.purple{background:var(--purple-light);color:var(--purple);}
 
-.scroll-body { flex: 1; overflow-y: auto; padding: 20px 16px 40px; max-width: 480px; margin: 0 auto; width: 100%; }
+.scroll-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:18px 16px 48px;max-width:480px;margin:0 auto;width:100%;}
 
-/* HOME */
-.home-hero {
-  background: linear-gradient(135deg, var(--ocean) 0%, var(--deep) 100%);
-  border-radius: 22px; padding: 28px 22px; color: white; margin-bottom: 22px; position: relative; overflow: hidden;
-}
-.home-hero::before { content: '📖'; position: absolute; right: 18px; top: 18px; font-size: 64px; opacity: 0.12; }
-.hero-greeting { font-size: 12px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; opacity: 0.7; margin-bottom: 4px; }
-.home-hero h1 { font-family: Georgia,serif; font-size: 26px; font-weight: 700; line-height: 1.15; margin-bottom: 14px; }
-.streak-pill { display: inline-flex; align-items: center; gap: 6px; background: rgba(255,184,48,0.25); border: 1.5px solid rgba(255,184,48,0.5); border-radius: 50px; padding: 6px 14px; font-size: 13px; font-weight: 800; color: var(--sun-light); }
+/* LOGIN */
+.login-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:32px 24px;}
+.login-logo{font-family:Georgia,serif;font-size:52px;font-weight:700;color:var(--ocean);margin-bottom:4px;}
+.login-tagline{font-size:14px;color:var(--mist);font-weight:600;margin-bottom:40px;text-align:center;}
+.user-btn{width:100%;background:white;border:2px solid #dde5f0;border-radius:20px;padding:18px 20px;margin-bottom:12px;cursor:pointer;display:flex;align-items:center;gap:14px;transition:all 0.2s;box-shadow:var(--card-shadow);max-width:360px;}
+.user-btn:hover{border-color:var(--ocean);transform:translateY(-2px);box-shadow:var(--card-shadow-hover);}
+.user-btn:active{transform:scale(0.97);}
+.ub-avatar{width:50px;height:50px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;}
+.ub-avatar.blue{background:#d4eaff;}.ub-avatar.green{background:var(--moss-light);}.ub-avatar.purple{background:var(--purple-light);}
+.ub-name{font-size:18px;font-weight:800;color:var(--ink);}
+.ub-role{font-size:12px;color:var(--mist);margin-top:2px;}
+.login-note{font-size:11px;color:var(--mist);text-align:center;margin-top:12px;max-width:280px;}
 
-.action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 22px; }
-.action-card { background: white; border-radius: 18px; padding: 20px 16px; cursor: pointer; transition: transform 0.18s, box-shadow 0.18s; box-shadow: var(--card-shadow); border: none; text-align: left; display: flex; flex-direction: column; gap: 8px; }
-.action-card:hover { transform: translateY(-2px); box-shadow: var(--card-shadow-hover); }
-.action-card:active { transform: scale(0.97); }
-.ac-icon { font-size: 32px; }
-.ac-label { font-size: 13px; font-weight: 800; color: var(--ink); line-height: 1.2; }
-.action-card.ocean { background: var(--ocean); } .action-card.ocean .ac-label { color: white; }
-.action-card.sun { background: var(--sun); }
-.action-card.moss { background: var(--moss); } .action-card.moss .ac-label { color: white; }
-.action-card.purple { background: #e8d5ff; } .action-card.purple .ac-label { color: #5a2d82; }
+/* HERO */
+.hero{border-radius:22px;padding:26px 20px;color:white;margin-bottom:18px;position:relative;overflow:hidden;}
+.hero.blue{background:linear-gradient(135deg,var(--ocean) 0%,var(--deep) 100%);}
+.hero.green{background:linear-gradient(135deg,var(--moss) 0%,#2e7a4f 100%);}
+.hero.purple{background:linear-gradient(135deg,var(--purple) 0%,#4c1d95 100%);}
+.hero-label{font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;opacity:0.75;margin-bottom:4px;}
+.hero h1{font-family:Georgia,serif;font-size:23px;font-weight:700;line-height:1.15;margin-bottom:10px;}
+.hero p{font-size:13px;opacity:0.85;font-weight:600;}
+.streak-pill{display:inline-flex;align-items:center;gap:5px;background:rgba(255,184,48,0.25);border:1.5px solid rgba(255,184,48,0.5);border-radius:50px;padding:5px 13px;font-size:12px;font-weight:800;color:var(--sun-light);}
 
-.section-title { font-family: Georgia,serif; font-size: 18px; font-weight: 700; color: var(--deep); margin-bottom: 12px; margin-top: 4px; }
+/* GRID */
+.action-grid{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-bottom:18px;}
+.action-card{border-radius:18px;padding:17px 14px;cursor:pointer;transition:transform 0.18s,box-shadow 0.18s;box-shadow:var(--card-shadow);border:none;text-align:left;display:flex;flex-direction:column;gap:7px;background:white;}
+.action-card:hover{transform:translateY(-2px);box-shadow:var(--card-shadow-hover);}
+.action-card:active{transform:scale(0.97);}
+.ac-icon{font-size:28px;}.ac-label{font-size:12px;font-weight:800;color:var(--ink);line-height:1.2;}
+.action-card.ocean{background:var(--ocean);}.action-card.ocean .ac-label{color:white;}
+.action-card.sun{background:var(--sun);}
+.action-card.moss{background:var(--moss);}.action-card.moss .ac-label{color:white;}
+.action-card.purple-card{background:var(--purple-light);}.action-card.purple-card .ac-label{color:var(--purple);}
 
-/* CARDS */
-.card { background: white; border-radius: 18px; padding: 18px; margin-bottom: 14px; box-shadow: var(--card-shadow); }
-.card-title { font-size: 11px; font-weight: 700; color: var(--mist); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 12px; }
+.big-read-btn{width:100%;background:var(--ocean);color:white;border:none;border-radius:22px;padding:26px;font-size:20px;font-weight:900;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:5px;box-shadow:0 8px 28px rgba(42,110,187,0.4);transition:transform 0.18s;margin-bottom:18px;}
+.big-read-btn:hover{transform:translateY(-3px);}
+.big-read-btn:active{transform:scale(0.97);}
+.brb-icon{font-size:42px;}.brb-sub{font-size:12px;opacity:0.8;font-weight:700;}
 
-/* STAT ROW */
-.stat-trio { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 14px; }
-.stat-box { background: white; border-radius: 14px; padding: 14px 8px; text-align: center; box-shadow: var(--card-shadow); }
-.stat-box .sv { font-family: Georgia,serif; font-size: 24px; font-weight: 700; color: var(--ocean); }
-.stat-box .sl { font-size: 9px; font-weight: 700; color: var(--mist); text-transform: uppercase; letter-spacing: 0.3px; margin-top: 3px; line-height: 1.3; }
+.section-title{font-family:Georgia,serif;font-size:17px;font-weight:700;color:var(--deep);margin-bottom:11px;margin-top:2px;}
+.card{background:white;border-radius:18px;padding:15px;margin-bottom:12px;box-shadow:var(--card-shadow);}
+.card-title{font-size:10px;font-weight:700;color:var(--mist);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:10px;}
 
-/* QUALITY INDICATOR */
-.quality-legend { display: flex; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
-.ql-item { display: flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 700; color: var(--mist); }
-.ql-dot { width: 10px; height: 10px; border-radius: 50%; }
-.ql-dot.full { background: var(--ocean); }
-.ql-dot.partial { background: var(--sun); }
-.ql-dot.short { background: #dde5f0; }
-
-/* MONTHLY CHART */
-.month-chart { margin-bottom: 6px; }
-.month-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
-.month-label { font-size: 11px; font-weight: 700; color: var(--mist); width: 32px; text-align: right; flex-shrink: 0; }
-.month-bar-wrap { flex: 1; background: #eef3f9; border-radius: 99px; height: 22px; position: relative; overflow: hidden; }
-.month-bar-fill { height: 100%; border-radius: 99px; display: flex; align-items: center; padding-left: 10px; font-size: 10px; font-weight: 800; color: white; transition: width 1s cubic-bezier(.34,1.56,.64,1); min-width: 4px; }
-.month-bar-fill.ocean { background: var(--ocean); }
-.month-bar-fill.moss  { background: var(--moss); }
-.month-bar-fill.sun   { background: var(--sun); color: var(--deep); }
-.month-val { font-size: 11px; font-weight: 700; color: var(--mist); width: 38px; text-align: left; flex-shrink: 0; }
+.stat-trio{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px;margin-bottom:12px;}
+.stat-duo{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:12px;}
+.stat-box{background:white;border-radius:14px;padding:13px 7px;text-align:center;box-shadow:var(--card-shadow);}
+.stat-box .sv{font-family:Georgia,serif;font-size:22px;font-weight:700;color:var(--ocean);}
+.stat-box .sl{font-size:9px;font-weight:700;color:var(--mist);text-transform:uppercase;letter-spacing:0.3px;margin-top:3px;line-height:1.3;}
 
 /* WEEK DOTS */
-.week-dots { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 6px; }
-.day-dot { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 800; flex-direction: column; gap: 1px; }
-.day-dot .dd-day { font-size: 9px; color: inherit; opacity: 0.7; }
-.day-dot.full   { background: var(--ocean); color: white; }
-.day-dot.partial { background: var(--sun); color: var(--deep); }
-.day-dot.short  { background: #dde5f0; color: var(--mist); }
-.day-dot.none   { background: #f0f4f9; color: #c0ccd8; border: 1.5px dashed #dde5f0; }
+.week-dots{display:flex;gap:4px;}
+.day-dot{flex:1;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:800;flex-direction:column;gap:1px;}
+.day-dot .dd-day{font-size:7px;opacity:0.75;}
+.day-dot.full{background:var(--ocean);color:white;}
+.day-dot.partial{background:var(--sun);color:var(--deep);}
+.day-dot.short{background:#dde5f0;color:var(--mist);}
+.day-dot.none{background:#f0f4f9;color:#c5d0dc;border:1.5px dashed #dde5f0;}
+.quality-legend{display:flex;gap:10px;margin-top:8px;flex-wrap:wrap;}
+.ql-item{display:flex;align-items:center;gap:4px;font-size:10px;font-weight:700;color:var(--mist);}
+.ql-dot{width:8px;height:8px;border-radius:50%;}
+.ql-dot.full{background:var(--ocean);}.ql-dot.partial{background:var(--sun);}.ql-dot.short{background:#dde5f0;}
 
-/* SESSION LIST */
-.session-item { display: flex; align-items: center; gap: 12px; padding: 14px 0; border-bottom: 1px solid #eef3f9; }
-.session-item:last-child { border-bottom: none; }
-.si-icon { font-size: 24px; width: 40px; height: 40px; background: var(--sky); border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-.si-info { flex: 1; }
-.si-title { font-size: 14px; font-weight: 800; color: var(--ink); }
-.si-meta  { font-size: 11px; color: var(--mist); margin-top: 2px; }
-.si-badge { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
-.quality-badge { border-radius: 50px; padding: 3px 10px; font-size: 10px; font-weight: 800; }
-.qb-full    { background: #d4eaff; color: var(--ocean); }
-.qb-partial { background: var(--sun-light); color: #8a5c00; }
-.qb-short   { background: #f0f4f9; color: var(--mist); }
+/* SESSIONS */
+.session-item{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid #eef3f9;}
+.session-item:last-child{border-bottom:none;}
+.si-icon{font-size:20px;width:36px;height:36px;background:var(--sky);border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.si-info{flex:1;min-width:0;}
+.si-title{font-size:13px;font-weight:800;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.si-meta{font-size:10px;color:var(--mist);margin-top:2px;}
+.si-badge{display:flex;flex-direction:column;align-items:flex-end;gap:2px;flex-shrink:0;}
+.quality-badge{border-radius:50px;padding:3px 8px;font-size:9px;font-weight:800;}
+.qb-full{background:#d4eaff;color:var(--ocean);}.qb-partial{background:var(--sun-light);color:#8a5c00;}.qb-short{background:#f0f4f9;color:var(--mist);}
 
-/* TEACHER DASHBOARD */
-.teacher-hero {
-  background: linear-gradient(135deg, #7c3aed 0%, #4c1d95 100%);
-  border-radius: 22px; padding: 28px 22px; color: white; margin-bottom: 22px; position: relative; overflow: hidden;
-}
-.teacher-hero::before { content: '🏫'; position: absolute; right: 18px; top: 18px; font-size: 64px; opacity: 0.15; }
-.teacher-hero h1 { font-family: Georgia,serif; font-size: 24px; font-weight: 700; line-height: 1.15; margin-bottom: 6px; }
-.teacher-hero p { font-size: 13px; opacity: 0.8; font-weight: 600; }
+/* READING */
+.reading-box{background:white;border-radius:18px;padding:18px;margin-bottom:14px;box-shadow:var(--card-shadow);}
+.free-text-area{width:100%;border:2px solid #dde5f0;border-radius:12px;padding:13px;font-family:Georgia,serif;font-size:16px;line-height:1.7;color:var(--ink);background:var(--sky);outline:none;resize:none;transition:border-color 0.2s;min-height:130px;}
+.free-text-area:focus{border-color:var(--ocean);background:white;}
+.text-title-input{width:100%;border:2px solid #dde5f0;border-radius:11px;padding:11px 13px;font-size:14px;font-weight:700;color:var(--ink);background:var(--sky);outline:none;transition:border-color 0.2s;margin-bottom:9px;}
+.text-title-input:focus{border-color:var(--ocean);background:white;}
+.text-hint{font-size:10px;color:var(--mist);font-weight:600;margin-top:7px;text-align:center;}
 
-.class-row { display: flex; align-items: center; gap: 12px; padding: 14px 0; border-bottom: 1px solid #eef3f9; }
-.class-row:last-child { border-bottom: none; }
-.child-avatar { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
-.cr-info { flex: 1; }
-.cr-name { font-size: 14px; font-weight: 800; color: var(--ink); }
-.cr-meta { font-size: 11px; color: var(--mist); margin-top: 2px; }
-.cr-stats { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; }
-.cr-time { font-family: Georgia,serif; font-size: 16px; font-weight: 700; color: var(--ocean); }
-.cr-streak { font-size: 10px; color: var(--mist); font-weight: 700; }
+/* TIMER */
+.timer-wrap{text-align:center;margin:14px 0 8px;}
+.timer-ring{width:130px;height:130px;margin:0 auto 8px;position:relative;}
+.timer-ring svg{transform:rotate(-90deg);}
+.ring-bg{fill:none;stroke:#e8eff8;stroke-width:8;}
+.ring-progress{fill:none;stroke:var(--ocean);stroke-width:8;stroke-linecap:round;transition:stroke-dashoffset 1s linear,stroke 0.3s;}
+.ring-progress.recording{stroke:var(--coral);}
+.ring-progress.done{stroke:var(--moss);}
+.timer-text{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;}
+.timer-time{font-family:Georgia,serif;font-size:26px;font-weight:700;color:var(--deep);line-height:1;}
+.timer-time.recording{color:var(--coral);}.timer-time.done{color:var(--moss);}
+.timer-sublabel{font-size:9px;font-weight:700;color:var(--mist);margin-top:2px;text-transform:uppercase;letter-spacing:0.5px;}
+.rec-indicator{display:flex;align-items:center;justify-content:center;gap:7px;font-size:12px;font-weight:700;color:var(--coral);opacity:0;transition:opacity 0.3s;margin-bottom:12px;}
+.rec-indicator.visible{opacity:1;}
+.rec-dot{width:9px;height:9px;background:var(--coral);border-radius:50%;animation:blink 1s ease-in-out infinite;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:0.2;}}
 
-.week-mini { display: flex; gap: 3px; }
-.wm-dot { width: 8px; height: 8px; border-radius: 2px; }
-.wm-dot.full { background: var(--ocean); }
-.wm-dot.partial { background: var(--sun); }
-.wm-dot.none { background: #dde5f0; }
+/* DONE */
+.done-hero-wrap{text-align:center;padding:26px 16px 14px;}
+.done-emoji{font-size:62px;margin-bottom:7px;}
+.done-title{font-family:Georgia,serif;font-size:26px;font-weight:700;color:var(--deep);margin-bottom:5px;}
+.done-sub{font-size:13px;color:var(--mist);font-weight:600;}
+.stars-row{display:flex;justify-content:center;margin:18px 0;font-size:38px;animation:starPop 0.5s 0.3s both;}
+@keyframes starPop{from{transform:scale(0);opacity:0;}to{transform:scale(1);opacity:1;}}
 
-/* ACCESS CONTROL */
-.access-card { background: white; border-radius: 18px; padding: 18px; margin-bottom: 12px; box-shadow: var(--card-shadow); display: flex; align-items: center; gap: 14px; }
-.ac-avatar { width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; background: var(--sky); flex-shrink: 0; }
-.ac-info { flex: 1; }
-.ac-name { font-size: 15px; font-weight: 800; color: var(--ink); }
-.ac-role { font-size: 11px; color: var(--mist); margin-top: 2px; }
-.toggle-wrap { flex-shrink: 0; }
-.toggle { position: relative; width: 48px; height: 28px; }
-.toggle input { opacity: 0; width: 0; height: 0; }
-.toggle-slider { position: absolute; inset: 0; background: #dde5f0; border-radius: 99px; cursor: pointer; transition: 0.3s; }
-.toggle-slider::before { content: ''; position: absolute; height: 20px; width: 20px; left: 4px; bottom: 4px; background: white; border-radius: 50%; transition: 0.3s; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
-.toggle input:checked + .toggle-slider { background: var(--moss); }
-.toggle input:checked + .toggle-slider::before { transform: translateX(20px); }
+/* MONTH CHART */
+.month-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+.month-label{font-size:10px;font-weight:700;color:var(--mist);width:26px;text-align:right;flex-shrink:0;}
+.month-bar-wrap{flex:1;background:#eef3f9;border-radius:99px;height:19px;overflow:hidden;}
+.month-bar-fill{height:100%;border-radius:99px;display:flex;align-items:center;padding-left:8px;font-size:9px;font-weight:800;color:white;transition:width 1s cubic-bezier(.34,1.56,.64,1);min-width:4px;}
+.month-bar-fill.ocean{background:var(--ocean);}.month-bar-fill.moss{background:var(--moss);}.month-bar-fill.sun{background:var(--sun);color:var(--deep);}
+.month-val{font-size:10px;font-weight:700;color:var(--mist);width:28px;flex-shrink:0;}
 
-/* CHILD DETAIL */
-.detail-hero {
-  background: linear-gradient(135deg, var(--moss) 0%, #2e7a4f 100%);
-  border-radius: 22px; padding: 24px 20px; color: white; margin-bottom: 18px;
-}
-.detail-hero h2 { font-family: Georgia,serif; font-size: 22px; font-weight: 700; margin-bottom: 4px; }
-.detail-hero p { font-size: 13px; opacity: 0.85; }
+/* CLASS */
+.class-row{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid #eef3f9;}
+.class-row:last-child{border-bottom:none;}
+.child-av{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.cr-info{flex:1;min-width:0;}
+.cr-name{font-size:14px;font-weight:800;color:var(--ink);}
+.cr-meta{font-size:10px;color:var(--mist);margin-top:2px;}
+.cr-right{display:flex;flex-direction:column;align-items:flex-end;gap:2px;flex-shrink:0;}
+.cr-time{font-family:Georgia,serif;font-size:15px;font-weight:700;color:var(--ocean);}
+.cr-streak{font-size:9px;color:var(--mist);font-weight:700;}
+.week-mini{display:flex;gap:2px;margin-top:4px;}
+.wm-dot{width:7px;height:7px;border-radius:2px;}
+.wm-dot.full{background:var(--ocean);}.wm-dot.partial{background:var(--sun);}.wm-dot.none{background:#dde5f0;}
+
+/* BADGES */
+.badge-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px;margin-bottom:14px;}
+.badge-item{background:white;border-radius:15px;padding:14px 7px;text-align:center;box-shadow:var(--card-shadow);}
+.badge-item.locked{opacity:0.4;filter:grayscale(0.7);}
+.bi-icon{font-size:26px;margin-bottom:4px;}.bi-name{font-size:9px;font-weight:800;color:var(--deep);}.bi-req{font-size:8px;color:var(--mist);margin-top:2px;}
+
+.progress-bar-wrap{background:#e8eff8;border-radius:99px;height:8px;margin:6px 0 13px;overflow:hidden;}
+.progress-bar-fill{height:100%;background:linear-gradient(90deg,var(--ocean),var(--moss));border-radius:99px;transition:width 1s cubic-bezier(.34,1.56,.64,1);}
+
+/* PILL TABS */
+.pill-tabs{display:flex;gap:6px;background:var(--sky);border-radius:13px;padding:5px;margin-bottom:14px;}
+.pill-tab{flex:1;border:none;background:transparent;border-radius:9px;padding:8px 4px;font-size:11px;font-weight:700;color:var(--mist);cursor:pointer;transition:all 0.2s;}
+.pill-tab.active{background:white;color:var(--ocean);box-shadow:var(--card-shadow);}
 
 /* BUTTONS */
-.btn { width: 100%; border: none; border-radius: 16px; font-size: 16px; font-weight: 800; padding: 18px; cursor: pointer; transition: transform 0.15s; display: flex; align-items: center; justify-content: center; gap: 8px; }
-.btn:active { transform: scale(0.97); }
-.btn-primary { background: var(--ocean); color: white; box-shadow: 0 6px 20px rgba(42,110,187,0.3); }
-.btn-purple  { background: #7c3aed; color: white; box-shadow: 0 6px 20px rgba(124,58,237,0.3); }
-.btn-ghost   { background: white; color: var(--deep); box-shadow: var(--card-shadow); border: 2px solid #e0e8f0; }
-.btn + .btn  { margin-top: 10px; }
+.btn{width:100%;border:none;border-radius:15px;font-size:16px;font-weight:800;padding:17px;cursor:pointer;transition:transform 0.15s;display:flex;align-items:center;justify-content:center;gap:8px;}
+.btn:active{transform:scale(0.97);}
+.btn-primary{background:var(--ocean);color:white;box-shadow:0 6px 20px rgba(42,110,187,0.3);}
+.btn-danger{background:var(--coral);color:white;box-shadow:0 6px 20px rgba(255,107,107,0.3);}
+.btn-success{background:var(--moss);color:white;box-shadow:0 6px 20px rgba(76,175,125,0.3);}
+.btn-ghost{background:white;color:var(--deep);box-shadow:var(--card-shadow);border:2px solid #e0e8f0;}
+.btn+.btn{margin-top:10px;}
 
-.spacer { height: 16px; }
-.muted { color: var(--mist); font-size: 12px; font-weight: 600; }
-.text-center { text-align: center; }
-
-/* INFO BOX */
-.info-box { background: #f0f7ff; border-left: 4px solid var(--ocean); border-radius: 12px; padding: 14px 16px; margin-bottom: 14px; font-size: 13px; color: var(--deep); font-weight: 600; line-height: 1.5; }
-.info-box.purple { background: #f3eeff; border-color: #7c3aed; }
+.info-box{background:#f0f7ff;border-left:4px solid var(--ocean);border-radius:11px;padding:12px 13px;margin-bottom:12px;font-size:12px;color:var(--deep);font-weight:600;line-height:1.5;}
+.info-box.purple{background:var(--purple-light);border-color:var(--purple);}
+.info-box.green{background:var(--moss-light);border-color:var(--moss);}
+.empty-state{text-align:center;padding:24px;color:var(--mist);font-size:12px;font-weight:600;}
+.muted{color:var(--mist);font-size:11px;font-weight:600;}
+.text-center{text-align:center;}
 </style>
 </head>
 <body>
 
-<!-- ══ AÐALVALMYND ══ -->
-<div id="screen-home" class="screen active">
+<!-- ══ INNSKRÁNING ══ -->
+<div id="screen-login" class="screen active">
+  <div class="login-wrap">
+    <div class="login-logo">Lesum</div>
+    <div class="login-tagline">Íslenskt lestrarforrit — dagleg æfing</div>
+    <button class="user-btn" onclick="login('haflidi')">
+      <div class="ub-avatar blue">👦</div>
+      <div><div class="ub-name">Hafliði</div><div class="ub-role">Les í dag 📚</div></div>
+    </button>
+    <button class="user-btn" onclick="login('kolbeinn')">
+      <div class="ub-avatar green">👦</div>
+      <div><div class="ub-name">Kolbeinn</div><div class="ub-role">Les í dag 📚</div></div>
+    </button>
+    <button class="user-btn" onclick="login('mamma')">
+      <div class="ub-avatar purple">👩</div>
+      <div><div class="ub-name">Mamma</div><div class="ub-role">Foreldri &amp; kennari 📊</div></div>
+    </button>
+    <div class="login-note">Prufuaðgangur — engin lykilorð þarf</div>
+  </div>
+</div>
+
+<!-- ══ BARNASKJÁR ══ -->
+<div id="screen-child-home" class="screen">
   <div class="topbar">
+    <button class="back-btn" onclick="logout()">← Út</button>
     <div class="logo"><div class="logo-icon">L</div> Lesum</div>
-    <div class="mode-tag">Foreldri</div>
+    <div class="mode-tag green" id="child-mode-tag">Barn</div>
   </div>
   <div class="scroll-body">
-    <div class="home-hero">
-      <div class="hero-greeting">Góðan daginn</div>
-      <h1>Lestrarbúðir Sigríðar</h1>
-      <div class="streak-pill">🔥 5 daga röð</div>
+    <div class="hero green">
+      <div class="hero-label">Hæ!</div>
+      <h1 id="child-hero-title">Ertu tilbúinn að lesa í dag? 🌟</h1>
+      <div class="streak-pill" id="child-streak-pill">⭐ Byrjaðu í dag</div>
     </div>
-
-    <div class="section-title">Flýtileiðir</div>
-    <div class="action-grid">
-      <button class="action-card ocean" onclick="goTo('screen-parent-dash')">
-        <span class="ac-icon">📊</span>
-        <span class="ac-label">Mælaborð foreldris</span>
-      </button>
-      <button class="action-card sun" onclick="goTo('screen-teacher-dash')">
-        <span class="ac-icon">🏫</span>
-        <span class="ac-label">Kennara­mælaborð</span>
-      </button>
-      <button class="action-card moss" onclick="goTo('screen-access')">
-        <span class="ac-icon">🔐</span>
-        <span class="ac-label">Stýra aðgangi</span>
-      </button>
-      <button class="action-card purple" onclick="goTo('screen-child-detail')">
-        <span class="ac-icon">👧</span>
-        <span class="ac-label">Sigríður — ítarleg</span>
-      </button>
-    </div>
-
+    <button class="big-read-btn" onclick="goTo('screen-read-setup')">
+      <span class="brb-icon">🎤</span>
+      BYRJA AÐ LESA
+      <span class="brb-sub">Lestu upphátt í 15 mínútur</span>
+    </button>
     <div class="section-title">Þessi vika</div>
     <div class="card">
       <div class="card-title">Dagleg æfing — markmið: 15 mín/dag</div>
-      <div class="week-dots" id="home-week-dots"></div>
-      <div class="quality-legend" style="margin-top:10px">
+      <div class="week-dots" id="child-week-dots"></div>
+      <div class="quality-legend">
         <div class="ql-item"><div class="ql-dot full"></div> 15+ mín</div>
         <div class="ql-item"><div class="ql-dot partial"></div> 5–14 mín</div>
         <div class="ql-item"><div class="ql-dot short"></div> Stutt</div>
       </div>
     </div>
+    <div class="section-title">Verðlaunin mín</div>
+    <div class="badge-grid">
+      <div class="badge-item" id="badge-first"><div class="bi-icon">🌱</div><div class="bi-name">Fyrsti lestur</div><div class="bi-req" id="b1r">1 lota</div></div>
+      <div class="badge-item locked" id="badge-streak"><div class="bi-icon">🔥</div><div class="bi-name">5 daga röð</div><div class="bi-req" id="b2r">5 dagar</div></div>
+      <div class="badge-item locked" id="badge-lion"><div class="bi-icon">🦁</div><div class="bi-name">Lestrarlyfjan</div><div class="bi-req" id="b3r">10 lotur</div></div>
+    </div>
+    <div class="section-title">Síðustu lotur</div>
+    <div class="card" id="child-sessions"><div class="empty-state">Engar lotur enn — byrjaðu að lesa! 📖</div></div>
   </div>
 </div>
 
-<!-- ══ MÆLABORÐ FORELDRIS ══ -->
-<div id="screen-parent-dash" class="screen">
+<!-- ══ TEXTAVAL ══ -->
+<div id="screen-read-setup" class="screen">
   <div class="topbar">
-    <button class="back-btn" onclick="goTo('screen-home')">← Til baka</button>
+    <button class="back-btn" onclick="goTo('screen-child-home')">← Til baka</button>
+    <div class="logo">Veldu texta</div>
+  </div>
+  <div class="scroll-body">
+    <div class="info-box">📖 Sláðu inn eða límdu hvaða texta sem er — bók, tímarit, vefsíða. Eða veldu úr safninu.</div>
+    <div class="pill-tabs">
+      <button class="pill-tab active" onclick="switchTab('free',this)">Eigið efni</button>
+      <button class="pill-tab" onclick="switchTab('library',this)">Safnið</button>
+    </div>
+    <div id="tab-free">
+      <div class="card">
+        <div class="card-title">Heiti á texta (valfrjálst)</div>
+        <input class="text-title-input" id="custom-title" placeholder="t.d. Kapítuli 3 í Hobbitanum..." maxlength="60">
+        <div class="card-title">Límdu eða skrifaðu textann hér</div>
+        <textarea class="free-text-area" id="custom-text" placeholder="Límdu texta hér... eða lestu úr bók án texta á skjá."></textarea>
+        <div class="text-hint">Texti á skjá er ekki nauðsynlegur</div>
+      </div>
+    </div>
+    <div id="tab-library" style="display:none">
+      <div class="pill-tabs">
+        <button class="pill-tab active" onclick="filterLib('all',this)">Allt</button>
+        <button class="pill-tab" onclick="filterLib('easy',this)">Auðvelt</button>
+        <button class="pill-tab" onclick="filterLib('medium',this)">Miðlungs</button>
+        <button class="pill-tab" onclick="filterLib('hard',this)">Erfitt</button>
+      </div>
+      <div id="lib-list"></div>
+    </div>
+    <button class="btn btn-primary" onclick="startSession()" style="margin-top:8px">🎤 Hefja lestrarlotur</button>
+  </div>
+</div>
+
+<!-- ══ LESTRARLOTAN ══ -->
+<div id="screen-reading" class="screen">
+  <div class="topbar">
+    <button class="back-btn" onclick="confirmStop()">✕ Hætta</button>
+    <div class="logo">Les upphátt 🎤</div>
+  </div>
+  <div class="scroll-body">
+    <div class="reading-box" id="reading-text-box" style="display:none">
+      <div style="font-size:10px;font-weight:700;color:var(--ocean);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;" id="reading-text-title"></div>
+      <div style="font-family:Georgia,serif;font-size:17px;line-height:1.8;color:var(--ink);" id="reading-text-content"></div>
+    </div>
+    <div class="timer-wrap">
+      <div class="timer-ring">
+        <svg width="130" height="130" viewBox="0 0 130 130">
+          <circle class="ring-bg" cx="65" cy="65" r="55"/>
+          <circle class="ring-progress" id="ring-progress" cx="65" cy="65" r="55" stroke-dasharray="345.4" stroke-dashoffset="345.4"/>
+        </svg>
+        <div class="timer-text">
+          <div class="timer-time" id="timer-display">0:00</div>
+          <div class="timer-sublabel" id="timer-sublabel">Tilbúinn?</div>
+        </div>
+      </div>
+      <div class="muted text-center" id="timer-goal-text">Markmið: 15 mínútur</div>
+    </div>
+    <div class="rec-indicator" id="rec-indicator"><div class="rec-dot"></div> Tíminn er að líða</div>
+    <button class="btn btn-primary" id="btn-start" onclick="startTimer()">🎤 Byrja að lesa</button>
+    <button class="btn btn-danger" id="btn-stop" onclick="stopTimer()" style="display:none">⏹ Klára lestrarlotur</button>
+    <button class="btn btn-ghost" onclick="confirmStop()" style="margin-top:10px">Hætta við</button>
+  </div>
+</div>
+
+<!-- ══ LOKIÐ ══ -->
+<div id="screen-done" class="screen">
+  <div class="topbar"><div class="logo"><div class="logo-icon">L</div> Lesum</div></div>
+  <div class="scroll-body">
+    <div class="done-hero-wrap">
+      <div class="done-emoji" id="done-emoji">🎉</div>
+      <div class="done-title" id="done-title">Frábær lestur!</div>
+      <div class="done-sub" id="done-sub">Þú fékkst stjörnu!</div>
+    </div>
+    <div class="stars-row">⭐</div>
+    <div class="stat-duo">
+      <div class="stat-box"><div class="sv" id="done-time">0:00</div><div class="sl">Lesturtími</div></div>
+      <div class="stat-box"><div class="sv" id="done-stars">1</div><div class="sl">Stjörnur alls</div></div>
+    </div>
+    <div class="stat-duo">
+      <div class="stat-box"><div class="sv" id="done-streak">🔥1</div><div class="sl">Daga röð</div></div>
+      <div class="stat-box"><div class="sv" id="done-total">1</div><div class="sl">Lotur alls</div></div>
+    </div>
+    <div id="done-badge-box" style="display:none;background:#FFF3CC;border-radius:15px;padding:15px;margin-bottom:13px;text-align:center;">
+      <div style="font-size:28px;margin-bottom:4px" id="done-badge-icon">🏆</div>
+      <div style="font-size:13px;font-weight:800;color:#b07d00;" id="done-badge-text">Verðlaun opnuð!</div>
+    </div>
+    <div style="background:#f0f7ff;border-radius:15px;padding:15px;margin-bottom:15px;">
+      <div style="font-size:10px;font-weight:700;color:var(--mist);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:9px;">Næstu verðlaun</div>
+      <div style="display:flex;align-items:center;gap:11px;">
+        <div style="font-size:28px" id="next-icon">🦁</div>
+        <div style="flex:1">
+          <div style="font-size:14px;font-weight:800;color:var(--ink);" id="next-name">Lestrarlyfjan</div>
+          <div style="font-size:11px;color:var(--mist);margin-bottom:5px;" id="next-prog">1 / 10 lotur</div>
+          <div class="progress-bar-wrap" style="margin:0"><div class="progress-bar-fill" id="next-bar" style="width:10%"></div></div>
+        </div>
+      </div>
+    </div>
+    <button class="btn btn-primary" onclick="goTo('screen-read-setup')">📖 Lesa aftur</button>
+    <button class="btn btn-ghost" onclick="goTo('screen-child-home')">Fara á heimaskjá</button>
+  </div>
+</div>
+
+<!-- ══ MAMMA HEIM ══ -->
+<div id="screen-mamma-home" class="screen">
+  <div class="topbar">
+    <button class="back-btn" onclick="logout()">← Út</button>
     <div class="logo"><div class="logo-icon">L</div> Lesum</div>
-    <div class="mode-tag">Foreldri</div>
+    <div class="mode-tag purple">Mamma</div>
   </div>
   <div class="scroll-body">
-
-    <div class="stat-trio">
-      <div class="stat-box">
-        <div class="sv">4.2</div>
-        <div class="sl">Lotur á viku að meðaltali</div>
-      </div>
-      <div class="stat-box">
-        <div class="sv">58</div>
-        <div class="sl">Mín þessa viku</div>
-      </div>
-      <div class="stat-box">
-        <div class="sv">🔥5</div>
-        <div class="sl">Daga röð</div>
-      </div>
+    <div class="hero purple">
+      <div class="hero-label">Yfirlit</div>
+      <h1>Lestrarbúðir strákaranna</h1>
+      <p>Dagleg æfing · Gæði yfir magn</p>
     </div>
-
+    <div class="action-grid">
+      <button class="action-card ocean" onclick="goTo('screen-detail-haflidi')"><span class="ac-icon">👦</span><span class="ac-label">Hafliði — nánar</span></button>
+      <button class="action-card moss" onclick="goTo('screen-detail-kolbeinn')"><span class="ac-icon">👦</span><span class="ac-label">Kolbeinn — nánar</span></button>
+      <button class="action-card sun" onclick="goTo('screen-comparison')"><span class="ac-icon">📊</span><span class="ac-label">Samanburður</span></button>
+      <button class="action-card purple-card" onclick="goTo('screen-teacher')"><span class="ac-icon">🏫</span><span class="ac-label">Kennarayfirlit</span></button>
+    </div>
+    <div class="section-title">Þessi vika — báðir strákar</div>
     <div class="card">
-      <div class="card-title">Þessi vika — dagleg æfing</div>
-      <div class="week-dots" id="parent-week-dots"></div>
-      <div class="quality-legend" style="margin-top:10px">
-        <div class="ql-item"><div class="ql-dot full"></div> 15+ mín (frábært)</div>
-        <div class="ql-item"><div class="ql-dot partial"></div> 5–14 mín (gott)</div>
-        <div class="ql-item"><div class="ql-dot short"></div> Undir 5 mín</div>
-      </div>
+      <div class="card-title" style="margin-bottom:7px">👦 Hafliði</div>
+      <div class="week-dots" id="m-haflidi-dots"></div>
     </div>
-
-    <div class="section-title">Samanburður eftir mánuðum</div>
-    <div class="info-box">Heildarfjöldi lestrarlotur á mánuði — markmið: dagleg æfing = ~30 lotur/mán</div>
     <div class="card">
-      <div class="card-title">Lestrarlotur á mánuði</div>
-      <div class="month-chart" id="month-chart"></div>
+      <div class="card-title" style="margin-bottom:7px">👦 Kolbeinn</div>
+      <div class="week-dots" id="m-kolbeinn-dots"></div>
     </div>
-
-    <div class="section-title">Allar lestrarlotur</div>
-    <div class="card" id="all-sessions"></div>
-
+    <div class="quality-legend" style="padding-left:2px;margin-bottom:4px;">
+      <div class="ql-item"><div class="ql-dot full"></div> 15+ mín</div>
+      <div class="ql-item"><div class="ql-dot partial"></div> 5–14 mín</div>
+      <div class="ql-item"><div class="ql-dot short"></div> Stutt</div>
+    </div>
   </div>
 </div>
 
-<!-- ══ KENNARAMÆLABORÐ ══ -->
-<div id="screen-teacher-dash" class="screen">
+<!-- ══ HAFLIÐI NÁNAR ══ -->
+<div id="screen-detail-haflidi" class="screen">
   <div class="topbar">
-    <button class="back-btn" onclick="goTo('screen-home')">← Til baka</button>
-    <div class="logo"><div class="logo-icon">L</div> Lesum</div>
-    <div class="mode-tag teacher">Kennari</div>
+    <button class="back-btn" onclick="goTo('screen-mamma-home')">← Til baka</button>
+    <div class="logo">Hafliði</div><div class="mode-tag">Nánar</div>
+  </div>
+  <div class="scroll-body" id="detail-haflidi"></div>
+</div>
+
+<!-- ══ KOLBEINN NÁNAR ══ -->
+<div id="screen-detail-kolbeinn" class="screen">
+  <div class="topbar">
+    <button class="back-btn" onclick="goTo('screen-mamma-home')">← Til baka</button>
+    <div class="logo">Kolbeinn</div><div class="mode-tag">Nánar</div>
+  </div>
+  <div class="scroll-body" id="detail-kolbeinn"></div>
+</div>
+
+<!-- ══ SAMANBURÐUR ══ -->
+<div id="screen-comparison" class="screen">
+  <div class="topbar">
+    <button class="back-btn" onclick="goTo('screen-mamma-home')">← Til baka</button>
+    <div class="logo">Samanburður</div>
   </div>
   <div class="scroll-body">
-
-    <div class="teacher-hero">
-      <h1>4. bekkur — Ársæll</h1>
-      <p>Skráning á lestrartíðni — engar niðurstöður eða mat</p>
+    <div class="stat-duo">
+      <div class="stat-box"><div style="font-size:24px;margin-bottom:3px">👦</div><div class="sv" id="cmp-h">0</div><div class="sl">Lotur — Hafliði</div></div>
+      <div class="stat-box"><div style="font-size:24px;margin-bottom:3px">👦</div><div class="sv" id="cmp-k">0</div><div class="sl">Lotur — Kolbeinn</div></div>
     </div>
-
-    <div class="info-box purple">
-      🔐 Kennarinn sér eingöngu skráninguna — hvort barn las og hve lengt. Foreldrar ráða hvort kennarinn fær aðgang.
-    </div>
-
-    <div class="stat-trio">
-      <div class="stat-box">
-        <div class="sv">14</div>
-        <div class="sl">Börn með aðgang</div>
-      </div>
-      <div class="stat-box">
-        <div class="sv">71%</div>
-        <div class="sl">Lasu í dag</div>
-      </div>
-      <div class="stat-box">
-        <div class="sv">🔥</div>
-        <div class="sl">Bekkur á réttri leið</div>
-      </div>
-    </div>
-
-    <div class="section-title">Börn í bekk</div>
-    <div class="card" id="class-list"></div>
-
-    <div class="section-title">Vika yfirlit — bekkur</div>
-    <div class="card">
-      <div class="card-title">Hlutfall barna sem lasu hvern dag</div>
-      <div id="class-week-chart"></div>
-    </div>
-
+    <div class="section-title">Lotur eftir mánuðum</div>
+    <div class="card"><div class="card-title">👦 Hafliði</div><div id="cmp-h-chart"></div></div>
+    <div class="card"><div class="card-title">👦 Kolbeinn</div><div id="cmp-k-chart"></div></div>
   </div>
 </div>
 
-<!-- ══ AÐGANGSSTÝRING ══ -->
-<div id="screen-access" class="screen">
+<!-- ══ KENNARAYFIRLIT ══ -->
+<div id="screen-teacher" class="screen">
   <div class="topbar">
-    <button class="back-btn" onclick="goTo('screen-home')">← Til baka</button>
-    <div class="logo">Aðgangur</div>
+    <button class="back-btn" onclick="goTo('screen-mamma-home')">← Til baka</button>
+    <div class="logo">Kennari</div><div class="mode-tag purple">Skráning</div>
   </div>
   <div class="scroll-body">
-
-    <div class="info-box">
-      🔐 Þú ræður því hverjir fá aðgang að lestrarskráningu Sigríðar. Kennarar sjá <strong>eingöngu</strong> hvort hún las og hve lengt — engar niðurstöður.
+    <div class="hero purple">
+      <div class="hero-label">Kennarayfirlit</div>
+      <h1>Strákarnir tveir</h1>
+      <p>Eingöngu lestrarskráning — engar niðurstöður</p>
     </div>
-
-    <div class="section-title">Kennarar</div>
-
-    <div class="access-card">
-      <div class="ac-avatar">👩‍🏫</div>
-      <div class="ac-info">
-        <div class="ac-name">Ársæll Sigurðsson</div>
-        <div class="ac-role">Umsjónarkennari — 4. bekkur</div>
-      </div>
-      <div class="toggle-wrap">
-        <label class="toggle">
-          <input type="checkbox" checked onchange="toggleAccess(this,'Ársæll')">
-          <span class="toggle-slider"></span>
-        </label>
-      </div>
-    </div>
-
-    <div class="access-card">
-      <div class="ac-avatar">👨‍🏫</div>
-      <div class="ac-info">
-        <div class="ac-name">Helga Björnsdóttir</div>
-        <div class="ac-role">Íslenskukennari</div>
-      </div>
-      <div class="toggle-wrap">
-        <label class="toggle">
-          <input type="checkbox" onchange="toggleAccess(this,'Helga')">
-          <span class="toggle-slider"></span>
-        </label>
-      </div>
-    </div>
-
-    <div class="access-card" style="opacity:0.6">
-      <div class="ac-avatar">➕</div>
-      <div class="ac-info">
-        <div class="ac-name" style="color:var(--mist)">Bæta við kennara</div>
-        <div class="ac-role">Senda boð á netfang</div>
-      </div>
-    </div>
-
-    <div class="spacer"></div>
-    <div class="section-title">Hvað sér kennarinn?</div>
-    <div class="card">
-      <div class="session-item">
-        <div class="si-icon">✅</div>
-        <div class="si-info">
-          <div class="si-title">Les eða les ekki</div>
-          <div class="si-meta">Hvort barn las á hverjum degi</div>
-        </div>
-      </div>
-      <div class="session-item">
-        <div class="si-icon">⏱️</div>
-        <div class="si-info">
-          <div class="si-title">Lengd lotu</div>
-          <div class="si-meta">Hve lengt var lesið</div>
-        </div>
-      </div>
-      <div class="session-item">
-        <div class="si-icon">📅</div>
-        <div class="si-info">
-          <div class="si-title">Tíðni á viku</div>
-          <div class="si-meta">Fjöldi lota á viku</div>
-        </div>
-      </div>
-      <div class="session-item" style="border:none">
-        <div class="si-icon">🚫</div>
-        <div class="si-info">
-          <div class="si-title" style="color:var(--coral)">Ekki í boði fyrir kennara</div>
-          <div class="si-meta">Hvaða textar, niðurstöður, orð/mín</div>
-        </div>
-      </div>
-    </div>
-
-  </div>
-</div>
-
-<!-- ══ ÍTARLEG SKJÁR BARNS ══ -->
-<div id="screen-child-detail" class="screen">
-  <div class="topbar">
-    <button class="back-btn" onclick="goTo('screen-home')">← Til baka</button>
-    <div class="logo">Sigríður</div>
-    <div class="mode-tag">Ítarlegt</div>
-  </div>
-  <div class="scroll-body">
-
-    <div class="detail-hero">
-      <h2>👧 Sigríður, 9 ára</h2>
-      <p>Lestrarsaga síðustu 3 mánuði</p>
-    </div>
-
-    <div class="stat-trio">
-      <div class="stat-box">
-        <div class="sv">38</div>
-        <div class="sl">Lotur alls</div>
-      </div>
-      <div class="stat-box">
-        <div class="sv">14m</div>
-        <div class="sl">Meðallengd</div>
-      </div>
-      <div class="stat-box">
-        <div class="sv">82%</div>
-        <div class="sl">Dagar lesið</div>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="card-title">Þróun — meðallengd lotu eftir mánuðum</div>
-      <div id="progress-chart"></div>
-      <div class="muted" style="margin-top:10px;text-align:center">Markmið: 15 mín/dag</div>
-    </div>
-
-    <div class="section-title">Textar sem hafa verið lesnar</div>
-    <div class="card" id="texts-read"></div>
-
+    <div class="info-box purple">🔐 Kennarinn sér <strong>eingöngu</strong> hvort barn las og hve lengt. Engar niðurstöður.</div>
+    <div class="section-title">Þessi vika</div>
+    <div class="card" id="teacher-list"></div>
+    <div class="section-title">Vikuyfirlit</div>
+    <div class="card"><div class="card-title">Hlutfall sem las hvern dag</div><div id="teacher-chart"></div></div>
   </div>
 </div>
 
 <script>
-// ── DATA ──
-const weekData = [
-  { day:'Mán', mins:16, label:'16 mín' },
-  { day:'Þri', mins:15, label:'15 mín' },
-  { day:'Mið', mins:8,  label:'8 mín'  },
-  { day:'Fim', mins:15, label:'15 mín' },
-  { day:'Fös', mins:0,  label:'—'      },
-  { day:'Lau', mins:18, label:'18 mín' },
-  { day:'Sun', mins:12, label:'12 mín' },
+// ══ GÖGN ══
+const USERS = {
+  haflidi:  { name:'Hafliði',  emoji:'👦' },
+  kolbeinn: { name:'Kolbeinn', emoji:'👦' },
+  mamma:    { name:'Mamma',    emoji:'👩' },
+};
+const DAYS = ['Mán','Þri','Mið','Fim','Fös','Lau','Sun'];
+const MONTHS_IS = ['Jan','Feb','Mar','Apr','Maí','Jún','Júl','Ágú','Sep','Okt','Nóv','Des'];
+const TARGET = 15 * 60;
+const LIBRARY = [
+  {id:'l1',level:'easy',  icon:'☁️',title:'Litla skýið',        words:82,  text:'Eitt sinn var litla hvítt ský sem flaug hægt yfir fjöllin. Það var svo forvitið um allt sem var neðan við sig. Hvernig lítur grasið út? Hvað gera börnin? Einn daginn ákvað það að fara niður og kíkja nánar á heiminn...'},
+  {id:'l2',level:'easy',  icon:'🐑',title:'Glað lambið',        words:76,  text:'Á grænum hlíðum bjó gott lamb sem hét Lobbi. Á hverju morgni vaknaði hann við söng fuglanna í kjarrinu. Hann hoppaði og létti, hljóp í kringum móðurina og græddi sig á sætum blómum í hlíðinni.'},
+  {id:'l3',level:'medium',icon:'🦊',title:'Refurinn og tunglið', words:138, text:'Á hæðinni sat gáðugur refur og horfði á tunglið. Hann hafði alltaf velt því fyrir sér af hverju það skipti um lögun hverja nótt. Svaf það? Leyndi það sér? Einn kvöld ákvað hann að klifra upp á hæsta tind fjallsins til að finna svarið...'},
+  {id:'l4',level:'medium',icon:'🏔️',title:'Yfir heiðarnar',     words:162, text:'Stígurinn lá upp á við í gegnum gróið land og grámosaða hraun. Björn hafði gengið þessa leið margar sinnum með afa sínum, en í dag gekk hann einn í fyrsta sinn. Vindurinn var kaldur og hvass, og í loftinu fann hann lykt af fjarlægum rigningu...'},
+  {id:'l5',level:'hard',  icon:'🌊',title:'Draumur sjómannsins', words:205, text:'Sjórinn var kyrr um kvöldið, þvert ofan í venjuna hér norðar. Gamli Magnús dró bátinn sinn upp á svarta sandinn og settist niður til að fylgjast með sjóndeildarhringinn. Hann hafði fiskað á þessum slóðum í fjörtíu ár og þó kom hafið alltaf á óvart...'},
+  {id:'l6',level:'hard',  icon:'🌋',title:'Eldfjallið vaknar',   words:190, text:'Vísindamennirnir kölluðu það sofandi gígant, en Hekla hafði aldrei í raun sofið. Undir hvítu snjóhettunni brann enn forn eldur, hægt og þolinmótt, eins og hann hafði gert í þúsund ár. Þegar jörðin skalf fyrst þetta oktobermorgni tóku aðeins fuglarnir eftir því...'},
 ];
 
-const monthData = [
-  { month:'Jan', sessions:12, max:31 },
-  { month:'Feb', sessions:18, max:28 },
-  { month:'Mar', sessions:24, max:31 },
-  { month:'Apr', sessions:31, max:30 },
-  { month:'Maí', sessions:28, max:31 },
-  { month:'Jún', sessions:38, max:30 },
-];
+// ══ STATE ══
+let currentUser = null;
+let timerInterval = null;
+let sessionSecs = 0;
+let sessionTitle = '';
+let sessionText = '';
 
-const sessions = [
-  { icon:'🦊', title:'Refurinn og tunglið', date:'Í dag',  mins:16, level:'medium' },
-  { icon:'🏔️', title:'Yfir heiðarnar',      date:'Í gær',  mins:15, level:'medium' },
-  { icon:'🌊', title:'Draumur sjómannsins', date:'Fim',    mins:8,  level:'hard'   },
-  { icon:'☁️', title:'Litla skýið',         date:'Mið',    mins:15, level:'easy'   },
-  { icon:'🌋', title:'Eldfjallið vaknar',   date:'Þri',    mins:18, level:'hard'   },
-  { icon:'🐑', title:'Glað lambið',         date:'Mán',    mins:12, level:'easy'   },
-];
+// ══ GEYMSLA ══
+function getSessions(u){ return JSON.parse(localStorage.getItem('lesum_'+u)||'[]'); }
+function saveSessions(u,s){ localStorage.setItem('lesum_'+u,JSON.stringify(s)); }
+function addSession(u,s){ const arr=getSessions(u); arr.unshift(s); saveSessions(u,arr); }
 
-const classData = [
-  { name:'Sigríður',    emoji:'👧', weekDots:[1,1,0,1,0,1,1], todayMins:16, streak:5  },
-  { name:'Björn',       emoji:'👦', weekDots:[1,1,1,1,1,0,1], todayMins:15, streak:6  },
-  { name:'Katrín',      emoji:'👧', weekDots:[0,1,1,0,1,1,0], todayMins:0,  streak:2  },
-  { name:'Magnús',      emoji:'👦', weekDots:[1,0,1,1,0,1,1], todayMins:18, streak:4  },
-  { name:'Elísabet',    emoji:'👧', weekDots:[1,1,1,1,1,1,1], todayMins:15, streak:7  },
-  { name:'Árni',        emoji:'👦', weekDots:[0,0,1,0,1,0,1], todayMins:14, streak:1  },
-  { name:'Þóra',        emoji:'👧', weekDots:[1,1,0,1,1,0,0], todayMins:0,  streak:3  },
-];
+function dateKey(offsetDays){
+  const d=new Date(); d.setDate(d.getDate()-offsetDays);
+  return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();
+}
+function todayKey(){ return dateKey(0); }
 
-const textsRead = [
-  { icon:'🦊', title:'Refurinn og tunglið', count:4, lastDate:'Í dag'   },
-  { icon:'🌊', title:'Draumur sjómannsins', count:3, lastDate:'Þri'     },
-  { icon:'🏔️', title:'Yfir heiðarnar',      count:6, lastDate:'Í gær'   },
-  { icon:'☁️', title:'Litla skýið',         count:2, lastDate:'Mið'     },
-  { icon:'🌋', title:'Eldfjallið vaknar',   count:5, lastDate:'Lau'     },
-  { icon:'🐑', title:'Glað lambið',         count:3, lastDate:'Mán'     },
-];
+function getWeekData(u){
+  const ss=getSessions(u);
+  return DAYS.map((day,i)=>{
+    const key=dateKey(6-i);
+    const mins=ss.filter(s=>s.date===key).reduce((a,s)=>a+Math.floor(s.seconds/60),0);
+    return {day,mins};
+  });
+}
+function getStreak(u){
+  const ss=getSessions(u); if(!ss.length) return 0;
+  let streak=0, d=new Date();
+  for(let i=0;i<60;i++){
+    const k=d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();
+    if(ss.some(s=>s.date===k&&s.seconds>=60)){ streak++; d.setDate(d.getDate()-1); }
+    else if(i===0){ d.setDate(d.getDate()-1); }
+    else break;
+  }
+  return streak;
+}
+function getTotalStars(u){ return getSessions(u).filter(s=>s.seconds>=60).length; }
 
-// ── NAV ──
-function goTo(id) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+// ══ NAV ══
+function goTo(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   window.scrollTo(0,0);
+  if(id==='screen-child-home') renderChildHome();
+  if(id==='screen-mamma-home') renderMammaHome();
+  if(id==='screen-detail-haflidi') renderDetail('haflidi','detail-haflidi');
+  if(id==='screen-detail-kolbeinn') renderDetail('kolbeinn','detail-kolbeinn');
+  if(id==='screen-comparison') renderComparison();
+  if(id==='screen-teacher') renderTeacher();
+  if(id==='screen-read-setup') renderLibrary('all');
 }
 
-// ── QUALITY ──
-function qualityClass(mins) {
-  if (mins >= 15) return 'full';
-  if (mins >= 5)  return 'partial';
-  if (mins > 0)   return 'short';
-  return 'none';
+function login(u){
+  currentUser=u;
+  goTo(u==='mamma'?'screen-mamma-home':'screen-child-home');
 }
-function qualityLabel(mins) {
-  if (mins >= 15) return mins+'mín ✓';
-  if (mins >= 5)  return mins+'mín';
-  if (mins > 0)   return mins+'mín';
-  return '—';
-}
-function qualityBadgeClass(mins) {
-  if (mins >= 15) return 'qb-full';
-  if (mins >= 5)  return 'qb-partial';
-  return 'qb-short';
-}
-function qualityBadgeLabel(mins) {
-  if (mins >= 15) return '✓ Frábært';
-  if (mins >= 5)  return 'Gott';
-  return 'Stutt';
-}
+function logout(){ currentUser=null; clearInterval(timerInterval); sessionSecs=0; goTo('screen-login'); }
 
-// ── WEEK DOTS ──
-function renderWeekDots(containerId, data) {
-  const el = document.getElementById(containerId);
-  if (!el) return;
-  el.innerHTML = '';
-  data.forEach(d => {
-    const dot = document.createElement('div');
-    const q = qualityClass(d.mins);
-    dot.className = 'day-dot ' + q;
-    dot.innerHTML = `<span class="dd-day">${d.day}</span><span>${d.mins > 0 ? d.mins+'m' : '—'}</span>`;
+// ══ HELPERS ══
+function qc(m){ return m>=15?'full':m>=5?'partial':m>0?'short':'none'; }
+function qbl(m){ return m>=15?'qb-full':m>=5?'qb-partial':'qb-short'; }
+function qbl(m){ return m>=15?'✓ Frábært':m>=5?'Gott':'Stutt'; }
+function fmtTime(s){ return Math.floor(s/60)+':'+String(s%60).padStart(2,'0'); }
+
+function renderDots(elId,u){
+  const el=document.getElementById(elId); if(!el) return;
+  const data=getWeekData(u); el.innerHTML='';
+  data.forEach(d=>{
+    const dot=document.createElement('div');
+    dot.className='day-dot '+qc(d.mins);
+    dot.innerHTML=`<span class="dd-day">${d.day}</span><span>${d.mins>0?d.mins+'m':'—'}</span>`;
     el.appendChild(dot);
   });
 }
 
-// ── MONTH CHART ──
-function renderMonthChart() {
-  const el = document.getElementById('month-chart');
-  if (!el) return;
-  const target = 30;
-  el.innerHTML = '';
-  const colors = ['ocean','ocean','ocean','moss','sun','moss'];
-  monthData.forEach((m, i) => {
-    const pct = Math.min(100, Math.round((m.sessions / target) * 100));
-    const row = document.createElement('div');
-    row.className = 'month-row';
-    row.innerHTML = `
-      <div class="month-label">${m.month}</div>
-      <div class="month-bar-wrap">
-        <div class="month-bar-fill ${colors[i]}" style="width:0%" data-pct="${pct}">
-          ${pct >= 20 ? m.sessions + ' lotur' : ''}
-        </div>
-      </div>
-      <div class="month-val">${m.sessions}</div>`;
-    el.appendChild(row);
-  });
-  // Animate
-  setTimeout(() => {
-    el.querySelectorAll('.month-bar-fill').forEach(bar => {
-      bar.style.width = bar.dataset.pct + '%';
-    });
-  }, 100);
-}
-
-// ── SESSION LIST ──
-function renderSessions() {
-  const el = document.getElementById('all-sessions');
-  if (!el) return;
-  el.innerHTML = '';
-  sessions.forEach(s => {
-    const div = document.createElement('div');
-    div.className = 'session-item';
-    div.innerHTML = `
-      <div class="si-icon">${s.icon}</div>
-      <div class="si-info">
-        <div class="si-title">${s.title}</div>
-        <div class="si-meta">${s.date}</div>
-      </div>
-      <div class="si-badge">
-        <span class="quality-badge ${qualityBadgeClass(s.mins)}">${qualityBadgeLabel(s.mins)}</span>
-        <span class="muted">${s.mins} mín</span>
-      </div>`;
+function renderSessionList(elId,u,limit){
+  const el=document.getElementById(elId); if(!el) return;
+  const ss=getSessions(u).slice(0,limit||999);
+  if(!ss.length){ el.innerHTML='<div class="empty-state">Engar lotur enn — byrjaðu að lesa! 📖</div>'; return; }
+  el.innerHTML='';
+  ss.forEach(s=>{
+    const mins=Math.floor(s.seconds/60);
+    const div=document.createElement('div'); div.className='session-item';
+    div.innerHTML=`<div class="si-icon">${s.icon||'📖'}</div>
+      <div class="si-info"><div class="si-title">${s.title||'Lestur'}</div><div class="si-meta">${s.dateLabel||s.date}</div></div>
+      <div class="si-badge"><span class="quality-badge ${qbl(mins)}">${qbl(mins)}</span><span class="muted">${fmtTime(s.seconds)}</span></div>`;
     el.appendChild(div);
   });
 }
 
-// ── CLASS LIST ──
-function renderClassList() {
-  const el = document.getElementById('class-list');
-  if (!el) return;
-  el.innerHTML = '';
-  classData.forEach(child => {
-    const total = child.weekDots.filter(d => d > 0).length;
-    const row = document.createElement('div');
-    row.className = 'class-row';
-    const dotsHtml = child.weekDots.map(d =>
-      `<div class="wm-dot ${d===1 ? 'full' : 'none'}"></div>`
-    ).join('');
-    const readToday = child.todayMins >= 5;
-    row.innerHTML = `
-      <div class="child-avatar" style="background:${readToday?'var(--moss-light)':'#f0f4f9'}">${child.emoji}</div>
-      <div class="cr-info">
-        <div class="cr-name">${child.name}</div>
-        <div class="cr-meta">${total}/7 dagar þessa viku · ${readToday ? child.todayMins+' mín í dag' : 'Ekki enn í dag'}</div>
-        <div class="week-mini" style="margin-top:5px">${dotsHtml}</div>
-      </div>
-      <div class="cr-stats">
-        <div class="cr-time">${child.todayMins > 0 ? child.todayMins+'mín' : '—'}</div>
-        <div class="cr-streak">🔥${child.streak} röð</div>
-      </div>`;
+function renderMonthBars(elId,u){
+  const el=document.getElementById(elId); if(!el) return;
+  const ss=getSessions(u); const now=new Date(); el.innerHTML='';
+  for(let i=5;i>=0;i--){
+    const d=new Date(now.getFullYear(),now.getMonth()-i,1);
+    const key=d.getFullYear()+'-'+(d.getMonth()+1);
+    const label=MONTHS_IS[d.getMonth()];
+    const count=ss.filter(s=>s.date&&s.date.startsWith(key)).length;
+    const pct=Math.min(100,Math.round((count/Math.max(count,20))*100));
+    const color=i===0?'moss':'ocean';
+    const row=document.createElement('div'); row.className='month-row';
+    row.innerHTML=`<div class="month-label">${label}</div>
+      <div class="month-bar-wrap"><div class="month-bar-fill ${color}" style="width:0%" data-pct="${pct}">${pct>20?count+(count===1?' lota':' lotur'):''}</div></div>
+      <div class="month-val">${count}</div>`;
     el.appendChild(row);
-  });
+  }
+  setTimeout(()=>{ el.querySelectorAll('.month-bar-fill').forEach(b=>b.style.width=b.dataset.pct+'%'); },100);
 }
 
-// ── CLASS WEEK CHART ──
-function renderClassWeekChart() {
-  const el = document.getElementById('class-week-chart');
-  if (!el) return;
-  const days = ['Mán','Þri','Mið','Fim','Fös','Lau','Sun'];
-  // % of class that read each day
-  const pcts = [78, 85, 64, 92, 57, 71, 71];
-  el.innerHTML = '';
-  days.forEach((d, i) => {
-    const row = document.createElement('div');
-    row.className = 'month-row';
-    const color = pcts[i] >= 75 ? 'moss' : pcts[i] >= 50 ? 'ocean' : 'sun';
-    row.innerHTML = `
-      <div class="month-label">${d}</div>
-      <div class="month-bar-wrap">
-        <div class="month-bar-fill ${color}" style="width:0%" data-pct="${pcts[i]}">
-          ${pcts[i] >= 25 ? pcts[i]+'%' : ''}
-        </div>
-      </div>
-      <div class="month-val">${pcts[i]}%</div>`;
-    el.appendChild(row);
-  });
-  setTimeout(() => {
-    el.querySelectorAll('.month-bar-fill').forEach(bar => {
-      bar.style.width = bar.dataset.pct + '%';
-    });
-  }, 150);
+// ══ CHILD HOME ══
+function renderChildHome(){
+  const u=USERS[currentUser];
+  document.getElementById('child-mode-tag').textContent=u.name;
+  document.getElementById('child-hero-title').textContent='Ertu tilbúinn að lesa í dag, '+u.name+'? 🌟';
+  const streak=getStreak(currentUser);
+  const stars=getTotalStars(currentUser);
+  document.getElementById('child-streak-pill').textContent=streak>0?'🔥 '+streak+' daga röð':'⭐ '+stars+' stjörnur';
+  renderDots('child-week-dots',currentUser);
+  renderSessionList('child-sessions',currentUser,5);
+  // Badges
+  const count=getSessions(currentUser).length;
+  const b1=document.getElementById('badge-first'),b2=document.getElementById('badge-streak'),b3=document.getElementById('badge-lion');
+  if(count>=1){b1.classList.remove('locked');document.getElementById('b1r').textContent='Unnið! ✓';}
+  else{b1.classList.add('locked');document.getElementById('b1r').textContent='1 lota';}
+  if(streak>=5){b2.classList.remove('locked');document.getElementById('b2r').textContent='Unnið! ✓';}
+  else{document.getElementById('b2r').textContent=streak+'/5 dagar';}
+  if(count>=10){b3.classList.remove('locked');document.getElementById('b3r').textContent='Unnið! ✓';}
+  else{document.getElementById('b3r').textContent=count+'/10 lotur';}
 }
 
-// ── PROGRESS CHART ──
-function renderProgressChart() {
-  const el = document.getElementById('progress-chart');
-  if (!el) return;
-  const months = ['Jan','Feb','Mar','Apr','Maí','Jún'];
-  const avgs   = [8, 10, 11, 13, 14, 14.5]; // meðallengd lotu í mínútum
-  el.innerHTML = '';
-  const target = 15;
-  months.forEach((m, i) => {
-    const pct = Math.min(100, Math.round((avgs[i] / target) * 100));
-    const color = avgs[i] >= 15 ? 'moss' : avgs[i] >= 10 ? 'ocean' : 'sun';
-    const row = document.createElement('div');
-    row.className = 'month-row';
-    row.innerHTML = `
-      <div class="month-label">${m}</div>
-      <div class="month-bar-wrap">
-        <div class="month-bar-fill ${color}" style="width:0%" data-pct="${pct}">
-          ${pct >= 20 ? avgs[i]+'mín' : ''}
-        </div>
-      </div>
-      <div class="month-val">${avgs[i]}m</div>`;
-    el.appendChild(row);
-  });
-  setTimeout(() => {
-    el.querySelectorAll('.month-bar-fill').forEach(bar => {
-      bar.style.width = bar.dataset.pct + '%';
-    });
-  }, 100);
-}
-
-// ── TEXTS READ ──
-function renderTextsRead() {
-  const el = document.getElementById('texts-read');
-  if (!el) return;
-  el.innerHTML = '';
-  textsRead.forEach(t => {
-    const div = document.createElement('div');
-    div.className = 'session-item';
-    div.innerHTML = `
-      <div class="si-icon">${t.icon}</div>
-      <div class="si-info">
-        <div class="si-title">${t.title}</div>
-        <div class="si-meta">Lesið ${t.count} sinnum · Síðast ${t.lastDate}</div>
-      </div>
-      <div class="si-badge">
-        <span class="quality-badge qb-full">${t.count}×</span>
-      </div>`;
+// ══ LIBRARY ══
+function renderLibrary(filter){
+  const el=document.getElementById('lib-list'); if(!el) return;
+  el.innerHTML='';
+  const items=(!filter||filter==='all')?LIBRARY:LIBRARY.filter(l=>l.level===filter);
+  const lc={easy:'#C8EFD8',medium:'#FFF3CC',hard:'#FFE0E0'};
+  const lt={easy:'Auðvelt',medium:'Miðlungs',hard:'Erfitt'};
+  items.forEach(item=>{
+    const div=document.createElement('div');
+    div.className='card'; div.style.cssText='cursor:pointer;border:2px solid transparent;margin-bottom:10px;transition:all 0.2s;';
+    div.innerHTML=`<span style="display:inline-block;background:${lc[item.level]};border-radius:50px;padding:3px 10px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:7px;">${lt[item.level]}</span>
+      <div style="font-family:Georgia,serif;font-size:15px;font-weight:700;color:var(--deep);margin-bottom:5px;">${item.icon} ${item.title}</div>
+      <div style="font-size:12px;color:var(--mist);line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">${item.text}</div>
+      <div style="font-size:10px;color:var(--mist);margin-top:6px;font-weight:600;">${item.words} orð</div>`;
+    div.onclick=()=>{
+      document.querySelectorAll('#lib-list .card').forEach(c=>{c.style.borderColor='transparent';c.style.background='white';});
+      div.style.borderColor='var(--ocean)'; div.style.background='#f0f7ff';
+      document.getElementById('custom-title').value=item.title;
+      document.getElementById('custom-text').value=item.text;
+    };
     el.appendChild(div);
   });
 }
 
-// ── ACCESS TOGGLE ──
-function toggleAccess(cb, name) {
-  // In real app: update Firebase
-  console.log(name + ' aðgangur: ' + cb.checked);
+function filterLib(level,btn){
+  document.querySelectorAll('#tab-library .pill-tabs .pill-tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active'); renderLibrary(level);
 }
 
-// ── INIT ──
-// Pre-render static elements
-renderWeekDots('home-week-dots', weekData);
-renderWeekDots('parent-week-dots', weekData);
-renderSessions();
-renderClassList();
-renderTextsRead();
+function switchTab(tab,btn){
+  document.querySelectorAll('.pill-tabs:first-of-type .pill-tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tab-free').style.display=tab==='free'?'':'none';
+  document.getElementById('tab-library').style.display=tab==='library'?'':'none';
+  if(tab==='library') renderLibrary('all');
+}
 
-// Render charts when screens become visible
-const observer = new MutationObserver(() => {
-  if (document.getElementById('screen-parent-dash').classList.contains('active')) {
-    renderMonthChart();
-  }
-  if (document.getElementById('screen-teacher-dash').classList.contains('active')) {
-    renderClassWeekChart();
-  }
-  if (document.getElementById('screen-child-detail').classList.contains('active')) {
-    renderProgressChart();
-  }
-});
-document.querySelectorAll('.screen').forEach(s => observer.observe(s, { attributes: true }));
+// ══ LESTRARLOTAN ══
+function startSession(){
+  sessionTitle=document.getElementById('custom-title').value.trim()||'Frjáls lestur';
+  sessionText=document.getElementById('custom-text').value.trim();
+  sessionSecs=0;
+  const box=document.getElementById('reading-text-box');
+  if(sessionText){ box.style.display=''; document.getElementById('reading-text-title').textContent=sessionTitle; document.getElementById('reading-text-content').textContent=sessionText; }
+  else box.style.display='none';
+  document.getElementById('timer-display').textContent='0:00';
+  document.getElementById('timer-display').className='timer-time';
+  document.getElementById('timer-sublabel').textContent='Tilbúinn?';
+  document.getElementById('timer-goal-text').textContent='Markmið: 15 mínútur';
+  document.getElementById('btn-start').style.display='';
+  document.getElementById('btn-stop').style.display='none';
+  document.getElementById('rec-indicator').classList.remove('visible');
+  setRing(0,'');
+  goTo('screen-reading');
+}
+
+function setRing(pct,cls){
+  const ring=document.getElementById('ring-progress');
+  ring.style.strokeDashoffset=345.4*(1-pct);
+  ring.className='ring-progress'+(cls?' '+cls:'');
+}
+
+function startTimer(){
+  document.getElementById('btn-start').style.display='none';
+  document.getElementById('btn-stop').style.display='';
+  document.getElementById('timer-display').className='timer-time recording';
+  document.getElementById('timer-sublabel').textContent='Les upphátt…';
+  document.getElementById('rec-indicator').classList.add('visible');
+  timerInterval=setInterval(()=>{
+    sessionSecs++;
+    document.getElementById('timer-display').textContent=fmtTime(sessionSecs);
+    const pct=Math.min(1,sessionSecs/TARGET);
+    const cls=sessionSecs>=TARGET?'done':'recording';
+    setRing(pct,cls);
+    document.getElementById('timer-display').className='timer-time '+cls;
+    if(sessionSecs>=TARGET){
+      document.getElementById('timer-sublabel').textContent='Markmið náð! 🎉';
+      document.getElementById('timer-goal-text').textContent='✅ 15 mínútur lokið!';
+    } else {
+      const left=TARGET-sessionSecs;
+      document.getElementById('timer-goal-text').textContent=fmtTime(left)+' eftir af markmiðinu';
+    }
+  },1000);
+}
+
+function stopTimer(){ clearInterval(timerInterval); finishSession(); }
+
+function confirmStop(){
+  if(sessionSecs>10){
+    if(confirm('Hætta við lestrarloturna? Tíminn verður ekki vistaður.')){ clearInterval(timerInterval); sessionSecs=0; goTo('screen-child-home'); }
+  } else { clearInterval(timerInterval); sessionSecs=0; goTo('screen-child-home'); }
+}
+
+function finishSession(){
+  const now=new Date();
+  const dKey=now.getFullYear()+'-'+(now.getMonth()+1)+'-'+now.getDate();
+  const tStr=now.getHours()+':'+String(now.getMinutes()).padStart(2,'0');
+  addSession(currentUser,{date:dKey,dateLabel:'Í dag kl. '+tStr,seconds:sessionSecs,title:sessionTitle,icon:iconForTitle(sessionTitle),timestamp:Date.now()});
+  const total=getSessions(currentUser).length;
+  const streak=getStreak(currentUser);
+  const stars=getTotalStars(currentUser);
+  const mins=Math.floor(sessionSecs/60);
+  document.getElementById('done-time').textContent=fmtTime(sessionSecs);
+  document.getElementById('done-stars').textContent=stars;
+  document.getElementById('done-streak').textContent='🔥'+streak;
+  document.getElementById('done-total').textContent=total;
+  if(sessionSecs>=TARGET){document.getElementById('done-emoji').textContent='🏆';document.getElementById('done-title').textContent='Frábær lestur!';document.getElementById('done-sub').textContent='Þú náðir 15 mínútna markmiðinu! 🎉';}
+  else if(sessionSecs>=5*60){document.getElementById('done-emoji').textContent='⭐';document.getElementById('done-title').textContent='Vel gert!';document.getElementById('done-sub').textContent='Góð æfing — reyndu að ná 15 mín í næst!';}
+  else{document.getElementById('done-emoji').textContent='👍';document.getElementById('done-title').textContent='Byrjunin er góð!';document.getElementById('done-sub').textContent='Komdu aftur á morgun og reyndu lengur!';}
+  const bbox=document.getElementById('done-badge-box');
+  if(total===1){bbox.style.display='';document.getElementById('done-badge-icon').textContent='🌱';document.getElementById('done-badge-text').textContent='Verðlaun opnuð: Fyrsti lestur!';}
+  else if(streak===5){bbox.style.display='';document.getElementById('done-badge-icon').textContent='🔥';document.getElementById('done-badge-text').textContent='Verðlaun opnuð: 5 daga röð!';}
+  else if(total===10){bbox.style.display='';document.getElementById('done-badge-icon').textContent='🦁';document.getElementById('done-badge-text').textContent='Verðlaun opnuð: Lestrarlyfjan!';}
+  else bbox.style.display='none';
+  if(total<10){document.getElementById('next-icon').textContent='🦁';document.getElementById('next-name').textContent='Lestrarlyfjan';document.getElementById('next-prog').textContent=total+' / 10 lotur';document.getElementById('next-bar').style.width=Math.round((total/10)*100)+'%';}
+  else if(streak<5){document.getElementById('next-icon').textContent='🔥';document.getElementById('next-name').textContent='5 daga röð';document.getElementById('next-prog').textContent=streak+' / 5 dagar';document.getElementById('next-bar').style.width=Math.round((streak/5)*100)+'%';}
+  else{document.getElementById('next-icon').textContent='🚀';document.getElementById('next-name').textContent='Snögglesari';document.getElementById('next-prog').textContent='Les 20 mín í einni lotu';document.getElementById('next-bar').style.width=Math.min(100,Math.round((sessionSecs/(20*60))*100))+'%';}
+  goTo('screen-done');
+}
+
+function iconForTitle(t){
+  t=t.toLowerCase();
+  if(t.includes('refur')||t.includes('fox'))return'🦊';
+  if(t.includes('sjó')||t.includes('haf'))return'🌊';
+  if(t.includes('fjall')||t.includes('hei'))return'🏔️';
+  if(t.includes('eldfjall')||t.includes('hekla'))return'🌋';
+  if(t.includes('ský')||t.includes('veður'))return'☁️';
+  if(t.includes('lamb')||t.includes('sauð'))return'🐑';
+  return'📖';
+}
+
+// ══ MAMMA HOME ══
+function renderMammaHome(){
+  renderDots('m-haflidi-dots','haflidi');
+  renderDots('m-kolbeinn-dots','kolbeinn');
+}
+
+// ══ DETAIL ══
+function renderDetail(u,elId){
+  const el=document.getElementById(elId); if(!el) return;
+  const uu=USERS[u];
+  const ss=getSessions(u);
+  const streak=getStreak(u);
+  const avg=ss.length?Math.round(ss.reduce((a,s)=>a+s.seconds,0)/ss.length/60):0;
+  el.innerHTML=`
+    <div class="hero blue" style="margin-bottom:16px">
+      <div class="hero-label">${uu.emoji} ${uu.name}</div>
+      <h1>Lestrarskrá</h1>
+      <p>${ss.length} lotur skráðar</p>
+    </div>
+    <div class="stat-trio">
+      <div class="stat-box"><div class="sv">${ss.length}</div><div class="sl">Lotur alls</div></div>
+      <div class="stat-box"><div class="sv">${avg}m</div><div class="sl">Meðallengd</div></div>
+      <div class="stat-box"><div class="sv">🔥${streak}</div><div class="sl">Daga röð</div></div>
+    </div>
+    <div class="section-title">Þessi vika</div>
+    <div class="card">
+      <div class="week-dots" id="dt-dots-${u}"></div>
+      <div class="quality-legend">
+        <div class="ql-item"><div class="ql-dot full"></div>15+ mín</div>
+        <div class="ql-item"><div class="ql-dot partial"></div>5–14 mín</div>
+      </div>
+    </div>
+    <div class="section-title">Lotur eftir mánuðum</div>
+    <div class="card"><div id="dt-months-${u}"></div></div>
+    <div class="section-title">Allar lotur</div>
+    <div class="card" id="dt-sessions-${u}"></div>`;
+  setTimeout(()=>{
+    renderDots('dt-dots-'+u,u);
+    renderMonthBars('dt-months-'+u,u);
+    renderSessionList('dt-sessions-'+u,u);
+  },50);
+}
+
+// ══ SAMANBURÐUR ══
+function renderComparison(){
+  document.getElementById('cmp-h').textContent=getSessions('haflidi').length;
+  document.getElementById('cmp-k').textContent=getSessions('kolbeinn').length;
+  renderMonthBars('cmp-h-chart','haflidi');
+  renderMonthBars('cmp-k-chart','kolbeinn');
+}
+
+// ══ KENNARI ══
+function renderTeacher(){
+  const el=document.getElementById('teacher-list'); if(!el) return;
+  el.innerHTML='';
+  ['haflidi','kolbeinn'].forEach(u=>{
+    const uu=USERS[u];
+    const ss=getSessions(u);
+    const wd=getWeekData(u);
+    const todayMins=wd[6].mins;
+    const streak=getStreak(u);
+    const weekCount=wd.filter(d=>d.mins>0).length;
+    const dots=wd.map(d=>`<div class="wm-dot ${d.mins>=15?'full':d.mins>0?'partial':'none'}"></div>`).join('');
+    const row=document.createElement('div'); row.className='class-row';
+    row.innerHTML=`<div class="child-av" style="background:${todayMins>0?'var(--moss-light)':'#f0f4f9'}">${uu.emoji}</div>
+      <div class="cr-info"><div class="cr-name">${uu.name}</div><div class="cr-meta">${weekCount}/7 dagar · ${ss.length} lotur alls</div><div class="week-mini" style="margin-top:4px">${dots}</div></div>
+      <div class="cr-right"><div class="cr-time">${todayMins>0?todayMins+'mín':'—'}</div><div class="cr-streak">🔥${streak} röð</div></div>`;
+    el.appendChild(row);
+  });
+  const wc=document.getElementById('teacher-chart'); if(!wc) return;
+  wc.innerHTML='';
+  const h=getWeekData('haflidi'), k=getWeekData('kolbeinn');
+  DAYS.forEach((day,i)=>{
+    const both=(h[i].mins>0?1:0)+(k[i].mins>0?1:0);
+    const pct=both*50;
+    const color=pct>=100?'moss':pct>=50?'ocean':'sun';
+    const row=document.createElement('div'); row.className='month-row';
+    row.innerHTML=`<div class="month-label">${day}</div>
+      <div class="month-bar-wrap"><div class="month-bar-fill ${color}" style="width:0%" data-pct="${pct}">${pct>0?pct+'%':''}</div></div>
+      <div class="month-val">${both}/2</div>`;
+    wc.appendChild(row);
+  });
+  setTimeout(()=>{ wc.querySelectorAll('.month-bar-fill').forEach(b=>b.style.width=b.dataset.pct+'%'); },100);
+}
+
+// ══ INIT ══
+renderLibrary('all');
 </script>
 </body>
 </html>

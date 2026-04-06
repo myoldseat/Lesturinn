@@ -219,7 +219,7 @@ body{font-family:-apple-system,'Segoe UI',sans-serif;background:var(--sky);color
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
-import { getFirestore, collection, addDoc, getDocs, query, where, orderBy, deleteDoc, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+import { getFirestore, collection, addDoc, getDocs, query, where, orderBy, deleteDoc, doc, setDoc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAgTY3Uxd9_ZxixjqLj-sH8V3OhFAzg6DU",
@@ -234,118 +234,242 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// Expose to window so rest of app can use
-window._fb = { auth, db, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged, collection, addDoc, getDocs, query, where, orderBy, deleteDoc, doc, setDoc, getDoc };
+window._fb = { auth, db, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged, collection, addDoc, getDocs, query, where, orderBy, deleteDoc, doc, setDoc, getDoc, updateDoc };
 
-// Auth state listener
+// ── Athuga hvort barn sé þegar skráð inn á þessu tæki ──
+const savedChild = localStorage.getItem('lesum_child_session');
+if(savedChild){
+  try {
+    const childData = JSON.parse(savedChild);
+    window._currentUid      = childData.uid;
+    window._currentRole     = 'child';
+    window._currentName     = childData.name;
+    window._currentFamilyId = childData.familyId;
+    window._currentChildKey = childData.childKey;
+    currentUser = childData.childKey;
+  } catch(e) { localStorage.removeItem('lesum_child_session'); }
+}
+
+// ── Auth state listener (foreldri) ──
 onAuthStateChanged(auth, async (user) => {
   if(user){
-    // Get user profile from Firestore
-    const profileRef = window._fb.doc(db, 'users', user.uid);
-    const profileSnap = await window._fb.getDoc(profileRef);
+    const profileSnap = await getDoc(doc(db,'users',user.uid));
     if(profileSnap.exists()){
       const profile = profileSnap.data();
-      window._currentUid = user.uid;
-      window._currentRole = profile.role; // 'parent', 'child'
-      window._currentName = profile.name;
-      window._currentFamilyId = profile.familyId;
-      // Navigate based on role
-      if(profile.role === 'parent'){
-        currentUser = 'mamma';
-        goTo('screen-mamma-home');
-      } else {
-        currentUser = profile.childKey || 'child';
-        goTo('screen-child-home');
+      window._currentUid      = user.uid;
+      window._currentRole     = 'parent';
+      window._currentName     = profile.name;
+      window._currentFamilyId = profile.familyId || user.uid;
+      // Hlaða börnum í USERS
+      if(profile.children){
+        profile.children.forEach((c,i)=>{
+          const key = i===0?'hrafnkell':'kolbeinn';
+          USERS[key] = { name: c.name, emoji:'👦', code: c.code };
+        });
       }
+      currentUser = 'mamma';
+      goTo('screen-mamma-home');
     } else {
-      // New user — show setup
-      goTo('screen-setup');
+      goTo('screen-signup');
     }
+  } else {
+    // Ekki innskráður — athuga hvort barn sé saved
+    if(localStorage.getItem('lesum_child_session')){
+      goTo('screen-child-home');
+    }
+    // annars verður login skjárinn active
   }
 });
 
-// Login function
+// ── Foreldri skráir sig inn ──
 window.firebaseLogin = async function(){
-  const email = document.getElementById('login-email').value.trim();
-  const pw = document.getElementById('login-pw').value;
-  const errEl = document.getElementById('login-error');
+  const email  = document.getElementById('login-email').value.trim();
+  const pw     = document.getElementById('login-pw').value;
+  const errEl  = document.getElementById('login-error');
   errEl.textContent = '';
-  if(!email || !pw){ errEl.textContent = 'Vinsamlegast fylltu út bæði reiti.'; return; }
+  if(!email||!pw){ errEl.textContent='Netfang og lykilorð vantar.'; return; }
   try {
     document.getElementById('btn-login').textContent = 'Skráir inn...';
     await signInWithEmailAndPassword(auth, email, pw);
   } catch(e) {
-    document.getElementById('btn-login').textContent = 'Skrá inn';
-    if(e.code === 'auth/user-not-found' || e.code === 'auth/invalid-credential'){
-      errEl.textContent = 'Netfang eða lykilorð er rangt.';
-    } else if(e.code === 'auth/invalid-email'){
-      errEl.textContent = 'Netfangið er ekki gilt.';
-    } else {
-      errEl.textContent = 'Villa: ' + e.message;
-    }
+    document.getElementById('btn-login').textContent = '🔑 Skrá inn';
+    errEl.textContent = e.code==='auth/invalid-credential' ? 'Netfang eða lykilorð er rangt.' : 'Villa: '+e.message;
   }
 };
 
-// Logout
-window.firebaseLogout = async function(){
-  await signOut(auth);
-  currentUser = null;
-  window._currentUid = null;
-  goTo('screen-login');
+// ── Foreldri stofnar aðgang ──
+window.firebaseSignup = async function(){
+  const name   = document.getElementById('signup-name').value.trim();
+  const email  = document.getElementById('signup-email').value.trim();
+  const pw     = document.getElementById('signup-pw').value;
+  const child1 = document.getElementById('signup-child1').value.trim();
+  const child2 = document.getElementById('signup-child2').value.trim();
+  const errEl  = document.getElementById('signup-error');
+  errEl.textContent = '';
+  if(!name)  { errEl.textContent='Nafn vantar.'; return; }
+  if(!email||!pw) { errEl.textContent='Netfang og lykilorð vantar.'; return; }
+  if(pw.length<6) { errEl.textContent='Lykilorð þarf 6+ stafi.'; return; }
+  if(!child1) { errEl.textContent='Nafn barns 1 vantar.'; return; }
+  try {
+    document.getElementById('btn-signup').textContent = 'Stofnar...';
+    const cred = await createUserWithEmailAndPassword(auth, email, pw);
+    const uid  = cred.user.uid;
+    const familyId = uid;
+    const children = [child1, child2].filter(Boolean).map((n,i)=>({
+      name: n,
+      key:  i===0?'hrafnkell':'kolbeinn',
+      code: generateCode(n)
+    }));
+    await setDoc(doc(db,'users',uid),{
+      role:'parent', name, email, familyId,
+      children, createdAt: new Date()
+    });
+    // Vista kóða í codes collection fyrir barnaleitar
+    for(const c of children){
+      await setDoc(doc(db,'codes',c.code),{
+        familyId, childKey: c.key, childName: c.name, parentUid: uid
+      });
+    }
+    window._currentUid      = uid;
+    window._currentFamilyId = familyId;
+    window._currentRole     = 'parent';
+    window._currentName     = name;
+    children.forEach((c,i)=>{ USERS[c.key]={ name:c.name, emoji:'👦', code:c.code }; });
+    currentUser = 'mamma';
+    // Sýna kóðana
+    showChildCodes(children);
+  } catch(e) {
+    document.getElementById('btn-signup').textContent = '🚀 Stofna aðgang';
+    document.getElementById('signup-error').textContent =
+      e.code==='auth/email-already-in-use' ? 'Þetta netfang er þegar í notkun.' : 'Villa: '+e.message;
+  }
 };
 
-// Save session to Firestore
+// ── Barn skráir sig inn með kóða ──
+window.childLogin = async function(){
+  const code   = document.getElementById('child-code-input').value.trim().toUpperCase();
+  const errEl  = document.getElementById('child-code-error');
+  errEl.textContent = '';
+  if(code.length < 4){ errEl.textContent='Sláðu inn kóðann þinn.'; return; }
+  try {
+    document.getElementById('btn-child-login').textContent = 'Leita...';
+    const codeSnap = await getDoc(doc(db,'codes',code));
+    if(!codeSnap.exists()){
+      document.getElementById('btn-child-login').textContent = '🎯 Skrá mig inn';
+      errEl.textContent = 'Kóðinn fannst ekki — athugaðu með foreldri.';
+      return;
+    }
+    const codeData = codeSnap.data();
+    // Vista á tækið
+    const childSession = {
+      uid:      codeData.parentUid+'_'+codeData.childKey,
+      name:     codeData.childName,
+      familyId: codeData.familyId,
+      childKey: codeData.childKey,
+      code
+    };
+    localStorage.setItem('lesum_child_session', JSON.stringify(childSession));
+    window._currentUid      = childSession.uid;
+    window._currentRole     = 'child';
+    window._currentName     = codeData.childName;
+    window._currentFamilyId = codeData.familyId;
+    window._currentChildKey = codeData.childKey;
+    currentUser = codeData.childKey;
+    USERS[codeData.childKey] = { name: codeData.childName, emoji:'👦' };
+    goTo('screen-child-home');
+  } catch(e) {
+    document.getElementById('btn-child-login').textContent = '🎯 Skrá mig inn';
+    document.getElementById('child-code-error').textContent = 'Villa: '+e.message;
+  }
+};
+
+// ── Logout ──
+window.firebaseLogout = async function(){
+  const role = window._currentRole;
+  if(role==='child'){
+    if(confirm('Skrá þig út? Þú þarft kóðann aftur til að skrá þig inn.')){
+      localStorage.removeItem('lesum_child_session');
+      window._currentUid = null;
+      currentUser = null;
+      goTo('screen-login');
+    }
+  } else {
+    await signOut(auth);
+    window._currentUid = null;
+    currentUser = null;
+    goTo('screen-login');
+  }
+};
+
+// ── Vista lotu ──
 window.saveSessionToFirestore = async function(sessionData){
   try {
-    const { collection, addDoc } = window._fb;
-    await addDoc(collection(db, 'sessions'), {
+    await addDoc(collection(db,'sessions'),{
       ...sessionData,
-      uid: window._currentUid,
-      familyId: window._currentFamilyId,
-      childKey: currentUser,
+      familyId:  window._currentFamilyId,
+      childKey:  currentUser,
       createdAt: new Date()
     });
-  } catch(e) {
-    console.error('Villa við vistun:', e);
-  }
+  } catch(e){ console.error('Villa við vistun:',e); }
 };
 
-// Load sessions from Firestore
-window.loadSessionsFromFirestore = async function(childKey){
-  try {
-    const { collection, query, where, orderBy, getDocs } = window._fb;
-    const q = query(
-      collection(db, 'sessions'),
-      where('familyId', '==', window._currentFamilyId),
-      where('childKey', '==', childKey),
-      orderBy('createdAt', 'desc')
-    );
-    const snap = await getDocs(q);
-    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
-  } catch(e) {
-    console.error('Villa við lestur:', e);
-    return [];
-  }
-};
+// ── Sýna kóða eftir nýskráningu ──
+function showChildCodes(children){
+  document.getElementById('codes-list').innerHTML = children.map(c=>`
+    <div style="background:white;border-radius:16px;padding:20px;margin-bottom:12px;text-align:center;box-shadow:var(--card-shadow);">
+      <div style="font-size:14px;font-weight:700;color:var(--mist);margin-bottom:8px;">${c.name}</div>
+      <div style="font-family:Georgia,serif;font-size:36px;font-weight:700;color:var(--ocean);letter-spacing:4px;">${c.code}</div>
+      <div style="font-size:11px;color:var(--mist);margin-top:6px;">Gefðu þennan kóða barninu þínu</div>
+    </div>`).join('');
+  goTo('screen-show-codes');
+}
 
-// Delete session from Firestore
-window.deleteSessionFromFirestore = async function(sessionId){
-  try {
-    const { doc, deleteDoc } = window._fb;
-    await deleteDoc(doc(db, 'sessions', sessionId));
-  } catch(e) {
-    console.error('Villa við eyðingu:', e);
-  }
-};
+// ── Búa til kóða ──
+function generateCode(name){
+  const prefix = name.replace(/[^A-ZÞÐÆÖa-zþðæö]/g,'').toUpperCase().substring(0,3).padEnd(3,'X');
+  const num = Math.floor(10+Math.random()*90);
+  return prefix+num;
+}
 
 </script>
 
-<!-- ══ INNSKRÁNING ══ -->
+<!-- ══ INNSKRÁNING — AÐALSKJÁR ══ -->
 <div id="screen-login" class="screen active">
   <div class="login-wrap">
     <div class="login-logo">Lesum</div>
     <div class="login-tagline">Íslenskt lestrarforrit — dagleg æfing</div>
-    <div style="width:100%;max-width:360px;">
+
+    <div style="width:100%;max-width:360px;display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:28px;">
+      <button onclick="goTo('screen-parent-login')"
+        style="background:var(--ocean);color:white;border:none;border-radius:20px;padding:24px 16px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:8px;box-shadow:0 6px 20px rgba(42,110,187,0.3);">
+        <span style="font-size:36px">👩</span>
+        <span style="font-size:14px;font-weight:800;">Ég er foreldri</span>
+        <span style="font-size:11px;opacity:0.8;">Netfang + lykilorð</span>
+      </button>
+      <button onclick="goTo('screen-child-login')"
+        style="background:var(--moss);color:white;border:none;border-radius:20px;padding:24px 16px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:8px;box-shadow:0 6px 20px rgba(76,175,125,0.3);">
+        <span style="font-size:36px">👦</span>
+        <span style="font-size:14px;font-weight:800;">Ég er barn</span>
+        <span style="font-size:11px;opacity:0.8;">Kóði frá foreldri</span>
+      </button>
+    </div>
+    <div class="login-note">Nýr notandi? <button onclick="goTo('screen-signup')" style="background:none;border:none;color:var(--ocean);font-size:12px;font-weight:800;cursor:pointer;">Stofna fjölskylduaðgang</button></div>
+  </div>
+</div>
+
+<!-- ══ FORELDRI — INNSKRÁNING ══ -->
+<div id="screen-parent-login" class="screen">
+  <div class="topbar">
+    <button class="back-btn" onclick="goTo('screen-login')">← Til baka</button>
+    <div class="logo"><div class="logo-icon">L</div> Lesum</div>
+  </div>
+  <div class="scroll-body">
+    <div class="hero blue" style="margin-bottom:20px">
+      <div class="hero-label">Foreldri</div>
+      <h1>Velkomin/n aftur!</h1>
+      <p>Skráðu þig inn til að sjá framfarir barnanna</p>
+    </div>
+    <div class="card">
       <div class="form-group">
         <label>Netfang</label>
         <input type="email" id="login-email" placeholder="þu@dæmi.is" autocomplete="email">
@@ -356,10 +480,37 @@ window.deleteSessionFromFirestore = async function(sessionId){
       </div>
       <div id="login-error" style="color:var(--coral);font-size:12px;font-weight:700;margin-bottom:12px;min-height:18px;"></div>
       <button class="btn btn-primary" id="btn-login" onclick="firebaseLogin()">🔑 Skrá inn</button>
-      <div style="text-align:center;margin-top:16px;">
-        <span style="font-size:12px;color:var(--mist);font-weight:600;">Ertu nýr notandi? </span>
-        <button onclick="goTo('screen-signup')" style="background:none;border:none;color:var(--ocean);font-size:12px;font-weight:800;cursor:pointer;">Stofna aðgang</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ BARN — KÓÐAINNSKRÁNING ══ -->
+<div id="screen-child-login" class="screen">
+  <div class="topbar">
+    <button class="back-btn" onclick="goTo('screen-login')">← Til baka</button>
+    <div class="logo"><div class="logo-icon">L</div> Lesum</div>
+  </div>
+  <div class="scroll-body">
+    <div class="hero green" style="margin-bottom:20px">
+      <div class="hero-label">Barn</div>
+      <h1>Sláðu inn kóðann þinn! 🎯</h1>
+      <p>Foreldri þitt gaf þér þennan kóða</p>
+    </div>
+    <div class="card">
+      <div class="form-group">
+        <label>Kóðinn þinn</label>
+        <input type="text" id="child-code-input"
+          placeholder="t.d. HRA42"
+          maxlength="6"
+          autocomplete="off"
+          style="font-family:Georgia,serif;font-size:28px;font-weight:700;letter-spacing:4px;text-align:center;text-transform:uppercase;"
+          oninput="this.value=this.value.toUpperCase()">
       </div>
+      <div id="child-code-error" style="color:var(--coral);font-size:12px;font-weight:700;margin-bottom:12px;min-height:18px;text-align:center;"></div>
+      <button class="btn btn-success" id="btn-child-login" onclick="childLogin()">🎯 Skrá mig inn</button>
+    </div>
+    <div class="info-box green" style="margin-top:12px">
+      💡 Þú þarft aðeins að slá inn kóðann einu sinni — appið man eftir þér!
     </div>
   </div>
 </div>
@@ -372,12 +523,12 @@ window.deleteSessionFromFirestore = async function(sessionId){
   </div>
   <div class="scroll-body">
     <div class="hero blue" style="margin-bottom:20px">
-      <div class="hero-label">Nýr aðgangur</div>
+      <div class="hero-label">Nýr fjölskylduaðgangur</div>
       <h1>Velkomin/n í Lesum!</h1>
-      <p>Stofnaðu aðgang fyrir fjölskylduna</p>
+      <p>Stofnaðu aðgang — fáðu kóða fyrir börnin</p>
     </div>
     <div class="card">
-      <div class="card-title">Upplýsingar foreldris</div>
+      <div class="card-title">Foreldri</div>
       <div class="form-group">
         <label>Nafn þitt</label>
         <input type="text" id="signup-name" placeholder="t.d. Guðrún">
@@ -387,19 +538,19 @@ window.deleteSessionFromFirestore = async function(sessionId){
         <input type="email" id="signup-email" placeholder="þu@dæmi.is">
       </div>
       <div class="form-group">
-        <label>Lykilorð (að minnsta kosti 6 stafir)</label>
+        <label>Lykilorð (6+ stafir)</label>
         <input type="password" id="signup-pw" placeholder="••••••••">
       </div>
     </div>
     <div class="card">
-      <div class="card-title">Börn (hægt að bæta við fleiri seinna)</div>
+      <div class="card-title">Börn</div>
       <div class="form-group">
         <label>Nafn barns 1</label>
-        <input type="text" id="signup-child1" placeholder="t.d. Hrafnkell Hersir" value="Hrafnkell Hersir">
+        <input type="text" id="signup-child1" placeholder="t.d. Hrafnkell Hersir">
       </div>
       <div class="form-group">
         <label>Nafn barns 2 (valfrjálst)</label>
-        <input type="text" id="signup-child2" placeholder="t.d. Kolbeinn Kvasir" value="Kolbeinn Kvasir">
+        <input type="text" id="signup-child2" placeholder="t.d. Kolbeinn Kvasir">
       </div>
     </div>
     <div id="signup-error" style="color:var(--coral);font-size:12px;font-weight:700;margin-bottom:12px;min-height:18px;"></div>
@@ -407,10 +558,34 @@ window.deleteSessionFromFirestore = async function(sessionId){
   </div>
 </div>
 
-<!-- ══ UPPSETNING (fyrsti innskráningur) ══ -->
+<!-- ══ SÝNA KÓÐA EFTIR NÝSKRÁNINGU ══ -->
+<div id="screen-show-codes" class="screen">
+  <div class="topbar">
+    <div class="logo"><div class="logo-icon">L</div> Lesum</div>
+  </div>
+  <div class="scroll-body">
+    <div class="hero green" style="margin-bottom:20px">
+      <div class="hero-label">Aðgangur stofnaður! 🎉</div>
+      <h1>Kóðar barnanna þinna</h1>
+      <p>Gefðu hverju barni sinn kóða til að skrá sig inn</p>
+    </div>
+    <div id="codes-list"></div>
+    <div class="info-box">
+      📱 Barnið opnar Lesum → ýtir á „Ég er barn" → slær inn kóðann → kemst beint inn!
+    </div>
+    <div class="info-box green">
+      💡 Vistaðu kóðana — þú getur alltaf séð þá aftur á mælaborðinu
+    </div>
+    <button class="btn btn-primary" onclick="goTo('screen-mamma-home')" style="margin-top:8px">
+      📊 Fara á mælaborðið →
+    </button>
+  </div>
+</div>
+
+<!-- ══ UPPSETNING ══ -->
 <div id="screen-setup" class="screen">
   <div class="scroll-body" style="display:flex;align-items:center;justify-content:center;min-height:100vh;">
-    <div style="text-align:center;color:var(--mist);font-size:14px;font-weight:600;">Setur upp aðgang... ⏳</div>
+    <div style="text-align:center;color:var(--mist);font-size:14px;font-weight:600;">Hleður... ⏳</div>
   </div>
 </div>
 

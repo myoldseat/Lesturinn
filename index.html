@@ -260,6 +260,7 @@ onAuthStateChanged(auth, async (user) => {
       window._currentRole     = 'parent';
       window._currentName     = profile.name;
       window._currentFamilyId = profile.familyId || user.uid;
+      window._familyCode      = profile.familyCode || null;
       // Hlaða börnum í USERS
       if(profile.children){
         profile.children.forEach((c,i)=>{
@@ -302,46 +303,97 @@ window.firebaseSignup = async function(){
   const name   = document.getElementById('signup-name').value.trim();
   const email  = document.getElementById('signup-email').value.trim();
   const pw     = document.getElementById('signup-pw').value;
-  const child1 = document.getElementById('signup-child1').value.trim();
-  const child2 = document.getElementById('signup-child2').value.trim();
   const errEl  = document.getElementById('signup-error');
   errEl.textContent = '';
-  if(!name)  { errEl.textContent='Nafn vantar.'; return; }
+  if(!name)       { errEl.textContent='Nafn vantar.'; return; }
   if(!email||!pw) { errEl.textContent='Netfang og lykilorð vantar.'; return; }
   if(pw.length<6) { errEl.textContent='Lykilorð þarf 6+ stafi.'; return; }
-  if(!child1) { errEl.textContent='Nafn barns 1 vantar.'; return; }
+  const childNames = Array.from(document.querySelectorAll('#children-inputs input'))
+    .map(i=>i.value.trim()).filter(Boolean);
+  if(childNames.length===0){ errEl.textContent='Nafn að minnsta kosti eins barns vantar.'; return; }
   try {
     document.getElementById('btn-signup').textContent = 'Stofnar...';
     const cred = await createUserWithEmailAndPassword(auth, email, pw);
     const uid  = cred.user.uid;
     const familyId = uid;
-    const children = [child1, child2].filter(Boolean).map((n,i)=>({
+    // Búa til fjölskyldukóða — FAM + 4 tölur
+    const familyCode = 'FAM' + Math.floor(1000+Math.random()*9000);
+    const childKeys = ['hrafnkell','kolbeinn','child3','child4','child5'];
+    const children = childNames.map((n,i)=>({
       name: n,
-      key:  i===0?'hrafnkell':'kolbeinn',
+      key:  childKeys[i] || 'child'+(i+1),
       code: generateCode(n)
     }));
     await setDoc(doc(db,'users',uid),{
       role:'parent', name, email, familyId,
-      children, createdAt: new Date()
+      familyCode, children, createdAt: new Date()
     });
-    // Vista kóða í codes collection fyrir barnaleitar
+    // Vista barnakóða
     for(const c of children){
       await setDoc(doc(db,'codes',c.code),{
         familyId, childKey: c.key, childName: c.name, parentUid: uid
       });
     }
+    // Vista fjölskyldukóða
+    await setDoc(doc(db,'familycodes',familyCode),{
+      familyId, parentUid: uid, parentName: name, createdAt: new Date()
+    });
     window._currentUid      = uid;
     window._currentFamilyId = familyId;
     window._currentRole     = 'parent';
     window._currentName     = name;
-    children.forEach((c,i)=>{ USERS[c.key]={ name:c.name, emoji:'👦', code:c.code }; });
+    window._familyCode      = familyCode;
+    children.forEach(c=>{ USERS[c.key]={ name:c.name, emoji:'👦', code:c.code }; });
     currentUser = 'mamma';
-    // Sýna kóðana
-    showChildCodes(children);
+    showChildCodes(children, familyCode);
   } catch(e) {
     document.getElementById('btn-signup').textContent = '🚀 Stofna aðgang';
     document.getElementById('signup-error').textContent =
       e.code==='auth/email-already-in-use' ? 'Þetta netfang er þegar í notkun.' : 'Villa: '+e.message;
+  }
+};
+
+// ── Foreldri gengur í fjölskyldu með kóða ──
+window.familyJoin = async function(){
+  const name   = document.getElementById('join-name').value.trim();
+  const email  = document.getElementById('join-email').value.trim();
+  const pw     = document.getElementById('join-pw').value;
+  const fcode  = document.getElementById('join-fcode').value.trim().toUpperCase();
+  const errEl  = document.getElementById('join-error');
+  errEl.textContent = '';
+  if(!name||!email||!pw||!fcode){ errEl.textContent='Vinsamlegast fylltu út alla reiti.'; return; }
+  if(pw.length<6){ errEl.textContent='Lykilorð þarf 6+ stafi.'; return; }
+  try {
+    document.getElementById('btn-join').textContent = 'Leitar...';
+    // Athuga hvort fjölskyldukóðinn sé til
+    const fcSnap = await getDoc(doc(db,'familycodes',fcode));
+    if(!fcSnap.exists()){
+      document.getElementById('btn-join').textContent = '🤝 Ganga í fjölskylduna';
+      errEl.textContent = 'Fjölskyldukóðinn fannst ekki — athugaðu með aðalforeldri.';
+      return;
+    }
+    const fcData = fcSnap.data();
+    // Stofna notanda
+    const cred = await createUserWithEmailAndPassword(auth, email, pw);
+    const uid  = cred.user.uid;
+    await setDoc(doc(db,'users',uid),{
+      role: 'parent',
+      name, email,
+      familyId: fcData.familyId,
+      familyCode: fcode,
+      isMember: true,
+      createdAt: new Date()
+    });
+    window._currentUid      = uid;
+    window._currentFamilyId = fcData.familyId;
+    window._currentRole     = 'parent';
+    window._currentName     = name;
+    currentUser = 'mamma';
+    goTo('screen-mamma-home');
+  } catch(e) {
+    document.getElementById('btn-join').textContent = '🤝 Ganga í fjölskylduna';
+    errEl.textContent = e.code==='auth/email-already-in-use'
+      ? 'Þetta netfang er þegar í notkun.' : 'Villa: '+e.message;
   }
 };
 
@@ -414,12 +466,18 @@ window.saveSessionToFirestore = async function(sessionData){
 };
 
 // ── Sýna kóða eftir nýskráningu ──
-function showChildCodes(children){
-  document.getElementById('codes-list').innerHTML = children.map(c=>`
-    <div style="background:white;border-radius:16px;padding:20px;margin-bottom:12px;text-align:center;box-shadow:var(--card-shadow);">
-      <div style="font-size:14px;font-weight:700;color:var(--mist);margin-bottom:8px;">${c.name}</div>
-      <div style="font-family:Georgia,serif;font-size:36px;font-weight:700;color:var(--ocean);letter-spacing:4px;">${c.code}</div>
-      <div style="font-size:11px;color:var(--mist);margin-top:6px;">Gefðu þennan kóða barninu þínu</div>
+function showChildCodes(children, familyCode){
+  document.getElementById('codes-list').innerHTML = `
+    <div style="background:linear-gradient(135deg,var(--ocean),var(--deep));border-radius:16px;padding:20px;margin-bottom:16px;text-align:center;color:white;">
+      <div style="font-size:12px;font-weight:700;opacity:0.8;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Fjölskyldukóði</div>
+      <div style="font-family:Georgia,serif;font-size:32px;font-weight:700;letter-spacing:6px;">${familyCode}</div>
+      <div style="font-size:11px;opacity:0.75;margin-top:6px;">Gefðu þennan kóða öðrum foreldrum</div>
+    </div>` +
+    children.map(c=>`
+    <div style="background:white;border-radius:16px;padding:18px;margin-bottom:10px;text-align:center;box-shadow:var(--card-shadow);">
+      <div style="font-size:13px;font-weight:700;color:var(--mist);margin-bottom:6px;">👦 ${c.name}</div>
+      <div style="font-family:Georgia,serif;font-size:34px;font-weight:700;color:var(--moss);letter-spacing:4px;">${c.code}</div>
+      <div style="font-size:11px;color:var(--mist);margin-top:5px;">Barnakóði</div>
     </div>`).join('');
   goTo('screen-show-codes');
 }
@@ -480,6 +538,53 @@ function generateCode(name){
       </div>
       <div id="login-error" style="color:var(--coral);font-size:12px;font-weight:700;margin-bottom:12px;min-height:18px;"></div>
       <button class="btn btn-primary" id="btn-login" onclick="firebaseLogin()">🔑 Skrá inn</button>
+    </div>
+    <div style="text-align:center;margin-top:4px;">
+      <button onclick="goTo('screen-join-family')" style="background:none;border:none;color:var(--ocean);font-size:13px;font-weight:800;cursor:pointer;">
+        🤝 Ganga í fjölskyldu með kóða →
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ GANGA Í FJÖLSKYLDU ══ -->
+<div id="screen-join-family" class="screen">
+  <div class="topbar">
+    <button class="back-btn" onclick="goTo('screen-parent-login')">← Til baka</button>
+    <div class="logo"><div class="logo-icon">L</div> Lesum</div>
+  </div>
+  <div class="scroll-body">
+    <div class="hero purple" style="margin-bottom:20px">
+      <div class="hero-label">Ganga í fjölskyldu</div>
+      <h1>Fylgstu með börnunum! 🤝</h1>
+      <p>Sláðu inn fjölskyldukóðann sem aðalforeldri gaf þér</p>
+    </div>
+    <div class="card">
+      <div class="form-group">
+        <label>Nafn þitt</label>
+        <input type="text" id="join-name" placeholder="t.d. Sigurður">
+      </div>
+      <div class="form-group">
+        <label>Netfang</label>
+        <input type="email" id="join-email" placeholder="þu@dæmi.is">
+      </div>
+      <div class="form-group">
+        <label>Lykilorð (6+ stafir)</label>
+        <input type="password" id="join-pw" placeholder="••••••••">
+      </div>
+      <div class="form-group">
+        <label>Fjölskyldukóði</label>
+        <input type="text" id="join-fcode"
+          placeholder="t.d. FAM7823"
+          maxlength="8"
+          style="font-family:Georgia,serif;font-size:22px;font-weight:700;letter-spacing:3px;text-align:center;text-transform:uppercase;"
+          oninput="this.value=this.value.toUpperCase()">
+      </div>
+      <div id="join-error" style="color:var(--coral);font-size:12px;font-weight:700;margin-bottom:12px;min-height:18px;"></div>
+      <button class="btn btn-primary" id="btn-join" onclick="familyJoin()">🤝 Ganga í fjölskylduna</button>
+    </div>
+    <div class="info-box" style="margin-top:12px">
+      💡 Fjölskyldukóðinn fær þú frá þeim sem stofnaði Lesum aðganginn — birtist þegar aðgangur er stofnaður
     </div>
   </div>
 </div>
@@ -544,14 +649,15 @@ function generateCode(name){
     </div>
     <div class="card">
       <div class="card-title">Börn</div>
-      <div class="form-group">
-        <label>Nafn barns 1</label>
-        <input type="text" id="signup-child1" placeholder="t.d. Hrafnkell Hersir">
+      <div id="children-inputs">
+        <div class="form-group">
+          <label>Nafn barns 1</label>
+          <input type="text" id="signup-child1" placeholder="t.d. Jón Sigurðsson">
+        </div>
       </div>
-      <div class="form-group">
-        <label>Nafn barns 2 (valfrjálst)</label>
-        <input type="text" id="signup-child2" placeholder="t.d. Kolbeinn Kvasir">
-      </div>
+      <button onclick="addChildInput()" style="background:none;border:2px dashed #dde5f0;border-radius:12px;width:100%;padding:12px;font-size:13px;font-weight:700;color:var(--ocean);cursor:pointer;margin-top:4px;">
+        + Bæta við barni
+      </button>
     </div>
     <div id="signup-error" style="color:var(--coral);font-size:12px;font-weight:700;margin-bottom:12px;min-height:18px;"></div>
     <button class="btn btn-primary" id="btn-signup" onclick="firebaseSignup()">🚀 Stofna aðgang</button>
@@ -841,6 +947,7 @@ function generateCode(name){
       <div class="hero-label">Yfirlit</div>
       <h1 id="mamma-hero-title">Lestrarbúðir strákaranna</h1>
       <p>Dagleg æfing · Gæði yfir magn</p>
+      <div id="mamma-family-code" style="display:none;margin-top:10px;background:rgba(255,255,255,0.15);border-radius:50px;padding:6px 14px;font-size:12px;font-weight:800;display:inline-block;cursor:pointer;" onclick="goTo('screen-join-family')"></div>
     </div>
     <div class="action-grid">
       <button class="action-card ocean" onclick="goTo('screen-detail-hrafnkell')"><span class="ac-icon">👦</span><span class="ac-label">Hrafnkell Hersir — nánar</span></button>
@@ -959,54 +1066,16 @@ let sessionTitle = '';
 let sessionText = '';
 
 // ══ FIREBASE SIGNUP ══
-window.firebaseSignup = async function(){
-  const parentName = document.getElementById('signup-name').value.trim();
-  const email = document.getElementById('signup-email').value.trim();
-  const pw = document.getElementById('signup-pw').value;
-  const child1 = document.getElementById('signup-child1').value.trim();
-  const child2 = document.getElementById('signup-child2').value.trim();
-  const errEl = document.getElementById('signup-error');
-  errEl.textContent = '';
-  if(!parentName){ errEl.textContent='Nafn foreldris vantar.'; return; }
-  if(!email||!pw){ errEl.textContent='Netfang og lykilorð vantar.'; return; }
-  if(pw.length < 6){ errEl.textContent='Lykilorð þarf að vera að minnsta kosti 6 stafir.'; return; }
-  if(!child1){ errEl.textContent='Nafn barns 1 vantar.'; return; }
-  try {
-    document.getElementById('btn-signup').textContent = 'Stofnar...';
-    const { auth, db } = window._fb;
-    const { createUserWithEmailAndPassword } = window._fb;
-    const cred = await createUserWithEmailAndPassword(auth, email, pw);
-    const uid = cred.user.uid;
-    const familyId = uid;
-    const children = [child1, child2].filter(Boolean);
-
-    await window._fb.setDoc(window._fb.doc(db,'users',uid),{
-      role: 'parent',
-      name: parentName,
-      email,
-      familyId,
-      children: children.map((name,i)=>({ name, key: i===0?'hrafnkell':'kolbeinn' })),
-      createdAt: new Date()
-    });
-
-    window._currentUid = uid;
-    window._currentFamilyId = familyId;
-    window._currentRole = 'parent';
-    window._currentName = parentName;
-
-    if(children[0]) USERS['hrafnkell'] = { name: children[0], emoji:'👦' };
-    if(children[1]) USERS['kolbeinn'] = { name: children[1], emoji:'👦' };
-
-    currentUser = 'mamma';
-    goTo('screen-mamma-home');
-  } catch(e) {
-    document.getElementById('btn-signup').textContent = 'Stofna aðgang';
-    if(e.code==='auth/email-already-in-use'){
-      document.getElementById('signup-error').textContent = 'Þetta netfang er þegar í notkun — skráðu þig inn.';
-    } else {
-      document.getElementById('signup-error').textContent = 'Villa: ' + e.message;
-    }
-  }
+// ── Bæta við barni á nýskráningarskjá ──
+window.addChildInput = function(){
+  const container = document.getElementById('children-inputs');
+  const count = container.querySelectorAll('.form-group').length + 1;
+  const div = document.createElement('div');
+  div.className = 'form-group';
+  div.innerHTML = `<label>Nafn barns ${count}</label>
+    <input type="text" placeholder="t.d. Anna Jónsdóttir">`;
+  container.appendChild(div);
+  div.querySelector('input').focus();
 };
 
 // ══ GEYMSLA — FIREBASE + LOCALSTORAGE FALLBACK ══
@@ -1049,6 +1118,7 @@ function goTo(id){
   if(id==='screen-child-home') renderChildHome();
   if(id==='screen-trophy'){ renderTrophyScreen(currentUser); document.getElementById('trophy-back-btn').onclick=()=>goTo(currentUser==='mamma'?'screen-mamma-home':'screen-child-home'); }
   if(id==='screen-mamma-home') renderMammaHome();
+  if(id==='screen-join-family') { document.getElementById('join-error') && (document.getElementById('join-error').textContent=''); }
   if(id==='screen-detail-hrafnkell') renderDetail('hrafnkell','detail-hrafnkell');
   if(id==='screen-detail-kolbeinn') renderDetail('kolbeinn','detail-kolbeinn');
   if(id==='screen-comparison') renderComparison();
@@ -1837,18 +1907,27 @@ function renderMammaHome(){
   }
 }
 function _renderMammaHome(){
-  // Uppfæra nafn foreldris
   const parentName = window._currentName || 'Foreldri';
   const tag = document.getElementById('mamma-mode-tag');
   if(tag) tag.textContent = parentName;
   const hero = document.getElementById('mamma-hero-title');
   if(hero) hero.textContent = 'Halló, '+parentName+' 👋';
 
+  // Sýna fjölskyldukóða
+  const fcEl = document.getElementById('mamma-family-code');
+  if(fcEl){
+    if(window._familyCode){
+      fcEl.style.display = '';
+      fcEl.textContent = '🔑 Fjölskyldukóði: '+window._familyCode;
+    } else {
+      fcEl.style.display = 'none';
+    }
+  }
+
   renderDots('m-hrafnkell-dots','hrafnkell');
   renderDots('m-kolbeinn-dots','kolbeinn');
   renderTrophyShelf('mamma-shelf-h','hrafnkell',true);
   renderTrophyShelf('mamma-shelf-k','kolbeinn',true);
-  // Update child names in action cards
   const h = document.getElementById('screen-mamma-home');
   if(h){
     const cards = h.querySelectorAll('.ac-label');

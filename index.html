@@ -217,7 +217,7 @@ body{font-family:-apple-system,'Segoe UI',sans-serif;background:var(--sky);color
   <div class="login-wrap">
     <div class="login-logo">Lesum</div>
     <div class="login-tagline">Íslenskt lestrarforrit — dagleg æfing</div>
-    <button class="user-btn" onclick="login('haflidi')">
+    <button class="user-btn" onclick="login('Hrafnkell')">
       <div class="ub-avatar blue">👦</div>
       <div><div class="ub-name">Hafliði</div><div class="ub-role">Les í dag 📚</div></div>
     </button>
@@ -389,7 +389,7 @@ body{font-family:-apple-system,'Segoe UI',sans-serif;background:var(--sky);color
       <p>Dagleg æfing · Gæði yfir magn</p>
     </div>
     <div class="action-grid">
-      <button class="action-card ocean" onclick="goTo('screen-detail-haflidi')"><span class="ac-icon">👦</span><span class="ac-label">Hafliði — nánar</span></button>
+      <button class="action-card ocean" onclick="goTo('screen-detail-Hrafnkell')"><span class="ac-icon">👦</span><span class="ac-label">Hafliði — nánar</span></button>
       <button class="action-card moss" onclick="goTo('screen-detail-kolbeinn')"><span class="ac-icon">👦</span><span class="ac-label">Kolbeinn — nánar</span></button>
       <button class="action-card sun" onclick="goTo('screen-comparison')"><span class="ac-icon">📊</span><span class="ac-label">Samanburður</span></button>
       <button class="action-card purple-card" onclick="goTo('screen-teacher')"><span class="ac-icon">🏫</span><span class="ac-label">Kennarayfirlit</span></button>
@@ -397,7 +397,7 @@ body{font-family:-apple-system,'Segoe UI',sans-serif;background:var(--sky);color
     <div class="section-title">Þessi vika — báðir strákar</div>
     <div class="card">
       <div class="card-title" style="margin-bottom:7px">👦 Hafliði</div>
-      <div class="week-dots" id="m-haflidi-dots"></div>
+      <div class="week-dots" id="m-Hrafnkell-dots"></div>
     </div>
     <div class="card">
       <div class="card-title" style="margin-bottom:7px">👦 Kolbeinn</div>
@@ -412,12 +412,12 @@ body{font-family:-apple-system,'Segoe UI',sans-serif;background:var(--sky);color
 </div>
 
 <!-- ══ HAFLIÐI NÁNAR ══ -->
-<div id="screen-detail-haflidi" class="screen">
+<div id="screen-detail-Hrafnkell" class="screen">
   <div class="topbar">
     <button class="back-btn" onclick="goTo('screen-mamma-home')">← Til baka</button>
     <div class="logo">Hafliði</div><div class="mode-tag">Nánar</div>
   </div>
-  <div class="scroll-body" id="detail-haflidi"></div>
+  <div class="scroll-body" id="detail-Hrafnkell"></div>
 </div>
 
 <!-- ══ KOLBEINN NÁNAR ══ -->
@@ -469,7 +469,7 @@ body{font-family:-apple-system,'Segoe UI',sans-serif;background:var(--sky);color
 <script>
 // ══ GÖGN ══
 const USERS = {
-  haflidi:  { name:'Hafliði',  emoji:'👦' },
+  Hrafnkell:  { name:'Hafliði',  emoji:'👦' },
   kolbeinn: { name:'Kolbeinn', emoji:'👦' },
   mamma:    { name:'Mamma',    emoji:'👩' },
 };
@@ -531,7 +531,7 @@ function goTo(id){
   window.scrollTo(0,0);
   if(id==='screen-child-home') renderChildHome();
   if(id==='screen-mamma-home') renderMammaHome();
-  if(id==='screen-detail-haflidi') renderDetail('haflidi','detail-haflidi');
+  if(id==='screen-detail-Hrafnkell') renderDetail('Hrafnkell','detail-Hrafnkell');
   if(id==='screen-detail-kolbeinn') renderDetail('kolbeinn','detail-kolbeinn');
   if(id==='screen-comparison') renderComparison();
   if(id==='screen-teacher') renderTeacher();
@@ -749,7 +749,7 @@ function iconForTitle(t){
 
 // ══ MAMMA HOME ══
 function renderMammaHome(){
-  renderDots('m-haflidi-dots','haflidi');
+  renderDots('m-Hrafnkell-dots','Hrafnkell');
   renderDots('m-kolbeinn-dots','kolbeinn');
 }
 
@@ -792,9 +792,9 @@ function renderDetail(u,elId){
 
 // ══ SAMANBURÐUR ══
 function renderComparison(){
-  document.getElementById('cmp-h').textContent=getSessions('haflidi').length;
+  document.getElementById('cmp-h').textContent=getSessions('Hrafnkell').length;
   document.getElementById('cmp-k').textContent=getSessions('kolbeinn').length;
-  renderMonthBars('cmp-h-chart','haflidi');
+  renderMonthBars('cmp-h-chart','Hrafnkell');
   renderMonthBars('cmp-k-chart','kolbeinn');
 }
 
@@ -802,7 +802,7 @@ function renderComparison(){
 function renderTeacher(){
   const el=document.getElementById('teacher-list'); if(!el) return;
   el.innerHTML='';
-  ['haflidi','kolbeinn'].forEach(u=>{
+  ['Hrafnkell','kolbeinn'].forEach(u=>{
     const uu=USERS[u];
     const ss=getSessions(u);
     const wd=getWeekData(u);
@@ -818,7 +818,7 @@ function renderTeacher(){
   });
   const wc=document.getElementById('teacher-chart'); if(!wc) return;
   wc.innerHTML='';
-  const h=getWeekData('haflidi'), k=getWeekData('kolbeinn');
+  const h=getWeekData('Hrafnkell'), k=getWeekData('kolbeinn');
   DAYS.forEach((day,i)=>{
     const both=(h[i].mins>0?1:0)+(k[i].mins>0?1:0);
     const pct=both*50;

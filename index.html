@@ -217,13 +217,13 @@ body{font-family:-apple-system,'Segoe UI',sans-serif;background:var(--sky);color
   <div class="login-wrap">
     <div class="login-logo">Lesum</div>
     <div class="login-tagline">Íslenskt lestrarforrit — dagleg æfing</div>
-    <button class="user-btn" onclick="login('Hrafnkell')">
+    <button class="user-btn" onclick="login('hrafnkell')">
       <div class="ub-avatar blue">👦</div>
-      <div><div class="ub-name">Hafliði</div><div class="ub-role">Les í dag 📚</div></div>
+      <div><div class="ub-name">Hrafnkell Hersir</div><div class="ub-role">Les í dag 📚</div></div>
     </button>
     <button class="user-btn" onclick="login('kolbeinn')">
       <div class="ub-avatar green">👦</div>
-      <div><div class="ub-name">Kolbeinn</div><div class="ub-role">Les í dag 📚</div></div>
+      <div><div class="ub-name">Kolbeinn Kvasir</div><div class="ub-role">Les í dag 📚</div></div>
     </button>
     <button class="user-btn" onclick="login('mamma')">
       <div class="ub-avatar purple">👩</div>
@@ -389,18 +389,18 @@ body{font-family:-apple-system,'Segoe UI',sans-serif;background:var(--sky);color
       <p>Dagleg æfing · Gæði yfir magn</p>
     </div>
     <div class="action-grid">
-      <button class="action-card ocean" onclick="goTo('screen-detail-Hrafnkell')"><span class="ac-icon">👦</span><span class="ac-label">Hafliði — nánar</span></button>
-      <button class="action-card moss" onclick="goTo('screen-detail-kolbeinn')"><span class="ac-icon">👦</span><span class="ac-label">Kolbeinn — nánar</span></button>
+      <button class="action-card ocean" onclick="goTo('screen-detail-hrafnkell')"><span class="ac-icon">👦</span><span class="ac-label">Hrafnkell Hersir — nánar</span></button>
+      <button class="action-card moss" onclick="goTo('screen-detail-kolbeinn')"><span class="ac-icon">👦</span><span class="ac-label">Kolbeinn Kvasir — nánar</span></button>
       <button class="action-card sun" onclick="goTo('screen-comparison')"><span class="ac-icon">📊</span><span class="ac-label">Samanburður</span></button>
       <button class="action-card purple-card" onclick="goTo('screen-teacher')"><span class="ac-icon">🏫</span><span class="ac-label">Kennarayfirlit</span></button>
     </div>
     <div class="section-title">Þessi vika — báðir strákar</div>
     <div class="card">
-      <div class="card-title" style="margin-bottom:7px">👦 Hafliði</div>
-      <div class="week-dots" id="m-Hrafnkell-dots"></div>
+      <div class="card-title" style="margin-bottom:7px">👦 Hrafnkell Hersir</div>
+      <div class="week-dots" id="m-hrafnkell-dots"></div>
     </div>
     <div class="card">
-      <div class="card-title" style="margin-bottom:7px">👦 Kolbeinn</div>
+      <div class="card-title" style="margin-bottom:7px">👦 Kolbeinn Kvasir</div>
       <div class="week-dots" id="m-kolbeinn-dots"></div>
     </div>
     <div class="quality-legend" style="padding-left:2px;margin-bottom:4px;">
@@ -412,19 +412,19 @@ body{font-family:-apple-system,'Segoe UI',sans-serif;background:var(--sky);color
 </div>
 
 <!-- ══ HAFLIÐI NÁNAR ══ -->
-<div id="screen-detail-Hrafnkell" class="screen">
+<div id="screen-detail-hrafnkell" class="screen">
   <div class="topbar">
     <button class="back-btn" onclick="goTo('screen-mamma-home')">← Til baka</button>
-    <div class="logo">Hafliði</div><div class="mode-tag">Nánar</div>
+    <div class="logo">Hrafnkell Hersir</div><div class="mode-tag">Nánar</div>
   </div>
-  <div class="scroll-body" id="detail-Hrafnkell"></div>
+  <div class="scroll-body" id="detail-hrafnkell"></div>
 </div>
 
 <!-- ══ KOLBEINN NÁNAR ══ -->
 <div id="screen-detail-kolbeinn" class="screen">
   <div class="topbar">
     <button class="back-btn" onclick="goTo('screen-mamma-home')">← Til baka</button>
-    <div class="logo">Kolbeinn</div><div class="mode-tag">Nánar</div>
+    <div class="logo">Kolbeinn Kvasir</div><div class="mode-tag">Nánar</div>
   </div>
   <div class="scroll-body" id="detail-kolbeinn"></div>
 </div>
@@ -437,12 +437,12 @@ body{font-family:-apple-system,'Segoe UI',sans-serif;background:var(--sky);color
   </div>
   <div class="scroll-body">
     <div class="stat-duo">
-      <div class="stat-box"><div style="font-size:24px;margin-bottom:3px">👦</div><div class="sv" id="cmp-h">0</div><div class="sl">Lotur — Hafliði</div></div>
-      <div class="stat-box"><div style="font-size:24px;margin-bottom:3px">👦</div><div class="sv" id="cmp-k">0</div><div class="sl">Lotur — Kolbeinn</div></div>
+      <div class="stat-box"><div style="font-size:24px;margin-bottom:3px">👦</div><div class="sv" id="cmp-h">0</div><div class="sl">Lotur — Hrafnkell Hersir</div></div>
+      <div class="stat-box"><div style="font-size:24px;margin-bottom:3px">👦</div><div class="sv" id="cmp-k">0</div><div class="sl">Lotur — Kolbeinn Kvasir</div></div>
     </div>
     <div class="section-title">Lotur eftir mánuðum</div>
-    <div class="card"><div class="card-title">👦 Hafliði</div><div id="cmp-h-chart"></div></div>
-    <div class="card"><div class="card-title">👦 Kolbeinn</div><div id="cmp-k-chart"></div></div>
+    <div class="card"><div class="card-title">👦 Hrafnkell Hersir</div><div id="cmp-h-chart"></div></div>
+    <div class="card"><div class="card-title">👦 Kolbeinn Kvasir</div><div id="cmp-k-chart"></div></div>
   </div>
 </div>
 
@@ -469,8 +469,8 @@ body{font-family:-apple-system,'Segoe UI',sans-serif;background:var(--sky);color
 <script>
 // ══ GÖGN ══
 const USERS = {
-  Hrafnkell:  { name:'Hafliði',  emoji:'👦' },
-  kolbeinn: { name:'Kolbeinn', emoji:'👦' },
+  hrafnkell:  { name:'Hrafnkell Hersir',  emoji:'👦' },
+  kolbeinn: { name:'Kolbeinn Kvasir', emoji:'👦' },
   mamma:    { name:'Mamma',    emoji:'👩' },
 };
 const DAYS = ['Mán','Þri','Mið','Fim','Fös','Lau','Sun'];
@@ -531,7 +531,7 @@ function goTo(id){
   window.scrollTo(0,0);
   if(id==='screen-child-home') renderChildHome();
   if(id==='screen-mamma-home') renderMammaHome();
-  if(id==='screen-detail-Hrafnkell') renderDetail('Hrafnkell','detail-Hrafnkell');
+  if(id==='screen-detail-hrafnkell') renderDetail('hrafnkell','detail-hrafnkell');
   if(id==='screen-detail-kolbeinn') renderDetail('kolbeinn','detail-kolbeinn');
   if(id==='screen-comparison') renderComparison();
   if(id==='screen-teacher') renderTeacher();
@@ -749,7 +749,7 @@ function iconForTitle(t){
 
 // ══ MAMMA HOME ══
 function renderMammaHome(){
-  renderDots('m-Hrafnkell-dots','Hrafnkell');
+  renderDots('m-hrafnkell-dots','hrafnkell');
   renderDots('m-kolbeinn-dots','kolbeinn');
 }
 
@@ -792,9 +792,9 @@ function renderDetail(u,elId){
 
 // ══ SAMANBURÐUR ══
 function renderComparison(){
-  document.getElementById('cmp-h').textContent=getSessions('Hrafnkell').length;
+  document.getElementById('cmp-h').textContent=getSessions('hrafnkell').length;
   document.getElementById('cmp-k').textContent=getSessions('kolbeinn').length;
-  renderMonthBars('cmp-h-chart','Hrafnkell');
+  renderMonthBars('cmp-h-chart','hrafnkell');
   renderMonthBars('cmp-k-chart','kolbeinn');
 }
 
@@ -802,7 +802,7 @@ function renderComparison(){
 function renderTeacher(){
   const el=document.getElementById('teacher-list'); if(!el) return;
   el.innerHTML='';
-  ['Hrafnkell','kolbeinn'].forEach(u=>{
+  ['hrafnkell','kolbeinn'].forEach(u=>{
     const uu=USERS[u];
     const ss=getSessions(u);
     const wd=getWeekData(u);
@@ -818,7 +818,7 @@ function renderTeacher(){
   });
   const wc=document.getElementById('teacher-chart'); if(!wc) return;
   wc.innerHTML='';
-  const h=getWeekData('Hrafnkell'), k=getWeekData('kolbeinn');
+  const h=getWeekData('hrafnkell'), k=getWeekData('kolbeinn');
   DAYS.forEach((day,i)=>{
     const both=(h[i].mins>0?1:0)+(k[i].mins>0?1:0);
     const pct=both*50;

@@ -263,9 +263,14 @@ body{font-family:-apple-system,'Segoe UI',sans-serif;background:var(--sky);color
     </div>
     <div class="section-title">Verðlaunin mín</div>
     <div class="badge-grid">
-      <div class="badge-item" id="badge-first"><div class="bi-icon">🌱</div><div class="bi-name">Fyrsti lestur</div><div class="bi-req" id="b1r">1 lota</div></div>
-      <div class="badge-item locked" id="badge-streak"><div class="bi-icon">🔥</div><div class="bi-name">5 daga röð</div><div class="bi-req" id="b2r">5 dagar</div></div>
-      <div class="badge-item locked" id="badge-lion"><div class="bi-icon">🦁</div><div class="bi-name">Lestrarlyfjan</div><div class="bi-req" id="b3r">10 lotur</div></div>
+      <div class="badge-item" id="badge-first"><div class="bi-icon">🌱</div><div class="bi-name">Fyrsta skrefið</div><div class="bi-req" id="b1r">1 lota</div></div>
+      <div class="badge-item locked" id="badge-streak"><div class="bi-icon">🔥</div><div class="bi-name">Heitur strákur</div><div class="bi-req" id="b2r">5 dagar í röð</div></div>
+      <div class="badge-item locked" id="badge-lion"><div class="bi-icon">🦁</div><div class="bi-name">Sterkur lesari</div><div class="bi-req" id="b3r">10 lotur</div></div>
+    </div>
+    <div class="badge-grid">
+      <div class="badge-item locked" id="badge-star"><div class="bi-icon">⭐</div><div class="bi-name">Stjörnulesari</div><div class="bi-req" id="b4r">25 lotur</div></div>
+      <div class="badge-item locked" id="badge-champ"><div class="bi-icon">🏆</div><div class="bi-name">Meistarinn</div><div class="bi-req" id="b5r">50 lotur</div></div>
+      <div class="badge-item locked" id="badge-books"><div class="bi-icon">📚</div><div class="bi-name">Bókormurinn</div><div class="bi-req" id="b6r">Allar sögur</div></div>
     </div>
     <div class="section-title">Síðustu lotur</div>
     <div class="card" id="child-sessions"><div class="empty-state">Engar lotur enn — byrjaðu að lesa! 📖</div></div>
@@ -605,15 +610,31 @@ function renderChildHome(){
   document.getElementById('child-streak-pill').textContent=streak>0?'🔥 '+streak+' daga röð':'⭐ '+stars+' stjörnur';
   renderDots('child-week-dots',currentUser);
   renderSessionList('child-sessions',currentUser,5);
-  // Badges
+  // Verðlaun
   const count=getSessions(currentUser).length;
   const b1=document.getElementById('badge-first'),b2=document.getElementById('badge-streak'),b3=document.getElementById('badge-lion');
+  const b4=document.getElementById('badge-star'),b5=document.getElementById('badge-champ'),b6=document.getElementById('badge-books');
+  // 🌱 Fyrsta lota
   if(count>=1){b1.classList.remove('locked');document.getElementById('b1r').textContent='Unnið! ✓';}
   else{b1.classList.add('locked');document.getElementById('b1r').textContent='1 lota';}
+  // 🔥 5 daga röð
   if(streak>=5){b2.classList.remove('locked');document.getElementById('b2r').textContent='Unnið! ✓';}
   else{document.getElementById('b2r').textContent=streak+'/5 dagar';}
+  // 🦁 10 lotur
   if(count>=10){b3.classList.remove('locked');document.getElementById('b3r').textContent='Unnið! ✓';}
   else{document.getElementById('b3r').textContent=count+'/10 lotur';}
+  // ⭐ 25 lotur
+  if(b4){if(count>=25){b4.classList.remove('locked');document.getElementById('b4r').textContent='Unnið! ✓';}else{document.getElementById('b4r').textContent=count+'/25 lotur';}}
+  // 🏆 50 lotur
+  if(b5){if(count>=50){b5.classList.remove('locked');document.getElementById('b5r').textContent='Unnið! ✓';}else{document.getElementById('b5r').textContent=count+'/50 lotur';}}
+  // 📚 allar sögur
+  if(b6){
+    const ss=getSessions(currentUser);
+    const readIds=new Set(ss.map(s=>s.libId).filter(Boolean));
+    const allRead=LIBRARY.every(l=>readIds.has(l.id));
+    if(allRead){b6.classList.remove('locked');document.getElementById('b6r').textContent='Unnið! ✓';}
+    else{document.getElementById('b6r').textContent=readIds.size+'/'+LIBRARY.length+' sögur';}
+  }
 }
 
 // ══ LIBRARY ══
@@ -635,6 +656,7 @@ function renderLibrary(filter){
       div.style.borderColor='var(--ocean)'; div.style.background='#f0f7ff';
       document.getElementById('custom-title').value=item.title;
       document.getElementById('custom-text').value=item.text;
+      document.getElementById('custom-title').dataset.libId=item.id;
     };
     el.appendChild(div);
   });
@@ -701,7 +723,19 @@ function startTimer(){
   },1000);
 }
 
-function stopTimer(){ clearInterval(timerInterval); finishSession(); }
+function stopTimer(){
+  clearInterval(timerInterval);
+  if(sessionSecs < 60){
+    if(confirm('Þú lasir í minna en 1 mínútu — lota verður ekki vistuð. Hætta við?')){
+      sessionSecs=0; goTo('screen-child-home');
+    } else {
+      // halda áfram
+      startTimer();
+    }
+    return;
+  }
+  finishSession();
+}
 
 function confirmStop(){
   if(sessionSecs>10){
@@ -713,7 +747,7 @@ function finishSession(){
   const now=new Date();
   const dKey=now.getFullYear()+'-'+(now.getMonth()+1)+'-'+now.getDate();
   const tStr=now.getHours()+':'+String(now.getMinutes()).padStart(2,'0');
-  addSession(currentUser,{date:dKey,dateLabel:'Í dag kl. '+tStr,seconds:sessionSecs,title:sessionTitle,icon:iconForTitle(sessionTitle),timestamp:Date.now()});
+  addSession(currentUser,{date:dKey,dateLabel:'Í dag kl. '+tStr,seconds:sessionSecs,title:sessionTitle,icon:iconForTitle(sessionTitle),libId:document.getElementById('custom-title').dataset.libId||null,timestamp:Date.now()});
   const total=getSessions(currentUser).length;
   const streak=getStreak(currentUser);
   const stars=getTotalStars(currentUser);
@@ -745,6 +779,45 @@ function iconForTitle(t){
   if(t.includes('ský')||t.includes('veður'))return'☁️';
   if(t.includes('lamb')||t.includes('sauð'))return'🐑';
   return'📖';
+}
+
+// ══ VIKUR MÁNAÐARINS ══
+function renderMonthWeeks(elId, u){
+  const el=document.getElementById(elId); if(!el) return;
+  const ss=getSessions(u);
+  const now=new Date();
+  el.innerHTML='';
+  // Sýna 4 vikur aftur í tímann
+  for(let w=3;w>=0;w--){
+    const weekStart=new Date(now);
+    weekStart.setDate(now.getDate()-(now.getDay()||7)+1-(w*7)); // Mánudagur
+    const wrap=document.createElement('div');
+    wrap.style.cssText='margin-bottom:12px;';
+    // Vikuheiti
+    const weekLabel=w===0?'Þessi vika':w===1?'Síðasta vika':'Fyrir '+((w===2)?'2':'3')+' vikum';
+    wrap.innerHTML=`<div style="font-size:10px;font-weight:700;color:var(--mist);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">${weekLabel}</div>`;
+    const dotsWrap=document.createElement('div');
+    dotsWrap.className='week-dots';
+    let weekTotal=0;
+    DAYS.forEach((day,i)=>{
+      const d=new Date(weekStart); d.setDate(weekStart.getDate()+i);
+      const key=d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();
+      const mins=ss.filter(s=>s.date===key).reduce((a,s)=>a+Math.floor(s.seconds/60),0);
+      if(mins>0) weekTotal+=mins;
+      const dot=document.createElement('div');
+      dot.className='day-dot '+qc(mins);
+      dot.innerHTML=`<span class="dd-day">${day}</span><span>${mins>0?mins+'m':'—'}</span>`;
+      dotsWrap.appendChild(dot);
+    });
+    wrap.appendChild(dotsWrap);
+    if(weekTotal>0){
+      const tot=document.createElement('div');
+      tot.style.cssText='font-size:10px;color:var(--mist);font-weight:600;margin-top:5px;text-align:right;';
+      tot.textContent='Samtals: '+weekTotal+' mín';
+      wrap.appendChild(tot);
+    }
+    el.appendChild(wrap);
+  }
 }
 
 // ══ MAMMA HOME ══
@@ -779,12 +852,14 @@ function renderDetail(u,elId){
         <div class="ql-item"><div class="ql-dot partial"></div>5–14 mín</div>
       </div>
     </div>
+    <div class="section-title">Vikur mánaðarins</div>
+    <div class="card"><div id="dt-weeks-${u}"></div></div>
     <div class="section-title">Lotur eftir mánuðum</div>
     <div class="card"><div id="dt-months-${u}"></div></div>
     <div class="section-title">Allar lotur</div>
     <div class="card" id="dt-sessions-${u}"></div>`;
   setTimeout(()=>{
-    renderDots('dt-dots-'+u,u);
+    renderMonthWeeks('dt-weeks-'+u,u);
     renderMonthBars('dt-months-'+u,u);
     renderSessionList('dt-sessions-'+u,u);
   },50);

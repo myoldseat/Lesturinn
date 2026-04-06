@@ -464,15 +464,13 @@ body{font-family:-apple-system,'Segoe UI',sans-serif;background:var(--sky);color
       <button class="action-card purple-card" onclick="goTo('screen-teacher')"><span class="ac-icon">🏫</span><span class="ac-label">Kennarayfirlit</span></button>
     </div>
     <div class="section-title">Verðlaunahillan 🔺</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-bottom:18px;">
-      <div class="card" style="cursor:pointer" onclick="currentUser='hrafnkell';goTo('screen-trophy')">
-        <div class="card-title">👦 Hrafnkell</div>
-        <div id="mamma-shelf-h"></div>
-      </div>
-      <div class="card" style="cursor:pointer" onclick="currentUser='kolbeinn';goTo('screen-trophy')">
-        <div class="card-title">👦 Kolbeinn</div>
-        <div id="mamma-shelf-k"></div>
-      </div>
+    <div class="card" style="margin-bottom:11px">
+      <div class="card-title">👦 Hrafnkell Hersir</div>
+      <div id="mamma-shelf-h"></div>
+    </div>
+    <div class="card" style="margin-bottom:18px">
+      <div class="card-title">👦 Kolbeinn Kvasir</div>
+      <div id="mamma-shelf-k"></div>
     </div>
     <div class="section-title">Þessi vika — báðir strákar</div>
     <div class="card">
@@ -542,10 +540,8 @@ body{font-family:-apple-system,'Segoe UI',sans-serif;background:var(--sky);color
     <div class="section-title">Þessi vika</div>
     <div class="card" id="teacher-list"></div>
     <div class="section-title">Verðlaunahillan 🔺</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-bottom:18px;">
-      <div class="card"><div class="card-title">👦 Hrafnkell</div><div id="teacher-shelf-h"></div></div>
-      <div class="card"><div class="card-title">👦 Kolbeinn</div><div id="teacher-shelf-k"></div></div>
-    </div>
+    <div class="card" style="margin-bottom:11px"><div class="card-title">👦 Hrafnkell</div><div id="teacher-shelf-h"></div></div>
+    <div class="card" style="margin-bottom:18px"><div class="card-title">👦 Kolbeinn</div><div id="teacher-shelf-k"></div></div>
     <div class="section-title">Vikuyfirlit</div>
     <div class="card"><div class="card-title">Hlutfall sem las hvern dag</div><div id="teacher-chart"></div></div>
   </div>
@@ -950,7 +946,7 @@ function renderTrophyShelf(containerId, u, isPreview){
   }
 
   // Þríhyrningurinn — level 5 efst
-  const levelsToShow = isPreview ? TROPHY_LEVELS.slice(0,2) : [...TROPHY_LEVELS].reverse();
+  const levelsToShow = isPreview ? TROPHY_LEVELS.slice(0,1) : [...TROPHY_LEVELS].reverse();
 
   levelsToShow.forEach((level, li)=>{
     const levelDiv = document.createElement('div');
@@ -1017,8 +1013,10 @@ function renderTrophyShelf(containerId, u, isPreview){
 
   if(isPreview){
     const link = document.createElement('div');
-    link.style.cssText = 'text-align:center;font-size:11px;color:var(--mist);font-weight:600;margin-top:8px;';
-    link.textContent = earnedCount+' / '+totalSlots+' tákn söfnuð';
+    link.style.cssText = 'text-align:center;font-size:11px;color:var(--ocean);font-weight:700;margin-top:10px;cursor:pointer;';
+    link.textContent = earnedCount+' / '+totalSlots+' tákn söfnuð — Sjá alla hilluna →';
+    const targetUser = u;
+    link.onclick = ()=>{ currentUser=targetUser; goTo('screen-trophy'); };
     el.appendChild(link);
   }
 }

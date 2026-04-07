@@ -233,73 +233,43 @@ const firebaseConfig = {
   appId: "1:204392598388:web:2dbbe3f476cd78d2ffba21"
 };
 
-let app;
-let auth;
-let db;
-
-function collection(dbInstance, path){
-  return dbInstance.collection(path);
-}
-function addDoc(collectionRef, data){
-  return collectionRef.add(data);
-}
-function getDocs(ref){
-  return ref.get();
-}
-function query(baseRef, ...constraints){
-  return constraints.reduce((ref, constraint) => {
-    if(!constraint) return ref;
-    if(constraint.type === 'where') return ref.where(constraint.fieldPath, constraint.opStr, constraint.value);
-    if(constraint.type === 'orderBy') return ref.orderBy(constraint.fieldPath, constraint.directionStr);
-    return ref;
-  }, baseRef);
-}
-function where(fieldPath, opStr, value){
-  return { type:'where', fieldPath, opStr, value };
-}
-function orderBy(fieldPath, directionStr='asc'){
-  return { type:'orderBy', fieldPath, directionStr };
-}
-function doc(dbInstance, path, id){
-  return dbInstance.collection(path).doc(id);
-}
-function setDoc(docRef, data){
-  return docRef.set(data);
-}
-function getDoc(docRef){
-  return docRef.get();
-}
-function updateDoc(docRef, data){
-  return docRef.update(data);
-}
-function deleteDoc(docRef){
-  return docRef.delete();
-}
-function onSnapshot(ref, onNext, onError){
-  return ref.onSnapshot(onNext, onError);
-}
-function signInWithEmailAndPassword(authInstance, email, password){
-  return authInstance.signInWithEmailAndPassword(email, password);
-}
-function createUserWithEmailAndPassword(authInstance, email, password){
-  return authInstance.createUserWithEmailAndPassword(email, password);
-}
-function onAuthStateChanged(authInstance, callback){
-  return authInstance.onAuthStateChanged(callback);
-}
-function signOut(authInstance){
-  return authInstance.signOut();
-}
+let app, auth, db;
+let signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut;
+let collection, addDoc, getDocs, query, where, orderBy, deleteDoc, doc, setDoc, getDoc, updateDoc, onSnapshot;
 
 try {
   app = firebase.initializeApp(firebaseConfig);
   auth = firebase.auth();
   db = firebase.firestore();
-  window._firebaseBootOk = true;
+
+  signInWithEmailAndPassword = (_auth, email, password) => _auth.signInWithEmailAndPassword(email, password);
+  createUserWithEmailAndPassword = (_auth, email, password) => _auth.createUserWithEmailAndPassword(email, password);
+  onAuthStateChanged = (_auth, callback) => _auth.onAuthStateChanged(callback);
+  signOut = (_auth) => _auth.signOut();
+
+  collection = (_db, name) => _db.collection(name);
+  addDoc = (collectionRef, data) => collectionRef.add(data);
+  getDocs = (queryRef) => queryRef.get();
+  query = (baseRef, ...constraints) => constraints.reduce((ref, constraint) => constraint(ref), baseRef);
+  where = (field, op, value) => (ref) => ref.where(field, op, value);
+  orderBy = (field, direction = 'asc') => (ref) => ref.orderBy(field, direction);
+  deleteDoc = (docRef) => docRef.delete();
+  doc = (_db, collectionName, id) => _db.collection(collectionName).doc(id);
+  setDoc = (docRef, data) => docRef.set(data);
+  getDoc = async (docRef) => {
+    const snap = await docRef.get();
+    return {
+      exists: () => snap.exists,
+      data: () => snap.data(),
+      id: snap.id,
+      ref: snap.ref
+    };
+  };
+  updateDoc = (docRef, data) => docRef.update(data);
+  onSnapshot = (queryRef, onNext, onError) => queryRef.onSnapshot(onNext, onError);
+
   console.log('✅ Firebase boot ok');
 } catch (e) {
-  window._firebaseBootOk = false;
-  window._firebaseBootError = e;
   console.error('❌ Firebase boot failed:', e);
 }
 
@@ -356,7 +326,7 @@ function refreshActiveParentScreen(){
   if(window._currentRole !== 'parent') return;
   const active = document.querySelector('.screen.active');
   if(!active) return;
-  if(active.id === 'screen-mamma-home') _renderMammaHome();
+  if(active.id === 'screen-mamma-home') renderMammaHome();
   if(active.id === 'screen-detail-hrafnkell') renderDetail('hrafnkell','detail-hrafnkell');
   if(active.id === 'screen-detail-kolbeinn') renderDetail('kolbeinn','detail-kolbeinn');
   if(active.id === 'screen-comparison') renderComparison();
@@ -400,7 +370,6 @@ if(savedChild){
     window._currentFamilyId = childData.familyId;
     window._currentChildKey = childData.childKey;
     currentUser = childData.childKey;
-    // Ganga úr skugga um að USERS sé rétt
     USERS[childData.childKey] = { name: childData.name, emoji:'👦' };
   } catch(e) { localStorage.removeItem('lesum_child_session'); }
 }
@@ -416,7 +385,6 @@ onAuthStateChanged(auth, async (user) => {
       window._currentName     = profile.name;
       window._currentFamilyId = profile.familyId || user.uid;
       window._familyCode      = profile.familyCode || null;
-      // Hlaða börnum í USERS
       if(profile.children){
         profile.children.forEach((c,i)=>{
           const key = i===0?'hrafnkell':'kolbeinn';
@@ -431,11 +399,9 @@ onAuthStateChanged(auth, async (user) => {
     }
   } else {
     stopFamilySessionsListener();
-    // Ekki innskráður — athuga hvort barn sé saved
     if(localStorage.getItem('lesum_child_session')){
       goTo('screen-child-home');
     }
-    // annars verður login skjárinn active
   }
 });
 
@@ -447,9 +413,11 @@ window.firebaseLogin = async function(){
   errEl.textContent = '';
   if(!email||!pw){ errEl.textContent='Netfang og lykilorð vantar.'; return; }
   try {
+    console.log('🔐 Parent login attempt', email);
     document.getElementById('btn-login').textContent = 'Skráir inn...';
     await signInWithEmailAndPassword(auth, email, pw);
   } catch(e) {
+    console.error('❌ Parent login failed', e);
     document.getElementById('btn-login').textContent = '🔑 Skrá inn';
     errEl.textContent = e.code==='auth/invalid-credential' ? 'Netfang eða lykilorð er rangt.' : 'Villa: '+e.message;
   }
@@ -473,7 +441,6 @@ window.firebaseSignup = async function(){
     const cred = await createUserWithEmailAndPassword(auth, email, pw);
     const uid  = cred.user.uid;
     const familyId = uid;
-    // Búa til fjölskyldukóða — FAM + 4 tölur
     const familyCode = 'FAM' + Math.floor(1000+Math.random()*9000);
     const childKeys = ['hrafnkell','kolbeinn','child3','child4','child5'];
     const children = childNames.map((n,i)=>({
@@ -485,13 +452,11 @@ window.firebaseSignup = async function(){
       role:'parent', name, email, familyId,
       familyCode, children, createdAt: new Date()
     });
-    // Vista barnakóða
     for(const c of children){
       await setDoc(doc(db,'codes',c.code),{
         familyId, childKey: c.key, childName: c.name, parentUid: uid
       });
     }
-    // Vista fjölskyldukóða
     await setDoc(doc(db,'familycodes',familyCode),{
       familyId, parentUid: uid, parentName: name, createdAt: new Date()
     });
@@ -504,6 +469,7 @@ window.firebaseSignup = async function(){
     currentUser = 'mamma';
     showChildCodes(children, familyCode);
   } catch(e) {
+    console.error('❌ Signup failed', e);
     document.getElementById('btn-signup').textContent = '🚀 Stofna aðgang';
     document.getElementById('signup-error').textContent =
       e.code==='auth/email-already-in-use' ? 'Þetta netfang er þegar í notkun.' : 'Villa: '+e.message;
@@ -522,7 +488,6 @@ window.familyJoin = async function(){
   if(pw.length<6){ errEl.textContent='Lykilorð þarf 6+ stafi.'; return; }
   try {
     document.getElementById('btn-join').textContent = 'Leitar...';
-    // Athuga hvort fjölskyldukóðinn sé til
     const fcSnap = await getDoc(doc(db,'familycodes',fcode));
     if(!fcSnap.exists()){
       document.getElementById('btn-join').textContent = '🤝 Ganga í fjölskylduna';
@@ -530,7 +495,6 @@ window.familyJoin = async function(){
       return;
     }
     const fcData = fcSnap.data();
-    // Stofna notanda
     const cred = await createUserWithEmailAndPassword(auth, email, pw);
     const uid  = cred.user.uid;
     await setDoc(doc(db,'users',uid),{
@@ -548,6 +512,7 @@ window.familyJoin = async function(){
     currentUser = 'mamma';
     goTo('screen-mamma-home');
   } catch(e) {
+    console.error('❌ Family join failed', e);
     document.getElementById('btn-join').textContent = '🤝 Ganga í fjölskylduna';
     errEl.textContent = e.code==='auth/email-already-in-use'
       ? 'Þetta netfang er þegar í notkun.' : 'Villa: '+e.message;
@@ -561,8 +526,7 @@ window.childLogin = async function(){
   errEl.textContent = '';
   if(code.length < 4){ errEl.textContent='Sláðu inn kóðann þinn.'; return; }
   try {
-    if(!db) throw new Error('Firestore ekki tilbúið');
-    console.log('🔎 Leita að barnakóða...', code);
+    console.log('🧒 Child login lookup', code);
     document.getElementById('btn-child-login').textContent = 'Leita...';
     const codeSnap = await getDoc(doc(db,'codes',code));
     if(!codeSnap.exists()){
@@ -571,7 +535,6 @@ window.childLogin = async function(){
       return;
     }
     const codeData = codeSnap.data();
-    // Vista á tækið
     const childSession = {
       uid:      codeData.parentUid+'_'+codeData.childKey,
       name:     codeData.childName,
@@ -589,6 +552,7 @@ window.childLogin = async function(){
     USERS[codeData.childKey] = { name: codeData.childName, emoji:'👦' };
     goTo('screen-child-home');
   } catch(e) {
+    console.error('❌ Child login failed', e);
     document.getElementById('btn-child-login').textContent = '🎯 Skrá mig inn';
     document.getElementById('child-code-error').textContent = 'Villa: '+e.message;
   }
@@ -617,8 +581,7 @@ window.firebaseLogout = async function(){
 // ── Vista lotu ──
 window.saveSessionToFirestore = async function(sessionData){
   try {
-    if(!db) throw new Error('Firestore ekki tilbúið');
-    console.log('💾 Reyni að vista lotu í Firestore...', { familyId: window._currentFamilyId, childKey: currentUser });
+    console.log('💾 Saving session', sessionData);
     await addDoc(collection(db,'sessions'),{
       ...sessionData,
       familyId:  window._currentFamilyId,
@@ -627,11 +590,8 @@ window.saveSessionToFirestore = async function(sessionData){
       createdAt: new Date()
     });
     console.log('✅ Lota vistuð í Firestore');
-    return true;
   } catch(e){
-    window._lastFirestoreSaveError = e;
     console.error('❌ Villa við vistun í Firestore:', e);
-    return false;
   }
 };
 
@@ -781,8 +741,7 @@ function generateCode(name){
           autocapitalize="characters"
           inputmode="text"
           enterkeyhint="done"
-          spellcheck="false"
-          style="font-family:Georgia,serif;font-size:28px;font-weight:700;letter-spacing:4px;text-align:center;text-transform:uppercase;cursor:text;"
+          style="font-family:Georgia,serif;font-size:28px;font-weight:700;letter-spacing:4px;text-align:center;text-transform:uppercase;"
           oninput="this.value=this.value.toUpperCase()">
       </div>
       <div id="child-code-error" style="color:var(--coral);font-size:12px;font-weight:700;margin-bottom:12px;min-height:18px;text-align:center;"></div>
@@ -1588,15 +1547,6 @@ function logout(){
 }
 
 
-window.addEventListener('DOMContentLoaded', () => {
-  const childInput = document.getElementById('child-code-input');
-  const childCard = childInput ? childInput.closest('.card') : null;
-  if(childCard && childInput){
-    childCard.addEventListener('click', () => {
-      childInput.focus();
-    });
-  }
-});
 
 // ══ HELPERS ══
 function qc(m){ return m>=15?'full':m>0?'partial':'none'; }

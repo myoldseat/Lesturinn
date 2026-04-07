@@ -697,6 +697,9 @@ function generateCode(name){
           placeholder="t.d. HRA42"
           maxlength="6"
           autocomplete="off"
+          autocapitalize="characters"
+          inputmode="text"
+          enterkeyhint="done"
           style="font-family:Georgia,serif;font-size:28px;font-weight:700;letter-spacing:4px;text-align:center;text-transform:uppercase;"
           oninput="this.value=this.value.toUpperCase()">
       </div>
@@ -1461,6 +1464,17 @@ function goTo(id){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   window.scrollTo(0,0);
+
+  if(id==='screen-child-login'){
+    setTimeout(() => {
+      const input = document.getElementById('child-code-input');
+      if(input){
+        input.focus();
+        input.click();
+      }
+    }, 250);
+  }
+
   if(id==='screen-child-home') renderChildHome();
   if(id==='screen-trophy'){ renderTrophyScreen(currentUser); document.getElementById('trophy-back-btn').onclick=()=>goTo(currentUser==='mamma'?'screen-mamma-home':'screen-child-home'); }
   if(id==='screen-mamma-home') renderMammaHome();
@@ -1486,6 +1500,18 @@ function logout(){
   if(window.firebaseLogout) window.firebaseLogout();
   else { currentUser=null; clearInterval(timerInterval); sessionSecs=0; goTo('screen-login'); }
 }
+
+
+window.addEventListener('DOMContentLoaded', () => {
+  const childInput = document.getElementById('child-code-input');
+  const childCard = childInput ? childInput.closest('.card') : null;
+  if(childCard && childInput){
+    childCard.addEventListener('click', () => {
+      childInput.focus();
+      childInput.click();
+    });
+  }
+});
 
 // ══ HELPERS ══
 function qc(m){ return m>=15?'full':m>0?'partial':'none'; }

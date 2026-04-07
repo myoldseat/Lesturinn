@@ -219,34 +219,12 @@ body{font-family:-apple-system,'Segoe UI',sans-serif;background:var(--sky);color
 </head>
 <body>
 
-<script>
-window.__debugMode = true;
-window.__debugAlert = function(msg){
-  try {
-    console.log('[DEBUG]', msg);
-    alert(String(msg));
-  } catch (e) {
-    console.log('[DEBUG]', msg);
-  }
-};
-
-window.addEventListener('error', function (e) {
-  console.error('GLOBAL JS ERROR:', e.message, e.filename, e.lineno, e.colno, e.error || '');
-  window.__debugAlert('JS villa: ' + e.message + ' @ line ' + e.lineno);
-});
-
-window.addEventListener('unhandledrejection', function (e) {
-  const reason = e.reason && (e.reason.message || e.reason.code || String(e.reason)) || 'Unknown promise error';
-  console.error('UNHANDLED PROMISE ERROR:', e.reason);
-  window.__debugAlert('Promise villa: ' + reason);
-});
-</script>
-
 <!-- ══ FIREBASE SDK ══ -->
-<script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore-compat.js"></script>
-<script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
+import { getFirestore, collection, addDoc, getDocs, query, where, orderBy, deleteDoc, doc, setDoc, getDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+
 const firebaseConfig = {
   apiKey: "AIzaSyAgTY3Uxd9_ZxixjqLj-sH8V3OhFAzg6DU",
   authDomain: "lesum-22e85.firebaseapp.com",
@@ -256,45 +234,9 @@ const firebaseConfig = {
   appId: "1:204392598388:web:2dbbe3f476cd78d2ffba21"
 };
 
-let app, auth, db;
-let signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut;
-let collection, addDoc, getDocs, query, where, orderBy, deleteDoc, doc, setDoc, getDoc, updateDoc, onSnapshot;
-
-try {
-  app = firebase.initializeApp(firebaseConfig);
-  auth = firebase.auth();
-  db = firebase.firestore();
-
-  signInWithEmailAndPassword = (_auth, email, password) => _auth.signInWithEmailAndPassword(email, password);
-  createUserWithEmailAndPassword = (_auth, email, password) => _auth.createUserWithEmailAndPassword(email, password);
-  onAuthStateChanged = (_auth, callback) => _auth.onAuthStateChanged(callback);
-  signOut = (_auth) => _auth.signOut();
-
-  collection = (_db, name) => _db.collection(name);
-  addDoc = (collectionRef, data) => collectionRef.add(data);
-  getDocs = (queryRef) => queryRef.get();
-  query = (baseRef, ...constraints) => constraints.reduce((ref, constraint) => constraint(ref), baseRef);
-  where = (field, op, value) => (ref) => ref.where(field, op, value);
-  orderBy = (field, direction = 'asc') => (ref) => ref.orderBy(field, direction);
-  deleteDoc = (docRef) => docRef.delete();
-  doc = (_db, collectionName, id) => _db.collection(collectionName).doc(id);
-  setDoc = (docRef, data) => docRef.set(data);
-  getDoc = async (docRef) => {
-    const snap = await docRef.get();
-    return {
-      exists: () => snap.exists,
-      data: () => snap.data(),
-      id: snap.id,
-      ref: snap.ref
-    };
-  };
-  updateDoc = (docRef, data) => docRef.update(data);
-  onSnapshot = (queryRef, onNext, onError) => queryRef.onSnapshot(onNext, onError);
-
-  console.log('✅ Firebase boot ok');
-} catch (e) {
-  console.error('❌ Firebase boot failed:', e);
-}
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
 
 window._fb = { auth, db, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged, collection, addDoc, getDocs, query, where, orderBy, deleteDoc, doc, setDoc, getDoc, updateDoc, onSnapshot };
 
@@ -349,7 +291,7 @@ function refreshActiveParentScreen(){
   if(window._currentRole !== 'parent') return;
   const active = document.querySelector('.screen.active');
   if(!active) return;
-  if(active.id === 'screen-mamma-home') renderMammaHome();
+  if(active.id === 'screen-mamma-home') _renderMammaHome();
   if(active.id === 'screen-detail-hrafnkell') renderDetail('hrafnkell','detail-hrafnkell');
   if(active.id === 'screen-detail-kolbeinn') renderDetail('kolbeinn','detail-kolbeinn');
   if(active.id === 'screen-comparison') renderComparison();
@@ -393,6 +335,7 @@ if(savedChild){
     window._currentFamilyId = childData.familyId;
     window._currentChildKey = childData.childKey;
     currentUser = childData.childKey;
+    // Ganga úr skugga um að USERS sé rétt
     USERS[childData.childKey] = { name: childData.name, emoji:'👦' };
   } catch(e) { localStorage.removeItem('lesum_child_session'); }
 }
@@ -408,6 +351,7 @@ onAuthStateChanged(auth, async (user) => {
       window._currentName     = profile.name;
       window._currentFamilyId = profile.familyId || user.uid;
       window._familyCode      = profile.familyCode || null;
+      // Hlaða börnum í USERS
       if(profile.children){
         profile.children.forEach((c,i)=>{
           const key = i===0?'hrafnkell':'kolbeinn';
@@ -422,9 +366,11 @@ onAuthStateChanged(auth, async (user) => {
     }
   } else {
     stopFamilySessionsListener();
+    // Ekki innskráður — athuga hvort barn sé saved
     if(localStorage.getItem('lesum_child_session')){
       goTo('screen-child-home');
     }
+    // annars verður login skjárinn active
   }
 });
 
@@ -436,14 +382,9 @@ window.firebaseLogin = async function(){
   errEl.textContent = '';
   if(!email||!pw){ errEl.textContent='Netfang og lykilorð vantar.'; return; }
   try {
-    window.__debugAlert('Foreldrainnskráning byrjar: ' + email);
-    console.log('🔐 Parent login attempt', email);
     document.getElementById('btn-login').textContent = 'Skráir inn...';
     await signInWithEmailAndPassword(auth, email, pw);
-    window.__debugAlert('Foreldrainnskráning tókst');
   } catch(e) {
-    console.error('❌ Parent login failed', e);
-    window.__debugAlert('Foreldrainnskráning failed: ' + (e.code || e.message || e));
     document.getElementById('btn-login').textContent = '🔑 Skrá inn';
     errEl.textContent = e.code==='auth/invalid-credential' ? 'Netfang eða lykilorð er rangt.' : 'Villa: '+e.message;
   }
@@ -467,6 +408,7 @@ window.firebaseSignup = async function(){
     const cred = await createUserWithEmailAndPassword(auth, email, pw);
     const uid  = cred.user.uid;
     const familyId = uid;
+    // Búa til fjölskyldukóða — FAM + 4 tölur
     const familyCode = 'FAM' + Math.floor(1000+Math.random()*9000);
     const childKeys = ['hrafnkell','kolbeinn','child3','child4','child5'];
     const children = childNames.map((n,i)=>({
@@ -478,11 +420,13 @@ window.firebaseSignup = async function(){
       role:'parent', name, email, familyId,
       familyCode, children, createdAt: new Date()
     });
+    // Vista barnakóða
     for(const c of children){
       await setDoc(doc(db,'codes',c.code),{
         familyId, childKey: c.key, childName: c.name, parentUid: uid
       });
     }
+    // Vista fjölskyldukóða
     await setDoc(doc(db,'familycodes',familyCode),{
       familyId, parentUid: uid, parentName: name, createdAt: new Date()
     });
@@ -495,7 +439,6 @@ window.firebaseSignup = async function(){
     currentUser = 'mamma';
     showChildCodes(children, familyCode);
   } catch(e) {
-    console.error('❌ Signup failed', e);
     document.getElementById('btn-signup').textContent = '🚀 Stofna aðgang';
     document.getElementById('signup-error').textContent =
       e.code==='auth/email-already-in-use' ? 'Þetta netfang er þegar í notkun.' : 'Villa: '+e.message;
@@ -514,6 +457,7 @@ window.familyJoin = async function(){
   if(pw.length<6){ errEl.textContent='Lykilorð þarf 6+ stafi.'; return; }
   try {
     document.getElementById('btn-join').textContent = 'Leitar...';
+    // Athuga hvort fjölskyldukóðinn sé til
     const fcSnap = await getDoc(doc(db,'familycodes',fcode));
     if(!fcSnap.exists()){
       document.getElementById('btn-join').textContent = '🤝 Ganga í fjölskylduna';
@@ -521,6 +465,7 @@ window.familyJoin = async function(){
       return;
     }
     const fcData = fcSnap.data();
+    // Stofna notanda
     const cred = await createUserWithEmailAndPassword(auth, email, pw);
     const uid  = cred.user.uid;
     await setDoc(doc(db,'users',uid),{
@@ -538,7 +483,6 @@ window.familyJoin = async function(){
     currentUser = 'mamma';
     goTo('screen-mamma-home');
   } catch(e) {
-    console.error('❌ Family join failed', e);
     document.getElementById('btn-join').textContent = '🤝 Ganga í fjölskylduna';
     errEl.textContent = e.code==='auth/email-already-in-use'
       ? 'Þetta netfang er þegar í notkun.' : 'Villa: '+e.message;
@@ -552,23 +496,15 @@ window.childLogin = async function(){
   errEl.textContent = '';
   if(code.length < 4){ errEl.textContent='Sláðu inn kóðann þinn.'; return; }
   try {
-    window.__debugAlert('childLogin byrjar: ' + code);
-    console.log('🧒 Child login lookup', code);
     document.getElementById('btn-child-login').textContent = 'Leita...';
-    const codeRef = doc(db,'codes',code);
-    console.log('🧒 codeRef', codeRef);
-    window.__debugAlert('Áður en getDoc keyrir');
-    const codeSnap = await getDoc(codeRef);
-    window.__debugAlert('Eftir getDoc. exists=' + codeSnap.exists());
+    const codeSnap = await getDoc(doc(db,'codes',code));
     if(!codeSnap.exists()){
       document.getElementById('btn-child-login').textContent = '🎯 Skrá mig inn';
       errEl.textContent = 'Kóðinn fannst ekki — athugaðu með foreldri.';
-      window.__debugAlert('Kóði fannst ekki í Firestore');
       return;
     }
     const codeData = codeSnap.data();
-    console.log('🧒 codeData', codeData);
-    window.__debugAlert('codeData loaded fyrir ' + (codeData.childName || 'óþekkt barn'));
+    // Vista á tækið
     const childSession = {
       uid:      codeData.parentUid+'_'+codeData.childKey,
       name:     codeData.childName,
@@ -577,7 +513,6 @@ window.childLogin = async function(){
       code
     };
     localStorage.setItem('lesum_child_session', JSON.stringify(childSession));
-    window.__debugAlert('localStorage vistað');
     window._currentUid      = childSession.uid;
     window._currentRole     = 'child';
     window._currentName     = codeData.childName;
@@ -585,11 +520,8 @@ window.childLogin = async function(){
     window._currentChildKey = codeData.childKey;
     currentUser = codeData.childKey;
     USERS[codeData.childKey] = { name: codeData.childName, emoji:'👦' };
-    window.__debugAlert('Fer á screen-child-home');
     goTo('screen-child-home');
   } catch(e) {
-    console.error('❌ Child login failed', e);
-    window.__debugAlert('Child login catch: ' + (e.code || e.message || e));
     document.getElementById('btn-child-login').textContent = '🎯 Skrá mig inn';
     document.getElementById('child-code-error').textContent = 'Villa: '+e.message;
   }
@@ -618,20 +550,40 @@ window.firebaseLogout = async function(){
 // ── Vista lotu ──
 window.saveSessionToFirestore = async function(sessionData){
   try {
-    window.__debugAlert('saveSessionToFirestore byrjar');
-    console.log('💾 Saving session', sessionData);
-    await addDoc(collection(db,'sessions'),{
+    alert('saveSessionToFirestore byrjar');
+
+    const data = {
       ...sessionData,
       familyId:  window._currentFamilyId,
       childKey:  currentUser,
       childName: USERS[currentUser]?.name || window._currentName || currentUser,
-      createdAt: new Date()
+      createdAt: Date.now()
+    };
+
+    console.log('💾 Gögn sem fara í Firestore:', data);
+
+    const undefinedFields = [];
+    Object.entries(data).forEach(([key, value]) => {
+      if (value === undefined) {
+        undefinedFields.push(key);
+        console.error('❌ Undefined field:', key);
+      }
     });
-    console.log('✅ Lota vistuð í Firestore');
-    window.__debugAlert('Session vistað í Firestore');
+
+    if (undefinedFields.length) {
+      alert('Undefined field(s): ' + undefinedFields.join(', '));
+    } else {
+      alert('Engin undefined field fundust');
+    }
+
+    alert('familyId=' + data.familyId + ' | childKey=' + data.childKey + ' | childName=' + data.childName);
+
+    const result = await addDoc(collection(db,'sessions'), data);
+    console.log('✅ Lota vistuð í Firestore', result.id);
+    alert('Session vistað: ' + result.id);
   } catch(e){
     console.error('❌ Villa við vistun í Firestore:', e);
-    window.__debugAlert('Session villa: ' + (e.code || e.message || e));
+    alert('Session villa: ' + (e.code || e.message || e));
   }
 };
 
@@ -781,7 +733,10 @@ function generateCode(name){
           autocapitalize="characters"
           inputmode="text"
           enterkeyhint="done"
-          style="font-family:Georgia,serif;font-size:28px;font-weight:700;letter-spacing:4px;text-align:center;text-transform:uppercase;"
+          readonly
+          style="font-family:Georgia,serif;font-size:28px;font-weight:700;letter-spacing:4px;text-align:center;text-transform:uppercase;cursor:pointer;"
+          ontouchstart="this.removeAttribute('readonly');this.focus();"
+          onclick="this.removeAttribute('readonly');this.focus();"
           oninput="this.value=this.value.toUpperCase()">
       </div>
       <div id="child-code-error" style="color:var(--coral);font-size:12px;font-weight:700;margin-bottom:12px;min-height:18px;text-align:center;"></div>
@@ -1556,6 +1511,7 @@ function goTo(id){
       const input = document.getElementById('child-code-input');
       if(input){
         input.focus();
+        input.click();
       }
     }, 250);
   }
@@ -1587,6 +1543,16 @@ function logout(){
 }
 
 
+window.addEventListener('DOMContentLoaded', () => {
+  const childInput = document.getElementById('child-code-input');
+  const childCard = childInput ? childInput.closest('.card') : null;
+  if(childCard && childInput){
+    childCard.addEventListener('click', () => {
+      childInput.focus();
+      childInput.click();
+    });
+  }
+});
 
 // ══ HELPERS ══
 function qc(m){ return m>=15?'full':m>0?'partial':'none'; }

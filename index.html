@@ -27,7 +27,7 @@
 .timer-wrap{text-align:center;padding:8px 0 12px}.timer-big{font-family:Georgia,serif;font-size:52px;font-weight:700;color:var(--deep)}.timer-sub{font-size:12px;color:var(--mist);font-weight:800;text-transform:uppercase;letter-spacing:.8px}
 .week-dots{display:flex;gap:4px}.day-dot{flex:1;height:40px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-direction:column;font-size:8px;font-weight:800;gap:2px}.day-dot.full{background:var(--moss);color:#fff}.day-dot.partial{background:#dde5f0;color:#566}.day-dot.none{background:#f0f4f9;color:#aab7c4;border:1.5px dashed #dde5f0}
 .session{padding:11px 0;border-bottom:1px solid #eef3f9}.session:last-child{border-bottom:none}.session-title{font-size:14px;font-weight:800}.session-meta{font-size:11px;color:var(--mist);margin-top:3px}.group-title{font-family:Georgia,serif;font-size:20px;color:var(--deep);margin:6px 0 10px}
-.audio-box{margin-top:8px} audio{width:100%}
+.audio-box{margin-top:8px}.audio-label{font-size:11px;color:var(--mist);font-weight:800;margin:8px 0 4px} audio{width:100%}
 .pill{display:inline-block;background:#eef5ff;color:var(--ocean);border-radius:999px;padding:5px 10px;font-size:11px;font-weight:800}
 </style>
 </head>
@@ -105,7 +105,8 @@
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js';
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js';
-import { getFirestore, collection, addDoc, query, where, getDocs, getDoc, doc, onSnapshot, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js';
+import { getFirestore, collection, addDoc, query, where, getDoc, doc, onSnapshot, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js';
+import { getStorage, ref, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-storage.js';
 
 const firebaseConfig = {
   apiKey: 'AIzaSyAgTY3Uxd9_ZxixjqLj-sH8V3OhFAzg6DU',
@@ -119,6 +120,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
+const storage = getStorage(app);
 
 let currentUser = null;
 let currentRole = null;
@@ -132,6 +134,18 @@ let timerInterval = null;
 let readingStartMs = null;
 let currentElapsedSecs = 0;
 let pendingSession = null;
+
+let mediaStream = null;
+let snippetMimeType = '';
+let snippetExtension = 'webm';
+let snippet1Triggered = false;
+let snippet2Triggered = false;
+let snippet1Url = null;
+let snippet2Url = null;
+let snippetUploads = [];
+let activeSnippetRecorder = null;
+let activeSnippetKey = null;
+let pendingRecorderPromise = null;
 
 window.goTo = function(id){
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -175,8 +189,17 @@ function renderWeekDots(sessions){
   }).join('')}</div>`;
 }
 function audioHtml(session){
-  if(!session.audioSnippet) return '';
-  return `<div class="audio-box"><audio controls preload="none" src="data:audio/webm;base64,${session.audioSnippet}"></audio></div>`;
+  const parts = [];
+  if(session.audio?.snippet1Url){
+    parts.push(`<div class="audio-box"><div class="audio-label">Snippet 1 · eftir 1 mínútu</div><audio controls preload="none" src="${session.audio.snippet1Url}"></audio></div>`);
+  }
+  if(session.audio?.snippet2Url){
+    parts.push(`<div class="audio-box"><div class="audio-label">Snippet 2 · eftir 12 mínútur</div><audio controls preload="none" src="${session.audio.snippet2Url}"></audio></div>`);
+  }
+  if(session.audioSnippet){
+    parts.push(`<div class="audio-box"><div class="audio-label">Eldra hljóðsýni</div><audio controls preload="none" src="data:audio/webm;base64,${session.audioSnippet}"></audio></div>`);
+  }
+  return parts.join('');
 }
 function sortSessions(items){
   return [...items].sort((a,b)=>{
@@ -184,6 +207,123 @@ function sortSessions(items){
     const bv = b.createdAt?.toMillis ? b.createdAt.toMillis() : (b.timestamp || 0);
     return bv - av;
   });
+}
+
+
+function chooseSnippetMimeType(){
+  const candidates = [
+    { mime: 'audio/webm;codecs=opus', ext: 'webm' },
+    { mime: 'audio/webm', ext: 'webm' },
+    { mime: 'audio/mp4', ext: 'm4a' },
+    { mime: 'audio/aac', ext: 'aac' }
+  ];
+  if(typeof MediaRecorder === 'undefined') return { mime: '', ext: 'webm' };
+  for(const item of candidates){
+    try {
+      if(MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(item.mime)) return item;
+    } catch {}
+  }
+  return { mime: '', ext: 'webm' };
+}
+
+async function ensureMediaStream(){
+  if(mediaStream) return mediaStream;
+  if(!navigator.mediaDevices?.getUserMedia) throw new Error('getUserMedia unsupported');
+  mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  const chosen = chooseSnippetMimeType();
+  snippetMimeType = chosen.mime;
+  snippetExtension = chosen.ext;
+  return mediaStream;
+}
+
+function stopMediaStream(){
+  if(mediaStream){
+    mediaStream.getTracks().forEach(track => track.stop());
+  }
+  mediaStream = null;
+  activeSnippetRecorder = null;
+  activeSnippetKey = null;
+  pendingRecorderPromise = null;
+}
+
+function resetSnippetState(){
+  snippet1Triggered = false;
+  snippet2Triggered = false;
+  snippet1Url = null;
+  snippet2Url = null;
+  snippetUploads = [];
+  activeSnippetRecorder = null;
+  activeSnippetKey = null;
+  pendingRecorderPromise = null;
+}
+
+async function uploadSnippet(blob, key){
+  const fileName = `${Date.now()}_${key}.${snippetExtension || 'webm'}`;
+  const storageRef = ref(storage, `audio-snippets/${currentFamilyId}/${currentChildKey}/${fileName}`);
+  await uploadBytes(storageRef, blob, { contentType: blob.type || 'audio/webm' });
+  return await getDownloadURL(storageRef);
+}
+
+function recordSnippet(key){
+  if(!mediaStream || activeSnippetRecorder) return;
+  const chunks = [];
+  const options = snippetMimeType ? { mimeType: snippetMimeType } : undefined;
+  const recorder = options ? new MediaRecorder(mediaStream, options) : new MediaRecorder(mediaStream);
+  activeSnippetRecorder = recorder;
+  activeSnippetKey = key;
+  pendingRecorderPromise = new Promise((resolve) => {
+    recorder.ondataavailable = e => {
+      if(e.data && e.data.size > 0) chunks.push(e.data);
+    };
+    recorder.onerror = err => {
+      console.error('Snippet recorder villa', err);
+      resolve(null);
+    };
+    recorder.onstop = async () => {
+      try {
+        const blobType = snippetMimeType || (chunks[0] && chunks[0].type) || 'audio/webm';
+        const blob = new Blob(chunks, { type: blobType });
+        if(blob.size > 0){
+          const url = await uploadSnippet(blob, key);
+          if(key === 'snippet1') snippet1Url = url;
+          if(key === 'snippet2') snippet2Url = url;
+          resolve(url);
+          return;
+        }
+      } catch(e){
+        console.error('Villa við upload á snippet', e);
+      } finally {
+        activeSnippetRecorder = null;
+        activeSnippetKey = null;
+        pendingRecorderPromise = null;
+      }
+      resolve(null);
+    };
+  });
+  snippetUploads.push(pendingRecorderPromise);
+  recorder.start();
+  setTimeout(() => {
+    try {
+      if(recorder.state !== 'inactive') recorder.stop();
+    } catch(e){
+      console.error('Villa við að stoppa snippet recorder', e);
+    }
+  }, 15000);
+}
+
+async function flushActiveSnippet(){
+  if(activeSnippetRecorder && activeSnippetRecorder.state !== 'inactive'){
+    try { activeSnippetRecorder.stop(); } catch(e){ console.error(e); }
+  }
+  if(pendingRecorderPromise){
+    try { await pendingRecorderPromise; } catch {}
+  }
+}
+
+async function waitForSnippetUploads(){
+  const uploads = [...snippetUploads];
+  if(!uploads.length) return;
+  try { await Promise.allSettled(uploads); } catch {}
 }
 
 window.firebaseLogin = async function(){
@@ -303,11 +443,17 @@ window.logout = async function(){
   await signOut(auth);
 };
 
-window.startReading = function(){
+window.startReading = async function(){
   const title = document.getElementById('read-title').value.trim() || 'Lestur';
   const pageStart = parseInt(document.getElementById('page-start').value, 10) || null;
   pendingSession = { title, pageStart };
   currentElapsedSecs = 0;
+  resetSnippetState();
+  try {
+    await ensureMediaStream();
+  } catch(e){
+    console.error('Míkrófónn ekki tiltækur fyrir snippets', e);
+  }
   readingStartMs = Date.now();
   document.getElementById('reading-card').style.display = '';
   document.getElementById('finish-card').style.display = 'none';
@@ -316,14 +462,24 @@ window.startReading = function(){
   timerInterval = setInterval(() => {
     currentElapsedSecs = Math.floor((Date.now() - readingStartMs) / 1000);
     document.getElementById('timer-display').textContent = formatTime(currentElapsedSecs);
+    if(currentElapsedSecs >= 60 && !snippet1Triggered){
+      snippet1Triggered = true;
+      recordSnippet('snippet1');
+    }
+    if(currentElapsedSecs >= 720 && !snippet2Triggered){
+      snippet2Triggered = true;
+      recordSnippet('snippet2');
+    }
   }, 500);
 };
 
-window.stopReading = function(){
+window.stopReading = async function(){
   if(!readingStartMs) return;
   if(timerInterval) clearInterval(timerInterval);
   currentElapsedSecs = Math.floor((Date.now() - readingStartMs) / 1000);
   document.getElementById('timer-display').textContent = formatTime(currentElapsedSecs);
+  await flushActiveSnippet();
+  stopMediaStream();
   document.getElementById('finish-card').style.display = '';
 };
 
@@ -333,6 +489,8 @@ window.cancelReading = function(){
   readingStartMs = null;
   currentElapsedSecs = 0;
   pendingSession = null;
+  stopMediaStream();
+  resetSnippetState();
   document.getElementById('reading-card').style.display = 'none';
   document.getElementById('finish-card').style.display = 'none';
   document.getElementById('page-end').value = '';
@@ -342,6 +500,8 @@ window.saveFinishedSession = async function(){
   const err = document.getElementById('save-error');
   err.textContent = '';
   try {
+    await flushActiveSnippet();
+    await waitForSnippetUploads();
     const pageEnd = parseInt(document.getElementById('page-end').value, 10) || null;
     const now = new Date();
     const sessionData = {
@@ -356,6 +516,20 @@ window.saveFinishedSession = async function(){
       date: makeDateKey(now),
       createdAt: serverTimestamp()
     };
+    const audio = {};
+    if(snippet1Url){
+      audio.snippet1Url = snippet1Url;
+      audio.snippet1AtSec = 60;
+      audio.snippet1DurationSec = 15;
+    }
+    if(snippet2Url){
+      audio.snippet2Url = snippet2Url;
+      audio.snippet2AtSec = 720;
+      audio.snippet2DurationSec = 15;
+    }
+    if(Object.keys(audio).length){
+      sessionData.audio = audio;
+    }
     await addDoc(collection(db,'sessions'), sessionData);
     document.getElementById('read-title').value = '';
     document.getElementById('page-start').value = '';

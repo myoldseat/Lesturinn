@@ -3,7 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Upphátt">
 <title>Upphátt</title>
@@ -807,6 +811,7 @@ function generateCode(name){
       <div class="hero-label">Hæ!</div>
       <h1 id="child-hero-title">Ertu tilbúinn að lesa í dag? 🌟</h1>
       <div class="streak-pill" id="child-streak-pill">⭐ Byrjaðu í dag</div>
+      <div id="child-debug" style="display:none;font-size:10px;opacity:0.7;margin-top:6px;"></div>
     </div>
     <button class="big-read-btn" onclick="goTo('screen-read-setup')">
       <span class="brb-icon">🎤</span>
@@ -1588,6 +1593,14 @@ function renderChildHome(){
   const u=USERS[currentUser];
   document.getElementById('child-mode-tag').textContent=u.name;
   document.getElementById('child-hero-title').textContent='Ertu tilbúinn að lesa í dag, '+u.name+'? 🌟';
+  // Debug — sýna tengingu
+  const dbgEl = document.getElementById('child-debug');
+  if(dbgEl){
+    const fid = window._currentFamilyId || 'VANTAR';
+    const role = window._currentRole || 'VANTAR';
+    dbgEl.textContent = '🔗 '+role+' · '+fid.substring(0,8)+'...';
+    dbgEl.style.display = '';
+  }
   const streak=getStreak(currentUser);
   const stars=getTotalStars(currentUser);
   document.getElementById('child-streak-pill').textContent=streak>0?'🔥 '+streak+' daga röð':'⭐ '+stars+' stjörnur';
@@ -1845,11 +1858,13 @@ async function finishSession(){
   const dKey = now.getFullYear()+'-'+(now.getMonth()+1)+'-'+now.getDate();
   const tStr = now.getHours()+':'+String(now.getMinutes()).padStart(2,'0');
 
-  // Sameina hljóðsýni
-  const blob = await assembleAudio();
+  // Sameina hljóðsýni — villur stöðva EKKI vistun
   let audioBase64 = null;
-  if(blob){
-    audioBase64 = await blobToBase64(blob);
+  try {
+    const blob = await assembleAudio();
+    if(blob) audioBase64 = await blobToBase64(blob);
+  } catch(e) {
+    console.log('Hljóð ekki tiltækt — vistar lotu án hljóðs:', e.message);
   }
 
   const pageStart = window._pageStart || null;
@@ -1867,11 +1882,35 @@ async function finishSession(){
     timestamp: Date.now()
   };
 
-  addSession(currentUser, session);
+  // Vista alltaf — óháð hljóði
+  try {
+    addSession(currentUser, session);
+  } catch(e) {
+    console.error('Villa við localStorage vistun:', e);
+  }
 
-  // Vista í Firestore — barnið þarf familyId (ekki Firebase Auth)
+  // Vista í Firestore
   if(window._currentFamilyId && window.saveSessionToFirestore){
-    window.saveSessionToFirestore(session);
+    try {
+      await window.saveSessionToFirestore(session);
+      console.log('✅ Firestore vistun tókst, familyId:', window._currentFamilyId);
+    } catch(e) {
+      console.error('❌ Villa við Firestore vistun:', e);
+      // Sýna villu á skjánum til að við getum greint vandann
+      const errDiv = document.createElement('div');
+      errDiv.style.cssText = 'position:fixed;bottom:20px;left:20px;right:20px;background:#FF6B6B;color:white;padding:12px;border-radius:12px;font-size:12px;font-weight:700;z-index:9999;';
+      errDiv.textContent = '⚠️ Firestore villa: ' + (e.message || e.code || JSON.stringify(e));
+      document.body.appendChild(errDiv);
+      setTimeout(() => errDiv.remove(), 10000);
+    }
+  } else {
+    console.warn('⚠️ Firestore vistun sleppt — familyId:', window._currentFamilyId, 'saveSessionToFirestore:', !!window.saveSessionToFirestore);
+    // Sýna á skjá til að greina
+    const warnDiv = document.createElement('div');
+    warnDiv.style.cssText = 'position:fixed;bottom:20px;left:20px;right:20px;background:#FFB830;color:#1A3A5C;padding:12px;border-radius:12px;font-size:12px;font-weight:700;z-index:9999;';
+    warnDiv.textContent = '⚠️ Ekki tengt: familyId=' + (window._currentFamilyId||'vantar') + ' role=' + (window._currentRole||'vantar');
+    document.body.appendChild(warnDiv);
+    setTimeout(() => warnDiv.remove(), 10000);
   }
 
   // Blaðsíðuinnslátt á lokaskjá
@@ -1884,7 +1923,6 @@ async function finishSession(){
       if(pageEnd && window._pageStart && pageEnd > window._pageStart){
         const pages = pageEnd - window._pageStart;
         pagesEl.textContent = '📖 '+pages+' blaðsíður lesnar!';
-        // Vista í síðustu lotu
         const ss = getSessions(currentUser);
         if(ss.length > 0){
           ss[0].pageEnd = pageEnd;

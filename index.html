@@ -1823,7 +1823,7 @@ function stopAudioRecording(){
   snippetTimers = [];
 }
 
-function stopTimer(){
+async function stopTimer(){
   clearInterval(timerInterval);
   stopAudioRecording();
   if(sessionSecs < 60){
@@ -1834,7 +1834,13 @@ function stopTimer(){
     }
     return;
   }
-  finishSession();
+  try {
+    await finishSession();
+  } catch(e) {
+    console.error('Villa í finishSession:', e);
+    // Ef allt brotnar — fara samt á lokaskjá
+    goTo('screen-done');
+  }
 }
 
 function confirmStop(){

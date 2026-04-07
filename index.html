@@ -331,6 +331,8 @@ if(savedChild){
     window._currentFamilyId = childData.familyId;
     window._currentChildKey = childData.childKey;
     currentUser = childData.childKey;
+    // Ganga úr skugga um að USERS sé rétt
+    USERS[childData.childKey] = { name: childData.name, emoji:'👦' };
   } catch(e) { localStorage.removeItem('lesum_child_session'); }
 }
 
@@ -551,7 +553,10 @@ window.saveSessionToFirestore = async function(sessionData){
       childName: USERS[currentUser]?.name || window._currentName || currentUser,
       createdAt: new Date()
     });
-  } catch(e){ console.error('Villa við vistun:',e); }
+    console.log('✅ Lota vistuð í Firestore');
+  } catch(e){
+    console.error('❌ Villa við vistun í Firestore:', e);
+  }
 };
 
 // ── Sýna kóða eftir nýskráningu ──
@@ -700,7 +705,10 @@ function generateCode(name){
           autocapitalize="characters"
           inputmode="text"
           enterkeyhint="done"
-          style="font-family:Georgia,serif;font-size:28px;font-weight:700;letter-spacing:4px;text-align:center;text-transform:uppercase;"
+          readonly
+          style="font-family:Georgia,serif;font-size:28px;font-weight:700;letter-spacing:4px;text-align:center;text-transform:uppercase;cursor:pointer;"
+          ontouchstart="this.removeAttribute('readonly');this.focus();"
+          onclick="this.removeAttribute('readonly');this.focus();"
           oninput="this.value=this.value.toUpperCase()">
       </div>
       <div id="child-code-error" style="color:var(--coral);font-size:12px;font-weight:700;margin-bottom:12px;min-height:18px;text-align:center;"></div>
@@ -1060,6 +1068,10 @@ function generateCode(name){
       <button class="action-card moss" onclick="goTo('screen-detail-kolbeinn')"><span class="ac-icon">👦</span><span class="ac-label">Kolbeinn Kvasir — nánar</span></button>
       <button class="action-card sun" onclick="goTo('screen-comparison')"><span class="ac-icon">📊</span><span class="ac-label">Samanburður</span></button>
       <button class="action-card purple-card" onclick="goTo('screen-teacher')"><span class="ac-icon">🏫</span><span class="ac-label">Kennarayfirlit</span></button>
+    </div>
+    <div class="section-title">Innskráningarkóðar 🔑</div>
+    <div class="card" id="mamma-codes-card" style="margin-bottom:18px;">
+      <div style="color:var(--mist);font-size:12px;text-align:center;">Hleður...</div>
     </div>
     <div class="section-title">Verðlaunahillan 🔺</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-bottom:18px;">
@@ -1857,8 +1869,8 @@ async function finishSession(){
 
   addSession(currentUser, session);
 
-  // Vista í Firestore
-  if(window._currentUid && window.saveSessionToFirestore){
+  // Vista í Firestore — barnið þarf familyId (ekki Firebase Auth)
+  if(window._currentFamilyId && window.saveSessionToFirestore){
     window.saveSessionToFirestore(session);
   }
 
@@ -2371,6 +2383,39 @@ function _renderMammaHome(){
 
   renderDots('m-hrafnkell-dots','hrafnkell');
   renderDots('m-kolbeinn-dots','kolbeinn');
+
+  // Sýna barnakóða og fjölskyldukóða
+  const codesCard = document.getElementById('mamma-codes-card');
+  if(codesCard){
+    const children = Object.entries(USERS)
+      .filter(([k]) => k !== 'mamma')
+      .map(([k,v]) => ({ key: k, ...v }));
+    
+    let html = '';
+    children.forEach(c => {
+      if(c.name && c.code){
+        html += `<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid #e8eff8;">
+          <div>
+            <div style="font-size:13px;font-weight:800;color:var(--ink);">👦 ${c.name}</div>
+            <div style="font-size:10px;color:var(--mist);margin-top:2px;">Barnakóði</div>
+          </div>
+          <div style="font-family:Georgia,serif;font-size:24px;font-weight:700;color:var(--moss);letter-spacing:3px;">${c.code}</div>
+        </div>`;
+      }
+    });
+    
+    if(window._familyCode){
+      html += `<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;">
+        <div>
+          <div style="font-size:13px;font-weight:800;color:var(--ink);">👨‍👩‍👦 Fjölskyldukóði</div>
+          <div style="font-size:10px;color:var(--mist);margin-top:2px;">Fyrir aðra foreldra / afa / ömmu</div>
+        </div>
+        <div style="font-family:Georgia,serif;font-size:18px;font-weight:700;color:var(--ocean);letter-spacing:2px;">${window._familyCode}</div>
+      </div>`;
+    }
+    
+    codesCard.innerHTML = html || '<div style="color:var(--mist);font-size:12px;text-align:center;">Engir kóðar fundust</div>';
+  }
 
   // Táknafjöldi — X/Y
   ['hrafnkell','kolbeinn'].forEach((u,i)=>{

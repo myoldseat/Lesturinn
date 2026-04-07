@@ -27,7 +27,7 @@
 .timer-wrap{text-align:center;padding:8px 0 12px}.timer-big{font-family:Georgia,serif;font-size:52px;font-weight:700;color:var(--deep)}.timer-sub{font-size:12px;color:var(--mist);font-weight:800;text-transform:uppercase;letter-spacing:.8px}
 .week-dots{display:flex;gap:4px}.day-dot{flex:1;height:40px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-direction:column;font-size:8px;font-weight:800;gap:2px}.day-dot.full{background:var(--moss);color:#fff}.day-dot.partial{background:#dde5f0;color:#566}.day-dot.none{background:#f0f4f9;color:#aab7c4;border:1.5px dashed #dde5f0}
 .session{padding:11px 0;border-bottom:1px solid #eef3f9}.session:last-child{border-bottom:none}.session-title{font-size:14px;font-weight:800}.session-meta{font-size:11px;color:var(--mist);margin-top:3px}.group-title{font-family:Georgia,serif;font-size:20px;color:var(--deep);margin:6px 0 10px}
-.audio-box{margin-top:8px}.audio-label{font-size:11px;color:var(--mist);font-weight:800;margin:8px 0 4px} audio{width:100%}
+.audio-box{margin-top:8px}.play-btn{background:#eef5ff;color:var(--ocean);border:none;border-radius:999px;padding:8px 12px;font-size:12px;font-weight:800;cursor:pointer;margin:6px 8px 0 0}.play-btn.playing{background:var(--ocean);color:#fff}
 .pill{display:inline-block;background:#eef5ff;color:var(--ocean);border-radius:999px;padding:5px 10px;font-size:11px;font-weight:800}
 </style>
 </head>
@@ -80,6 +80,7 @@
       <div class="form-group"><label>Heiti bókar</label><input id="read-title" type="text" placeholder="t.d. Harry Potter"></div>
       <div class="form-group"><label>Blaðsíða byrjun</label><input id="page-start" type="number" min="1" placeholder="t.d. 42"></div>
       <button class="btn btn-primary" id="start-reading-btn" onclick="startReading()">Byrja að lesa</button>
+      <div id="read-error" class="notice" style="color:var(--coral);margin-top:8px"></div>
     </div>
     <div class="card" id="reading-card" style="display:none">
       <div class="timer-wrap"><div class="timer-big" id="timer-display">0:00</div><div class="timer-sub">Nákvæmur tími með Date.now()</div></div>
@@ -134,18 +135,13 @@ let timerInterval = null;
 let readingStartMs = null;
 let currentElapsedSecs = 0;
 let pendingSession = null;
-
-let mediaStream = null;
-let snippetMimeType = '';
-let snippetExtension = 'webm';
-let snippet1Triggered = false;
-let snippet2Triggered = false;
+let micStream = null;
 let snippet1Url = null;
 let snippet2Url = null;
-let snippetUploads = [];
-let activeSnippetRecorder = null;
-let activeSnippetKey = null;
-let pendingRecorderPromise = null;
+let snippetTasks = [];
+let snippetFlags = { one:false, two:false };
+let snippetTimers = [];
+let snippetRecorderActive = 0;
 
 window.goTo = function(id){
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -189,17 +185,15 @@ function renderWeekDots(sessions){
   }).join('')}</div>`;
 }
 function audioHtml(session){
-  const parts = [];
-  if(session.audio?.snippet1Url){
-    parts.push(`<div class="audio-box"><div class="audio-label">Snippet 1 · eftir 1 mínútu</div><audio controls preload="none" src="${session.audio.snippet1Url}"></audio></div>`);
+  const audio = session.audio || {};
+  const items = [];
+  if(audio.snippet1Url){
+    items.push(`<button class="play-btn" onclick="toggleSnippetPlayback('${session._docId}_1', '${audio.snippet1Url.replace(/'/g, "&#39;")}', this)">▶ Spila snippet 1</button><audio id="audio-${session._docId}_1" preload="none" src="${audio.snippet1Url}"></audio>`);
   }
-  if(session.audio?.snippet2Url){
-    parts.push(`<div class="audio-box"><div class="audio-label">Snippet 2 · eftir 12 mínútur</div><audio controls preload="none" src="${session.audio.snippet2Url}"></audio></div>`);
+  if(audio.snippet2Url){
+    items.push(`<button class="play-btn" onclick="toggleSnippetPlayback('${session._docId}_2', '${audio.snippet2Url.replace(/'/g, "&#39;")}', this)">▶ Spila snippet 2</button><audio id="audio-${session._docId}_2" preload="none" src="${audio.snippet2Url}"></audio>`);
   }
-  if(session.audioSnippet){
-    parts.push(`<div class="audio-box"><div class="audio-label">Eldra hljóðsýni</div><audio controls preload="none" src="data:audio/webm;base64,${session.audioSnippet}"></audio></div>`);
-  }
-  return parts.join('');
+  return items.length ? `<div class="audio-box">${items.join('')}</div>` : '';
 }
 function sortSessions(items){
   return [...items].sort((a,b)=>{
@@ -209,121 +203,102 @@ function sortSessions(items){
   });
 }
 
-
-function chooseSnippetMimeType(){
-  const candidates = [
-    { mime: 'audio/webm;codecs=opus', ext: 'webm' },
-    { mime: 'audio/webm', ext: 'webm' },
-    { mime: 'audio/mp4', ext: 'm4a' },
-    { mime: 'audio/aac', ext: 'aac' }
-  ];
-  if(typeof MediaRecorder === 'undefined') return { mime: '', ext: 'webm' };
-  for(const item of candidates){
-    try {
-      if(MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(item.mime)) return item;
-    } catch {}
+window.toggleSnippetPlayback = function(id, url, btn){
+  const audio = document.getElementById(`audio-${id}`);
+  if(!audio) return;
+  document.querySelectorAll('.play-btn.playing').forEach(other => {
+    if(other !== btn){ other.classList.remove('playing'); other.textContent = other.textContent.includes('1') ? '▶ Spila snippet 1' : '▶ Spila snippet 2'; }
+  });
+  document.querySelectorAll('audio[id^="audio-"]').forEach(a => {
+    if(a !== audio && !a.paused){ a.pause(); a.currentTime = 0; }
+  });
+  if(audio.paused){
+    audio.play().catch(err => console.error('Audio play villa', err));
+    btn.classList.add('playing');
+    btn.textContent = btn.textContent.includes('1') ? '⏸ Snippet 1' : '⏸ Snippet 2';
+  } else {
+    audio.pause();
+    btn.classList.remove('playing');
+    btn.textContent = btn.textContent.includes('1') ? '▶ Spila snippet 1' : '▶ Spila snippet 2';
   }
-  return { mime: '', ext: 'webm' };
+  audio.onended = () => {
+    btn.classList.remove('playing');
+    btn.textContent = btn.textContent.includes('1') ? '▶ Spila snippet 1' : '▶ Spila snippet 2';
+  };
+};
+
+async function ensureMicPermission(){
+  if(micStream) return micStream;
+  micStream = await navigator.mediaDevices.getUserMedia({ audio:true });
+  return micStream;
 }
 
-async function ensureMediaStream(){
-  if(mediaStream) return mediaStream;
-  if(!navigator.mediaDevices?.getUserMedia) throw new Error('getUserMedia unsupported');
-  mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-  const chosen = chooseSnippetMimeType();
-  snippetMimeType = chosen.mime;
-  snippetExtension = chosen.ext;
-  return mediaStream;
-}
-
-function stopMediaStream(){
-  if(mediaStream){
-    mediaStream.getTracks().forEach(track => track.stop());
+function cleanupMicStream(){
+  if(micStream){
+    micStream.getTracks().forEach(t => t.stop());
   }
-  mediaStream = null;
-  activeSnippetRecorder = null;
-  activeSnippetKey = null;
-  pendingRecorderPromise = null;
+  micStream = null;
 }
 
-function resetSnippetState(){
-  snippet1Triggered = false;
-  snippet2Triggered = false;
-  snippet1Url = null;
-  snippet2Url = null;
-  snippetUploads = [];
-  activeSnippetRecorder = null;
-  activeSnippetKey = null;
-  pendingRecorderPromise = null;
-}
-
-async function uploadSnippet(blob, key){
-  const fileName = `${Date.now()}_${key}.${snippetExtension || 'webm'}`;
-  const storageRef = ref(storage, `audio-snippets/${currentFamilyId}/${currentChildKey}/${fileName}`);
+async function uploadSnippetBlob(blob, type){
+  const path = `audio/${currentFamilyId}/${currentChildKey}/${Date.now()}_${type}.webm`;
+  const storageRef = ref(storage, path);
   await uploadBytes(storageRef, blob, { contentType: blob.type || 'audio/webm' });
   return await getDownloadURL(storageRef);
 }
 
-function recordSnippet(key){
-  if(!mediaStream || activeSnippetRecorder) return;
+function scheduleSnippet(atSec, type){
+  const delayMs = Math.max(0, atSec * 1000);
+  const timerId = setTimeout(() => {
+    recordSnippet(type);
+  }, delayMs);
+  snippetTimers.push(timerId);
+}
+
+function recordSnippet(type){
+  if(!micStream || snippetRecorderActive > 0) return;
+  snippetRecorderActive += 1;
+  const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus') ? 'audio/webm;codecs=opus' : '';
+  const recorder = mimeType ? new MediaRecorder(micStream, { mimeType }) : new MediaRecorder(micStream);
   const chunks = [];
-  const options = snippetMimeType ? { mimeType: snippetMimeType } : undefined;
-  const recorder = options ? new MediaRecorder(mediaStream, options) : new MediaRecorder(mediaStream);
-  activeSnippetRecorder = recorder;
-  activeSnippetKey = key;
-  pendingRecorderPromise = new Promise((resolve) => {
-    recorder.ondataavailable = e => {
-      if(e.data && e.data.size > 0) chunks.push(e.data);
-    };
-    recorder.onerror = err => {
-      console.error('Snippet recorder villa', err);
-      resolve(null);
-    };
+  recorder.ondataavailable = e => { if(e.data && e.data.size > 0) chunks.push(e.data); };
+  const task = new Promise((resolve) => {
     recorder.onstop = async () => {
-      try {
-        const blobType = snippetMimeType || (chunks[0] && chunks[0].type) || 'audio/webm';
-        const blob = new Blob(chunks, { type: blobType });
+      try{
+        const blob = new Blob(chunks, { type: recorder.mimeType || 'audio/webm' });
         if(blob.size > 0){
-          const url = await uploadSnippet(blob, key);
-          if(key === 'snippet1') snippet1Url = url;
-          if(key === 'snippet2') snippet2Url = url;
-          resolve(url);
-          return;
+          const url = await uploadSnippetBlob(blob, type);
+          if(type === 1) snippet1Url = url;
+          if(type === 2) snippet2Url = url;
         }
-      } catch(e){
-        console.error('Villa við upload á snippet', e);
+      } catch(err){
+        console.error('Snippet upload villa', err);
       } finally {
-        activeSnippetRecorder = null;
-        activeSnippetKey = null;
-        pendingRecorderPromise = null;
+        snippetRecorderActive = Math.max(0, snippetRecorderActive - 1);
+        resolve();
       }
-      resolve(null);
     };
   });
-  snippetUploads.push(pendingRecorderPromise);
-  recorder.start();
-  setTimeout(() => {
-    try {
-      if(recorder.state !== 'inactive') recorder.stop();
-    } catch(e){
-      console.error('Villa við að stoppa snippet recorder', e);
-    }
-  }, 15000);
-}
-
-async function flushActiveSnippet(){
-  if(activeSnippetRecorder && activeSnippetRecorder.state !== 'inactive'){
-    try { activeSnippetRecorder.stop(); } catch(e){ console.error(e); }
-  }
-  if(pendingRecorderPromise){
-    try { await pendingRecorderPromise; } catch {}
+  snippetTasks.push(task);
+  try {
+    recorder.start();
+    setTimeout(() => {
+      try{ if(recorder.state !== 'inactive') recorder.stop(); } catch {}
+    }, 15000);
+  } catch(err){
+    console.error('Snippet record villa', err);
+    snippetRecorderActive = Math.max(0, snippetRecorderActive - 1);
   }
 }
 
-async function waitForSnippetUploads(){
-  const uploads = [...snippetUploads];
-  if(!uploads.length) return;
-  try { await Promise.allSettled(uploads); } catch {}
+function resetSnippetState(){
+  snippet1Url = null;
+  snippet2Url = null;
+  snippetTasks = [];
+  snippetFlags = { one:false, two:false };
+  snippetTimers.forEach(t => clearTimeout(t));
+  snippetTimers = [];
+  snippetRecorderActive = 0;
 }
 
 window.firebaseLogin = async function(){
@@ -446,14 +421,20 @@ window.logout = async function(){
 window.startReading = async function(){
   const title = document.getElementById('read-title').value.trim() || 'Lestur';
   const pageStart = parseInt(document.getElementById('page-start').value, 10) || null;
+  const err = document.getElementById('read-error');
+  err.textContent = '';
   pendingSession = { title, pageStart };
-  currentElapsedSecs = 0;
-  resetSnippetState();
   try {
-    await ensureMediaStream();
+    await ensureMicPermission();
   } catch(e){
-    console.error('Míkrófónn ekki tiltækur fyrir snippets', e);
+    err.textContent = 'Þú þarft að leyfa míkrafón til að byrja lestur.';
+    console.error('Mic permission villa', e);
+    return;
   }
+  resetSnippetState();
+  scheduleSnippet(60, 1);
+  scheduleSnippet(720, 2);
+  currentElapsedSecs = 0;
   readingStartMs = Date.now();
   document.getElementById('reading-card').style.display = '';
   document.getElementById('finish-card').style.display = 'none';
@@ -462,24 +443,14 @@ window.startReading = async function(){
   timerInterval = setInterval(() => {
     currentElapsedSecs = Math.floor((Date.now() - readingStartMs) / 1000);
     document.getElementById('timer-display').textContent = formatTime(currentElapsedSecs);
-    if(currentElapsedSecs >= 60 && !snippet1Triggered){
-      snippet1Triggered = true;
-      recordSnippet('snippet1');
-    }
-    if(currentElapsedSecs >= 720 && !snippet2Triggered){
-      snippet2Triggered = true;
-      recordSnippet('snippet2');
-    }
   }, 500);
 };
 
-window.stopReading = async function(){
+window.stopReading = function(){
   if(!readingStartMs) return;
   if(timerInterval) clearInterval(timerInterval);
   currentElapsedSecs = Math.floor((Date.now() - readingStartMs) / 1000);
   document.getElementById('timer-display').textContent = formatTime(currentElapsedSecs);
-  await flushActiveSnippet();
-  stopMediaStream();
   document.getElementById('finish-card').style.display = '';
 };
 
@@ -489,21 +460,28 @@ window.cancelReading = function(){
   readingStartMs = null;
   currentElapsedSecs = 0;
   pendingSession = null;
-  stopMediaStream();
   resetSnippetState();
+  cleanupMicStream();
   document.getElementById('reading-card').style.display = 'none';
   document.getElementById('finish-card').style.display = 'none';
   document.getElementById('page-end').value = '';
+  document.getElementById('read-error').textContent = '';
 };
 
 window.saveFinishedSession = async function(){
   const err = document.getElementById('save-error');
   err.textContent = '';
   try {
-    await flushActiveSnippet();
-    await waitForSnippetUploads();
     const pageEnd = parseInt(document.getElementById('page-end').value, 10) || null;
+    if(snippetTasks.length){
+      await Promise.allSettled(snippetTasks);
+    }
     const now = new Date();
+    const audio = {};
+    if(snippet1Url) audio.snippet1Url = snippet1Url;
+    if(snippet2Url) audio.snippet2Url = snippet2Url;
+    if(snippet1Url) audio.snippet1AtSec = 60;
+    if(snippet2Url) audio.snippet2AtSec = 720;
     const sessionData = {
       familyId: currentFamilyId,
       childKey: currentChildKey,
@@ -514,22 +492,10 @@ window.saveFinishedSession = async function(){
       seconds: currentElapsedSecs,
       timestamp: Date.now(),
       date: makeDateKey(now),
-      createdAt: serverTimestamp()
+      createdAt: serverTimestamp(),
+      hasAudio: !!(snippet1Url || snippet2Url),
+      audio
     };
-    const audio = {};
-    if(snippet1Url){
-      audio.snippet1Url = snippet1Url;
-      audio.snippet1AtSec = 60;
-      audio.snippet1DurationSec = 15;
-    }
-    if(snippet2Url){
-      audio.snippet2Url = snippet2Url;
-      audio.snippet2AtSec = 720;
-      audio.snippet2DurationSec = 15;
-    }
-    if(Object.keys(audio).length){
-      sessionData.audio = audio;
-    }
     await addDoc(collection(db,'sessions'), sessionData);
     document.getElementById('read-title').value = '';
     document.getElementById('page-start').value = '';

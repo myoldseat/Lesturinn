@@ -2478,12 +2478,68 @@ function renderDetail(u,elId){
   },50);
 }
 
-// ══ EYÐA LOTUM ══
+// ══ HLJÓÐSPILARI ══
+function renderInlineAudioPlayer(s, i, u, prefix){
+  if(!s.hasAudio || !s.audioSnippet) return '';
+  return `<div style="margin-top:6px;">
+    <button onclick="toggleAudio('${prefix}',${i},'${u}')"
+      id="audio-btn-${prefix}-${i}"
+      style="background:var(--moss-light);border:none;border-radius:50px;padding:5px 14px;font-size:11px;font-weight:800;color:#2e7a4f;cursor:pointer;display:inline-flex;align-items:center;gap:5px;">
+      ▶ Hlusta á sýni
+    </button>
+    <audio id="audio-el-${prefix}-${i}" style="display:none;width:100%;margin-top:6px;" controls></audio>
+  </div>`;
+}
+
+window._audioSessions = {};
+
+window.toggleAudio = function(prefix, i, u){
+  const key = prefix+'-'+i;
+  const btnEl   = document.getElementById('audio-btn-'+key);
+  const audioEl = document.getElementById('audio-el-'+key);
+  if(!audioEl) return;
+
+  // Finna session
+  const ss = window._audioSessions[u] || getSessions(u);
+  const s  = ss[i];
+  if(!s || !s.audioSnippet){ alert('Ekkert hljóð fannst.'); return; }
+
+  if(audioEl.style.display === 'none' || audioEl.style.display === ''){
+    // Búa til blob ef ekki til
+    if(!audioEl.src || audioEl.src === window.location.href){
+      try {
+        // Reyna webm fyrst, svo mp4 fyrir Safari
+        let mimeType = 'audio/webm';
+        if(/iPhone|iPad|Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent)){
+          mimeType = 'audio/mp4';
+        }
+        const bytes = atob(s.audioSnippet);
+        const arr   = new Uint8Array(bytes.length);
+        for(let j=0; j<bytes.length; j++) arr[j] = bytes.charCodeAt(j);
+        const blob  = new Blob([arr], { type: mimeType });
+        audioEl.src = URL.createObjectURL(blob);
+      } catch(e) {
+        console.error('Hljóðvilla:', e);
+        alert('Hljóðið er ekki stutt á þessum vafra.');
+        return;
+      }
+    }
+    audioEl.style.display = 'block';
+    audioEl.play().catch(e => console.log('Play villa:', e));
+    if(btnEl) btnEl.innerHTML = '⏹ Loka spilara';
+  } else {
+    audioEl.pause();
+    audioEl.style.display = 'none';
+    if(btnEl) btnEl.innerHTML = '▶ Hlusta á sýni';
+  }
+};
 function renderDeleteSessionList(elId, u){
   const el=document.getElementById(elId); if(!el) return;
   const ss=getSessions(u);
   window._deleteSessions = window._deleteSessions || {};
   window._deleteSessions[u] = ss;
+  window._audioSessions = window._audioSessions || {};
+  window._audioSessions[u] = ss;
   if(!ss.length){ el.innerHTML='<div class="empty-state">Engar lotur enn 📖</div>'; return; }
   el.innerHTML='';
   ss.forEach((s,i)=>{

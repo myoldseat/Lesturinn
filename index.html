@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- MIC stop -->
 <html lang="is">
 <head>
 <meta charset="UTF-8">
@@ -122,6 +123,7 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const storage = getStorage(app);
+const BUILD = 'MIC stop';
 
 let currentUser = null;
 let currentRole = null;
@@ -197,6 +199,7 @@ function audioHtml(session){
   }
   if(items.length) return `<div class="audio-box">${items.join('')}</div>`;
   if(session.audioPending) return `<div class="audio-box"><span class="notice">Hljóð í vinnslu...</span></div>`;
+  if(session.audioFailed) return `<div class="audio-box"><span class="notice">Hljóð mistókst.</span></div>`;
   return '';
 }
 function sortSessions(items){
@@ -238,14 +241,35 @@ async function ensureMicPermission(){
 }
 
 function cleanupMicStream(){
-  activeSnippetRecorders.forEach(rec => {
-    try { if(rec && rec.state !== 'inactive') rec.stop(); } catch {}
-  });
+  try {
+    activeSnippetRecorders.forEach(rec => {
+      try { if(rec && rec.state !== 'inactive') rec.stop(); } catch {}
+    });
+  } catch {}
   activeSnippetRecorders = [];
   if(micStream){
-    micStream.getTracks().forEach(t => t.stop());
+    try { micStream.getTracks().forEach(t => t.stop()); } catch {}
   }
   micStream = null;
+}
+
+function stopActiveAudioCapture(){
+  snippetTimers.forEach(t => clearTimeout(t));
+  snippetTimers = [];
+  try {
+    activeSnippetRecorders.forEach(rec => {
+      try { if(rec && rec.state !== 'inactive') rec.stop(); } catch {}
+    });
+  } catch {}
+  const streamToClose = micStream;
+  if(streamToClose){
+    setTimeout(() => {
+      try { streamToClose.getTracks().forEach(t => t.stop()); } catch {}
+      if(micStream === streamToClose) micStream = null;
+    }, 150);
+  } else {
+    micStream = null;
+  }
 }
 
 async function uploadSnippetBlob(blob, type){
@@ -270,11 +294,30 @@ function recordSnippet(type){
   const recorder = mimeType ? new MediaRecorder(micStream, { mimeType }) : new MediaRecorder(micStream);
   activeSnippetRecorders.push(recorder);
   const chunks = [];
-  recorder.ondataavailable = e => { if(e.data && e.data.size > 0) chunks.push(e.data); };
   const task = new Promise((resolve) => {
+    let settled = false;
+    const finishTask = () => {
+      if(settled) return;
+      settled = true;
+      activeSnippetRecorders = activeSnippetRecorders.filter(r => r !== recorder);
+      snippetRecorderActive = Math.max(0, snippetRecorderActive - 1);
+      resolve();
+    };
+    const watchdog = setTimeout(() => {
+      console.warn('Snippet watchdog rann út', type);
+      finishTask();
+    }, 30000);
+
+    recorder.ondataavailable = e => { if(e.data && e.data.size > 0) chunks.push(e.data); };
+    recorder.onerror = (err) => {
+      console.error('Snippet recorder villa', err);
+      clearTimeout(watchdog);
+      finishTask();
+    };
     recorder.onstop = async () => {
       try{
         const blob = new Blob(chunks, { type: recorder.mimeType || 'audio/webm' });
+        console.log('MIC stop: snippet stoppað', type, 'size=', blob.size);
         if(blob.size > 0){
           const url = await uploadSnippetBlob(blob, type);
           if(type === 1) snippet1Url = url;
@@ -283,23 +326,23 @@ function recordSnippet(type){
       } catch(err){
         console.error('Snippet upload villa', err);
       } finally {
-        activeSnippetRecorders = activeSnippetRecorders.filter(r => r !== recorder);
-        snippetRecorderActive = Math.max(0, snippetRecorderActive - 1);
-        resolve();
+        clearTimeout(watchdog);
+        finishTask();
       }
     };
+
+    try {
+      recorder.start();
+      setTimeout(() => {
+        try{ if(recorder.state !== 'inactive') recorder.stop(); } catch {}
+      }, 15000);
+    } catch(err){
+      console.error('Snippet record villa', err);
+      clearTimeout(watchdog);
+      finishTask();
+    }
   });
   snippetTasks.push(task);
-  try {
-    recorder.start();
-    setTimeout(() => {
-      try{ if(recorder.state !== 'inactive') recorder.stop(); } catch {}
-    }, 15000);
-  } catch(err){
-    console.error('Snippet record villa', err);
-    activeSnippetRecorders = activeSnippetRecorders.filter(r => r !== recorder);
-    snippetRecorderActive = Math.max(0, snippetRecorderActive - 1);
-  }
 }
 
 function resetSnippetState(){
@@ -466,8 +509,7 @@ window.stopReading = function(){
   if(!readingStartMs) return;
   if(timerInterval) clearInterval(timerInterval);
   timerInterval = null;
-  snippetTimers.forEach(t => clearTimeout(t));
-  snippetTimers = [];
+  stopActiveAudioCapture();
   currentElapsedSecs = Math.floor((Date.now() - readingStartMs) / 1000);
   document.getElementById('timer-display').textContent = formatTime(currentElapsedSecs);
   document.getElementById('finish-card').style.display = '';
@@ -497,9 +539,6 @@ window.cancelReading = function(){
 async function finalizeAudioForSession(docId){
   audioFinalizeInProgress = true;
   try {
-    activeSnippetRecorders.forEach(rec => {
-      try { if(rec && rec.state !== 'inactive') rec.stop(); } catch {}
-    });
     const pending = [...snippetTasks];
     if(pending.length){
       await Promise.allSettled(pending);
@@ -512,12 +551,13 @@ async function finalizeAudioForSession(docId){
     await updateDoc(doc(db,'sessions',docId), {
       hasAudio: !!(snippet1Url || snippet2Url),
       audioPending: false,
+      audioFailed: false,
       audio
     });
   } catch(e){
     console.error('Audio finalize villa', e);
     try {
-      await updateDoc(doc(db,'sessions',docId), { audioPending:false });
+      await updateDoc(doc(db,'sessions',docId), { audioPending:false, audioFailed:true });
     } catch(inner) {
       console.error('Audio pending update villa', inner);
     }
@@ -547,6 +587,7 @@ window.saveFinishedSession = async function(){
       createdAt: serverTimestamp(),
       hasAudio: false,
       audioPending: !!(snippetTasks.length || snippetRecorderActive > 0),
+      audioFailed: false,
       audio: {}
     };
     const docRef = await addDoc(collection(db,'sessions'), sessionData);

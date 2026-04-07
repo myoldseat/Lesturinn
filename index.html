@@ -37,7 +37,7 @@
     <div style="width:100%;max-width:380px">
       <div style="text-align:center;margin-bottom:24px">
         <div style="font-family:Georgia,serif;font-size:52px;font-weight:700;color:var(--ocean)">Upphátt</div>
-        <div style="font-size:14px;color:var(--mist);font-weight:700">V2 · hreinn Firestore Snippet</div>
+        <div style="font-size:14px;color:var(--mist);font-weight:700">V2 · Firestore + audio snippets</div>
       </div>
       <div class="grid2">
         <button class="choice blue" onclick="goTo('screen-parent-login')"><span class="big">👩</span><span class="title">Ég er foreldri</span><div class="sub">Netfang + lykilorð</div></button>
@@ -106,7 +106,7 @@
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js';
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js';
-import { getFirestore, collection, addDoc, query, where, getDoc, doc, onSnapshot, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js';
+import { getFirestore, collection, addDoc, query, where, getDoc, doc, onSnapshot, serverTimestamp, updateDoc } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-storage.js';
 
 const firebaseConfig = {
@@ -142,6 +142,8 @@ let snippetTasks = [];
 let snippetFlags = { one:false, two:false };
 let snippetTimers = [];
 let snippetRecorderActive = 0;
+let activeSnippetRecorders = [];
+let audioFinalizeInProgress = false;
 
 window.goTo = function(id){
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -193,7 +195,9 @@ function audioHtml(session){
   if(audio.snippet2Url){
     items.push(`<button class="play-btn" onclick="toggleSnippetPlayback('${session._docId}_2', '${audio.snippet2Url.replace(/'/g, "&#39;")}', this)">▶ Spila snippet 2</button><audio id="audio-${session._docId}_2" preload="none" src="${audio.snippet2Url}"></audio>`);
   }
-  return items.length ? `<div class="audio-box">${items.join('')}</div>` : '';
+  if(items.length) return `<div class="audio-box">${items.join('')}</div>`;
+  if(session.audioPending) return `<div class="audio-box"><span class="notice">Hljóð í vinnslu...</span></div>`;
+  return '';
 }
 function sortSessions(items){
   return [...items].sort((a,b)=>{
@@ -234,6 +238,10 @@ async function ensureMicPermission(){
 }
 
 function cleanupMicStream(){
+  activeSnippetRecorders.forEach(rec => {
+    try { if(rec && rec.state !== 'inactive') rec.stop(); } catch {}
+  });
+  activeSnippetRecorders = [];
   if(micStream){
     micStream.getTracks().forEach(t => t.stop());
   }
@@ -260,6 +268,7 @@ function recordSnippet(type){
   snippetRecorderActive += 1;
   const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus') ? 'audio/webm;codecs=opus' : '';
   const recorder = mimeType ? new MediaRecorder(micStream, { mimeType }) : new MediaRecorder(micStream);
+  activeSnippetRecorders.push(recorder);
   const chunks = [];
   recorder.ondataavailable = e => { if(e.data && e.data.size > 0) chunks.push(e.data); };
   const task = new Promise((resolve) => {
@@ -274,6 +283,7 @@ function recordSnippet(type){
       } catch(err){
         console.error('Snippet upload villa', err);
       } finally {
+        activeSnippetRecorders = activeSnippetRecorders.filter(r => r !== recorder);
         snippetRecorderActive = Math.max(0, snippetRecorderActive - 1);
         resolve();
       }
@@ -287,6 +297,7 @@ function recordSnippet(type){
     }, 15000);
   } catch(err){
     console.error('Snippet record villa', err);
+    activeSnippetRecorders = activeSnippetRecorders.filter(r => r !== recorder);
     snippetRecorderActive = Math.max(0, snippetRecorderActive - 1);
   }
 }
@@ -299,6 +310,7 @@ function resetSnippetState(){
   snippetTimers.forEach(t => clearTimeout(t));
   snippetTimers = [];
   snippetRecorderActive = 0;
+  activeSnippetRecorders = [];
 }
 
 window.firebaseLogin = async function(){
@@ -423,6 +435,10 @@ window.startReading = async function(){
   const pageStart = parseInt(document.getElementById('page-start').value, 10) || null;
   const err = document.getElementById('read-error');
   err.textContent = '';
+  if(audioFinalizeInProgress){
+    err.textContent = 'Augnablik... appið er að klára hljóðsýni úr síðustu lotu.';
+    return;
+  }
   pendingSession = { title, pageStart };
   try {
     await ensureMicPermission();
@@ -449,39 +465,75 @@ window.startReading = async function(){
 window.stopReading = function(){
   if(!readingStartMs) return;
   if(timerInterval) clearInterval(timerInterval);
+  timerInterval = null;
+  snippetTimers.forEach(t => clearTimeout(t));
+  snippetTimers = [];
   currentElapsedSecs = Math.floor((Date.now() - readingStartMs) / 1000);
   document.getElementById('timer-display').textContent = formatTime(currentElapsedSecs);
   document.getElementById('finish-card').style.display = '';
 };
 
-window.cancelReading = function(){
+function resetReadingUi(){
   if(timerInterval) clearInterval(timerInterval);
   timerInterval = null;
   readingStartMs = null;
   currentElapsedSecs = 0;
   pendingSession = null;
-  resetSnippetState();
-  cleanupMicStream();
   document.getElementById('reading-card').style.display = 'none';
   document.getElementById('finish-card').style.display = 'none';
   document.getElementById('page-end').value = '';
   document.getElementById('read-error').textContent = '';
+  document.getElementById('save-error').textContent = '';
+  document.getElementById('read-title').value = '';
+  document.getElementById('page-start').value = '';
+}
+
+window.cancelReading = function(){
+  resetReadingUi();
+  resetSnippetState();
+  cleanupMicStream();
 };
+
+async function finalizeAudioForSession(docId){
+  audioFinalizeInProgress = true;
+  try {
+    activeSnippetRecorders.forEach(rec => {
+      try { if(rec && rec.state !== 'inactive') rec.stop(); } catch {}
+    });
+    const pending = [...snippetTasks];
+    if(pending.length){
+      await Promise.allSettled(pending);
+    }
+    const audio = {};
+    if(snippet1Url) audio.snippet1Url = snippet1Url;
+    if(snippet2Url) audio.snippet2Url = snippet2Url;
+    if(snippet1Url) audio.snippet1AtSec = 60;
+    if(snippet2Url) audio.snippet2AtSec = 720;
+    await updateDoc(doc(db,'sessions',docId), {
+      hasAudio: !!(snippet1Url || snippet2Url),
+      audioPending: false,
+      audio
+    });
+  } catch(e){
+    console.error('Audio finalize villa', e);
+    try {
+      await updateDoc(doc(db,'sessions',docId), { audioPending:false });
+    } catch(inner) {
+      console.error('Audio pending update villa', inner);
+    }
+  } finally {
+    cleanupMicStream();
+    resetSnippetState();
+    audioFinalizeInProgress = false;
+  }
+}
 
 window.saveFinishedSession = async function(){
   const err = document.getElementById('save-error');
   err.textContent = '';
   try {
     const pageEnd = parseInt(document.getElementById('page-end').value, 10) || null;
-    if(snippetTasks.length){
-      await Promise.allSettled(snippetTasks);
-    }
     const now = new Date();
-    const audio = {};
-    if(snippet1Url) audio.snippet1Url = snippet1Url;
-    if(snippet2Url) audio.snippet2Url = snippet2Url;
-    if(snippet1Url) audio.snippet1AtSec = 60;
-    if(snippet2Url) audio.snippet2AtSec = 720;
     const sessionData = {
       familyId: currentFamilyId,
       childKey: currentChildKey,
@@ -493,14 +545,14 @@ window.saveFinishedSession = async function(){
       timestamp: Date.now(),
       date: makeDateKey(now),
       createdAt: serverTimestamp(),
-      hasAudio: !!(snippet1Url || snippet2Url),
-      audio
+      hasAudio: false,
+      audioPending: !!(snippetTasks.length || snippetRecorderActive > 0),
+      audio: {}
     };
-    await addDoc(collection(db,'sessions'), sessionData);
-    document.getElementById('read-title').value = '';
-    document.getElementById('page-start').value = '';
-    cancelReading();
+    const docRef = await addDoc(collection(db,'sessions'), sessionData);
+    resetReadingUi();
     alert('Lotan var vistuð í Firestore.');
+    finalizeAudioForSession(docRef.id);
   } catch(e){ err.textContent = 'Ekki tókst að vista lotu.'; console.error(e); }
 };
 </script>

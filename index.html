@@ -219,6 +219,29 @@ body{font-family:-apple-system,'Segoe UI',sans-serif;background:var(--sky);color
 </head>
 <body>
 
+<script>
+window.__debugMode = true;
+window.__debugAlert = function(msg){
+  try {
+    console.log('[DEBUG]', msg);
+    alert(String(msg));
+  } catch (e) {
+    console.log('[DEBUG]', msg);
+  }
+};
+
+window.addEventListener('error', function (e) {
+  console.error('GLOBAL JS ERROR:', e.message, e.filename, e.lineno, e.colno, e.error || '');
+  window.__debugAlert('JS villa: ' + e.message + ' @ line ' + e.lineno);
+});
+
+window.addEventListener('unhandledrejection', function (e) {
+  const reason = e.reason && (e.reason.message || e.reason.code || String(e.reason)) || 'Unknown promise error';
+  console.error('UNHANDLED PROMISE ERROR:', e.reason);
+  window.__debugAlert('Promise villa: ' + reason);
+});
+</script>
+
 <!-- ══ FIREBASE SDK ══ -->
 <script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-auth-compat.js"></script>
@@ -413,11 +436,14 @@ window.firebaseLogin = async function(){
   errEl.textContent = '';
   if(!email||!pw){ errEl.textContent='Netfang og lykilorð vantar.'; return; }
   try {
+    window.__debugAlert('Foreldrainnskráning byrjar: ' + email);
     console.log('🔐 Parent login attempt', email);
     document.getElementById('btn-login').textContent = 'Skráir inn...';
     await signInWithEmailAndPassword(auth, email, pw);
+    window.__debugAlert('Foreldrainnskráning tókst');
   } catch(e) {
     console.error('❌ Parent login failed', e);
+    window.__debugAlert('Foreldrainnskráning failed: ' + (e.code || e.message || e));
     document.getElementById('btn-login').textContent = '🔑 Skrá inn';
     errEl.textContent = e.code==='auth/invalid-credential' ? 'Netfang eða lykilorð er rangt.' : 'Villa: '+e.message;
   }
@@ -526,15 +552,23 @@ window.childLogin = async function(){
   errEl.textContent = '';
   if(code.length < 4){ errEl.textContent='Sláðu inn kóðann þinn.'; return; }
   try {
+    window.__debugAlert('childLogin byrjar: ' + code);
     console.log('🧒 Child login lookup', code);
     document.getElementById('btn-child-login').textContent = 'Leita...';
-    const codeSnap = await getDoc(doc(db,'codes',code));
+    const codeRef = doc(db,'codes',code);
+    console.log('🧒 codeRef', codeRef);
+    window.__debugAlert('Áður en getDoc keyrir');
+    const codeSnap = await getDoc(codeRef);
+    window.__debugAlert('Eftir getDoc. exists=' + codeSnap.exists());
     if(!codeSnap.exists()){
       document.getElementById('btn-child-login').textContent = '🎯 Skrá mig inn';
       errEl.textContent = 'Kóðinn fannst ekki — athugaðu með foreldri.';
+      window.__debugAlert('Kóði fannst ekki í Firestore');
       return;
     }
     const codeData = codeSnap.data();
+    console.log('🧒 codeData', codeData);
+    window.__debugAlert('codeData loaded fyrir ' + (codeData.childName || 'óþekkt barn'));
     const childSession = {
       uid:      codeData.parentUid+'_'+codeData.childKey,
       name:     codeData.childName,
@@ -543,6 +577,7 @@ window.childLogin = async function(){
       code
     };
     localStorage.setItem('lesum_child_session', JSON.stringify(childSession));
+    window.__debugAlert('localStorage vistað');
     window._currentUid      = childSession.uid;
     window._currentRole     = 'child';
     window._currentName     = codeData.childName;
@@ -550,9 +585,11 @@ window.childLogin = async function(){
     window._currentChildKey = codeData.childKey;
     currentUser = codeData.childKey;
     USERS[codeData.childKey] = { name: codeData.childName, emoji:'👦' };
+    window.__debugAlert('Fer á screen-child-home');
     goTo('screen-child-home');
   } catch(e) {
     console.error('❌ Child login failed', e);
+    window.__debugAlert('Child login catch: ' + (e.code || e.message || e));
     document.getElementById('btn-child-login').textContent = '🎯 Skrá mig inn';
     document.getElementById('child-code-error').textContent = 'Villa: '+e.message;
   }
@@ -581,6 +618,7 @@ window.firebaseLogout = async function(){
 // ── Vista lotu ──
 window.saveSessionToFirestore = async function(sessionData){
   try {
+    window.__debugAlert('saveSessionToFirestore byrjar');
     console.log('💾 Saving session', sessionData);
     await addDoc(collection(db,'sessions'),{
       ...sessionData,
@@ -590,8 +628,10 @@ window.saveSessionToFirestore = async function(sessionData){
       createdAt: new Date()
     });
     console.log('✅ Lota vistuð í Firestore');
+    window.__debugAlert('Session vistað í Firestore');
   } catch(e){
     console.error('❌ Villa við vistun í Firestore:', e);
+    window.__debugAlert('Session villa: ' + (e.code || e.message || e));
   }
 };
 

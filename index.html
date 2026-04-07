@@ -219,7 +219,7 @@ body{font-family:-apple-system,'Segoe UI',sans-serif;background:var(--sky);color
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
-import { getFirestore, collection, addDoc, getDocs, query, where, orderBy, deleteDoc, doc, setDoc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+import { getFirestore, collection, addDoc, getDocs, query, where, orderBy, deleteDoc, doc, setDoc, getDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAgTY3Uxd9_ZxixjqLj-sH8V3OhFAzg6DU",
@@ -234,7 +234,91 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-window._fb = { auth, db, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged, collection, addDoc, getDocs, query, where, orderBy, deleteDoc, doc, setDoc, getDoc, updateDoc };
+window._fb = { auth, db, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged, collection, addDoc, getDocs, query, where, orderBy, deleteDoc, doc, setDoc, getDoc, updateDoc, onSnapshot };
+
+window._familySessionsCache = {};
+window._familySessionsReady = false;
+window._familySessionsUnsub = null;
+
+function sessionSortValue(s){
+  if(typeof s.timestamp === 'number') return s.timestamp;
+  const created = s.createdAt;
+  if(created && typeof created.toMillis === 'function') return created.toMillis();
+  if(created instanceof Date) return created.getTime();
+  return 0;
+}
+
+function sortSessionsNewestFirst(arr){
+  return arr.sort((a,b)=>sessionSortValue(b)-sessionSortValue(a));
+}
+
+function setFamilySessionsCache(items){
+  const grouped = {};
+  items.forEach(item => {
+    const key = item.childKey || 'unknown';
+    if(!grouped[key]) grouped[key] = [];
+    grouped[key].push(item);
+    if(item.childName){
+      USERS[key] = { ...(USERS[key] || {}), name:item.childName, emoji:(USERS[key] && USERS[key].emoji) || '👦' };
+    }
+  });
+  Object.keys(grouped).forEach(key => sortSessionsNewestFirst(grouped[key]));
+  window._familySessionsCache = grouped;
+  window._familySessionsReady = true;
+}
+
+async function syncChildrenFromCodes(){
+  if(!window._currentFamilyId) return;
+  try {
+    const codesQ = query(collection(db,'codes'), where('familyId','==',window._currentFamilyId));
+    const snap = await getDocs(codesQ);
+    snap.forEach(docSnap => {
+      const data = docSnap.data();
+      if(data.childKey && data.childName){
+        USERS[data.childKey] = { ...(USERS[data.childKey] || {}), name:data.childName, emoji:(USERS[data.childKey] && USERS[data.childKey].emoji) || '👦', code: docSnap.id };
+      }
+    });
+  } catch(e) {
+    console.error('Villa við að hlaða börnum:', e);
+  }
+}
+
+function refreshActiveParentScreen(){
+  if(window._currentRole !== 'parent') return;
+  const active = document.querySelector('.screen.active');
+  if(!active) return;
+  if(active.id === 'screen-mamma-home') _renderMammaHome();
+  if(active.id === 'screen-detail-hrafnkell') renderDetail('hrafnkell','detail-hrafnkell');
+  if(active.id === 'screen-detail-kolbeinn') renderDetail('kolbeinn','detail-kolbeinn');
+  if(active.id === 'screen-comparison') renderComparison();
+  if(active.id === 'screen-teacher') renderTeacher();
+}
+
+function stopFamilySessionsListener(){
+  if(typeof window._familySessionsUnsub === 'function'){
+    window._familySessionsUnsub();
+  }
+  window._familySessionsUnsub = null;
+  window._familySessionsCache = {};
+  window._familySessionsReady = false;
+}
+
+async function startFamilySessionsListener(){
+  if(window._currentRole !== 'parent' || !window._currentFamilyId) return;
+  await syncChildrenFromCodes();
+  stopFamilySessionsListener();
+  const sessionsQ = query(collection(db,'sessions'), where('familyId','==',window._currentFamilyId));
+  window._familySessionsUnsub = onSnapshot(sessionsQ, (snap) => {
+    const items = [];
+    snap.forEach(docSnap => {
+      items.push({ _docId: docSnap.id, ...docSnap.data() });
+    });
+    setFamilySessionsCache(items);
+    refreshActiveParentScreen();
+  }, (error) => {
+    console.error('Villa við live sync:', error);
+  });
+}
 
 // ── Athuga hvort barn sé þegar skráð inn á þessu tæki ──
 const savedChild = localStorage.getItem('lesum_child_session');
@@ -269,11 +353,13 @@ onAuthStateChanged(auth, async (user) => {
         });
       }
       currentUser = 'mamma';
+      await startFamilySessionsListener();
       goTo('screen-mamma-home');
     } else {
       goTo('screen-signup');
     }
   } else {
+    stopFamilySessionsListener();
     // Ekki innskráður — athuga hvort barn sé saved
     if(localStorage.getItem('lesum_child_session')){
       goTo('screen-child-home');
@@ -442,12 +528,14 @@ window.firebaseLogout = async function(){
     if(confirm('Skrá þig út? Þú þarft kóðann aftur til að skrá þig inn.')){
       localStorage.removeItem('lesum_child_session');
       window._currentUid = null;
+      stopFamilySessionsListener();
       currentUser = null;
       goTo('screen-login');
     }
   } else {
     await signOut(auth);
     window._currentUid = null;
+    stopFamilySessionsListener();
     currentUser = null;
     goTo('screen-login');
   }
@@ -460,6 +548,7 @@ window.saveSessionToFirestore = async function(sessionData){
       ...sessionData,
       familyId:  window._currentFamilyId,
       childKey:  currentUser,
+      childName: USERS[currentUser]?.name || window._currentName || currentUser,
       createdAt: new Date()
     });
   } catch(e){ console.error('Villa við vistun:',e); }
@@ -1306,29 +1395,59 @@ function renderShieldStatus(){
     el.style.display = 'none';
   }
 }
-function getSessions(u){ return JSON.parse(localStorage.getItem('lesum_'+u)||'[]'); }
+function getLocalSessions(u){ return JSON.parse(localStorage.getItem('lesum_'+u)||'[]'); }
+function getSessions(u){
+  if(window._currentRole === 'parent'){
+    return window._familySessionsCache[u] ? [...window._familySessionsCache[u]] : [];
+  }
+  return getLocalSessions(u);
+}
 function saveSessions(u,s){ localStorage.setItem('lesum_'+u,JSON.stringify(s)); }
-function addSession(u,s){ const arr=getSessions(u); arr.unshift(s); saveSessions(u,arr); }
+function addSession(u,s){ const arr=getLocalSessions(u); arr.unshift(s); saveSessions(u,arr); }
 
+function atLocalNoon(date){
+  const d = new Date(date);
+  d.setHours(12,0,0,0);
+  return d;
+}
+function makeDateKey(d){
+  const x = atLocalNoon(d);
+  return x.getFullYear()+'-'+(x.getMonth()+1)+'-'+x.getDate();
+}
 function dateKey(offsetDays){
-  const d=new Date(); d.setDate(d.getDate()-offsetDays);
-  return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();
+  const d = atLocalNoon(new Date());
+  d.setDate(d.getDate()-offsetDays);
+  return makeDateKey(d);
 }
 function todayKey(){ return dateKey(0); }
+function getStartOfWeek(date = new Date()){
+  const d = atLocalNoon(date);
+  const day = d.getDay(); // 0=Sun
+  const diffToMonday = day === 0 ? -6 : 1 - day;
+  d.setDate(d.getDate() + diffToMonday);
+  return d;
+}
+function getTodayWeekIndex(date = new Date()){
+  const day = atLocalNoon(date).getDay();
+  return day === 0 ? 6 : day - 1;
+}
 
 function getWeekData(u){
   const ss=getSessions(u);
+  const weekStart = getStartOfWeek(new Date());
   return DAYS.map((day,i)=>{
-    const key=dateKey(6-i);
-    const mins=ss.filter(s=>s.date===key).reduce((a,s)=>a+Math.floor(s.seconds/60),0);
-    return {day,mins};
+    const d = new Date(weekStart);
+    d.setDate(weekStart.getDate()+i);
+    const key = makeDateKey(d);
+    const mins=ss.filter(s=>s.date===key).reduce((a,s)=>a+Math.floor((s.seconds||0)/60),0);
+    return {day, mins, date:key};
   });
 }
 function getStreak(u){
   const ss=getSessions(u); if(!ss.length) return 0;
-  let streak=0, d=new Date();
+  let streak=0, d=atLocalNoon(new Date());
   for(let i=0;i<60;i++){
-    const k=d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();
+    const k=makeDateKey(d);
     if(ss.some(s=>s.date===k&&s.seconds>=60)){ streak++; d.setDate(d.getDate()-1); }
     else if(i===0){ d.setDate(d.getDate()-1); }
     else break;
@@ -1549,17 +1668,17 @@ async function startTimer(){
   document.getElementById('timer-sublabel').textContent = timerMode==='down' ? 'Tíminn er að líða niður…' : 'Les upphátt…';
   document.getElementById('rec-indicator').classList.add('visible');
 
-  // Biðja um hljóðnema
   try {
     audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
     startAudioSnippets();
   } catch(e) {
-    // Hljóðnemi ekki í boði — keyrum bara tímamæli
     console.log('Hljóðnemi ekki í boði:', e.message);
   }
 
+  const startTime = Date.now();
   timerInterval = setInterval(() => {
-    sessionSecs++;
+    sessionSecs = Math.floor((Date.now() - startTime) / 1000);
+
     const display = timerMode === 'down'
       ? Math.max(0, TARGET - sessionSecs)
       : sessionSecs;
@@ -1582,7 +1701,7 @@ async function startTimer(){
         document.getElementById('timer-goal-text').textContent = fmtTime(left) + ' eftir af markmiðinu';
       }
     }
-  }, 1000);
+  }, 500);
 }
 
 // ══ HLJÓÐSÝNATAKA — 3 sneiðar ══
@@ -2199,24 +2318,13 @@ function renderMonthWeeks(elId, u){
 
 // ══ MAMMA HOME ══
 function renderMammaHome(){
-  // Load family data if Firebase connected
-  if(window._currentFamilyId && window._fb){
-    window._fb.getDoc(window._fb.doc(window._fb.db,'users',window._currentUid)).then(snap=>{
-      if(snap.exists()){
-        const profile = snap.data();
-        if(profile.children){
-          profile.children.forEach((child,i)=>{
-            const key = i===0?'hrafnkell':'kolbeinn';
-            USERS[key] = { name: child.name, emoji:'👦' };
-          });
-        }
-      }
-      _renderMammaHome();
-    }).catch(()=>_renderMammaHome());
-  } else {
-    _renderMammaHome();
+  if(window._currentRole === 'parent' && window._currentFamilyId && !window._familySessionsUnsub){
+    startFamilySessionsListener().finally(()=>_renderMammaHome());
+    return;
   }
+  _renderMammaHome();
 }
+
 function _renderMammaHome(){
   const parentName = window._currentName || 'Foreldri';
   const tag = document.getElementById('mamma-mode-tag');
@@ -2261,12 +2369,13 @@ function renderDetail(u,elId){
   const uu=USERS[u];
   const ss=getSessions(u);
   const streak=getStreak(u);
-  const avg=ss.length?Math.round(ss.reduce((a,s)=>a+s.seconds,0)/ss.length/60):0;
+  const avg=ss.length?Math.round(ss.reduce((a,s)=>a+(s.seconds||0),0)/ss.length/60):0;
+  const audioCount = ss.filter(s=>s.hasAudio && s.audioSnippet).length;
   el.innerHTML=`
     <div class="hero blue" style="margin-bottom:16px">
       <div class="hero-label">${uu.emoji} ${uu.name}</div>
       <h1>Lestrarskrá</h1>
-      <p>${ss.length} lotur skráðar</p>
+      <p>${ss.length} lotur skráðar${audioCount > 0 ? ' · 🎤 '+audioCount+' með hljóði' : ''}</p>
     </div>
     <div class="stat-trio">
       <div class="stat-box"><div class="sv">${ss.length}</div><div class="sl">Lotur alls</div></div>
@@ -2291,6 +2400,7 @@ function renderDetail(u,elId){
     </div>
     <div class="card" id="dt-sessions-${u}"></div>`;
   setTimeout(()=>{
+    renderDots('dt-dots-'+u,u);
     renderMonthWeeks('dt-weeks-'+u,u);
     renderMonthBars('dt-months-'+u,u);
     renderDeleteSessionList('dt-sessions-'+u,u);
@@ -2301,76 +2411,83 @@ function renderDetail(u,elId){
 function renderDeleteSessionList(elId, u){
   const el=document.getElementById(elId); if(!el) return;
   const ss=getSessions(u);
+  window._deleteSessions = window._deleteSessions || {};
+  window._deleteSessions[u] = ss;
   if(!ss.length){ el.innerHTML='<div class="empty-state">Engar lotur enn 📖</div>'; return; }
   el.innerHTML='';
   ss.forEach((s,i)=>{
-    const mins=Math.floor(s.seconds/60);
+    const mins=Math.floor((s.seconds||0)/60);
     const div=document.createElement('div');
     div.className='session-item';
-    const audioBtn = s.hasAudio
-      ? `<button onclick="playAudioSnippet(${i},'${u}')" style="margin-left:4px;background:var(--moss-light);border:none;border-radius:50px;padding:4px 10px;font-size:11px;font-weight:800;color:#2e7a4f;cursor:pointer;">▶ Hlusta</button>`
-      : '';
+    const audioHtml = renderInlineAudioPlayer(s, i, u, 'delete');
     div.innerHTML=`
       <div class="si-icon">${s.icon||'📖'}</div>
-      <div class="si-info">
+      <div class="si-info" style="flex:1;min-width:0;">
         <div class="si-title">${s.title||'Lestur'}</div>
-        <div class="si-meta">${s.dateLabel||s.date} ${audioBtn}</div>
+        <div class="si-meta">${s.dateLabel||s.date||''} · ${fmtTime(s.seconds||0)}</div>
+        ${audioHtml}
       </div>
-      <div class="si-badge">
+      <div class="si-badge" style="flex-shrink:0;">
         <span class="quality-badge ${qbl(mins)}">${qbl(mins)}</span>
-        <span class="muted">${fmtTime(s.seconds)}</span>
       </div>
       <button onclick="deleteOneSession('${u}',${i},this)" style="margin-left:8px;background:none;border:none;font-size:18px;cursor:pointer;padding:4px;color:#dde5f0;flex-shrink:0;">🗑</button>`;
     el.appendChild(div);
   });
 }
 
-function playAudioSnippet(index, u){
-  const ss = getSessions(u);
-  const s = ss[index];
-  if(!s || !s.audioSnippet) return;
-  const blob = base64ToBlob(s.audioSnippet, 'audio/webm');
-  const url = URL.createObjectURL(blob);
-  const audio = new Audio(url);
-  audio.play();
-  audio.onended = () => URL.revokeObjectURL(url);
-}
-
-function base64ToBlob(base64, mimeType){
-  const bytes = atob(base64);
-  const arr = new Uint8Array(bytes.length);
-  for(let i=0; i<bytes.length; i++) arr[i] = bytes.charCodeAt(i);
-  return new Blob([arr], { type: mimeType });
-}
-
-function deleteOneSession(u, index, btn){
+async function deleteOneSession(u, index, btn){
   const ss=getSessions(u);
   const s=ss[index];
-  const mins=Math.floor((s.seconds||0)/60);
-  const label=s.title||'Lestur';
-  const dateStr=s.dateLabel||s.date;
-  if(confirm(`Eyða lotu?\n\n"${label}" — ${dateStr} (${mins} mín)\n\nÞetta er ekki hægt að afturkalla.`)){
+  const mins=Math.floor((s?.seconds||0)/60);
+  const label=s?.title||'Lestur';
+  const dateStr=s?.dateLabel||s?.date||'';
+  if(confirm(`Eyða lotu?
+
+"${label}" — ${dateStr} (${mins} mín)
+
+Þetta er ekki hægt að afturkalla.`)){
+    if(window._currentRole === 'parent' && s && s._docId && window._fb){
+      try {
+        await window._fb.deleteDoc(window._fb.doc(window._fb.db,'sessions',s._docId));
+      } catch(err) {
+        alert('Ekki tókst að eyða lotu í gagnagrunni.');
+        console.error(err);
+      }
+      return;
+    }
     ss.splice(index,1);
     saveSessions(u,ss);
-    // Re-render
     const container=btn.closest('.card');
     if(container) renderDeleteSessionList(container.id, u);
-    // Refresh detail
     const detailEl = document.getElementById('detail-'+u);
     if(detailEl) renderDetail(u,'detail-'+u);
   }
 }
 
-function deleteAllSessions(u){
+async function deleteAllSessions(u){
   const uu=USERS[u];
-  const count=getSessions(u).length;
+  const allSessions=getSessions(u);
+  const count=allSessions.length;
   if(count===0){ alert('Engar lotur til að eyða.'); return; }
-  if(confirm(`Eyða ÖLLUM ${count} lotum ${uu.name}?\n\nÞetta eyðir öllum lestrarskráningum og er ekki hægt að afturkalla.`)){
+  if(confirm(`Eyða ÖLLUM ${count} lotum ${uu.name}?
+
+Þetta eyðir öllum lestrarskráningum og er ekki hægt að afturkalla.`)){
     if(confirm(`Ertu alveg viss? Allar ${count} lotur ${uu.name} eyðast að eilífu.`)){
+      if(window._currentRole === 'parent' && window._fb){
+        try {
+          await Promise.all(allSessions.filter(s=>s._docId).map(s=>window._fb.deleteDoc(window._fb.doc(window._fb.db,'sessions',s._docId))));
+          localStorage.removeItem('lesum_trophies_'+u);
+          localStorage.removeItem('lesum_badges_'+u);
+          alert('Allar lotur '+uu.name+' hafa verið eytt.');
+        } catch(err) {
+          alert('Ekki tókst að eyða öllum lotum í gagnagrunni.');
+          console.error(err);
+        }
+        return;
+      }
       saveSessions(u,[]);
       localStorage.removeItem('lesum_trophies_'+u);
       localStorage.removeItem('lesum_badges_'+u);
-      // Refresh
       const detailEl = document.getElementById('detail-'+u);
       if(detailEl) renderDetail(u,'detail-'+u);
       alert('Allar lotur '+uu.name+' hafa verið eytt.');
@@ -2390,11 +2507,12 @@ function renderComparison(){
 function renderTeacher(){
   const el=document.getElementById('teacher-list'); if(!el) return;
   el.innerHTML='';
+  const todayIndex = getTodayWeekIndex();
   ['hrafnkell','kolbeinn'].forEach(u=>{
     const uu=USERS[u];
     const ss=getSessions(u);
     const wd=getWeekData(u);
-    const todayMins=wd[6].mins;
+    const todayMins=wd[todayIndex]?.mins || 0;
     const streak=getStreak(u);
     const weekCount=wd.filter(d=>d.mins>0).length;
     const dots=wd.map(d=>`<div class="wm-dot ${d.mins>=15?'full':d.mins>0?'partial':'none'}"></div>`).join('');
@@ -2404,8 +2522,7 @@ function renderTeacher(){
       <div class="cr-right"><div class="cr-time">${todayMins>0?todayMins+'mín':'—'}</div><div class="cr-streak">🔥${streak} röð</div></div>`;
     el.appendChild(row);
   });
-  
-  
+
   const wc=document.getElementById('teacher-chart'); if(!wc) return;
   wc.innerHTML='';
   const h=getWeekData('hrafnkell'), k=getWeekData('kolbeinn');

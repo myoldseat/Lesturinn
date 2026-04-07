@@ -220,11 +220,10 @@ body{font-family:-apple-system,'Segoe UI',sans-serif;background:var(--sky);color
 <body>
 
 <!-- ══ FIREBASE SDK ══ -->
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
-import { getFirestore, collection, addDoc, getDocs, query, where, orderBy, deleteDoc, doc, setDoc, getDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
-
+<script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore-compat.js"></script>
+<script>
 const firebaseConfig = {
   apiKey: "AIzaSyAgTY3Uxd9_ZxixjqLj-sH8V3OhFAzg6DU",
   authDomain: "lesum-22e85.firebaseapp.com",
@@ -234,9 +233,75 @@ const firebaseConfig = {
   appId: "1:204392598388:web:2dbbe3f476cd78d2ffba21"
 };
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
+let app;
+let auth;
+let db;
+
+function collection(dbInstance, path){
+  return dbInstance.collection(path);
+}
+function addDoc(collectionRef, data){
+  return collectionRef.add(data);
+}
+function getDocs(ref){
+  return ref.get();
+}
+function query(baseRef, ...constraints){
+  return constraints.reduce((ref, constraint) => {
+    if(!constraint) return ref;
+    if(constraint.type === 'where') return ref.where(constraint.fieldPath, constraint.opStr, constraint.value);
+    if(constraint.type === 'orderBy') return ref.orderBy(constraint.fieldPath, constraint.directionStr);
+    return ref;
+  }, baseRef);
+}
+function where(fieldPath, opStr, value){
+  return { type:'where', fieldPath, opStr, value };
+}
+function orderBy(fieldPath, directionStr='asc'){
+  return { type:'orderBy', fieldPath, directionStr };
+}
+function doc(dbInstance, path, id){
+  return dbInstance.collection(path).doc(id);
+}
+function setDoc(docRef, data){
+  return docRef.set(data);
+}
+function getDoc(docRef){
+  return docRef.get();
+}
+function updateDoc(docRef, data){
+  return docRef.update(data);
+}
+function deleteDoc(docRef){
+  return docRef.delete();
+}
+function onSnapshot(ref, onNext, onError){
+  return ref.onSnapshot(onNext, onError);
+}
+function signInWithEmailAndPassword(authInstance, email, password){
+  return authInstance.signInWithEmailAndPassword(email, password);
+}
+function createUserWithEmailAndPassword(authInstance, email, password){
+  return authInstance.createUserWithEmailAndPassword(email, password);
+}
+function onAuthStateChanged(authInstance, callback){
+  return authInstance.onAuthStateChanged(callback);
+}
+function signOut(authInstance){
+  return authInstance.signOut();
+}
+
+try {
+  app = firebase.initializeApp(firebaseConfig);
+  auth = firebase.auth();
+  db = firebase.firestore();
+  window._firebaseBootOk = true;
+  console.log('✅ Firebase boot ok');
+} catch (e) {
+  window._firebaseBootOk = false;
+  window._firebaseBootError = e;
+  console.error('❌ Firebase boot failed:', e);
+}
 
 window._fb = { auth, db, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged, collection, addDoc, getDocs, query, where, orderBy, deleteDoc, doc, setDoc, getDoc, updateDoc, onSnapshot };
 
@@ -496,6 +561,8 @@ window.childLogin = async function(){
   errEl.textContent = '';
   if(code.length < 4){ errEl.textContent='Sláðu inn kóðann þinn.'; return; }
   try {
+    if(!db) throw new Error('Firestore ekki tilbúið');
+    console.log('🔎 Leita að barnakóða...', code);
     document.getElementById('btn-child-login').textContent = 'Leita...';
     const codeSnap = await getDoc(doc(db,'codes',code));
     if(!codeSnap.exists()){
@@ -550,6 +617,8 @@ window.firebaseLogout = async function(){
 // ── Vista lotu ──
 window.saveSessionToFirestore = async function(sessionData){
   try {
+    if(!db) throw new Error('Firestore ekki tilbúið');
+    console.log('💾 Reyni að vista lotu í Firestore...', { familyId: window._currentFamilyId, childKey: currentUser });
     await addDoc(collection(db,'sessions'),{
       ...sessionData,
       familyId:  window._currentFamilyId,
@@ -558,8 +627,11 @@ window.saveSessionToFirestore = async function(sessionData){
       createdAt: new Date()
     });
     console.log('✅ Lota vistuð í Firestore');
+    return true;
   } catch(e){
+    window._lastFirestoreSaveError = e;
     console.error('❌ Villa við vistun í Firestore:', e);
+    return false;
   }
 };
 
@@ -709,10 +781,8 @@ function generateCode(name){
           autocapitalize="characters"
           inputmode="text"
           enterkeyhint="done"
-          readonly
-          style="font-family:Georgia,serif;font-size:28px;font-weight:700;letter-spacing:4px;text-align:center;text-transform:uppercase;cursor:pointer;"
-          ontouchstart="this.removeAttribute('readonly');this.focus();"
-          onclick="this.removeAttribute('readonly');this.focus();"
+          spellcheck="false"
+          style="font-family:Georgia,serif;font-size:28px;font-weight:700;letter-spacing:4px;text-align:center;text-transform:uppercase;cursor:text;"
           oninput="this.value=this.value.toUpperCase()">
       </div>
       <div id="child-code-error" style="color:var(--coral);font-size:12px;font-weight:700;margin-bottom:12px;min-height:18px;text-align:center;"></div>
@@ -1487,7 +1557,6 @@ function goTo(id){
       const input = document.getElementById('child-code-input');
       if(input){
         input.focus();
-        input.click();
       }
     }, 250);
   }
@@ -1525,7 +1594,6 @@ window.addEventListener('DOMContentLoaded', () => {
   if(childCard && childInput){
     childCard.addEventListener('click', () => {
       childInput.focus();
-      childInput.click();
     });
   }
 });

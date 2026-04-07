@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Lesum">
-<title>Lesum</title>
+<meta name="apple-mobile-web-app-title" content="Upphátt">
+<title>Upphátt</title>
 <script>
 (function(){
   const c=document.createElement('canvas');c.width=180;c.height=180;
@@ -20,7 +20,7 @@
   ctx.quadraticCurveTo(0,180,0,180-r);ctx.lineTo(0,r);
   ctx.quadraticCurveTo(0,0,r,0);ctx.closePath();ctx.fill();
   ctx.fillStyle='white';ctx.font='bold 118px Georgia,serif';
-  ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('L',90,96);
+  ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('U',90,96);
   ctx.fillStyle='#FFB830';ctx.font='28px serif';ctx.fillText('⭐',130,48);
   const l=document.createElement('link');l.rel='apple-touch-icon';l.href=c.toDataURL('image/png');
   document.head.appendChild(l);
@@ -494,7 +494,7 @@ function generateCode(name){
 <!-- ══ INNSKRÁNING — AÐALSKJÁR ══ -->
 <div id="screen-login" class="screen active">
   <div class="login-wrap">
-    <div class="login-logo">Lesum</div>
+    <div class="login-logo">Upphátt</div>
     <div class="login-tagline">Íslenskt lestrarforrit — dagleg æfing</div>
 
     <div style="width:100%;max-width:360px;display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:28px;">
@@ -519,7 +519,7 @@ function generateCode(name){
 <div id="screen-parent-login" class="screen">
   <div class="topbar">
     <button class="back-btn" onclick="goTo('screen-login')">← Til baka</button>
-    <div class="logo"><div class="logo-icon">L</div> Lesum</div>
+    <div class="logo"><div class="logo-icon">U</div> Upphátt</div>
   </div>
   <div class="scroll-body">
     <div class="hero blue" style="margin-bottom:20px">
@@ -551,7 +551,7 @@ function generateCode(name){
 <div id="screen-join-family" class="screen">
   <div class="topbar">
     <button class="back-btn" onclick="goTo('screen-parent-login')">← Til baka</button>
-    <div class="logo"><div class="logo-icon">L</div> Lesum</div>
+    <div class="logo"><div class="logo-icon">U</div> Upphátt</div>
   </div>
   <div class="scroll-body">
     <div class="hero purple" style="margin-bottom:20px">
@@ -584,7 +584,7 @@ function generateCode(name){
       <button class="btn btn-primary" id="btn-join" onclick="familyJoin()">🤝 Ganga í fjölskylduna</button>
     </div>
     <div class="info-box" style="margin-top:12px">
-      💡 Fjölskyldukóðinn fær þú frá þeim sem stofnaði Lesum aðganginn — birtist þegar aðgangur er stofnaður
+      💡 Fjölskyldukóðinn fær þú frá þeim sem stofnaði Upphátt aðganginn — birtist þegar aðgangur er stofnaður
     </div>
   </div>
 </div>
@@ -593,7 +593,7 @@ function generateCode(name){
 <div id="screen-child-login" class="screen">
   <div class="topbar">
     <button class="back-btn" onclick="goTo('screen-login')">← Til baka</button>
-    <div class="logo"><div class="logo-icon">L</div> Lesum</div>
+    <div class="logo"><div class="logo-icon">U</div> Upphátt</div>
   </div>
   <div class="scroll-body">
     <div class="hero green" style="margin-bottom:20px">
@@ -624,12 +624,12 @@ function generateCode(name){
 <div id="screen-signup" class="screen">
   <div class="topbar">
     <button class="back-btn" onclick="goTo('screen-login')">← Til baka</button>
-    <div class="logo"><div class="logo-icon">L</div> Lesum</div>
+    <div class="logo"><div class="logo-icon">U</div> Upphátt</div>
   </div>
   <div class="scroll-body">
     <div class="hero blue" style="margin-bottom:20px">
       <div class="hero-label">Nýr fjölskylduaðgangur</div>
-      <h1>Velkomin/n í Lesum!</h1>
+      <h1>Velkomin/n í Upphátt!</h1>
       <p>Stofnaðu aðgang — fáðu kóða fyrir börnin</p>
     </div>
     <div class="card">
@@ -667,7 +667,7 @@ function generateCode(name){
 <!-- ══ SÝNA KÓÐA EFTIR NÝSKRÁNINGU ══ -->
 <div id="screen-show-codes" class="screen">
   <div class="topbar">
-    <div class="logo"><div class="logo-icon">L</div> Lesum</div>
+    <div class="logo"><div class="logo-icon">U</div> Upphátt</div>
   </div>
   <div class="scroll-body">
     <div class="hero green" style="margin-bottom:20px">
@@ -677,7 +677,7 @@ function generateCode(name){
     </div>
     <div id="codes-list"></div>
     <div class="info-box">
-      📱 Barnið opnar Lesum → ýtir á „Ég er barn" → slær inn kóðann → kemst beint inn!
+      📱 Barnið opnar Upphátt → ýtir á „Ég er barn" → slær inn kóðann → kemst beint inn!
     </div>
     <div class="info-box green">
       💡 Vistaðu kóðana — þú getur alltaf séð þá aftur á mælaborðinu
@@ -699,7 +699,7 @@ function generateCode(name){
 <div id="screen-child-home" class="screen">
   <div class="topbar">
     <button class="back-btn" onclick="logout()">← Út</button>
-    <div class="logo"><div class="logo-icon">L</div> Lesum</div>
+    <div class="logo"><div class="logo-icon">U</div> Upphátt</div>
     <div class="mode-tag green" id="child-mode-tag">Barn</div>
   </div>
   <div class="scroll-body">
@@ -713,6 +713,9 @@ function generateCode(name){
       BYRJA AÐ LESA
       <span class="brb-sub">Lestu upphátt í 15 mínútur</span>
     </button>
+
+    <!-- Streak verndarboð -->
+    <div id="grace-day-offer" style="display:none;background:#FFF3CC;border-radius:14px;padding:14px;margin-bottom:14px;"></div>
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:11px;margin-top:2px;">
       <div class="section-title" style="margin:0">Æfingaryfirlit</div>
       <button id="toggle-period-btn" onclick="togglePeriod()" style="background:var(--sky);border:none;border-radius:50px;padding:6px 14px;font-size:11px;font-weight:800;color:var(--ocean);cursor:pointer;">Meira ↓</button>
@@ -808,33 +811,33 @@ function generateCode(name){
 <div id="screen-read-setup" class="screen">
   <div class="topbar">
     <button class="back-btn" onclick="goTo('screen-child-home')">← Til baka</button>
-    <div class="logo">Veldu texta</div>
+    <div class="logo">Byrja að lesa 📖</div>
   </div>
   <div class="scroll-body">
-    <div class="info-box">📖 Sláðu inn eða límdu hvaða texta sem er — bók, tímarit, vefsíða. Eða veldu úr safninu.</div>
-    <div class="pill-tabs">
-      <button class="pill-tab active" onclick="switchTab('free',this)">Eigið efni</button>
-      <button class="pill-tab" onclick="switchTab('library',this)">Safnið</button>
+    <div class="hero green" style="margin-bottom:20px">
+      <div class="hero-label">Þú ert að fara að lesa!</div>
+      <h1>Hvaða bók ert þú að lesa? 📚</h1>
     </div>
-    <div id="tab-free">
-      <div class="card">
-        <div class="card-title">Heiti á texta (valfrjálst)</div>
-        <input class="text-title-input" id="custom-title" placeholder="t.d. Kapítuli 3 í Hobbitanum..." maxlength="60">
-        <div class="card-title">Límdu eða skrifaðu textann hér</div>
-        <textarea class="free-text-area" id="custom-text" placeholder="Límdu texta hér... eða lestu úr bók án texta á skjá."></textarea>
-        <div class="text-hint">Texti á skjá er ekki nauðsynlegur</div>
+    <div class="card">
+      <div class="form-group">
+        <label>Heiti bókar</label>
+        <input type="text" id="custom-title"
+          placeholder="t.d. Harry Potter"
+          maxlength="60"
+          style="font-size:18px;font-weight:700;">
+      </div>
+      <div class="form-group">
+        <label>Blaðsíða sem þú byrjar á</label>
+        <input type="number" id="page-start"
+          placeholder="t.d. 42"
+          min="1"
+          style="font-size:22px;font-weight:700;text-align:center;">
       </div>
     </div>
-    <div id="tab-library" style="display:none">
-      <div class="pill-tabs">
-        <button class="pill-tab active" onclick="filterLib('all',this)">Allt</button>
-        <button class="pill-tab" onclick="filterLib('easy',this)">Auðvelt</button>
-        <button class="pill-tab" onclick="filterLib('medium',this)">Miðlungs</button>
-        <button class="pill-tab" onclick="filterLib('hard',this)">Erfitt</button>
-      </div>
-      <div id="lib-list"></div>
-    </div>
-    <button class="btn btn-primary" onclick="startSession()" style="margin-top:8px">🎤 Hefja lestrarlotur</button>
+    <button class="btn btn-primary" onclick="startSession()" style="margin-top:4px">
+      🎤 Byrja að lesa
+    </button>
+    <input type="hidden" id="custom-text" value="">
   </div>
 </div>
 
@@ -883,10 +886,10 @@ function generateCode(name){
       <div class="muted text-center" id="timer-goal-text">Markmið: 15 mínútur</div>
     </div>
 
-    <div class="rec-indicator" id="rec-indicator"><div class="rec-dot"></div> <span id="rec-label">Tekur upp hljóðsýni 🎤</span></div>
+    <div class="rec-indicator" id="rec-indicator"><div class="rec-dot"></div> <span id="rec-label">Les upphátt…</span></div>
 
-    <!-- Hljóðsýni staða -->
-    <div id="audio-snippets-status" style="display:none;background:#f0f7ff;border-radius:12px;padding:10px 14px;margin-bottom:14px;font-size:11px;font-weight:700;color:var(--ocean);text-align:center;"></div>
+    <!-- Hljóðsýni staða — falin fyrir barni, sýnd í bakenda -->
+    <div id="audio-snippets-status" style="display:none;"></div>
 
     <button class="btn btn-primary" id="btn-start" onclick="startTimer()">🎤 Byrja að lesa</button>
     <button class="btn btn-danger" id="btn-stop" onclick="stopTimer()" style="display:none">⏹ Klára lestrarlotur</button>
@@ -896,7 +899,7 @@ function generateCode(name){
 
 <!-- ══ LOKIÐ ══ -->
 <div id="screen-done" class="screen">
-  <div class="topbar"><div class="logo"><div class="logo-icon">L</div> Lesum</div></div>
+  <div class="topbar"><div class="logo"><div class="logo-icon">U</div> Upphátt</div></div>
   <div class="scroll-body">
     <div class="done-hero-wrap">
       <div class="done-emoji" id="done-emoji">🎉</div>
@@ -904,8 +907,19 @@ function generateCode(name){
       <div class="done-sub" id="done-sub">Þú fékkst stjörnu!</div>
     </div>
     <div class="stars-row">⭐</div>
-    <div id="done-audio-status" style="display:none;background:var(--moss-light);border-radius:12px;padding:12px 14px;margin-bottom:13px;text-align:center;font-size:12px;font-weight:700;color:#2e7a4f;">
-      🎤 Hljóðsýni vistað — foreldri getur hlustað
+
+    <!-- Sigurhrina — streak samanburður -->
+    <div id="streak-comparison" style="display:none;border-radius:16px;padding:16px;margin-bottom:13px;text-align:center;">
+    </div>
+
+    <!-- Blaðsíða að lokum -->
+    <div class="card" style="margin-bottom:13px">
+      <div class="card-title">Hvaða blaðsíðu ertu kominn/n á? 📖</div>
+      <input type="number" id="page-end"
+        placeholder="t.d. 58"
+        min="1"
+        style="width:100%;border:2px solid #dde5f0;border-radius:12px;padding:14px;font-size:24px;font-weight:700;text-align:center;outline:none;color:var(--ink);background:var(--sky);">
+      <div id="pages-read-display" style="text-align:center;font-size:13px;color:var(--moss);font-weight:700;margin-top:8px;min-height:20px;"></div>
     </div>
     <div class="stat-duo">
       <div class="stat-box"><div class="sv" id="done-time">0:00</div><div class="sl">Lesturtími</div></div>
@@ -939,7 +953,7 @@ function generateCode(name){
 <div id="screen-mamma-home" class="screen">
   <div class="topbar">
     <button class="back-btn" onclick="logout()">← Út</button>
-    <div class="logo"><div class="logo-icon">L</div> Lesum</div>
+    <div class="logo"><div class="logo-icon">U</div> Upphátt</div>
     <div class="mode-tag purple" id="mamma-mode-tag">Foreldri</div>
   </div>
   <div class="scroll-body">
@@ -956,13 +970,17 @@ function generateCode(name){
       <button class="action-card purple-card" onclick="goTo('screen-teacher')"><span class="ac-icon">🏫</span><span class="ac-label">Kennarayfirlit</span></button>
     </div>
     <div class="section-title">Verðlaunahillan 🔺</div>
-    <div class="card" style="margin-bottom:11px">
-      <div class="card-title">👦 Hrafnkell Hersir</div>
-      <div id="mamma-shelf-h"></div>
-    </div>
-    <div class="card" style="margin-bottom:18px">
-      <div class="card-title">👦 Kolbeinn Kvasir</div>
-      <div id="mamma-shelf-k"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-bottom:18px;">
+      <div class="card" style="text-align:center;cursor:pointer" onclick="currentUser='hrafnkell';goTo('screen-detail-hrafnkell')">
+        <div class="card-title">👦 Hrafnkell</div>
+        <div id="mamma-trophy-h" style="font-family:Georgia,serif;font-size:26px;font-weight:700;color:var(--ocean);">0/15</div>
+        <div style="font-size:10px;color:var(--mist);margin-top:3px;font-weight:600;">tákn söfnuð</div>
+      </div>
+      <div class="card" style="text-align:center;cursor:pointer" onclick="currentUser='kolbeinn';goTo('screen-detail-kolbeinn')">
+        <div class="card-title">👦 Kolbeinn</div>
+        <div id="mamma-trophy-k" style="font-family:Georgia,serif;font-size:26px;font-weight:700;color:var(--ocean);">0/15</div>
+        <div style="font-size:10px;color:var(--mist);margin-top:3px;font-weight:600;">tákn söfnuð</div>
+      </div>
     </div>
     <div class="section-title">Þessi vika — báðir strákar</div>
     <div class="card">
@@ -1031,9 +1049,6 @@ function generateCode(name){
     <div class="info-box purple">🔐 Kennarinn sér <strong>eingöngu</strong> hvort barn las og hve lengt. Engar niðurstöður.</div>
     <div class="section-title">Þessi vika</div>
     <div class="card" id="teacher-list"></div>
-    <div class="section-title">Verðlaunahillan 🔺</div>
-    <div class="card" style="margin-bottom:11px"><div class="card-title">👦 Hrafnkell</div><div id="teacher-shelf-h"></div></div>
-    <div class="card" style="margin-bottom:18px"><div class="card-title">👦 Kolbeinn</div><div id="teacher-shelf-k"></div></div>
     <div class="section-title">Vikuyfirlit</div>
     <div class="card"><div class="card-title">Hlutfall sem las hvern dag</div><div id="teacher-chart"></div></div>
   </div>
@@ -1078,7 +1093,219 @@ window.addChildInput = function(){
   div.querySelector('input').focus();
 };
 
-// ══ GEYMSLA — FIREBASE + LOCALSTORAGE FALLBACK ══
+// ══ HLJÓÐ — Web Audio API ══
+function playSound(type){
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const now = ctx.currentTime;
+
+    if(type === 'wellDone'){
+      // Þrjár hækkaðar nótur — "well done" lag
+      [[523,0],[659,0.15],[784,0.3],[1047,0.5]].forEach(([freq,delay])=>{
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.frequency.value = freq;
+        osc.type = 'sine';
+        gain.gain.setValueAtTime(0.3, now+delay);
+        gain.gain.exponentialRampToValueAtTime(0.001, now+delay+0.4);
+        osc.start(now+delay); osc.stop(now+delay+0.5);
+      });
+    } else if(type === 'badge'){
+      // Fanfara — verðlaun
+      [[523,0],[659,0.1],[784,0.2],[1047,0.35],[1047,0.55]].forEach(([freq,delay])=>{
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.frequency.value = freq;
+        osc.type = 'triangle';
+        gain.gain.setValueAtTime(0.35, now+delay);
+        gain.gain.exponentialRampToValueAtTime(0.001, now+delay+0.5);
+        osc.start(now+delay); osc.stop(now+delay+0.6);
+      });
+    } else if(type === 'streak'){
+      // Hljómar — sigurhrina
+      [[392,0],[523,0.2],[659,0.4],[784,0.6],[1047,0.8]].forEach(([freq,delay])=>{
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.frequency.value = freq;
+        osc.type = 'sine';
+        gain.gain.setValueAtTime(0.25, now+delay);
+        gain.gain.exponentialRampToValueAtTime(0.001, now+delay+0.6);
+        osc.start(now+delay); osc.stop(now+delay+0.7);
+      });
+    }
+  } catch(e){ /* hljóð ekki stutt */ }
+}
+
+// ══ STREAK GRACE DAY — SKJALDAKERFIÐ ══
+
+// Frídagar (shields) — unnið með 7 daga röð
+function getShields(u){
+  return parseInt(localStorage.getItem('lesum_shields_'+u)||'0');
+}
+function setShields(u, n){
+  localStorage.setItem('lesum_shields_'+u, Math.max(0,n));
+}
+function addShield(u){
+  setShields(u, getShields(u)+1);
+}
+function useShield(u){
+  const s = getShields(u);
+  if(s > 0){ setShields(u, s-1); return true; }
+  return false;
+}
+
+// Max streak
+function getMaxStreak(u){
+  return parseInt(localStorage.getItem('lesum_maxstreak_'+u)||'0');
+}
+function saveMaxStreak(u, streak){
+  const current = getMaxStreak(u);
+  if(streak > current) localStorage.setItem('lesum_maxstreak_'+u, streak);
+}
+
+// Hvort tvöföld lestur sé þörf (handvirk endurheimt)
+function getNeedsDouble(u){
+  return localStorage.getItem('lesum_double_'+u) === 'true';
+}
+function setNeedsDouble(u, val){
+  if(val) localStorage.setItem('lesum_double_'+u,'true');
+  else localStorage.removeItem('lesum_double_'+u);
+}
+function getTodaySessionCount(u){
+  const today = dateKey(0);
+  return getSessions(u).filter(s=>s.date===today && s.seconds>=60).length;
+}
+
+// ── Uppfærð getStreak — með skjaldakerfi ──
+function getStreak(u){
+  const ss = getSessions(u); if(!ss.length) return 0;
+  const shields = getShields(u);
+  let streak = 0;
+  let d = new Date();
+  let shieldsUsed = 0;
+
+  for(let i=0; i<180; i++){
+    const k = d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();
+    const hasSession = ss.some(s=>s.date===k && s.seconds>=60);
+    if(hasSession){
+      streak++;
+      d.setDate(d.getDate()-1);
+    } else if(i===0){
+      // Í dag — engin lota ennþá
+      d.setDate(d.getDate()-1);
+    } else if(shieldsUsed < shields){
+      // Nota skjöld sjálfkrafa
+      shieldsUsed++;
+      streak++;
+      d.setDate(d.getDate()-1);
+    } else {
+      break;
+    }
+  }
+  return streak;
+}
+
+// ── Athuga eftir lotu hvort skjöldur eigi að vinnast ──
+function checkShieldEarned(u){
+  const streak = getStreak(u);
+  const lastShieldAt = parseInt(localStorage.getItem('lesum_shield_at_'+u)||'0');
+  // Skjöldur fæst á hverja 7 daga röð
+  const shieldsEarned = Math.floor(streak / 7);
+  const shieldsGiven  = parseInt(localStorage.getItem('lesum_shields_given_'+u)||'0');
+  if(shieldsEarned > shieldsGiven){
+    const newShields = shieldsEarned - shieldsGiven;
+    localStorage.setItem('lesum_shields_given_'+u, shieldsEarned);
+    for(let i=0; i<newShields; i++) addShield(u);
+    return newShields; // Fjöldi nýrra skjalda
+  }
+  return 0;
+}
+
+// ── Athuga hvort tvöföld lestur sé þörf ──
+function checkDoubleNeeded(u){
+  const ss = getSessions(u); if(!ss.length) return false;
+  const yesterday = dateKey(1);
+  const today = dateKey(0);
+  const readYesterday = ss.some(s=>s.date===yesterday && s.seconds>=60);
+  const readToday = ss.some(s=>s.date===today && s.seconds>=60);
+  const shields = getShields(u);
+  // Þarf tvöfalda lestur ef: las í gær, ekki í dag, engir skjaldar
+  return readYesterday && !readToday && shields===0;
+}
+
+// ── Sýna skjaldahluta á heimaskjá ──
+function renderShieldStatus(){
+  const el = document.getElementById('grace-day-offer');
+  if(!el) return;
+
+  const u = currentUser;
+  const shields = getShields(u);
+  const streak = getStreak(u);
+  const needsDouble = checkDoubleNeeded(u);
+  const todayCount = getTodaySessionCount(u);
+
+  if(shields > 0 && streak >= 3){
+    // Sýna skjaldateljara — áberandi og fagurt
+    el.style.display = '';
+    el.innerHTML = `
+      <div style="background:linear-gradient(135deg,#1A3A5C,#2A6EBB);border-radius:18px;padding:18px;text-align:center;">
+        <div style="font-size:36px;margin-bottom:6px">${'🛡️'.repeat(Math.min(shields,3))}</div>
+        <div style="font-family:Georgia,serif;font-size:18px;font-weight:700;color:white;margin-bottom:4px;">
+          ${shields === 1 ? '1 frídagur' : shields+' frídagar'} til geymslu
+        </div>
+        <div style="font-size:12px;color:rgba(255,255,255,0.75);font-weight:600;">
+          Ef þú gleymir einum degi notast frídagurinn sjálfkrafa 🛡️
+        </div>
+        <div style="margin-top:12px;background:rgba(255,255,255,0.1);border-radius:10px;padding:8px 12px;font-size:11px;color:rgba(255,255,255,0.85);font-weight:700;">
+          🔥 ${streak} daga röð · Næsti frídagur við ${7 - (streak%7)} daga
+        </div>
+      </div>`;
+
+  } else if(needsDouble){
+    // Engin skjöld — þarf tvöfalda lestur
+    const prevStreak = streak;
+    el.style.display = '';
+    el.innerHTML = `
+      <div style="background:linear-gradient(135deg,var(--coral),#c0392b);border-radius:18px;padding:18px;">
+        <div style="display:flex;align-items:center;gap:14px;">
+          <div style="font-size:40px">😬</div>
+          <div style="flex:1">
+            <div style="font-family:Georgia,serif;font-size:16px;font-weight:700;color:white;margin-bottom:4px;">
+              Röðin er í hættu!
+            </div>
+            <div style="font-size:12px;color:rgba(255,255,255,0.85);font-weight:600;line-height:1.4;">
+              Les <strong>tvöfalt í dag</strong> til að endurheimta ${prevStreak} daga röðina
+            </div>
+          </div>
+        </div>
+        <div style="margin-top:12px;background:rgba(255,255,255,0.15);border-radius:10px;padding:10px;text-align:center;">
+          <div style="font-size:12px;color:white;font-weight:800;">
+            ${todayCount >= 1 ? '✅ Lota 1 lesin — lestu einu sinni í viðbót!' : '📖 Lestu tvær lotur í dag til að halda röðinni'}
+          </div>
+          ${todayCount >= 1 ? `<div style="margin-top:6px;background:rgba(255,255,255,0.2);border-radius:8px;height:6px;overflow:hidden;"><div style="width:50%;height:100%;background:white;border-radius:8px;"></div></div>` : ''}
+        </div>
+      </div>`;
+
+  } else if(streak > 0 && streak % 7 === 0 && streak > 0){
+    // Rétt búinn að vinna skjöld — fagna!
+    el.style.display = '';
+    el.innerHTML = `
+      <div style="background:linear-gradient(135deg,var(--sun),#e8a500);border-radius:18px;padding:18px;text-align:center;">
+        <div style="font-size:36px;margin-bottom:6px">🛡️✨</div>
+        <div style="font-family:Georgia,serif;font-size:18px;font-weight:700;color:var(--deep);margin-bottom:4px;">
+          Frídagur unninn!
+        </div>
+        <div style="font-size:13px;color:var(--deep);font-weight:600;">
+          ${streak} daga röð — þú fékkst frídaga! Ef þú gleymir einum degi heldur röðin áfram 🎉
+        </div>
+      </div>`;
+  } else {
+    el.style.display = 'none';
+  }
+}
 function getSessions(u){ return JSON.parse(localStorage.getItem('lesum_'+u)||'[]'); }
 function saveSessions(u,s){ localStorage.setItem('lesum_'+u,JSON.stringify(s)); }
 function addSession(u,s){ const arr=getSessions(u); arr.unshift(s); saveSessions(u,arr); }
@@ -1123,7 +1350,13 @@ function goTo(id){
   if(id==='screen-detail-kolbeinn') renderDetail('kolbeinn','detail-kolbeinn');
   if(id==='screen-comparison') renderComparison();
   if(id==='screen-teacher') renderTeacher();
-  if(id==='screen-read-setup') renderLibrary('all');
+  if(id==='screen-read-setup'){
+    // Hreinsa reiti
+    const t = document.getElementById('custom-title');
+    const p = document.getElementById('page-start');
+    if(t) t.value = '';
+    if(p) p.value = '';
+  }
 }
 
 function login(u){
@@ -1204,9 +1437,10 @@ function renderChildHome(){
   renderDots('child-week-dots',currentUser);
   renderMonthWeeks('child-month-weeks',currentUser);
   renderSessionList('child-sessions',currentUser,5);
-  // Verðlaun
   renderBadges(false);
   renderTrophyShelf('child-shelf-preview', currentUser, true);
+  // Skjaldakerfi
+  renderShieldStatus();
 }
 
 // ══ LIBRARY ══
@@ -1272,24 +1506,19 @@ function setTimerMode(mode){
 }
 
 function startSession(){
-  sessionTitle = document.getElementById('custom-title').value.trim() || 'Frjáls lestur';
-  sessionText  = document.getElementById('custom-text').value.trim();
+  sessionTitle = document.getElementById('custom-title').value.trim() || 'Lestur';
+  sessionText  = '';
   sessionSecs  = 0;
-  timerMode    = 'down'; // default
+  timerMode    = 'down';
   audioBlob    = null;
   audioChunks  = { start: [], mid: [], end: [] };
   snippetState = 'idle';
   snippetTimers.forEach(t => clearTimeout(t));
   snippetTimers = [];
+  window._pageStart = parseInt(document.getElementById('page-start').value) || null;
 
-  const box = document.getElementById('reading-text-box');
-  if(sessionText){
-    box.style.display = '';
-    document.getElementById('reading-text-title').textContent = sessionTitle;
-    document.getElementById('reading-text-content').textContent = sessionText;
-  } else {
-    box.style.display = 'none';
-  }
+  // Aldrei sýna textabox
+  document.getElementById('reading-text-box').style.display = 'none';
 
   // Reset UI
   document.getElementById('timer-mode-picker').style.display = '';
@@ -1302,7 +1531,7 @@ function startSession(){
   document.getElementById('rec-indicator').classList.remove('visible');
   document.getElementById('audio-snippets-status').style.display = 'none';
   setTimerMode('down');
-  setRing(timerMode==='down'?1:0,'');
+  setRing(1,'');
   goTo('screen-reading');
 }
 
@@ -1466,16 +1695,18 @@ async function finishSession(){
     audioBase64 = await blobToBase64(blob);
   }
 
+  const pageStart = window._pageStart || null;
   const session = {
     date: dKey,
     dateLabel: 'Í dag kl. '+tStr,
     seconds: sessionSecs,
     title: sessionTitle,
     icon: iconForTitle(sessionTitle),
-    libId: document.getElementById('custom-title').dataset.libId || null,
+    libId: null,
     timerMode,
     hasAudio: !!audioBase64,
     audioSnippet: audioBase64,
+    pageStart,
     timestamp: Date.now()
   };
 
@@ -1486,10 +1717,27 @@ async function finishSession(){
     window.saveSessionToFirestore(session);
   }
 
-  // Sýna hljóðstaðu á lokaskjá
-  const audioStatusEl = document.getElementById('done-audio-status');
-  if(audioStatusEl){
-    audioStatusEl.style.display = audioBase64 ? '' : 'none';
+  // Blaðsíðuinnslátt á lokaskjá
+  const pageEndEl = document.getElementById('page-end');
+  if(pageEndEl){
+    pageEndEl.value = '';
+    pageEndEl.oninput = function(){
+      const pageEnd = parseInt(this.value);
+      const pagesEl = document.getElementById('pages-read-display');
+      if(pageEnd && window._pageStart && pageEnd > window._pageStart){
+        const pages = pageEnd - window._pageStart;
+        pagesEl.textContent = '📖 '+pages+' blaðsíður lesnar!';
+        // Vista í síðustu lotu
+        const ss = getSessions(currentUser);
+        if(ss.length > 0){
+          ss[0].pageEnd = pageEnd;
+          ss[0].pagesRead = pages;
+          saveSessions(currentUser, ss);
+        }
+      } else {
+        pagesEl.textContent = '';
+      }
+    };
   }
 
   setTimeout(() => renderBadges(true), 800);
@@ -1505,33 +1753,96 @@ function blobToBase64(blob){
   });
 }
 
+// ══ STREAK SAMANBURÐUR ══
+function renderStreakComparison(currentStreak){
+  const maxStreak = getMaxStreak(currentUser);
+  const el = document.getElementById('streak-comparison');
+  if(!el) return;
+  if(currentStreak === 0){ el.style.display='none'; return; }
+  el.style.display='';
+
+  const newShields = parseInt(localStorage.getItem('lesum_shields_'+currentUser)||'0') -
+    parseInt(localStorage.getItem('lesum_shields_prev_'+currentUser)||'0');
+
+  if(currentStreak % 7 === 0 && currentStreak > 0 && getShields(currentUser) > 0){
+    el.style.background = 'linear-gradient(135deg,var(--sun),#e8a500)';
+    el.innerHTML = `
+      <div style="font-size:36px;margin-bottom:6px">🛡️✨</div>
+      <div style="font-family:Georgia,serif;font-size:18px;font-weight:700;color:var(--deep);">Frídagur unninn!</div>
+      <div style="font-size:13px;color:var(--deep);margin-top:6px;font-weight:600;">
+        ${currentStreak} daga röð — frídagurinn vistast sjálfkrafa ef þú gleymir einum degi 🎉
+      </div>`;
+    playSound('streak');
+  } else if(currentStreak > maxStreak && currentStreak > 1){
+    saveMaxStreak(currentUser, currentStreak);
+    el.style.background = 'linear-gradient(135deg,#2A6EBB,#1A3A5C)';
+    el.innerHTML = `
+      <div style="font-size:28px;margin-bottom:6px">🏅</div>
+      <div style="font-family:Georgia,serif;font-size:18px;font-weight:700;color:white;">Nýtt met!</div>
+      <div style="font-size:13px;color:rgba(255,255,255,0.85);margin-top:4px;font-weight:600;">
+        ${currentStreak} daga sigurhrina — lengsta sem þú hefur náð!</div>`;
+    playSound('streak');
+  } else if(maxStreak > currentStreak && maxStreak > 2){
+    const diff = maxStreak - currentStreak;
+    el.style.background = '#f0f7ff';
+    el.innerHTML = `
+      <div style="font-size:22px;margin-bottom:5px">🔥</div>
+      <div style="font-family:Georgia,serif;font-size:16px;font-weight:700;color:var(--deep);">Þú ert með ${currentStreak} daga röð!</div>
+      <div style="font-size:12px;color:var(--mist);margin-top:4px;font-weight:600;">
+        Lengsta: ${maxStreak} dagar — ${diff===1?'einn dagur':diff+' dagar'} vantar til að slá met! 💪</div>`;
+  } else {
+    el.style.display='none';
+  }
+}
+
 function updateDoneScreen(){
   const total  = getSessions(currentUser).length;
   const streak = getStreak(currentUser);
   const stars  = getTotalStars(currentUser);
+
+  // Vista met
+  saveMaxStreak(currentUser, streak);
+
+  // Athuga hvort skjöldur hafi verðskulast
+  const newShields = checkShieldEarned(currentUser);
+
+  // Athuga tvöfalda lestrar þörf
+  const needsDouble = checkDoubleNeeded(currentUser);
+  const todayCount = getTodaySessionCount(currentUser);
+  if(needsDouble && todayCount >= 2){
+    setNeedsDouble(currentUser, false);
+  }
+
   document.getElementById('done-time').textContent    = fmtTime(sessionSecs);
   document.getElementById('done-stars').textContent   = stars;
   document.getElementById('done-streak').textContent  = '🔥' + streak;
   document.getElementById('done-total').textContent   = total;
 
+  // Hljóð og texti eftir gæðum
   if(sessionSecs >= TARGET){
     document.getElementById('done-emoji').textContent = '🏆';
     document.getElementById('done-title').textContent = 'Frábær lestur!';
     document.getElementById('done-sub').textContent   = 'Þú náðir 15 mínútna markmiðinu! 🎉';
+    setTimeout(()=>playSound('wellDone'), 300);
   } else if(sessionSecs >= 5*60){
     document.getElementById('done-emoji').textContent = '⭐';
     document.getElementById('done-title').textContent = 'Vel gert!';
     document.getElementById('done-sub').textContent   = 'Góð æfing — reyndu að ná 15 mín í næst!';
+    setTimeout(()=>playSound('wellDone'), 300);
   } else {
     document.getElementById('done-emoji').textContent = '👍';
     document.getElementById('done-title').textContent = 'Byrjunin er góð!';
     document.getElementById('done-sub').textContent   = 'Komdu aftur á morgun og reyndu lengur!';
   }
 
+  // Streak samanburður — high score
+  renderStreakComparison(streak);
+
+  // Verðlaun popup
   const bbox = document.getElementById('done-badge-box');
-  if(total===1){bbox.style.display='';document.getElementById('done-badge-icon').textContent='🌱';document.getElementById('done-badge-text').textContent='Verðlaun opnuð: Fyrsta skrefið!';}
-  else if(streak===5){bbox.style.display='';document.getElementById('done-badge-icon').textContent='🔥';document.getElementById('done-badge-text').textContent='Verðlaun opnuð: Þú ert á rás!';}
-  else if(total===10){bbox.style.display='';document.getElementById('done-badge-icon').textContent='🦁';document.getElementById('done-badge-text').textContent='Verðlaun opnuð: Sterkur lesari!';}
+  if(total===1){bbox.style.display='';document.getElementById('done-badge-icon').textContent='🌱';document.getElementById('done-badge-text').textContent='Verðlaun opnuð: Fyrsta skrefið!';setTimeout(()=>playSound('badge'),800);}
+  else if(streak===5){bbox.style.display='';document.getElementById('done-badge-icon').textContent='🔥';document.getElementById('done-badge-text').textContent='Verðlaun opnuð: Þú ert á rás!';setTimeout(()=>playSound('badge'),800);}
+  else if(total===10){bbox.style.display='';document.getElementById('done-badge-icon').textContent='🦁';document.getElementById('done-badge-text').textContent='Verðlaun opnuð: Sterkur lesari!';setTimeout(()=>playSound('badge'),800);}
   else bbox.style.display='none';
 
   if(total<10){document.getElementById('next-icon').textContent='🦁';document.getElementById('next-name').textContent='Sterkur lesari';document.getElementById('next-prog').textContent=total+' / 10 lotur';document.getElementById('next-bar').style.width=Math.round((total/10)*100)+'%';}
@@ -1814,7 +2125,7 @@ function showBadgePopup(b){
   document.getElementById('popup-msg').textContent = b.msg;
   const popup = document.getElementById('badge-popup');
   popup.style.display='flex';
-  // Confetti animation
+  playSound('badge');
   let frames = 0;
   const emojis = ['🎊','🎉','⭐','🌟','✨'];
   const confettiEl = document.getElementById('popup-confetti');
@@ -1926,8 +2237,16 @@ function _renderMammaHome(){
 
   renderDots('m-hrafnkell-dots','hrafnkell');
   renderDots('m-kolbeinn-dots','kolbeinn');
-  renderTrophyShelf('mamma-shelf-h','hrafnkell',true);
-  renderTrophyShelf('mamma-shelf-k','kolbeinn',true);
+
+  // Táknafjöldi — X/Y
+  ['hrafnkell','kolbeinn'].forEach((u,i)=>{
+    const elId = i===0?'mamma-trophy-h':'mamma-trophy-k';
+    const el = document.getElementById(elId); if(!el) return;
+    const earned = getTrophyEarned(u).length;
+    const total = TROPHY_LEVELS.reduce((a,l)=>a+l.slots.length,0);
+    el.textContent = earned+'/'+total;
+    el.style.color = earned===total?'var(--moss)':'var(--ocean)';
+  });
   const h = document.getElementById('screen-mamma-home');
   if(h){
     const cards = h.querySelectorAll('.ac-label');
@@ -2085,8 +2404,8 @@ function renderTeacher(){
       <div class="cr-right"><div class="cr-time">${todayMins>0?todayMins+'mín':'—'}</div><div class="cr-streak">🔥${streak} röð</div></div>`;
     el.appendChild(row);
   });
-  renderTrophyShelf('teacher-shelf-h','hrafnkell',true);
-  renderTrophyShelf('teacher-shelf-k','kolbeinn',true);
+  
+  
   const wc=document.getElementById('teacher-chart'); if(!wc) return;
   wc.innerHTML='';
   const h=getWeekData('hrafnkell'), k=getWeekData('kolbeinn');

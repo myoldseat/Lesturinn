@@ -614,6 +614,24 @@ window.logout = async function(){
   await signOut(auth);
 };
 
+function beginReadingSession(){
+  resetSnippetState();
+  scheduleSnippet(60, 1);
+  scheduleSnippet(720, 2);
+  currentElapsedSecs = 0;
+  readingStartMs = Date.now();
+  document.getElementById('reading-card').style.display = '';
+  document.getElementById('finish-card').style.display = 'none';
+  document.getElementById('timer-display').textContent = '0:00';
+  const startBtn = document.getElementById('start-reading-btn');
+  if(startBtn) startBtn.disabled = true;
+  if(timerInterval) clearInterval(timerInterval);
+  timerInterval = setInterval(() => {
+    currentElapsedSecs = Math.floor((Date.now() - readingStartMs) / 1000);
+    document.getElementById('timer-display').textContent = formatTime(currentElapsedSecs);
+  }, 250);
+}
+
 window.startReading = async function(){
   const title = document.getElementById('read-title').value.trim() || 'Lestur';
   const pageStart = parseInt(document.getElementById('page-start').value, 10) || null;
@@ -631,19 +649,8 @@ window.startReading = async function(){
     console.error('Mic permission villa', e);
     return;
   }
-  resetSnippetState();
-  scheduleSnippet(60, 1);
-  scheduleSnippet(720, 2);
-  currentElapsedSecs = 0;
-  readingStartMs = Date.now();
-  document.getElementById('reading-card').style.display = '';
-  document.getElementById('finish-card').style.display = 'none';
-  document.getElementById('timer-display').textContent = '0:00';
-  if(timerInterval) clearInterval(timerInterval);
-  timerInterval = setInterval(() => {
-    currentElapsedSecs = Math.floor((Date.now() - readingStartMs) / 1000);
-    document.getElementById('timer-display').textContent = formatTime(currentElapsedSecs);
-  }, 500);
+  // Safari/iPhone getur stundum ekki uppfært UI strax eftir permission prompt.
+  requestAnimationFrame(() => setTimeout(beginReadingSession, 30));
 };
 
 window.stopReading = function(){
@@ -662,6 +669,8 @@ function resetReadingUi(){
   readingStartMs = null;
   currentElapsedSecs = 0;
   pendingSession = null;
+  const startBtn = document.getElementById('start-reading-btn');
+  if(startBtn) startBtn.disabled = false;
   document.getElementById('reading-card').style.display = 'none';
   document.getElementById('finish-card').style.display = 'none';
   document.getElementById('page-end').value = '';

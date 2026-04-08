@@ -302,9 +302,6 @@ const auth    = getAuth(app);
 const db      = getFirestore(app);
 const storage = getStorage(app);
 
-// ══════════════════════════════════════════════════════════
-// ── State — ALLT á window svo engin scope-villa ──────────
-// ══════════════════════════════════════════════════════════
 window._appState = {
   role:        null,
   familyId:    null,
@@ -318,15 +315,13 @@ window._appState = {
   readingStartMs: null,
   elapsedSecs:  0,
   pendingSession: null,
-  // ── Hljóð — LYKILLINN: window-scope svo recordSnippet og doSaveSession nái í sömu gögn
   audioStream:  null,
-  audioSnippets: {},   // { min1:{chunks,mimeType}, min5:{...}, min9:{...}, min13:{...} }
+  audioSnippets: {},
   snippetTimers: [],
   expandedChildren: {}
 };
 
-const S = window._appState;   // Stytting — S.xxx
-
+const S = window._appState;
 const TARGET = 15 * 60;
 
 // ── Nav ──
@@ -451,7 +446,7 @@ function playSound(type) {
         osc.start(now+delay); osc.stop(now+delay+0.7);
       });
     }
-  } catch(e) { /* hljóð ekki stutt */ }
+  } catch(e) {}
 }
 
 // ── Milestones ──
@@ -517,6 +512,8 @@ function getStreakWithShields(sessions) {
 }
 
 // ── Hlaða barnaötu ──
+// ── LAGFÆRING #1: Aðeins EIN Firestore fyrirspurn fyrir barnið ──
+// Við notum familyId + childKey filter beint — engin sérstök 'children' undirmappa
 function loadChildSessions() {
   const q = query(
     collection(db, 'sessions'),
@@ -524,7 +521,7 @@ function loadChildSessions() {
     where('childKey', '==', S.childKey)
   );
   onSnapshot(q, snap => {
-    const sessions = snap.docs.map(d => ({ ...d.data() }))
+    const sessions = snap.docs.map(d => ({ id: d.id, ...d.data() }))
       .sort((a, b) => (b.timestamp||0) - (a.timestamp||0));
     const streak  = getStreakWithShields(sessions);
     const shields = getShields();
@@ -579,8 +576,6 @@ window.startReading = function(){
   };
   S.elapsedSecs    = 0;
   S.readingStartMs = Date.now();
-
-  // ── LYKILLAGFÆRING: hreinsum á S, ekki á staðbundnum breytu ──
   S.audioSnippets  = {
     min1:  { chunks: [], mimeType: '' },
     min5:  { chunks: [], mimeType: '' },
@@ -615,32 +610,21 @@ window.startReading = function(){
   startAudio();
 };
 
-// ── Hljóðuppsetning ──
 async function startAudio(){
   try {
     S.audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    console.log('🎤 Hljóðupptaka hafin');
-
-    // Tímar: 1 mín, 5 mín, 9 mín, 13 mín
     const schedule = [
       { label: 'min1',  ms: 1  * 60 * 1000 },
       { label: 'min5',  ms: 5  * 60 * 1000 },
       { label: 'min9',  ms: 9  * 60 * 1000 },
       { label: 'min13', ms: 13 * 60 * 1000 },
     ];
-
     schedule.forEach(({ label, ms }) => {
-      const t = setTimeout(() => {
-        console.log(`⏰ Byrja klippu: ${label}`);
-        recordSnippet(label, 15000);
-      }, ms);
+      const t = setTimeout(() => { recordSnippet(label, 15000); }, ms);
       S.snippetTimers.push(t);
     });
-
-    document.getElementById('audio-status').textContent =
-      '🎤 Tekur upp við mín. 1, 5, 9 og 13';
+    document.getElementById('audio-status').textContent = '🎤 Tekur upp við mín. 1, 5, 9 og 13';
   } catch(e){
-    console.warn('getUserMedia villa:', e);
     document.getElementById('audio-status').textContent = '🔇 Hljóðupptaka ekki í boði';
   }
 }
@@ -653,51 +637,22 @@ function getSupportedMimeType(){
   return '';
 }
 
-// ── Taka upp eina 15 sek klippu — skrifar í S.audioSnippets ──
 function recordSnippet(label, duration){
-  if (!S.audioStream) {
-    console.warn(`recordSnippet(${label}): engin audioStream`);
-    return;
-  }
-
+  if (!S.audioStream) return;
   const chunks   = [];
   const mimeType = getSupportedMimeType();
   let rec;
-
   try {
-    rec = mimeType
-      ? new MediaRecorder(S.audioStream, { mimeType })
-      : new MediaRecorder(S.audioStream);
+    rec = mimeType ? new MediaRecorder(S.audioStream, { mimeType }) : new MediaRecorder(S.audioStream);
   } catch(e) {
-    try { rec = new MediaRecorder(S.audioStream); } catch(e2) {
-      console.error(`recordSnippet(${label}): MediaRecorder villa`, e2);
-      return;
-    }
+    try { rec = new MediaRecorder(S.audioStream); } catch(e2) { return; }
   }
-
-  rec.ondataavailable = e => {
-    if (e.data && e.data.size > 0) {
-      chunks.push(e.data);
-      console.log(`📦 ${label}: brot ${chunks.length}, stærð ${e.data.size}`);
-    }
-  };
-
+  rec.ondataavailable = e => { if (e.data && e.data.size > 0) chunks.push(e.data); };
   rec.onstop = () => {
-    // ── LYKILLAGFÆRING: vista í S.audioSnippets ──
-    S.audioSnippets[label] = {
-      chunks:   chunks,
-      mimeType: rec.mimeType || mimeType || 'audio/webm'
-    };
-    console.log(`✅ Klippa "${label}" tilbúin — ${chunks.length} brot, mimeType: ${S.audioSnippets[label].mimeType}`);
+    S.audioSnippets[label] = { chunks, mimeType: rec.mimeType || mimeType || 'audio/webm' };
   };
-
-  rec.start(1000); // ondataavailable á 1 sek fresti
-  console.log(`▶ ${label}: Upptaka byrjuð, state=${rec.state}`);
-  setTimeout(() => {
-    if (rec.state !== 'inactive') {
-      try { rec.stop(); console.log(`⏹ ${label}: Stöðvuð`); } catch(e) {}
-    }
-  }, duration);
+  rec.start(1000);
+  setTimeout(() => { if (rec.state !== 'inactive') try { rec.stop(); } catch(e) {} }, duration);
 }
 
 function stopAudio(){
@@ -709,19 +664,16 @@ function stopAudio(){
   }
 }
 
-// ── Stop reading ──
 window.stopReading = function(){
   if (!S.readingStartMs) return;
   clearInterval(S.timerInterval); S.timerInterval = null;
   S.elapsedSecs = Math.floor((Date.now() - S.readingStartMs) / 1000);
   stopAudio();
-
   if (S.elapsedSecs < 60) {
     if (confirm('Þú lasir í minna en 1 mínútu — lota verður ekki vistuð. Hætta við?')) {
       cancelReading(); return;
     }
   }
-
   document.getElementById('reading-card').style.display = 'none';
   document.getElementById('finish-card').style.display  = '';
   const mins = Math.floor(S.elapsedSecs / 60);
@@ -729,7 +681,6 @@ window.stopReading = function(){
   document.getElementById('finish-title').textContent  = mins >= 15 ? 'Frábær lestur!' : mins >= 5 ? 'Vel gert!' : 'Byrjunin er góð!';
   document.getElementById('finish-sub').textContent    = `${fmtTime(S.elapsedSecs)} lesið — skráðu blaðsíðuna til að rekja framfarir`;
   setTimeout(() => playSound(mins >= 15 ? 'streak' : 'done'), 400);
-
   document.getElementById('page-end').oninput = function(){
     const start = parseInt(document.getElementById('page-start').value, 10);
     const end   = parseInt(this.value, 10);
@@ -752,7 +703,9 @@ window.cancelReading = function(){
 };
 
 // ══════════════════════════════════════════════════════════
-// ── VISTA LOTU — les úr S.audioSnippets ──────────────────
+// ── VISTA LOTU ────────────────────────────────────────────
+// ── LAGFÆRING #2: Vista AÐEINS í 'sessions' collection ───
+// ── Engin undirmappa, engin tvöföldun ─────────────────────
 // ══════════════════════════════════════════════════════════
 async function doSaveSession(pageEnd){
   const err = document.getElementById('save-error');
@@ -761,10 +714,6 @@ async function doSaveSession(pageEnd){
   try {
     const now = new Date();
     const ts  = now.getTime();
-
-    // ── Skoðum hvað er til ──
-    console.log('💾 doSaveSession — S.audioSnippets:', 
-      Object.entries(S.audioSnippets).map(([k,v]) => `${k}:${v?.chunks?.length||0} brot`).join(', '));
 
     const clipDefs = [
       { label: 'min1',  fileName: 'hljod_1'  },
@@ -777,58 +726,52 @@ async function doSaveSession(pageEnd){
     let uploadCount  = 0;
 
     for (const { label, fileName } of clipDefs) {
-      // ── LYKILLAGFÆRING: les úr S.audioSnippets, EKKI staðbundnum breytu ──
       const snippet = S.audioSnippets[label];
       if (!snippet || !snippet.chunks || snippet.chunks.length === 0) {
-        console.log(`⚠️ ${label}: engin gögn til að hlaða upp`);
         audioPaths[label] = null;
         continue;
       }
       try {
         const mimeType  = snippet.mimeType || 'audio/webm';
-        const ext       = mimeType.includes('mp4')  ? 'mp4'
-                        : mimeType.includes('ogg')  ? 'ogg'
-                        : 'webm';
+        const ext       = mimeType.includes('mp4') ? 'mp4' : mimeType.includes('ogg') ? 'ogg' : 'webm';
         const blob      = new Blob(snippet.chunks, { type: mimeType });
-        console.log(`📤 Hleður upp ${label}: ${blob.size} bytes, ${mimeType}`);
+        // ── LAGFÆRING #3: Storage path — ekkert 'children/' undirskipulag ──
+        // Allar klippurnar fara í: recordings/{familyId}/{childKey}/{timestamp}/
         const path      = `recordings/${S.familyId}/${S.childKey}/${ts}/${fileName}.${ext}`;
         await uploadBytes(ref(storage, path), blob, { contentType: mimeType });
         audioPaths[label] = path;
         uploadCount++;
-        console.log(`✅ Hlaðið upp: ${path}`);
       } catch(e) {
         console.error(`Storage villa (${label}):`, e);
         audioPaths[label] = null;
       }
     }
 
-    if (uploadCount > 0) {
-      err.textContent = `🎤 ${uploadCount} hljóðklippum vistað!`;
-    }
+    if (uploadCount > 0) err.textContent = `🎤 ${uploadCount} hljóðklippum vistað!`;
 
-    // ── Vista í Firestore ──
+    // ── LAGFÆRING #4: Vista AÐEINS í eina collection: 'sessions' ──
+    // Aldrei nota addDoc á undirmöppur eins og 'families/.../sessions'
     await addDoc(collection(db, 'sessions'), {
-      familyId:       S.familyId,
-      childKey:       S.childKey,
-      childName:      S.childName,
-      title:          S.pendingSession?.title || 'Lestur',
-      pageStart:      S.pendingSession?.pageStart || null,
-      pageEnd:        pageEnd || null,
-      pagesRead:      (S.pendingSession?.pageStart && pageEnd)
-                        ? pageEnd - S.pendingSession.pageStart
-                        : null,
-      seconds:        S.elapsedSecs,
-      timerMode:      S.timerMode,
-      hasAudio:       uploadCount > 0,
+      familyId:        S.familyId,
+      childKey:        S.childKey,
+      childName:       S.childName,
+      title:           S.pendingSession?.title || 'Lestur',
+      pageStart:       S.pendingSession?.pageStart || null,
+      pageEnd:         pageEnd || null,
+      pagesRead:       (S.pendingSession?.pageStart && pageEnd)
+                         ? pageEnd - S.pendingSession.pageStart
+                         : null,
+      seconds:         S.elapsedSecs,
+      timerMode:       S.timerMode,
+      hasAudio:        uploadCount > 0,
       audioPath_min1:  audioPaths.min1  || null,
       audioPath_min5:  audioPaths.min5  || null,
       audioPath_min9:  audioPaths.min9  || null,
       audioPath_min13: audioPaths.min13 || null,
-      // Bakwards-samhæfni
-      audioPath: audioPaths.min1 || audioPaths.min5 || audioPaths.min9 || audioPaths.min13 || null,
-      timestamp:  Date.now(),
-      date:       makeDateKey(now),
-      createdAt:  serverTimestamp()
+      audioPath:       audioPaths.min1 || audioPaths.min5 || audioPaths.min9 || audioPaths.min13 || null,
+      timestamp:       ts,
+      date:            makeDateKey(now),
+      createdAt:       serverTimestamp()
     });
 
     const myCount = (S.sessions||[]).filter(s => s.childKey === S.childKey).length + 1;
@@ -927,8 +870,10 @@ onAuthStateChanged(auth, async (user) => {
 });
 
 // ── Family listener ──
+// ── LAGFÆRING #5: Aðeins EIN onSnapshot — á 'sessions' collection ──
+// Engar tvöfaldar queries, engar undirmöppur
 function startFamilyListener(){
-  if (S.familyUnsub) S.familyUnsub();
+  if (S.familyUnsub) { S.familyUnsub(); S.familyUnsub = null; }
   const q = query(collection(db, 'sessions'), where('familyId', '==', S.familyId));
   S.familyUnsub = onSnapshot(q, snap => {
     S.sessions = snap.docs.map(d => ({ _docId: d.id, ...d.data() }))
@@ -938,21 +883,32 @@ function startFamilyListener(){
 }
 
 // ── PARENT HOME ──
+// ── LAGFÆRING #6: allKeys byggist KUN á childKey úr Firestore gögnum ──
+// Þetta kemur í veg fyrir tvöfalt barn ef profile.key != childKey í sessions
 function renderParentHome() {
   const root  = document.getElementById('parent-content');
   const today = makeDateKey(new Date());
   const mon   = getMonday();
 
+  // Hópa lotur eftir childKey
   const groups = {};
   S.sessions.forEach(s => {
-    if (!groups[s.childKey]) groups[s.childKey] = [];
-    groups[s.childKey].push(s);
+    const key = s.childKey;
+    if (!key) return;
+    if (!groups[key]) groups[key] = [];
+    groups[key].push(s);
   });
 
+  // ── LYKILLAGFÆRING: nota KUN childKey úr Firestore — EKKI sameina við profile.children ──
+  // Þetta kemur í veg fyrir að sama barn birtist tvisvar ef profile.key er öðruvísi stafsettur
+  const sessionKeys = Object.keys(groups);
+
+  // Bætum við börnum úr profile sem hafa ENGAR lotur (svo foreldri sjái þau)
+  // En AÐEINS ef childKey passar nákvæmlega — notum childKey (ekki name) sem auðkenni
   const profileChildren = window._parentChildren || [];
   const allKeys = [...new Set([
-    ...profileChildren.map(c => c.key),
-    ...Object.keys(groups)
+    ...sessionKeys,
+    ...profileChildren.map(c => c.key).filter(k => k && !sessionKeys.includes(k))
   ])];
 
   if (!allKeys.length) {
@@ -969,6 +925,7 @@ function renderParentHome() {
 
   const childCards = allKeys.map(key => {
     const list       = groups[key] || [];
+    // Sækja nafn: fyrst úr lotur, svo úr profile
     const profChild  = profileChildren.find(c => c.key === key);
     const childName  = list[0]?.childName || profChild?.name || key;
     const readToday  = list.some(s => s.date === today && (s.seconds||0) >= 60);
@@ -1086,18 +1043,15 @@ window.playClip = async function(path, playerId, btnId) {
   const playerEl = document.getElementById(playerId);
   const btnEl    = document.getElementById(btnId);
   if (!playerEl) return;
-
   if (playerEl.style.display !== 'none' && playerEl.innerHTML !== '') {
     playerEl.style.display = 'none';
     playerEl.innerHTML = '';
     if (btnEl) btnEl.className = 'clip-btn';
     return;
   }
-
   if (btnEl) btnEl.className = 'clip-btn loading';
   playerEl.style.display = '';
   playerEl.innerHTML = '<div style="font-size:10px;color:var(--mist);font-weight:700;padding:4px">⏳ Hleður...</div>';
-
   try {
     const url  = await getDownloadURL(ref(storage, path));
     const resp = await fetch(url);
@@ -1117,11 +1071,9 @@ window.playClip = async function(path, playerId, btnId) {
   } catch(e) {
     playerEl.innerHTML = `<div style="font-size:10px;color:var(--coral);font-weight:700;padding:4px">❌ Ekki tókst að hlaða</div>`;
     if (btnEl) btnEl.className = 'clip-btn';
-    console.error('playClip villa:', e);
   }
 };
 
-// ── Mánuðabar chart ──
 function renderMonthChart(sessions) {
   const now    = new Date();
   const months = [];
@@ -1153,7 +1105,6 @@ function renderMonthChart(sessions) {
     </div>`;
 }
 
-// ── Toggle codes ──
 window.toggleCodes = function() {
   const panel = document.getElementById('codes-panel');
   const btn   = document.getElementById('codes-toggle-btn');
@@ -1162,7 +1113,6 @@ window.toggleCodes = function() {
   btn.textContent     = open ? '✕ Loka' : '🔑 Kóðar';
 };
 
-// ── Logout ──
 window.logout = async function(){
   if (S.role === 'child') {
     if (confirm('Skrá þig út? Þú þarft kóðann aftur til að skrá þig inn.')) {

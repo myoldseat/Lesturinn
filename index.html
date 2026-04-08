@@ -76,7 +76,7 @@ audio{width:100%;border-radius:8px}
 </style>
 </head>
 <body>
-
+ 
 <!-- LOGIN -->
 <div id="screen-login" class="screen active">
   <div class="scroll-body" style="display:flex;align-items:center;justify-content:center;min-height:100vh;">
@@ -96,7 +96,7 @@ audio{width:100%;border-radius:8px}
     </div>
   </div>
 </div>
-
+ 
 <!-- PARENT LOGIN -->
 <div id="screen-parent-login" class="screen">
   <div class="topbar">
@@ -118,7 +118,7 @@ audio{width:100%;border-radius:8px}
     </div>
   </div>
 </div>
-
+ 
 <!-- CHILD LOGIN -->
 <div id="screen-child-login" class="screen">
   <div class="topbar">
@@ -152,7 +152,7 @@ audio{width:100%;border-radius:8px}
     </div>
   </div>
 </div>
-
+ 
 <!-- CHILD HOME -->
 <div id="screen-child-home" class="screen">
   <div class="topbar">
@@ -166,12 +166,12 @@ audio{width:100%;border-radius:8px}
       <h1 id="child-hero">Ertu tilbúinn að lesa? 🌟</h1>
       <div id="child-streak" class="streak-badge" style="display:none">🔥 <span id="streak-num">0</span> daga röð</div>
     </div>
-
+ 
     <div class="card" id="child-week-card">
       <div style="font-size:11px;font-weight:800;color:var(--mist);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">Þessi vika — markmið: 15 mín/dag</div>
       <div class="week-dots" id="child-week-dots"></div>
     </div>
-
+ 
     <div class="card" id="setup-card">
       <div style="font-size:13px;font-weight:800;color:var(--deep);margin-bottom:12px">Setja upp lestrarlotur</div>
       <div class="form-group">
@@ -189,7 +189,7 @@ audio{width:100%;border-radius:8px}
       </div>
       <button class="btn btn-primary" onclick="startReading()">🎤 Byrja að lesa</button>
     </div>
-
+ 
     <div class="card" id="reading-card" style="display:none">
       <div class="timer-wrap">
         <div class="timer-big" id="timer-display">15:00</div>
@@ -199,7 +199,7 @@ audio{width:100%;border-radius:8px}
       <button class="btn btn-success" onclick="stopReading()">⏹ Klára lestrarlotur</button>
       <button class="btn btn-ghost" onclick="cancelReading()" style="margin-top:10px">Hætta við</button>
     </div>
-
+ 
     <div class="card" id="finish-card" style="display:none">
       <div style="text-align:center;margin-bottom:16px">
         <div style="font-size:48px" id="finish-emoji">🎉</div>
@@ -215,14 +215,14 @@ audio{width:100%;border-radius:8px}
       <button class="btn btn-primary" onclick="saveSession()">✅ Vista og klára</button>
       <button class="btn btn-ghost" onclick="skipSave()" style="margin-top:10px">Sleppa blaðsíðutali</button>
     </div>
-
+ 
     <div id="child-sessions-wrap" style="display:none">
       <div style="font-size:11px;font-weight:800;color:var(--mist);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">Síðustu lotur</div>
       <div class="card" id="child-sessions-list"></div>
     </div>
   </div>
 </div>
-
+ 
 <!-- PARENT HOME -->
 <div id="screen-parent-home" class="screen">
   <div class="topbar">
@@ -245,7 +245,7 @@ audio{width:100%;border-radius:8px}
     </div>
   </div>
 </div>
-
+ 
 <script type="module">
 import { initializeApp }    from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js';
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut }
@@ -254,7 +254,7 @@ import { getFirestore, collection, addDoc, doc, getDoc, onSnapshot, query, where
                              from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js';
 import { getStorage, ref, uploadBytes, getDownloadURL }
                              from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-storage.js';
-
+ 
 const firebaseConfig = {
   apiKey: 'AIzaSyAgTY3Uxd9_ZxixjqLj-sH8V3OhFAzg6DU',
   authDomain: 'lesum-22e85.firebaseapp.com',
@@ -263,12 +263,12 @@ const firebaseConfig = {
   messagingSenderId: '204392598388',
   appId: '1:204392598388:web:2dbbe3f476cd78d2ffba21'
 };
-
+ 
 const app     = initializeApp(firebaseConfig);
 const auth    = getAuth(app);
 const db      = getFirestore(app);
 const storage = getStorage(app);
-
+ 
 // ── State ──
 let currentRole      = null;
 let currentFamilyId  = null;
@@ -286,14 +286,14 @@ const TARGET         = 15 * 60;
 let audioStream      = null;
 let audioChunks      = { start:[], mid:[], end:[] };
 let snippetTimers    = [];
-
+ 
 // ── Nav ──
 window.goTo = function(id){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   window.scrollTo(0,0);
 };
-
+ 
 // ── Helpers ──
 function fmtTime(s){ return `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`; }
 function makeDateKey(d){ return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`; }
@@ -329,7 +329,7 @@ function getStreak(sessions){
   }
   return streak;
 }
-
+ 
 // ── Timer mode ──
 window.setMode = function(mode){
   timerMode=mode;
@@ -337,7 +337,7 @@ window.setMode = function(mode){
   document.getElementById('mode-up').className='mode-btn'+(mode==='up'?' active':'');
   document.getElementById('timer-display').textContent=mode==='down'?'15:00':'0:00';
 };
-
+ 
 // ── Child login ──
 window.childLogin = async function(){
   const code=document.getElementById('child-code-input').value.trim().toUpperCase();
@@ -366,13 +366,13 @@ window.childLogin = async function(){
     document.getElementById('child-code-input').disabled=false;
   }
 };
-
+ 
 function setupChildHome(){
   document.getElementById('child-name-pill').textContent=currentChildName;
   document.getElementById('child-hero').textContent=`Halló, ${currentChildName} 🌟`;
   loadChildSessions();
 }
-
+ 
 function loadChildSessions(){
   const q=query(collection(db,'sessions'),
     where('familyId','==',currentFamilyId),
@@ -399,14 +399,14 @@ function loadChildSessions(){
     }
   }, e=>console.error('Child listener villa:',e));
 }
-
+ 
 // ── Start reading ──
 window.startReading = function(){
   pendingSession={ title:document.getElementById('read-title').value.trim()||'Lestur', pageStart:parseInt(document.getElementById('page-start').value,10)||null };
   elapsedSecs=0; readingStartMs=Date.now();
   audioChunks={start:[],mid:[],end:[]};
   snippetTimers.forEach(t=>clearTimeout(t)); snippetTimers=[];
-
+ 
   document.getElementById('setup-card').style.display='none';
   document.getElementById('reading-card').style.display='';
   document.getElementById('finish-card').style.display='none';
@@ -415,7 +415,7 @@ window.startReading = function(){
   disp.className='timer-big running';
   document.getElementById('timer-status').textContent=timerMode==='down'?'Les upphátt — tíminn líður niður…':'Les upphátt…';
   document.getElementById('audio-status').textContent='';
-
+ 
   if(timerInterval) clearInterval(timerInterval);
   timerInterval=setInterval(()=>{
     elapsedSecs=Math.floor((Date.now()-readingStartMs)/1000);
@@ -423,23 +423,26 @@ window.startReading = function(){
     disp.textContent=fmtTime(display);
     if(elapsedSecs>=TARGET){ disp.className='timer-big done'; document.getElementById('timer-status').textContent='Markmið náð! 🎉'; }
   },500);
-
+ 
   startAudio();
 };
-
+ 
 async function startAudio(){
   try {
     audioStream=await navigator.mediaDevices.getUserMedia({audio:true});
-    recordSnippet('start',60000);
-    const t1=setTimeout(()=>recordSnippet('mid',60000),(TARGET/2-30)*1000);
-    const t2=setTimeout(()=>recordSnippet('end',60000),(TARGET-60)*1000);
-    snippetTimers.push(t1,t2);
-    document.getElementById('audio-status').textContent='🎤 Tekur upp hljóðsýni';
+    // Byrja eftir 1 mín — 15 sek sýni
+    const t0=setTimeout(()=>recordSnippet('start',15000), 60000);
+    // Miðja — eftir 7 mín — 15 sek sýni  
+    const t1=setTimeout(()=>recordSnippet('mid',15000), 7*60*1000);
+    // Lok — eftir 12 mín — 15 sek sýni
+    const t2=setTimeout(()=>recordSnippet('end',15000), 12*60*1000);
+    snippetTimers.push(t0,t1,t2);
+    document.getElementById('audio-status').textContent='🎤 Hljóðsýni verða tekin á 1, 7 og 12 mín';
   } catch(e){
     document.getElementById('audio-status').textContent='🔇 Hljóðupptaka ekki í boði';
   }
 }
-
+ 
 function getSupportedMimeType(){
   const types = ['audio/mp4','audio/aac','audio/webm;codecs=opus','audio/webm','audio/ogg'];
   for(const t of types){
@@ -447,7 +450,7 @@ function getSupportedMimeType(){
   }
   return '';
 }
-
+ 
 function recordSnippet(label,duration){
   if(!audioStream) return;
   const chunks=[];
@@ -460,12 +463,12 @@ function recordSnippet(label,duration){
   rec.start();
   setTimeout(()=>{try{rec.stop();}catch(e){}},duration);
 }
-
+ 
 function stopAudio(){
   snippetTimers.forEach(t=>clearTimeout(t)); snippetTimers=[];
   if(audioStream){audioStream.getTracks().forEach(t=>t.stop());audioStream=null;}
 }
-
+ 
 // ── Stop reading ──
 window.stopReading = function(){
   if(!readingStartMs) return;
@@ -491,7 +494,7 @@ window.stopReading = function(){
     else pd.textContent='';
   };
 };
-
+ 
 window.cancelReading = function(){
   clearInterval(timerInterval); timerInterval=null;
   stopAudio(); readingStartMs=null; elapsedSecs=0; pendingSession=null;
@@ -501,7 +504,7 @@ window.cancelReading = function(){
   document.getElementById('timer-display').textContent=timerMode==='down'?'15:00':'0:00';
   document.getElementById('timer-display').className='timer-big';
 };
-
+ 
 // ── Save session ──
 async function doSaveSession(pageEnd){
   const err=document.getElementById('save-error');
@@ -536,13 +539,13 @@ async function doSaveSession(pageEnd){
     console.error(e);
   }
 }
-
+ 
 window.saveSession=function(){
   const pageEnd=parseInt(document.getElementById('page-end').value,10)||null;
   doSaveSession(pageEnd);
 };
 window.skipSave=function(){ doSaveSession(null); };
-
+ 
 function finishReset(){
   pendingSession=null; readingStartMs=null;
   ['finish-card'].forEach(id=>document.getElementById(id).style.display='none');
@@ -555,7 +558,7 @@ function finishReset(){
   document.getElementById('timer-display').textContent=timerMode==='down'?'15:00':'0:00';
   document.getElementById('timer-display').className='timer-big';
 }
-
+ 
 // ── Parent login ──
 window.firebaseLogin = async function(){
   const email=document.getElementById('login-email').value.trim();
@@ -572,7 +575,7 @@ window.firebaseLogin = async function(){
     document.getElementById('login-pw').disabled=false;
   }
 };
-
+ 
 // ── Auth state ──
 onAuthStateChanged(auth, async (user)=>{
   if(user){
@@ -620,7 +623,7 @@ onAuthStateChanged(auth, async (user)=>{
   }
   goTo('screen-login');
 });
-
+ 
 // ── Family listener ──
 function startFamilyListener(){
   if(familyUnsub) familyUnsub();
@@ -631,7 +634,7 @@ function startFamilyListener(){
     renderParentHome();
   }, e=>console.error('Family listener villa:',e));
 }
-
+ 
 // ── Parent home ──
 function renderParentHome(){
   const root=document.getElementById('parent-content');
@@ -674,7 +677,7 @@ function renderParentHome(){
   }).join('');
   keys.forEach(key=>renderWeekDots(groups[key],`week-${key}`));
 }
-
+ 
 // ── Audio player ──
 window.playAudio = async function(path, containerId){
   const el=document.getElementById(containerId); if(!el) return;
@@ -682,18 +685,18 @@ window.playAudio = async function(path, containerId){
   try {
     const audioRef = ref(storage, path);
     const url = await getDownloadURL(audioRef);
-
+ 
     // Sækja sem blob — virkar betur á Safari/iOS
     const response = await fetch(url);
     if(!response.ok) throw new Error('Fetch mistókst: '+response.status);
     const blob = await response.blob();
-
+ 
     // Búa til blob URL með réttum mime type
     const ext = path.split('.').pop().toLowerCase();
     const mimeType = ext==='mp4' ? 'audio/mp4' : ext==='ogg' ? 'audio/ogg' : 'audio/webm';
     const typedBlob = new Blob([blob], {type: mimeType});
     const blobUrl = URL.createObjectURL(typedBlob);
-
+ 
     el.innerHTML=`<audio controls preload="auto" src="${blobUrl}" style="width:100%;margin-top:8px;border-radius:8px"></audio>`;
     el.querySelector('audio').onended = () => URL.revokeObjectURL(blobUrl);
   } catch(e){
@@ -701,7 +704,7 @@ window.playAudio = async function(path, containerId){
     console.error('playAudio villa:',e);
   }
 };
-
+ 
 // ── Logout ──
 window.logout = async function(){
   if(currentRole==='child'){

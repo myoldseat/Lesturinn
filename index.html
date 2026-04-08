@@ -73,8 +73,6 @@ audio{width:100%;border-radius:8px}
 .mode-picker{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
 .mode-btn{border:2px solid #dde5f0;background:#fff;border-radius:14px;padding:14px;cursor:pointer;text-align:center;font-weight:800;font-size:13px;color:var(--deep)}
 .mode-btn.active{background:var(--ocean);border-color:var(--ocean);color:#fff}
-
-/* ── Hljóðtakkar á foreldrasíðu ── */
 .audio-clips-row{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:10px 0 4px}
 .clip-btn{background:#f0f9f4;border:1.5px solid var(--moss);border-radius:10px;padding:8px 4px;
   font-size:11px;font-weight:800;color:#1a7a3f;cursor:pointer;text-align:center;line-height:1.3}
@@ -304,27 +302,32 @@ const auth    = getAuth(app);
 const db      = getFirestore(app);
 const storage = getStorage(app);
 
-// ── State ──
-let currentRole       = null;
-let currentFamilyId   = null;
-let currentChildKey   = null;
-let currentChildName  = null;
-let currentParentName = null;
-let familyUnsub       = null;
-let familySessions    = [];
-let timerMode         = 'down';
-let timerInterval     = null;
-let readingStartMs    = null;
-let elapsedSecs       = 0;
-let pendingSession    = null;
-const TARGET          = 15 * 60;
+// ══════════════════════════════════════════════════════════
+// ── State — ALLT á window svo engin scope-villa ──────────
+// ══════════════════════════════════════════════════════════
+window._appState = {
+  role:        null,
+  familyId:    null,
+  childKey:    null,
+  childName:   null,
+  parentName:  null,
+  familyUnsub: null,
+  sessions:    [],
+  timerMode:   'down',
+  timerInterval: null,
+  readingStartMs: null,
+  elapsedSecs:  0,
+  pendingSession: null,
+  // ── Hljóð — LYKILLINN: window-scope svo recordSnippet og doSaveSession nái í sömu gögn
+  audioStream:  null,
+  audioSnippets: {},   // { min1:{chunks,mimeType}, min5:{...}, min9:{...}, min13:{...} }
+  snippetTimers: [],
+  expandedChildren: {}
+};
 
-// ── Hljóðupptaka — ný uppbygging ──
-// audioSnippets[label] = { chunks:[], mimeType:'' }
-// label er: 'min1', 'min5', 'min9', 'min13'
-let audioStream    = null;
-let audioSnippets  = {};   // { min1:{chunks,mimeType}, min5:..., min9:..., min13:... }
-let snippetTimers  = [];
+const S = window._appState;   // Stytting — S.xxx
+
+const TARGET = 15 * 60;
 
 // ── Nav ──
 window.goTo = function(id){
@@ -371,7 +374,7 @@ function getStreak(sessions){
 
 // ── Timer mode ──
 window.setMode = function(mode){
-  timerMode=mode;
+  S.timerMode=mode;
   document.getElementById('mode-down').className='mode-btn'+(mode==='down'?' active':'');
   document.getElementById('mode-up').className='mode-btn'+(mode==='up'?' active':'');
   document.getElementById('timer-display').textContent=mode==='down'?'15:00':'0:00';
@@ -391,10 +394,10 @@ window.childLogin = async function(){
       document.getElementById('child-code-input').disabled=false; return;
     }
     const data=snap.data();
-    currentRole=      'child';
-    currentFamilyId=  data.familyId;
-    currentChildKey=  data.childKey;
-    currentChildName= data.childName;
+    S.role=       'child';
+    S.familyId=   data.familyId;
+    S.childKey=   data.childKey;
+    S.childName=  data.childName;
     localStorage.setItem('upphatt_child', JSON.stringify({
       familyId:data.familyId, childKey:data.childKey, childName:data.childName, code
     }));
@@ -407,8 +410,8 @@ window.childLogin = async function(){
 };
 
 function setupChildHome(){
-  document.getElementById('child-name-pill').textContent=currentChildName;
-  document.getElementById('child-hero').textContent=`Halló, ${currentChildName} 🌟`;
+  document.getElementById('child-name-pill').textContent=S.childName;
+  document.getElementById('child-hero').textContent=`Halló, ${S.childName} 🌟`;
   loadChildSessions();
 }
 
@@ -474,17 +477,17 @@ function checkMilestone(totalSessions) {
 
 // ── Skjaldakerfi ──
 function getShields() {
-  return parseInt(localStorage.getItem('upphatt_shields_' + currentChildKey) || '0');
+  return parseInt(localStorage.getItem('upphatt_shields_' + S.childKey) || '0');
 }
 function setShields(n) {
-  localStorage.setItem('upphatt_shields_' + currentChildKey, Math.max(0, n));
+  localStorage.setItem('upphatt_shields_' + S.childKey, Math.max(0, n));
 }
 function checkAndGrantShield(streak) {
-  const given  = parseInt(localStorage.getItem('upphatt_shields_given_' + currentChildKey) || '0');
+  const given  = parseInt(localStorage.getItem('upphatt_shields_given_' + S.childKey) || '0');
   const earned = Math.floor(streak / 7);
   if (earned > given) {
     const newShields = earned - given;
-    localStorage.setItem('upphatt_shields_given_' + currentChildKey, earned);
+    localStorage.setItem('upphatt_shields_given_' + S.childKey, earned);
     setShields(getShields() + newShields);
     return newShields;
   }
@@ -517,8 +520,8 @@ function getStreakWithShields(sessions) {
 function loadChildSessions() {
   const q = query(
     collection(db, 'sessions'),
-    where('familyId', '==', currentFamilyId),
-    where('childKey', '==', currentChildKey)
+    where('familyId', '==', S.familyId),
+    where('childKey', '==', S.childKey)
   );
   onSnapshot(q, snap => {
     const sessions = snap.docs.map(d => ({ ...d.data() }))
@@ -542,7 +545,7 @@ function loadChildSessions() {
     if (newShields > 0) setTimeout(() => playSound('streak'), 300);
     const today     = makeDateKey(new Date());
     const yesterday = makeDateKey(new Date(Date.now() - 86400000));
-    const readToday = sessions.some(s => s.date === today && (s.seconds||0) >= 60);
+    const readToday     = sessions.some(s => s.date === today     && (s.seconds||0) >= 60);
     const readYesterday = sessions.some(s => s.date === yesterday && (s.seconds||0) >= 60);
     const warningEl   = document.getElementById('shield-warning');
     const warningText = document.getElementById('shield-warning-text');
@@ -566,40 +569,44 @@ function loadChildSessions() {
   }, e => console.error('Child listener villa:', e));
 }
 
-// ──────────────────────────────────────────────────────────
-// ── START READING — 4 sjálfvirkar klippingar ──────────────
-// ──────────────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════
+// ── START READING ─────────────────────────────────────────
+// ══════════════════════════════════════════════════════════
 window.startReading = function(){
-  pendingSession = {
+  S.pendingSession = {
     title:     document.getElementById('read-title').value.trim() || 'Lestur',
     pageStart: parseInt(document.getElementById('page-start').value, 10) || null
   };
-  elapsedSecs    = 0;
-  readingStartMs = Date.now();
+  S.elapsedSecs    = 0;
+  S.readingStartMs = Date.now();
 
-  // Hreinsa gamla gögn
-  audioSnippets = { min1:{chunks:[],mimeType:''}, min5:{chunks:[],mimeType:''},
-                    min9:{chunks:[],mimeType:''}, min13:{chunks:[],mimeType:''} };
-  snippetTimers.forEach(t => clearTimeout(t));
-  snippetTimers = [];
+  // ── LYKILLAGFÆRING: hreinsum á S, ekki á staðbundnum breytu ──
+  S.audioSnippets  = {
+    min1:  { chunks: [], mimeType: '' },
+    min5:  { chunks: [], mimeType: '' },
+    min9:  { chunks: [], mimeType: '' },
+    min13: { chunks: [], mimeType: '' }
+  };
+  S.snippetTimers.forEach(t => clearTimeout(t));
+  S.snippetTimers = [];
 
   document.getElementById('setup-card').style.display   = 'none';
   document.getElementById('reading-card').style.display = '';
   document.getElementById('finish-card').style.display  = 'none';
 
   const disp = document.getElementById('timer-display');
-  disp.textContent  = timerMode === 'down' ? '15:00' : '0:00';
+  disp.textContent  = S.timerMode === 'down' ? '15:00' : '0:00';
   disp.className    = 'timer-big running';
   document.getElementById('timer-status').textContent =
-    timerMode === 'down' ? 'Les upphátt — tíminn líður niður…' : 'Les upphátt…';
+    S.timerMode === 'down' ? 'Les upphátt — tíminn líður niður…' : 'Les upphátt…';
   document.getElementById('audio-status').textContent = '';
 
-  if (timerInterval) clearInterval(timerInterval);
-  timerInterval = setInterval(() => {
-    elapsedSecs = Math.floor((Date.now() - readingStartMs) / 1000);
-    const display = timerMode === 'down' ? Math.max(0, TARGET - elapsedSecs) : elapsedSecs;
+  if (S.timerInterval) clearInterval(S.timerInterval);
+  S.timerInterval = setInterval(() => {
+    S.elapsedSecs = Math.floor((Date.now() - S.readingStartMs) / 1000);
+    const display = S.timerMode === 'down' ? Math.max(0, TARGET - S.elapsedSecs) : S.elapsedSecs;
     disp.textContent = fmtTime(display);
-    if (elapsedSecs >= TARGET) {
+    if (S.elapsedSecs >= TARGET) {
       disp.className = 'timer-big done';
       document.getElementById('timer-status').textContent = 'Markmið náð! 🎉';
     }
@@ -611,9 +618,10 @@ window.startReading = function(){
 // ── Hljóðuppsetning ──
 async function startAudio(){
   try {
-    audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    S.audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    console.log('🎤 Hljóðupptaka hafin');
 
-    // Tímar í millisekúndum: 1 mín, 5 mín, 9 mín, 13 mín
+    // Tímar: 1 mín, 5 mín, 9 mín, 13 mín
     const schedule = [
       { label: 'min1',  ms: 1  * 60 * 1000 },
       { label: 'min5',  ms: 5  * 60 * 1000 },
@@ -622,13 +630,17 @@ async function startAudio(){
     ];
 
     schedule.forEach(({ label, ms }) => {
-      const t = setTimeout(() => recordSnippet(label, 15000), ms);
-      snippetTimers.push(t);
+      const t = setTimeout(() => {
+        console.log(`⏰ Byrja klippu: ${label}`);
+        recordSnippet(label, 15000);
+      }, ms);
+      S.snippetTimers.push(t);
     });
 
     document.getElementById('audio-status').textContent =
       '🎤 Tekur upp við mín. 1, 5, 9 og 13';
   } catch(e){
+    console.warn('getUserMedia villa:', e);
     document.getElementById('audio-status').textContent = '🔇 Hljóðupptaka ekki í boði';
   }
 }
@@ -636,51 +648,75 @@ async function startAudio(){
 function getSupportedMimeType(){
   const types = ['audio/mp4','audio/aac','audio/webm;codecs=opus','audio/webm','audio/ogg'];
   for (const t of types) {
-    if (MediaRecorder.isTypeSupported(t)) return t;
+    try { if (MediaRecorder.isTypeSupported(t)) return t; } catch(e) {}
   }
   return '';
 }
 
-// ── Taka upp eina 15 sek klippu ──
+// ── Taka upp eina 15 sek klippu — skrifar í S.audioSnippets ──
 function recordSnippet(label, duration){
-  if (!audioStream) return;
+  if (!S.audioStream) {
+    console.warn(`recordSnippet(${label}): engin audioStream`);
+    return;
+  }
+
   const chunks   = [];
   const mimeType = getSupportedMimeType();
   let rec;
+
   try {
     rec = mimeType
-      ? new MediaRecorder(audioStream, { mimeType })
-      : new MediaRecorder(audioStream);
+      ? new MediaRecorder(S.audioStream, { mimeType })
+      : new MediaRecorder(S.audioStream);
   } catch(e) {
-    try { rec = new MediaRecorder(audioStream); } catch(e2) { return; }
+    try { rec = new MediaRecorder(S.audioStream); } catch(e2) {
+      console.error(`recordSnippet(${label}): MediaRecorder villa`, e2);
+      return;
+    }
   }
 
-  rec.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
-  rec.onstop = () => {
-    audioSnippets[label] = { chunks, mimeType: rec.mimeType || mimeType || 'audio/webm' };
-    console.log(`✅ Klippa "${label}" tekin upp — ${chunks.length} brot`);
+  rec.ondataavailable = e => {
+    if (e.data && e.data.size > 0) {
+      chunks.push(e.data);
+      console.log(`📦 ${label}: brot ${chunks.length}, stærð ${e.data.size}`);
+    }
   };
-  rec.start();
-  setTimeout(() => { try { rec.stop(); } catch(e){} }, duration);
+
+  rec.onstop = () => {
+    // ── LYKILLAGFÆRING: vista í S.audioSnippets ──
+    S.audioSnippets[label] = {
+      chunks:   chunks,
+      mimeType: rec.mimeType || mimeType || 'audio/webm'
+    };
+    console.log(`✅ Klippa "${label}" tilbúin — ${chunks.length} brot, mimeType: ${S.audioSnippets[label].mimeType}`);
+  };
+
+  rec.start(1000); // ondataavailable á 1 sek fresti
+  console.log(`▶ ${label}: Upptaka byrjuð, state=${rec.state}`);
+  setTimeout(() => {
+    if (rec.state !== 'inactive') {
+      try { rec.stop(); console.log(`⏹ ${label}: Stöðvuð`); } catch(e) {}
+    }
+  }, duration);
 }
 
 function stopAudio(){
-  snippetTimers.forEach(t => clearTimeout(t));
-  snippetTimers = [];
-  if (audioStream) {
-    audioStream.getTracks().forEach(t => t.stop());
-    audioStream = null;
+  S.snippetTimers.forEach(t => clearTimeout(t));
+  S.snippetTimers = [];
+  if (S.audioStream) {
+    S.audioStream.getTracks().forEach(t => t.stop());
+    S.audioStream = null;
   }
 }
 
 // ── Stop reading ──
 window.stopReading = function(){
-  if (!readingStartMs) return;
-  clearInterval(timerInterval); timerInterval = null;
-  elapsedSecs = Math.floor((Date.now() - readingStartMs) / 1000);
+  if (!S.readingStartMs) return;
+  clearInterval(S.timerInterval); S.timerInterval = null;
+  S.elapsedSecs = Math.floor((Date.now() - S.readingStartMs) / 1000);
   stopAudio();
 
-  if (elapsedSecs < 60) {
+  if (S.elapsedSecs < 60) {
     if (confirm('Þú lasir í minna en 1 mínútu — lota verður ekki vistuð. Hætta við?')) {
       cancelReading(); return;
     }
@@ -688,10 +724,10 @@ window.stopReading = function(){
 
   document.getElementById('reading-card').style.display = 'none';
   document.getElementById('finish-card').style.display  = '';
-  const mins = Math.floor(elapsedSecs / 60);
+  const mins = Math.floor(S.elapsedSecs / 60);
   document.getElementById('finish-emoji').textContent  = mins >= 15 ? '🏆' : mins >= 5 ? '⭐' : '👍';
   document.getElementById('finish-title').textContent  = mins >= 15 ? 'Frábær lestur!' : mins >= 5 ? 'Vel gert!' : 'Byrjunin er góð!';
-  document.getElementById('finish-sub').textContent    = `${fmtTime(elapsedSecs)} lesið — skráðu blaðsíðuna til að rekja framfarir`;
+  document.getElementById('finish-sub').textContent    = `${fmtTime(S.elapsedSecs)} lesið — skráðu blaðsíðuna til að rekja framfarir`;
   setTimeout(() => playSound(mins >= 15 ? 'streak' : 'done'), 400);
 
   document.getElementById('page-end').oninput = function(){
@@ -704,28 +740,32 @@ window.stopReading = function(){
 };
 
 window.cancelReading = function(){
-  clearInterval(timerInterval); timerInterval = null;
-  stopAudio(); readingStartMs = null; elapsedSecs = 0; pendingSession = null;
+  clearInterval(S.timerInterval); S.timerInterval = null;
+  stopAudio();
+  S.readingStartMs = null; S.elapsedSecs = 0; S.pendingSession = null;
+  S.audioSnippets = {};
   document.getElementById('reading-card').style.display = 'none';
   document.getElementById('finish-card').style.display  = 'none';
   document.getElementById('setup-card').style.display   = '';
-  document.getElementById('timer-display').textContent  = timerMode === 'down' ? '15:00' : '0:00';
+  document.getElementById('timer-display').textContent  = S.timerMode === 'down' ? '15:00' : '0:00';
   document.getElementById('timer-display').className    = 'timer-big';
 };
 
-// ──────────────────────────────────────────────────────────
-// ── VISTA LOTU — hlaða upp 4 aðskildum klippum ───────────
-// ──────────────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════
+// ── VISTA LOTU — les úr S.audioSnippets ──────────────────
+// ══════════════════════════════════════════════════════════
 async function doSaveSession(pageEnd){
   const err = document.getElementById('save-error');
   err.textContent = 'Vistar...';
 
   try {
-    const now      = new Date();
-    const ts       = now.getTime();
+    const now = new Date();
+    const ts  = now.getTime();
 
-    // ── Hlaða upp hverri klippu fyrir sig ──────────────────
-    // Skráarnöfn: hljod_1.mp4 / hljod_5.mp4 / hljod_9.mp4 / hljod_13.mp4
+    // ── Skoðum hvað er til ──
+    console.log('💾 doSaveSession — S.audioSnippets:', 
+      Object.entries(S.audioSnippets).map(([k,v]) => `${k}:${v?.chunks?.length||0} brot`).join(', '));
+
     const clipDefs = [
       { label: 'min1',  fileName: 'hljod_1'  },
       { label: 'min5',  fileName: 'hljod_5'  },
@@ -733,13 +773,14 @@ async function doSaveSession(pageEnd){
       { label: 'min13', fileName: 'hljod_13' },
     ];
 
-    // audioPaths = { min1: 'recordings/.../hljod_1.mp4', ... } eða null ef engin gögn
     const audioPaths = {};
     let uploadCount  = 0;
 
     for (const { label, fileName } of clipDefs) {
-      const snippet = audioSnippets[label];
+      // ── LYKILLAGFÆRING: les úr S.audioSnippets, EKKI staðbundnum breytu ──
+      const snippet = S.audioSnippets[label];
       if (!snippet || !snippet.chunks || snippet.chunks.length === 0) {
+        console.log(`⚠️ ${label}: engin gögn til að hlaða upp`);
         audioPaths[label] = null;
         continue;
       }
@@ -749,11 +790,12 @@ async function doSaveSession(pageEnd){
                         : mimeType.includes('ogg')  ? 'ogg'
                         : 'webm';
         const blob      = new Blob(snippet.chunks, { type: mimeType });
-        const path      = `recordings/${currentFamilyId}/${currentChildKey}/${ts}/${fileName}.${ext}`;
+        console.log(`📤 Hleður upp ${label}: ${blob.size} bytes, ${mimeType}`);
+        const path      = `recordings/${S.familyId}/${S.childKey}/${ts}/${fileName}.${ext}`;
         await uploadBytes(ref(storage, path), blob, { contentType: mimeType });
         audioPaths[label] = path;
         uploadCount++;
-        console.log(`📤 Hlaðið upp: ${path}`);
+        console.log(`✅ Hlaðið upp: ${path}`);
       } catch(e) {
         console.error(`Storage villa (${label}):`, e);
         audioPaths[label] = null;
@@ -764,34 +806,32 @@ async function doSaveSession(pageEnd){
       err.textContent = `🎤 ${uploadCount} hljóðklippum vistað!`;
     }
 
-    // ── Vista í Firestore ──────────────────────────────────
-    // Geymum hvert audioPath sér: audioPath_min1, audioPath_min5 o.s.frv.
+    // ── Vista í Firestore ──
     await addDoc(collection(db, 'sessions'), {
-      familyId:       currentFamilyId,
-      childKey:       currentChildKey,
-      childName:      currentChildName,
-      title:          pendingSession?.title || 'Lestur',
-      pageStart:      pendingSession?.pageStart || null,
+      familyId:       S.familyId,
+      childKey:       S.childKey,
+      childName:      S.childName,
+      title:          S.pendingSession?.title || 'Lestur',
+      pageStart:      S.pendingSession?.pageStart || null,
       pageEnd:        pageEnd || null,
-      pagesRead:      (pendingSession?.pageStart && pageEnd)
-                        ? pageEnd - pendingSession.pageStart
+      pagesRead:      (S.pendingSession?.pageStart && pageEnd)
+                        ? pageEnd - S.pendingSession.pageStart
                         : null,
-      seconds:        elapsedSecs,
-      timerMode,
-      // Hljóðslóðir — ein per klippu
+      seconds:        S.elapsedSecs,
+      timerMode:      S.timerMode,
       hasAudio:       uploadCount > 0,
       audioPath_min1:  audioPaths.min1  || null,
       audioPath_min5:  audioPaths.min5  || null,
       audioPath_min9:  audioPaths.min9  || null,
       audioPath_min13: audioPaths.min13 || null,
-      // Bakwards-samhæfni: audioPath = fyrsta klippa sem tókst
+      // Bakwards-samhæfni
       audioPath: audioPaths.min1 || audioPaths.min5 || audioPaths.min9 || audioPaths.min13 || null,
       timestamp:  Date.now(),
       date:       makeDateKey(now),
       createdAt:  serverTimestamp()
     });
 
-    const myCount = (familySessions||[]).filter(s => s.childKey === currentChildKey).length + 1;
+    const myCount = (S.sessions||[]).filter(s => s.childKey === S.childKey).length + 1;
     checkMilestone(myCount);
     finishReset();
 
@@ -808,7 +848,7 @@ window.saveSession = function(){
 window.skipSave = function(){ doSaveSession(null); };
 
 function finishReset(){
-  pendingSession = null; readingStartMs = null;
+  S.pendingSession = null; S.readingStartMs = null; S.audioSnippets = {};
   document.getElementById('finish-card').style.display  = 'none';
   document.getElementById('setup-card').style.display   = '';
   document.getElementById('read-title').value           = '';
@@ -816,7 +856,7 @@ function finishReset(){
   document.getElementById('page-end').value             = '';
   document.getElementById('pages-display').textContent  = '';
   document.getElementById('save-error').textContent     = '';
-  document.getElementById('timer-display').textContent  = timerMode === 'down' ? '15:00' : '0:00';
+  document.getElementById('timer-display').textContent  = S.timerMode === 'down' ? '15:00' : '0:00';
   document.getElementById('timer-display').className    = 'timer-big';
 }
 
@@ -843,13 +883,13 @@ onAuthStateChanged(auth, async (user) => {
     try {
       const snap    = await getDoc(doc(db, 'users', user.uid));
       const profile = snap.exists() ? snap.data() : null;
-      currentRole       = 'parent';
-      currentFamilyId   = profile?.familyId || user.uid;
-      currentParentName = (profile?.name || 'Foreldri').split(' ')[0];
+      S.role       = 'parent';
+      S.familyId   = profile?.familyId || user.uid;
+      S.parentName = (profile?.name || 'Foreldri').split(' ')[0];
       window._parentChildren   = profile?.children || [];
       window._expandedChildren = {};
-      document.getElementById('parent-pill').textContent = currentParentName;
-      document.getElementById('parent-hero').textContent = `Góðan dag, ${currentParentName}`;
+      document.getElementById('parent-pill').textContent = S.parentName;
+      document.getElementById('parent-hero').textContent = `Góðan dag, ${S.parentName}`;
       if (profile?.children) {
         document.getElementById('codes-list').innerHTML =
           profile.children.map(c => `
@@ -868,16 +908,16 @@ onAuthStateChanged(auth, async (user) => {
     } catch(e) { console.error('Auth villa:', e); }
     return;
   }
-  if (familyUnsub) { familyUnsub(); familyUnsub = null; }
-  familySessions = [];
+  if (S.familyUnsub) { S.familyUnsub(); S.familyUnsub = null; }
+  S.sessions = [];
   const saved = localStorage.getItem('upphatt_child');
   if (saved) {
     try {
-      const data       = JSON.parse(saved);
-      currentRole      = 'child';
-      currentFamilyId  = data.familyId;
-      currentChildKey  = data.childKey;
-      currentChildName = data.childName;
+      const data   = JSON.parse(saved);
+      S.role       = 'child';
+      S.familyId   = data.familyId;
+      S.childKey   = data.childKey;
+      S.childName  = data.childName;
       setupChildHome();
       goTo('screen-child-home');
       return;
@@ -888,25 +928,23 @@ onAuthStateChanged(auth, async (user) => {
 
 // ── Family listener ──
 function startFamilyListener(){
-  if (familyUnsub) familyUnsub();
-  const q = query(collection(db, 'sessions'), where('familyId', '==', currentFamilyId));
-  familyUnsub = onSnapshot(q, snap => {
-    familySessions = snap.docs.map(d => ({ _docId: d.id, ...d.data() }))
+  if (S.familyUnsub) S.familyUnsub();
+  const q = query(collection(db, 'sessions'), where('familyId', '==', S.familyId));
+  S.familyUnsub = onSnapshot(q, snap => {
+    S.sessions = snap.docs.map(d => ({ _docId: d.id, ...d.data() }))
       .sort((a, b) => (b.timestamp||0) - (a.timestamp||0));
     renderParentHome();
   }, e => console.error('Family listener villa:', e));
 }
 
-// ──────────────────────────────────────────────────────────
-// ── PARENT HOME — 4 spilunartakkar per lotu ──────────────
-// ──────────────────────────────────────────────────────────
+// ── PARENT HOME ──
 function renderParentHome() {
   const root  = document.getElementById('parent-content');
   const today = makeDateKey(new Date());
   const mon   = getMonday();
 
   const groups = {};
-  familySessions.forEach(s => {
+  S.sessions.forEach(s => {
     if (!groups[s.childKey]) groups[s.childKey] = [];
     groups[s.childKey].push(s);
   });
@@ -938,14 +976,13 @@ function renderParentHome() {
     const isExpanded = !!(window._expandedChildren && window._expandedChildren[key]);
 
     const weekDays = DAYS.map((lbl, i) => {
-      const d          = new Date(mon); d.setDate(mon.getDate() + i);
-      const k          = makeDateKey(d);
-      const daySessions = list.filter(s => s.date === k && (s.seconds||0) >= 60);
-      const mins       = daySessions.reduce((a,s) => a + Math.floor((s.seconds||0)/60), 0);
-      const isToday    = k === today;
-      const bg         = mins >= 15 ? '#4CAF7D' : mins > 0 ? '#b8e0c8' : '#f0f4f9';
-      const col        = mins >= 15 ? '#fff'    : mins > 0 ? '#2e7a4f' : '#aab7c4';
-      const border     = isToday ? '2px solid var(--ocean)' : '2px solid transparent';
+      const d   = new Date(mon); d.setDate(mon.getDate() + i);
+      const k   = makeDateKey(d);
+      const mins = list.filter(s => s.date === k).reduce((a,s) => a + Math.floor((s.seconds||0)/60), 0);
+      const isToday = k === today;
+      const bg  = mins >= 15 ? '#4CAF7D' : mins > 0 ? '#b8e0c8' : '#f0f4f9';
+      const col = mins >= 15 ? '#fff'    : mins > 0 ? '#2e7a4f' : '#aab7c4';
+      const border = isToday ? '2px solid var(--ocean)' : '2px solid transparent';
       return `
         <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px">
           <div style="font-size:8px;font-weight:800;color:var(--mist);text-transform:uppercase">${lbl}</div>
@@ -956,37 +993,26 @@ function renderParentHome() {
         </div>`;
     }).join('');
 
-    // ── Síðustu lotur með 4 spilunartökkum ──
     const sessionList = isExpanded ? list.slice(0, 8).map(s => {
-
-      // Búa til 4 takka — einn per klippu
-      // Takkarnir nota audioPath_min1 ... audioPath_min13 úr Firestore
-      // Fallback: ef gömul lota hefur aðeins "audioPath" — sýndi við mín. 1
       const clipLabels = [
         { key: 'audioPath_min1',  label: 'Mín. 1'  },
         { key: 'audioPath_min5',  label: 'Mín. 5'  },
         { key: 'audioPath_min9',  label: 'Mín. 9'  },
         { key: 'audioPath_min13', label: 'Mín. 13' },
       ];
-
-      // Fallback: gömul lota með bara audioPath
       const legacyPath = s.audioPath || null;
 
       const clipButtons = clipLabels.map(({ key: pathKey, label }, idx) => {
-        // Nota nýtt path eða legacy path (aðeins á fyrsta takka)
-        const path = s[pathKey] || (idx === 0 ? legacyPath : null);
-        const btnId   = `clipbtn-${s._docId}-${idx}`;
+        const path     = s[pathKey] || (idx === 0 ? legacyPath : null);
+        const btnId    = `clipbtn-${s._docId}-${idx}`;
         const playerId = `clipplay-${s._docId}-${idx}`;
-
         if (!path) {
-          // Grátt — engin klippa
           return `
             <button class="clip-btn" disabled title="Engin upptaka">
               🎤<br>${label}<br><span style="font-size:9px;opacity:.5">—</span>
             </button>
             <div id="${playerId}" class="clip-player"></div>`;
         }
-
         return `
           <button id="${btnId}" class="clip-btn"
             onclick="playClip('${path}','${playerId}','${btnId}')"
@@ -994,7 +1020,6 @@ function renderParentHome() {
             ▶<br>${label}
           </button>
           <div id="${playerId}" class="clip-player"></div>`;
-
       }).join('');
 
       return `
@@ -1013,12 +1038,9 @@ function renderParentHome() {
             </div>
           </div>
           ${s.hasAudio ? `
-            <div style="font-size:10px;font-weight:700;color:var(--mist);margin-bottom:4px">
-              🎤 Hljóðklippingar:
-            </div>
+            <div style="font-size:10px;font-weight:700;color:var(--mist);margin-bottom:4px">🎤 Hljóðklippingar:</div>
             <div class="audio-clips-row">${clipButtons}</div>` : ''}
         </div>`;
-
     }).join('') : '';
 
     return `
@@ -1035,9 +1057,7 @@ function renderParentHome() {
             </div>
           </div>
         </div>
-        <div style="padding:0 12px 14px;display:flex;gap:4px;position:relative">
-          ${weekDays}
-        </div>
+        <div style="padding:0 12px 14px;display:flex;gap:4px;position:relative">${weekDays}</div>
         <div style="border-top:1px solid #f0f4f9">
           <button onclick="toggleExpand('${key}')"
             style="width:100%;background:none;border:none;padding:10px;font-size:11px;font-weight:800;color:var(--ocean);cursor:pointer">
@@ -1050,39 +1070,30 @@ function renderParentHome() {
              </div>`
           : ''}
       </div>`;
-
   }).join('');
 
-  root.innerHTML = childCards + renderMonthChart(familySessions);
+  root.innerHTML = childCards + renderMonthChart(S.sessions);
 }
 
-// ── Toggle expand ──
 window.toggleExpand = function(key) {
   if (!window._expandedChildren) window._expandedChildren = {};
   window._expandedChildren[key] = !window._expandedChildren[key];
   renderParentHome();
 };
 
-// ──────────────────────────────────────────────────────────
-// ── playClip — spila eina klippu ─────────────────────────
-// ──────────────────────────────────────────────────────────
+// ── playClip ──
 window.playClip = async function(path, playerId, btnId) {
   const playerEl = document.getElementById(playerId);
   const btnEl    = document.getElementById(btnId);
   if (!playerEl) return;
 
-  // Ef spilari er þegar opinn — loka honum
   if (playerEl.style.display !== 'none' && playerEl.innerHTML !== '') {
     playerEl.style.display = 'none';
     playerEl.innerHTML = '';
-    if (btnEl) {
-      btnEl.className = 'clip-btn';
-      btnEl.textContent = btnEl.textContent.replace('⏹', '▶');
-    }
+    if (btnEl) btnEl.className = 'clip-btn';
     return;
   }
 
-  // Birta loading
   if (btnEl) btnEl.className = 'clip-btn loading';
   playerEl.style.display = '';
   playerEl.innerHTML = '<div style="font-size:10px;color:var(--mist);font-weight:700;padding:4px">⏳ Hleður...</div>';
@@ -1092,53 +1103,21 @@ window.playClip = async function(path, playerId, btnId) {
     const resp = await fetch(url);
     if (!resp.ok) throw new Error('Fetch mistókst: ' + resp.status);
     const blob = await resp.blob();
-
     const ext      = path.split('.').pop().toLowerCase();
     const mimeType = ext === 'mp4' ? 'audio/mp4' : ext === 'ogg' ? 'audio/ogg' : 'audio/webm';
     const blobUrl  = URL.createObjectURL(new Blob([blob], { type: mimeType }));
-
     playerEl.innerHTML = `
       <audio controls preload="auto" src="${blobUrl}"
         style="width:100%;margin-top:4px;border-radius:8px"
         onended="URL.revokeObjectURL('${blobUrl}')">
       </audio>`;
-
-    // Spila sjálfkrafa
     const audio = playerEl.querySelector('audio');
     if (audio) audio.play().catch(() => {});
-
-    if (btnEl) {
-      btnEl.className = 'clip-btn';
-    }
+    if (btnEl) btnEl.className = 'clip-btn';
   } catch(e) {
     playerEl.innerHTML = `<div style="font-size:10px;color:var(--coral);font-weight:700;padding:4px">❌ Ekki tókst að hlaða</div>`;
     if (btnEl) btnEl.className = 'clip-btn';
     console.error('playClip villa:', e);
-  }
-};
-
-// ── Gamalt playAudio — haldið fyrir bakwards-samhæfni ──
-window.playAudio = async function(path, containerId) {
-  const el = document.getElementById(containerId);
-  if (!el) return;
-  if (el.querySelector('audio')) { el.innerHTML = ''; return; }
-  el.innerHTML = '<div style="font-size:11px;color:var(--mist);font-weight:700;padding:6px 0">⏳ Hleður hljóð...</div>';
-  try {
-    const url      = await getDownloadURL(ref(storage, path));
-    const response = await fetch(url);
-    if (!response.ok) throw new Error('Fetch mistókst: ' + response.status);
-    const blob     = await response.blob();
-    const ext      = path.split('.').pop().toLowerCase();
-    const mimeType = ext === 'mp4' ? 'audio/mp4' : ext === 'ogg' ? 'audio/ogg' : 'audio/webm';
-    const blobUrl  = URL.createObjectURL(new Blob([blob], { type: mimeType }));
-    el.innerHTML = `
-      <audio controls preload="auto" src="${blobUrl}"
-        style="width:100%;margin-top:8px;border-radius:8px"
-        onended="URL.revokeObjectURL('${blobUrl}')">
-      </audio>`;
-  } catch(e) {
-    el.innerHTML = `<div style="font-size:11px;color:var(--coral);font-weight:700;padding:6px 0">Ekki tókst að hlaða hljóði</div>`;
-    console.error('playAudio villa:', e);
   }
 };
 
@@ -1174,7 +1153,7 @@ function renderMonthChart(sessions) {
     </div>`;
 }
 
-// ── Kóðar toggle ──
+// ── Toggle codes ──
 window.toggleCodes = function() {
   const panel = document.getElementById('codes-panel');
   const btn   = document.getElementById('codes-toggle-btn');
@@ -1185,16 +1164,16 @@ window.toggleCodes = function() {
 
 // ── Logout ──
 window.logout = async function(){
-  if (currentRole === 'child') {
+  if (S.role === 'child') {
     if (confirm('Skrá þig út? Þú þarft kóðann aftur til að skrá þig inn.')) {
       localStorage.removeItem('upphatt_child');
-      currentRole=null; currentFamilyId=null; currentChildKey=null; currentChildName=null;
+      S.role=null; S.familyId=null; S.childKey=null; S.childName=null;
       cancelReading();
       goTo('screen-login');
     }
     return;
   }
-  if (familyUnsub) { familyUnsub(); familyUnsub = null; }
+  if (S.familyUnsub) { S.familyUnsub(); S.familyUnsub = null; }
   await signOut(auth);
 };
 </script>

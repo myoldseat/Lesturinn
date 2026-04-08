@@ -440,14 +440,23 @@ async function startAudio(){
   }
 }
 
+function getSupportedMimeType(){
+  const types = ['audio/mp4','audio/aac','audio/webm;codecs=opus','audio/webm','audio/ogg'];
+  for(const t of types){
+    if(MediaRecorder.isTypeSupported(t)) return t;
+  }
+  return '';
+}
+
 function recordSnippet(label,duration){
   if(!audioStream) return;
   const chunks=[];
+  const mimeType = getSupportedMimeType();
   let rec;
-  try { rec=new MediaRecorder(audioStream,{mimeType:'audio/webm'}); }
+  try { rec = mimeType ? new MediaRecorder(audioStream,{mimeType}) : new MediaRecorder(audioStream); }
   catch(e){ try{ rec=new MediaRecorder(audioStream); }catch(e2){ return; } }
   rec.ondataavailable=e=>{if(e.data.size>0)chunks.push(e.data);};
-  rec.onstop=()=>{audioChunks[label]=chunks;};
+  rec.onstop=()=>{ audioChunks[label]=chunks; audioChunks[label+'_mime']=rec.mimeType||mimeType||'audio/webm'; };
   rec.start();
   setTimeout(()=>{try{rec.stop();}catch(e){}},duration);
 }
@@ -503,9 +512,11 @@ async function doSaveSession(pageEnd){
     const allChunks=[...audioChunks.start,...audioChunks.mid,...audioChunks.end];
     if(allChunks.length>0){
       try {
-        const blob=new Blob(allChunks,{type:'audio/webm'});
-        const path=`recordings/${currentFamilyId}/${currentChildKey}/${now.getTime()}.webm`;
-        await uploadBytes(ref(storage,path),blob);
+        const mimeType = audioChunks['start_mime'] || audioChunks['mid_mime'] || audioChunks['end_mime'] || 'audio/webm';
+        const ext = mimeType.includes('mp4') ? 'mp4' : mimeType.includes('ogg') ? 'ogg' : 'webm';
+        const blob=new Blob(allChunks,{type:mimeType});
+        const path=`recordings/${currentFamilyId}/${currentChildKey}/${now.getTime()}.${ext}`;
+        await uploadBytes(ref(storage,path),blob,{contentType:mimeType});
         audioPath=path;
         err.textContent='🎤 Hljóð vistað!';
       } catch(e){ console.error('Storage villa:',e); }

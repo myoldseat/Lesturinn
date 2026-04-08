@@ -162,51 +162,42 @@ audio{width:100%;border-radius:8px}
   </div>
   <div class="scroll-body">
 
-    <!-- Mini hero — nafn + streak + skjöldur -->
-    <div class="hero green" style="padding:16px 20px">
-      <div style="display:flex;align-items:center;justify-content:space-between">
-        <div>
-          <div class="hero-label" style="margin-bottom:3px">Hæ!</div>
-          <h1 id="child-hero" style="font-size:22px;margin:0 0 8px">Ertu tilbúinn? 🌟</h1>
-          <div style="display:flex;gap:6px;flex-wrap:wrap">
-            <div id="child-streak" style="display:none;background:rgba(255,184,48,0.25);border:1.5px solid rgba(255,184,48,0.6);border-radius:50px;padding:4px 12px;font-size:12px;font-weight:800;color:#fff">
-              🔥 <span id="streak-num">0</span> daga röð
-            </div>
-            <div id="child-shields" style="display:none;background:rgba(255,255,255,0.2);border-radius:50px;padding:4px 12px;font-size:12px;font-weight:800;color:#fff">
-              🛡️ <span id="shields-num">0</span>
-            </div>
-          </div>
+    <!-- Hero með streak -->
+    <div class="hero green" id="child-hero-card">
+      <div class="hero-label">Hæ!</div>
+      <h1 id="child-hero">Ertu tilbúinn að lesa? 🌟</h1>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+        <div id="child-streak" style="display:none;background:rgba(255,184,48,0.25);border:1.5px solid rgba(255,184,48,0.6);border-radius:50px;padding:5px 14px;font-size:13px;font-weight:800;color:#fff">
+          🔥 <span id="streak-num">0</span> daga röð
         </div>
-        <div id="child-today-status" style="font-size:32px">📖</div>
+        <div id="child-shields" style="display:none;background:rgba(255,255,255,0.2);border-radius:50px;padding:5px 14px;font-size:13px;font-weight:800;color:#fff">
+          🛡️ <span id="shields-num">0</span> frídagar
+        </div>
       </div>
     </div>
 
-    <!-- Streak í hættu -->
-    <div id="shield-warning" style="display:none;background:#fff3cd;border-radius:14px;padding:12px 14px;margin-bottom:12px;border-left:4px solid var(--sun)">
-      <div style="font-size:12px;font-weight:800;color:#856404">⚠️ <span id="shield-warning-text">Les í dag til að halda röðinni!</span></div>
+    <!-- Skjaldaboð — ef streak í hættu -->
+    <div id="shield-warning" style="display:none;background:#fff3cd;border-radius:14px;padding:14px;margin-bottom:12px;border-left:4px solid var(--sun)">
+      <div style="font-size:13px;font-weight:800;color:#856404">⚠️ Streak í hættu!</div>
+      <div style="font-size:12px;color:#856404;margin-top:3px" id="shield-warning-text">Les í dag til að halda röðinni.</div>
     </div>
 
-    <!-- Milestone verðlaun -->
-    <div id="milestone-card" style="display:none;background:linear-gradient(135deg,var(--sun),#e8900a);border-radius:18px;padding:16px;margin-bottom:12px;text-align:center;color:var(--deep)">
-      <div style="font-size:32px;margin-bottom:4px" id="milestone-icon">🌱</div>
-      <div style="font-family:Georgia,serif;font-size:17px;font-weight:700" id="milestone-title">Verðlaun!</div>
-      <div style="font-size:12px;margin-top:3px;font-weight:600;opacity:.8" id="milestone-text"></div>
+    <!-- Vikudottar -->
+    <div class="card" id="child-week-card">
+      <div style="font-size:11px;font-weight:800;color:var(--mist);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">Þessi vika — markmið: 15 mín/dag</div>
+      <div class="week-dots" id="child-week-dots"></div>
     </div>
 
-    <!-- BYRJA AÐ LESA — aðalhnappurinn -->
+    <!-- Verðlaun milestone -->
+    <div id="milestone-card" style="display:none;background:linear-gradient(135deg,var(--sun),#e8900a);border-radius:18px;padding:18px;margin-bottom:12px;text-align:center;color:var(--deep)">
+      <div style="font-size:36px;margin-bottom:6px" id="milestone-icon">🌱</div>
+      <div style="font-family:Georgia,serif;font-size:18px;font-weight:700" id="milestone-title">Verðlaun!</div>
+      <div style="font-size:13px;margin-top:4px;font-weight:600;opacity:.8" id="milestone-text"></div>
+    </div>
+
+    <!-- Setja upp lestrarlotur -->
     <div class="card" id="setup-card">
-
-      <!-- Vikumarkmið progress bar -->
-      <div style="margin-bottom:16px">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-          <div style="font-size:11px;font-weight:800;color:var(--mist);text-transform:uppercase;letter-spacing:.5px">Vikumarkmið</div>
-          <div style="font-size:11px;font-weight:800;color:var(--ocean)" id="week-progress-label">0 af 7 dögum</div>
-        </div>
-        <div style="background:#e8f0fa;border-radius:99px;height:10px;overflow:hidden">
-          <div id="week-progress-bar" style="height:100%;background:linear-gradient(90deg,var(--moss),var(--ocean));border-radius:99px;width:0%;transition:width 0.6s ease"></div>
-        </div>
-      </div>
-
+      <div style="font-size:13px;font-weight:800;color:var(--deep);margin-bottom:12px">Setja upp lestrarlotur</div>
       <div class="form-group">
         <label>Heiti bókar (valfrjálst)</label>
         <input id="read-title" type="text" placeholder="t.d. Harry Potter">
@@ -220,9 +211,7 @@ audio{width:100%;border-radius:8px}
         <button class="mode-btn active" id="mode-down" onclick="setMode('down')">⏳ Niðurtalning<br><span style="font-size:10px;font-weight:600;opacity:.7">15:00 → 0:00</span></button>
         <button class="mode-btn" id="mode-up" onclick="setMode('up')">⏱ Upptalning<br><span style="font-size:10px;font-weight:600;opacity:.7">0:00 → 15:00+</span></button>
       </div>
-      <button class="btn btn-primary" onclick="startReading()" style="font-size:20px;padding:18px">
-        🎤 Byrja að lesa
-      </button>
+      <button class="btn btn-primary" onclick="startReading()">🎤 Byrja að lesa</button>
     </div>
 
     <!-- Tíminn í gangi -->
@@ -231,7 +220,7 @@ audio{width:100%;border-radius:8px}
         <div class="timer-big" id="timer-display">15:00</div>
         <div class="timer-sub"><span class="rec-dot"></span><span id="timer-status">Les upphátt…</span></div>
       </div>
-      <div style="display:none" id="audio-status"></div>
+      <div style="font-size:11px;color:var(--mist);font-weight:700;text-align:center;margin-bottom:16px" id="audio-status"></div>
       <button class="btn btn-success" onclick="stopReading()">⏹ Klára lestrarlotur</button>
       <button class="btn btn-ghost" onclick="cancelReading()" style="margin-top:10px">Hætta við</button>
     </div>
@@ -253,19 +242,10 @@ audio{width:100%;border-radius:8px}
       <button class="btn btn-ghost" onclick="skipSave()" style="margin-top:10px">Sleppa blaðsíðutali</button>
     </div>
 
-    <!-- Vikudagar — neðst -->
-    <div class="card" style="padding:14px 15px">
-      <div style="font-size:11px;font-weight:800;color:var(--mist);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">Þessi vika</div>
-      <div class="week-dots" id="child-week-dots"></div>
-    </div>
-
-    <!-- Síðustu lotur — felanlegar -->
+    <!-- Síðustu lotur -->
     <div id="child-sessions-wrap" style="display:none">
-      <button onclick="toggleSessions()" id="sessions-toggle"
-        style="width:100%;background:none;border:none;color:var(--ocean);font-size:13px;font-weight:800;padding:8px 0;cursor:pointer;text-align:center">
-        ▼ Síðustu lotur
-      </button>
-      <div class="card" id="child-sessions-list" style="display:none"></div>
+      <div style="font-size:11px;font-weight:800;color:var(--mist);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">Síðustu lotur</div>
+      <div class="card" id="child-sessions-list"></div>
     </div>
 
   </div>
@@ -430,14 +410,7 @@ function setupChildHome(){
   loadChildSessions();
 }
 
-// ── Síðustu lotur toggle ──
-window.toggleSessions = function() {
-  const list = document.getElementById('child-sessions-list');
-  const btn  = document.getElementById('sessions-toggle');
-  const open = list.style.display === 'none';
-  list.style.display = open ? '' : 'none';
-  btn.textContent    = open ? '▲ Fela lotur' : '▼ Síðustu lotur';
-};
+// ── Hljóðviðbrögð ──
 function playSound(type) {
   try {
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -568,21 +541,6 @@ function loadChildSessions() {
     // Vikudottar
     renderWeekDots(sessions, 'child-week-dots');
 
-    // Vikumarkmið progress bar
-    const mon = getMonday();
-    const daysReadThisWeek = [0,1,2,3,4,5,6].filter(i => {
-      const d = new Date(mon); d.setDate(mon.getDate()+i);
-      return sessions.some(s => s.date === makeDateKey(d) && (s.seconds||0) >= 60);
-    }).length;
-    const pct = Math.round((daysReadThisWeek / 7) * 100);
-    document.getElementById('week-progress-bar').style.width   = pct + '%';
-    document.getElementById('week-progress-label').textContent = `${daysReadThisWeek} af 7 dögum`;
-
-    // Dagsstatus táknmynd í hero
-    const today     = makeDateKey(new Date());
-    const readToday = sessions.some(s => s.date === today && (s.seconds||0) >= 60);
-    document.getElementById('child-today-status').textContent = readToday ? '✅' : '📖';
-
     // Streak pill
     if (streak > 0) {
       document.getElementById('child-streak').style.display = 'inline-flex';
@@ -674,7 +632,7 @@ async function startAudio(){
       const t = setTimeout(()=>recordSnippet('s'+i, 15000), ms);
       snippetTimers.push(t);
     });
-    document.getElementById('audio-status').textContent = '';
+    document.getElementById('audio-status').textContent='🎤 Hljóðsýni á mín. 1, 5, 9 og 13';
   } catch(e){
     document.getElementById('audio-status').textContent='🔇 Hljóðupptaka ekki í boði';
   }
@@ -751,33 +709,26 @@ async function doSaveSession(pageEnd){
   err.textContent='Vistar...';
   try {
     const now=new Date();
-    let audioPaths=[];
-
-    // Vista hvert sýni fyrir sig — ekki sameina (headers eru ósamræmd)
-    for(const i of [0,1,2,3]){
-      const chunks = audioChunks['s'+i] || [];
-      if(chunks.length === 0) continue;
+    let audioPath=null;
+    const allChunks=[...( audioChunks.s0||[]),...(audioChunks.s1||[]),...(audioChunks.s2||[]),...(audioChunks.s3||[])];
+    if(allChunks.length>0){
       try {
-        const mimeType = audioChunks['s'+i+'_mime'] || 'audio/webm';
+        const mimeType = audioChunks['s0_mime']||audioChunks['s1_mime']||audioChunks['s2_mime']||audioChunks['s3_mime']||'audio/webm';
         const ext = mimeType.includes('mp4') ? 'mp4' : mimeType.includes('ogg') ? 'ogg' : 'webm';
-        const blob = new Blob(chunks, {type: mimeType});
-        const path = `recordings/${currentFamilyId}/${currentChildKey}/${now.getTime()}_s${i}.${ext}`;
-        await uploadBytes(ref(storage, path), blob, {contentType: mimeType});
-        audioPaths.push(path);
-      } catch(e){ console.error('Storage villa s'+i+':', e); }
+        const blob=new Blob(allChunks,{type:mimeType});
+        const path=`recordings/${currentFamilyId}/${currentChildKey}/${now.getTime()}.${ext}`;
+        await uploadBytes(ref(storage,path),blob,{contentType:mimeType});
+        audioPath=path;
+        err.textContent='🎤 Hljóð vistað!';
+      } catch(e){ console.error('Storage villa:',e); }
     }
-
-    const hasAudio = audioPaths.length > 0;
-    if(hasAudio) err.textContent = `🎤 ${audioPaths.length} hljóðsýni vistuð!`;
     await addDoc(collection(db,'sessions'),{
       familyId:currentFamilyId, childKey:currentChildKey, childName:currentChildName,
       title:pendingSession?.title||'Lestur',
       pageStart:pendingSession?.pageStart||null, pageEnd:pageEnd||null,
       pagesRead:(pendingSession?.pageStart&&pageEnd)?pageEnd-pendingSession.pageStart:null,
       seconds:elapsedSecs, timerMode,
-      hasAudio, audioPaths,
-      // Baksamhæfni — fyrsta sýnið sem audioPath
-      audioPath: audioPaths[0] || null,
+      hasAudio:!!audioPath, audioPath,
       timestamp:Date.now(), date:makeDateKey(now), createdAt:serverTimestamp()
     });
 
@@ -964,18 +915,12 @@ function renderParentHome() {
         <div style="flex:1;min-width:0">
           <div style="font-size:12px;font-weight:700;color:var(--deep)">${s.title||'Lestur'}${s.pagesRead?' · '+s.pagesRead+' bls.':''}</div>
           <div style="font-size:10px;color:var(--mist);margin-top:1px">${formatLabel(s.createdAt)||s.date||''}</div>
-          ${s.hasAudio && (s.audioPaths?.length || s.audioPath) ? `
-            <div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:4px">
-              ${(s.audioPaths||[s.audioPath]).filter(Boolean).map((path,i) => `
-                <button onclick="playAudio('${path}','adiv2-${s._docId}-${i}')"
-                  style="background:#f0f9f4;border:1px solid #4CAF7D;border-radius:50px;padding:3px 10px;font-size:10px;font-weight:800;color:#1a7a3f;cursor:pointer">
-                  ▶ ${i+1}
-                </button>`).join('')}
-            </div>
-            <div id="adiv2-${s._docId}-0"></div>
-            <div id="adiv2-${s._docId}-1"></div>
-            <div id="adiv2-${s._docId}-2"></div>
-            <div id="adiv2-${s._docId}-3"></div>` : ''}
+          ${s.hasAudio && s.audioPath ? `
+            <button onclick="playAudio('${s.audioPath}','adiv2-${s._docId}')"
+              style="margin-top:4px;background:#f0f9f4;border:1px solid #4CAF7D;border-radius:50px;padding:3px 10px;font-size:10px;font-weight:800;color:#1a7a3f;cursor:pointer">
+              ▶ Hlusta
+            </button>
+            <div id="adiv2-${s._docId}"></div>` : ''}
         </div>
         <div style="font-size:13px;font-weight:800;color:var(--ocean);flex-shrink:0">${fmtTime(s.seconds||0)}</div>
       </div>`).join('') : '';

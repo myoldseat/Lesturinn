@@ -670,7 +670,7 @@ window.playAudio = async function(path, containerId){
   el.innerHTML='<div style="font-size:11px;color:var(--mist);font-weight:700;padding:6px 0">⏳ Hleður hljóð...</div>';
   try {
     const url=await getDownloadURL(ref(storage,path));
-    el.innerHTML=`<audio controls autoplay preload="none" src="${url}" style="width:100%;margin-top:8px;border-radius:8px"></audio>`;
+    el.innerHTML=`<audio controls preload="none" src="${url}" style="width:100%;margin-top:8px;border-radius:8px"></audio>`;
   } catch(e){
     el.innerHTML=`<div style="font-size:11px;color:var(--coral);font-weight:700;padding:6px 0">Ekki tókst að hlaða hljóði</div>`;
     console.error('getDownloadURL villa:',e);

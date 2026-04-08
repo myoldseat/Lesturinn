@@ -680,11 +680,25 @@ window.playAudio = async function(path, containerId){
   const el=document.getElementById(containerId); if(!el) return;
   el.innerHTML='<div style="font-size:11px;color:var(--mist);font-weight:700;padding:6px 0">⏳ Hleður hljóð...</div>';
   try {
-    const url=await getDownloadURL(ref(storage,path));
-    el.innerHTML=`<audio controls preload="none" src="${url}" style="width:100%;margin-top:8px;border-radius:8px"></audio>`;
+    const audioRef = ref(storage, path);
+    const url = await getDownloadURL(audioRef);
+
+    // Sækja sem blob — virkar betur á Safari/iOS
+    const response = await fetch(url);
+    if(!response.ok) throw new Error('Fetch mistókst: '+response.status);
+    const blob = await response.blob();
+
+    // Búa til blob URL með réttum mime type
+    const ext = path.split('.').pop().toLowerCase();
+    const mimeType = ext==='mp4' ? 'audio/mp4' : ext==='ogg' ? 'audio/ogg' : 'audio/webm';
+    const typedBlob = new Blob([blob], {type: mimeType});
+    const blobUrl = URL.createObjectURL(typedBlob);
+
+    el.innerHTML=`<audio controls preload="auto" src="${blobUrl}" style="width:100%;margin-top:8px;border-radius:8px"></audio>`;
+    el.querySelector('audio').onended = () => URL.revokeObjectURL(blobUrl);
   } catch(e){
-    el.innerHTML=`<div style="font-size:11px;color:var(--coral);font-weight:700;padding:6px 0">Ekki tókst að hlaða hljóði</div>`;
-    console.error('getDownloadURL villa:',e);
+    el.innerHTML=`<div style="font-size:11px;color:var(--coral);font-weight:700;padding:6px 0">Ekki tókst að hlaða hljóði: ${e.message}</div>`;
+    console.error('playAudio villa:',e);
   }
 };
 

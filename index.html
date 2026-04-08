@@ -1,55 +1,696 @@
 <!DOCTYPE html>
 <html lang="is">
 <head>
-  <meta charset="UTF-8">
-  <title>Lestrarapp</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Upphátt">
+<title>Upphátt</title>
+<style>
+:root{
+  --sky:#E8F4FD;--ocean:#2A6EBB;--deep:#1A3A5C;--moss:#4CAF7D;--coral:#FF6B6B;
+  --mist:#8A9BB0;--sun:#FFB830;--purple:#7c3aed;
+  --card-shadow:0 4px 20px rgba(26,58,92,.10);
+}
+*{box-sizing:border-box} html,body{height:100%;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--sky);color:#1E1E2E}
+.screen{display:none;min-height:100vh;flex-direction:column}.screen.active{display:flex}
+.topbar{background:var(--ocean);color:#fff;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:20;box-shadow:0 2px 12px rgba(42,110,187,.25)}
+.logo{font-family:Georgia,serif;font-size:20px;font-weight:700;display:flex;align-items:center;gap:8px}
+.logo-icon{width:30px;height:30px;background:#fff;border-radius:7px;color:var(--ocean);display:flex;align-items:center;justify-content:center;font-family:Georgia,serif;font-weight:900}
+.scroll-body{flex:1;overflow:auto;padding:18px 16px 40px;max-width:520px;width:100%;margin:0 auto}
+.hero{border-radius:22px;padding:24px 20px;color:#fff;margin-bottom:18px;background:linear-gradient(135deg,var(--ocean),var(--deep))}
+.hero.green{background:linear-gradient(135deg,var(--moss),#2e7a4f)}
+.hero.purple{background:linear-gradient(135deg,var(--purple),#4c1d95)}
+.hero-label{font-size:11px;font-weight:800;letter-spacing:1.3px;text-transform:uppercase;opacity:.8;margin-bottom:6px}
+.hero h1{font-family:Georgia,serif;font-size:28px;line-height:1.1;margin:0 0 8px}
+.hero p{margin:0;font-size:14px;opacity:.88;font-weight:600}
+.card{background:#fff;border-radius:18px;padding:15px;margin-bottom:12px;box-shadow:var(--card-shadow)}
+.form-group{margin-bottom:14px}
+.form-group label{display:block;font-size:11px;font-weight:800;color:var(--deep);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px}
+.form-group input{width:100%;border:2px solid #dde5f0;border-radius:12px;padding:14px;font-size:16px;font-weight:600;background:#f7fbff;outline:none}
+.form-group input:focus{border-color:var(--ocean);background:#fff}
+.btn{width:100%;border:none;border-radius:16px;padding:16px;font-size:17px;font-weight:800;cursor:pointer}
+.btn-primary{background:var(--ocean);color:#fff}
+.btn-success{background:var(--moss);color:#fff}
+.btn-ghost{background:#fff;color:var(--deep);border:2px solid #dde5f0}
+.btn+.btn{margin-top:10px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.choice{border:none;border-radius:20px;padding:24px 16px;color:#fff;cursor:pointer;width:100%}
+.choice.blue{background:var(--ocean)}.choice.green{background:var(--moss)}
+.choice .big{font-size:36px;display:block;margin-bottom:8px}
+.choice .title{font-size:15px;font-weight:800}
+.choice .sub{font-size:11px;opacity:.85;margin-top:4px}
+.back-btn{background:rgba(255,255,255,.18);border:none;border-radius:999px;color:#fff;font-size:13px;font-weight:700;padding:7px 14px;cursor:pointer}
+.notice{font-size:12px;color:var(--mist);font-weight:700;min-height:18px}
+.timer-wrap{text-align:center;padding:16px 0}
+.timer-big{font-family:Georgia,serif;font-size:72px;font-weight:700;color:var(--deep);line-height:1}
+.timer-big.running{color:var(--moss)}
+.timer-big.done{color:var(--sun)}
+.timer-sub{font-size:12px;color:var(--mist);font-weight:800;text-transform:uppercase;letter-spacing:.8px;margin-top:6px}
+.rec-dot{display:inline-block;width:8px;height:8px;background:var(--coral);border-radius:50%;margin-right:5px;animation:blink 1s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.2}}
+.week-dots{display:flex;gap:4px}
+.day-dot{flex:1;height:44px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-direction:column;font-size:8px;font-weight:800;gap:2px}
+.day-dot.full{background:var(--moss);color:#fff}
+.day-dot.partial{background:#b8e0c8;color:#2e7a4f}
+.day-dot.none{background:#f0f4f9;color:#aab7c4;border:1.5px dashed #dde5f0}
+.session{padding:12px 0;border-bottom:1px solid #eef3f9}
+.session:last-child{border-bottom:none}
+.session-title{font-size:14px;font-weight:800}
+.session-meta{font-size:11px;color:var(--mist);margin-top:3px}
+.group-title{font-family:Georgia,serif;font-size:22px;color:var(--deep);margin:4px 0 12px;font-weight:700}
+.audio-box{margin-top:8px}
+audio{width:100%;border-radius:8px}
+.streak-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(255,184,48,0.25);border-radius:50px;padding:6px 14px;font-size:13px;font-weight:800;color:var(--deep);margin-top:8px}
+.pill{display:inline-block;background:#eef5ff;color:var(--ocean);border-radius:999px;padding:5px 10px;font-size:11px;font-weight:800}
+.stat-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px}
+.stat-box{background:#f7fbff;border-radius:12px;padding:10px;text-align:center}
+.stat-val{font-family:Georgia,serif;font-size:22px;font-weight:700;color:var(--ocean)}
+.stat-lbl{font-size:9px;font-weight:800;color:var(--mist);text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
+.mode-picker{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.mode-btn{border:2px solid #dde5f0;background:#fff;border-radius:14px;padding:14px;cursor:pointer;text-align:center;font-weight:800;font-size:13px;color:var(--deep)}
+.mode-btn.active{background:var(--ocean);border-color:var(--ocean);color:#fff}
+</style>
 </head>
-<body style="font-family: sans-serif; text-align:center; padding:40px;">
+<body>
 
-<h2>Lestrarapp</h2>
-
-<button id="startBtn">Byrja að lesa</button>
-<div id="timer" style="font-size:32px; margin-top:20px;">0:00</div>
-
-<div style="font-size:12px; opacity:0.6; margin-top:10px;">
-  v4 — timer fixed (clean baseline)
+<!-- LOGIN -->
+<div id="screen-login" class="screen active">
+  <div class="scroll-body" style="display:flex;align-items:center;justify-content:center;min-height:100vh;">
+    <div style="width:100%;max-width:380px">
+      <div style="text-align:center;margin-bottom:28px">
+        <div style="font-family:Georgia,serif;font-size:56px;font-weight:700;color:var(--ocean)">Upphátt</div>
+        <div style="font-size:14px;color:var(--mist);font-weight:600">Íslenskt lestrarforrit</div>
+      </div>
+      <div class="grid2">
+        <button class="choice blue" onclick="goTo('screen-parent-login')">
+          <span class="big">👩</span><span class="title">Ég er foreldri</span><div class="sub">Netfang + lykilorð</div>
+        </button>
+        <button class="choice green" onclick="goTo('screen-child-login')">
+          <span class="big">👦</span><span class="title">Ég er barn</span><div class="sub">Kóði frá foreldri</div>
+        </button>
+      </div>
+    </div>
+  </div>
 </div>
 
-<script>
-let startTime = null;
-let timerInterval = null;
+<!-- PARENT LOGIN -->
+<div id="screen-parent-login" class="screen">
+  <div class="topbar">
+    <button class="back-btn" onclick="goTo('screen-login')">← Til baka</button>
+    <div class="logo"><div class="logo-icon">U</div> Upphátt</div>
+    <div></div>
+  </div>
+  <div class="scroll-body">
+    <div class="hero purple">
+      <div class="hero-label">Foreldri</div>
+      <h1>Velkomin/n</h1>
+      <p>Skráðu þig inn og fylgstu með í rauntíma.</p>
+    </div>
+    <div class="card">
+      <div class="form-group"><label>Netfang</label><input id="login-email" type="email" autocomplete="email" placeholder="þu@dæmi.is"></div>
+      <div class="form-group"><label>Lykilorð</label><input id="login-pw" type="password" autocomplete="current-password" placeholder="••••••••"></div>
+      <div id="login-error" class="notice" style="color:var(--coral);margin-bottom:10px"></div>
+      <button class="btn btn-primary" onclick="firebaseLogin()">🔑 Skrá inn</button>
+    </div>
+  </div>
+</div>
 
-const startBtn = document.getElementById("startBtn");
-const timerEl = document.getElementById("timer");
+<!-- CHILD LOGIN -->
+<div id="screen-child-login" class="screen">
+  <div class="topbar">
+    <button class="back-btn" onclick="goTo('screen-login')">← Til baka</button>
+    <div class="logo"><div class="logo-icon">U</div> Upphátt</div>
+    <div></div>
+  </div>
+  <div class="scroll-body">
+    <div class="hero green">
+      <div class="hero-label">Barn</div>
+      <h1>Sláðu inn kóðann þinn 🎯</h1>
+      <p>Foreldri þitt gaf þér þennan kóða.</p>
+    </div>
+    <div class="card">
+      <div class="form-group">
+        <label>Kóðinn þinn</label>
+        <input id="child-code-input" type="text" maxlength="6"
+          autocomplete="off" autocapitalize="characters" inputmode="text" enterkeyhint="done"
+          style="font-family:Georgia,serif;font-size:32px;font-weight:700;letter-spacing:6px;text-align:center;text-transform:uppercase"
+          oninput="this.value=this.value.toUpperCase()"
+          readonly
+          ontouchstart="this.removeAttribute('readonly');this.focus();"
+          onclick="this.removeAttribute('readonly');this.focus();"
+          onpaste="return false" ondrop="return false">
+      </div>
+      <div id="child-code-error" class="notice" style="color:var(--coral);text-align:center;margin-bottom:10px"></div>
+      <button class="btn btn-success" onclick="childLogin()">🎯 Skrá mig inn</button>
+    </div>
+    <div style="background:#e8f4fd;border-radius:12px;padding:12px 14px;margin-top:4px;font-size:12px;color:var(--ocean);font-weight:700;text-align:center;">
+      💡 Þú þarft aðeins að slá inn kóðann einu sinni — tækið man eftir þér!
+    </div>
+  </div>
+</div>
 
-startBtn.onclick = async () => {
+<!-- CHILD HOME -->
+<div id="screen-child-home" class="screen">
+  <div class="topbar">
+    <button class="back-btn" onclick="logout()">← Út</button>
+    <div class="logo"><div class="logo-icon">U</div> Upphátt</div>
+    <div class="pill" id="child-name-pill">Barn</div>
+  </div>
+  <div class="scroll-body">
+    <div class="hero green">
+      <div class="hero-label">Hæ!</div>
+      <h1 id="child-hero">Ertu tilbúinn að lesa? 🌟</h1>
+      <div id="child-streak" class="streak-badge" style="display:none">🔥 <span id="streak-num">0</span> daga röð</div>
+    </div>
+
+    <div class="card" id="child-week-card">
+      <div style="font-size:11px;font-weight:800;color:var(--mist);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">Þessi vika — markmið: 15 mín/dag</div>
+      <div class="week-dots" id="child-week-dots"></div>
+    </div>
+
+    <div class="card" id="setup-card">
+      <div style="font-size:13px;font-weight:800;color:var(--deep);margin-bottom:12px">Setja upp lestrarlotur</div>
+      <div class="form-group">
+        <label>Heiti bókar (valfrjálst)</label>
+        <input id="read-title" type="text" placeholder="t.d. Harry Potter">
+      </div>
+      <div class="form-group">
+        <label>Byrjunarblaðsíða (valfrjálst)</label>
+        <input id="page-start" type="number" min="1" placeholder="t.d. 42" inputmode="numeric">
+      </div>
+      <div style="font-size:11px;font-weight:800;color:var(--deep);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Tímamælir</div>
+      <div class="mode-picker">
+        <button class="mode-btn active" id="mode-down" onclick="setMode('down')">⏳ Niðurtalning<br><span style="font-size:10px;font-weight:600;opacity:.7">15:00 → 0:00</span></button>
+        <button class="mode-btn" id="mode-up" onclick="setMode('up')">⏱ Upptalning<br><span style="font-size:10px;font-weight:600;opacity:.7">0:00 → 15:00+</span></button>
+      </div>
+      <button class="btn btn-primary" onclick="startReading()">🎤 Byrja að lesa</button>
+    </div>
+
+    <div class="card" id="reading-card" style="display:none">
+      <div class="timer-wrap">
+        <div class="timer-big" id="timer-display">15:00</div>
+        <div class="timer-sub"><span class="rec-dot"></span><span id="timer-status">Les upphátt…</span></div>
+      </div>
+      <div style="font-size:11px;color:var(--mist);font-weight:700;text-align:center;margin-bottom:16px" id="audio-status"></div>
+      <button class="btn btn-success" onclick="stopReading()">⏹ Klára lestrarlotur</button>
+      <button class="btn btn-ghost" onclick="cancelReading()" style="margin-top:10px">Hætta við</button>
+    </div>
+
+    <div class="card" id="finish-card" style="display:none">
+      <div style="text-align:center;margin-bottom:16px">
+        <div style="font-size:48px" id="finish-emoji">🎉</div>
+        <div style="font-family:Georgia,serif;font-size:22px;font-weight:700;color:var(--deep)" id="finish-title">Frábær lestur!</div>
+        <div style="font-size:13px;color:var(--mist);margin-top:4px" id="finish-sub">Lotan er að vistast...</div>
+      </div>
+      <div class="form-group">
+        <label>Hvaða blaðsíðu ertu kominn á? (valfrjálst)</label>
+        <input id="page-end" type="number" min="1" placeholder="t.d. 58" inputmode="numeric">
+      </div>
+      <div id="pages-display" style="text-align:center;font-size:13px;color:var(--moss);font-weight:800;margin-bottom:12px;min-height:20px"></div>
+      <div id="save-error" class="notice" style="color:var(--coral);margin-bottom:8px"></div>
+      <button class="btn btn-primary" onclick="saveSession()">✅ Vista og klára</button>
+      <button class="btn btn-ghost" onclick="skipSave()" style="margin-top:10px">Sleppa blaðsíðutali</button>
+    </div>
+
+    <div id="child-sessions-wrap" style="display:none">
+      <div style="font-size:11px;font-weight:800;color:var(--mist);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">Síðustu lotur</div>
+      <div class="card" id="child-sessions-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- PARENT HOME -->
+<div id="screen-parent-home" class="screen">
+  <div class="topbar">
+    <button class="back-btn" onclick="logout()">← Út</button>
+    <div class="logo"><div class="logo-icon">U</div> Upphátt</div>
+    <div class="pill" id="parent-pill">Foreldri</div>
+  </div>
+  <div class="scroll-body">
+    <div class="hero purple">
+      <div class="hero-label">Yfirlit</div>
+      <h1 id="parent-hero">Foreldraaðgangur</h1>
+      <p>Lotur birtast hér strax þegar börnin klára.</p>
+    </div>
+    <div class="card" id="codes-card" style="display:none">
+      <div style="font-size:11px;font-weight:800;color:var(--mist);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">🔑 Innskráningarkóðar</div>
+      <div id="codes-list"></div>
+    </div>
+    <div id="parent-content">
+      <div class="card"><div class="notice" style="text-align:center;padding:20px">Hleður gögn... ⏳</div></div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp }    from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js';
+import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut }
+                             from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js';
+import { getFirestore, collection, addDoc, doc, getDoc, onSnapshot, query, where, serverTimestamp }
+                             from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js';
+import { getStorage, ref, uploadBytes, getDownloadURL }
+                             from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-storage.js';
+
+const firebaseConfig = {
+  apiKey: 'AIzaSyAgTY3Uxd9_ZxixjqLj-sH8V3OhFAzg6DU',
+  authDomain: 'lesum-22e85.firebaseapp.com',
+  projectId: 'lesum-22e85',
+  storageBucket: 'lesum-22e85.firebasestorage.app',
+  messagingSenderId: '204392598388',
+  appId: '1:204392598388:web:2dbbe3f476cd78d2ffba21'
+};
+
+const app     = initializeApp(firebaseConfig);
+const auth    = getAuth(app);
+const db      = getFirestore(app);
+const storage = getStorage(app);
+
+// ── State ──
+let currentRole      = null;
+let currentFamilyId  = null;
+let currentChildKey  = null;
+let currentChildName = null;
+let currentParentName= null;
+let familyUnsub      = null;
+let familySessions   = [];
+let timerMode        = 'down';
+let timerInterval    = null;
+let readingStartMs   = null;
+let elapsedSecs      = 0;
+let pendingSession   = null;
+const TARGET         = 15 * 60;
+let audioStream      = null;
+let audioChunks      = { start:[], mid:[], end:[] };
+let snippetTimers    = [];
+
+// ── Nav ──
+window.goTo = function(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+};
+
+// ── Helpers ──
+function fmtTime(s){ return `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`; }
+function makeDateKey(d){ return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`; }
+function formatLabel(v){
+  const d = v?.toDate ? v.toDate() : (typeof v==='number' ? new Date(v) : null);
+  if(!d||isNaN(d)) return '';
+  return d.toLocaleString('is-IS',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+}
+function getMonday(date=new Date()){
+  const d=new Date(date); d.setHours(12,0,0,0);
+  const day=d.getDay(); d.setDate(d.getDate()+(day===0?-6:1-day)); return d;
+}
+function renderWeekDots(sessions, containerId){
+  const el=document.getElementById(containerId); if(!el) return;
+  const mon=getMonday();
+  const labels=['Mán','Þri','Mið','Fim','Fös','Lau','Sun'];
+  el.innerHTML=labels.map((lbl,i)=>{
+    const d=new Date(mon); d.setDate(mon.getDate()+i);
+    const key=makeDateKey(d);
+    const mins=sessions.filter(s=>s.date===key).reduce((a,s)=>a+Math.floor((s.seconds||0)/60),0);
+    const cls=mins>=15?'full':mins>0?'partial':'none';
+    return `<div class="day-dot ${cls}"><div>${lbl}</div><div>${mins>0?mins+'m':'—'}</div></div>`;
+  }).join('');
+}
+function getStreak(sessions){
+  if(!sessions.length) return 0;
+  let streak=0; const d=new Date();
+  for(let i=0;i<90;i++){
+    const k=makeDateKey(d);
+    if(sessions.some(s=>s.date===k&&(s.seconds||0)>=60)){ streak++; d.setDate(d.getDate()-1); }
+    else if(i===0){ d.setDate(d.getDate()-1); }
+    else break;
+  }
+  return streak;
+}
+
+// ── Timer mode ──
+window.setMode = function(mode){
+  timerMode=mode;
+  document.getElementById('mode-down').className='mode-btn'+(mode==='down'?' active':'');
+  document.getElementById('mode-up').className='mode-btn'+(mode==='up'?' active':'');
+  document.getElementById('timer-display').textContent=mode==='down'?'15:00':'0:00';
+};
+
+// ── Child login ──
+window.childLogin = async function(){
+  const code=document.getElementById('child-code-input').value.trim().toUpperCase();
+  const err=document.getElementById('child-code-error');
+  err.textContent='';
+  if(code.length<4){ err.textContent='Sláðu inn kóðann þinn.'; return; }
   try {
-    // Ask for mic
-    await navigator.mediaDevices.getUserMedia({ audio: true });
-
-    // Start session immediately after permission
-    startSession();
-
-  } catch (e) {
-    alert("Míkrafón leyfi þarf til að byrja");
+    document.getElementById('child-code-input').disabled=true;
+    const snap=await getDoc(doc(db,'codes',code));
+    if(!snap.exists()){
+      err.textContent='Kóðinn fannst ekki — athugaðu með foreldri.';
+      document.getElementById('child-code-input').disabled=false; return;
+    }
+    const data=snap.data();
+    currentRole=     'child';
+    currentFamilyId= data.familyId;
+    currentChildKey= data.childKey;
+    currentChildName=data.childName;
+    localStorage.setItem('upphatt_child', JSON.stringify({
+      familyId:data.familyId, childKey:data.childKey, childName:data.childName, code
+    }));
+    setupChildHome();
+    goTo('screen-child-home');
+  } catch(e){
+    err.textContent='Villa: '+e.message;
+    document.getElementById('child-code-input').disabled=false;
   }
 };
 
-function startSession() {
-  startTime = Date.now();
-
-  if (timerInterval) clearInterval(timerInterval);
-
-  timerInterval = setInterval(() => {
-    const elapsed = Math.floor((Date.now() - startTime) / 1000);
-    const min = Math.floor(elapsed / 60);
-    const sec = elapsed % 60;
-    timerEl.textContent = `${min}:${sec.toString().padStart(2, '0')}`;
-  }, 1000);
-
-  console.log("BUILD v4 — timer running");
+function setupChildHome(){
+  document.getElementById('child-name-pill').textContent=currentChildName;
+  document.getElementById('child-hero').textContent=`Halló, ${currentChildName} 🌟`;
+  loadChildSessions();
 }
-</script>
 
+function loadChildSessions(){
+  const q=query(collection(db,'sessions'),
+    where('familyId','==',currentFamilyId),
+    where('childKey','==',currentChildKey));
+  onSnapshot(q, snap=>{
+    const sessions=snap.docs.map(d=>({...d.data()}))
+      .sort((a,b)=>(b.timestamp||0)-(a.timestamp||0));
+    renderWeekDots(sessions,'child-week-dots');
+    const streak=getStreak(sessions);
+    if(streak>1){
+      document.getElementById('child-streak').style.display='inline-flex';
+      document.getElementById('streak-num').textContent=streak;
+    } else {
+      document.getElementById('child-streak').style.display='none';
+    }
+    if(sessions.length){
+      document.getElementById('child-sessions-wrap').style.display='';
+      document.getElementById('child-sessions-list').innerHTML=
+        sessions.slice(0,5).map(s=>`
+          <div class="session">
+            <div class="session-title">${s.title||'Lestur'}${s.pagesRead?` · ${s.pagesRead} bls.`:''}</div>
+            <div class="session-meta">${formatLabel(s.createdAt)||s.date||''} · ${fmtTime(s.seconds||0)}</div>
+          </div>`).join('');
+    }
+  }, e=>console.error('Child listener villa:',e));
+}
+
+// ── Start reading ──
+window.startReading = function(){
+  pendingSession={ title:document.getElementById('read-title').value.trim()||'Lestur', pageStart:parseInt(document.getElementById('page-start').value,10)||null };
+  elapsedSecs=0; readingStartMs=Date.now();
+  audioChunks={start:[],mid:[],end:[]};
+  snippetTimers.forEach(t=>clearTimeout(t)); snippetTimers=[];
+
+  document.getElementById('setup-card').style.display='none';
+  document.getElementById('reading-card').style.display='';
+  document.getElementById('finish-card').style.display='none';
+  const disp=document.getElementById('timer-display');
+  disp.textContent=timerMode==='down'?'15:00':'0:00';
+  disp.className='timer-big running';
+  document.getElementById('timer-status').textContent=timerMode==='down'?'Les upphátt — tíminn líður niður…':'Les upphátt…';
+  document.getElementById('audio-status').textContent='';
+
+  if(timerInterval) clearInterval(timerInterval);
+  timerInterval=setInterval(()=>{
+    elapsedSecs=Math.floor((Date.now()-readingStartMs)/1000);
+    const display=timerMode==='down'?Math.max(0,TARGET-elapsedSecs):elapsedSecs;
+    disp.textContent=fmtTime(display);
+    if(elapsedSecs>=TARGET){ disp.className='timer-big done'; document.getElementById('timer-status').textContent='Markmið náð! 🎉'; }
+  },500);
+
+  startAudio();
+};
+
+async function startAudio(){
+  try {
+    audioStream=await navigator.mediaDevices.getUserMedia({audio:true});
+    recordSnippet('start',60000);
+    const t1=setTimeout(()=>recordSnippet('mid',60000),(TARGET/2-30)*1000);
+    const t2=setTimeout(()=>recordSnippet('end',60000),(TARGET-60)*1000);
+    snippetTimers.push(t1,t2);
+    document.getElementById('audio-status').textContent='🎤 Tekur upp hljóðsýni';
+  } catch(e){
+    document.getElementById('audio-status').textContent='🔇 Hljóðupptaka ekki í boði';
+  }
+}
+
+function recordSnippet(label,duration){
+  if(!audioStream) return;
+  const chunks=[];
+  let rec;
+  try { rec=new MediaRecorder(audioStream,{mimeType:'audio/webm'}); }
+  catch(e){ try{ rec=new MediaRecorder(audioStream); }catch(e2){ return; } }
+  rec.ondataavailable=e=>{if(e.data.size>0)chunks.push(e.data);};
+  rec.onstop=()=>{audioChunks[label]=chunks;};
+  rec.start();
+  setTimeout(()=>{try{rec.stop();}catch(e){}},duration);
+}
+
+function stopAudio(){
+  snippetTimers.forEach(t=>clearTimeout(t)); snippetTimers=[];
+  if(audioStream){audioStream.getTracks().forEach(t=>t.stop());audioStream=null;}
+}
+
+// ── Stop reading ──
+window.stopReading = function(){
+  if(!readingStartMs) return;
+  clearInterval(timerInterval); timerInterval=null;
+  elapsedSecs=Math.floor((Date.now()-readingStartMs)/1000);
+  stopAudio();
+  if(elapsedSecs<60){
+    if(confirm('Þú lasir í minna en 1 mínútu — lota verður ekki vistuð. Hætta við?')){
+      cancelReading(); return;
+    }
+  }
+  document.getElementById('reading-card').style.display='none';
+  document.getElementById('finish-card').style.display='';
+  const mins=Math.floor(elapsedSecs/60);
+  document.getElementById('finish-emoji').textContent=mins>=15?'🏆':mins>=5?'⭐':'👍';
+  document.getElementById('finish-title').textContent=mins>=15?'Frábær lestur!':mins>=5?'Vel gert!':'Byrjunin er góð!';
+  document.getElementById('finish-sub').textContent=`${fmtTime(elapsedSecs)} lesið`;
+  document.getElementById('page-end').oninput=function(){
+    const start=parseInt(document.getElementById('page-start').value,10);
+    const end=parseInt(this.value,10);
+    const pd=document.getElementById('pages-display');
+    if(start&&end&&end>start) pd.textContent=`📖 ${end-start} blaðsíður lesnar!`;
+    else pd.textContent='';
+  };
+};
+
+window.cancelReading = function(){
+  clearInterval(timerInterval); timerInterval=null;
+  stopAudio(); readingStartMs=null; elapsedSecs=0; pendingSession=null;
+  document.getElementById('reading-card').style.display='none';
+  document.getElementById('finish-card').style.display='none';
+  document.getElementById('setup-card').style.display='';
+  document.getElementById('timer-display').textContent=timerMode==='down'?'15:00':'0:00';
+  document.getElementById('timer-display').className='timer-big';
+};
+
+// ── Save session ──
+async function doSaveSession(pageEnd){
+  const err=document.getElementById('save-error');
+  err.textContent='Vistar...';
+  try {
+    const now=new Date();
+    let audioPath=null;
+    const allChunks=[...audioChunks.start,...audioChunks.mid,...audioChunks.end];
+    if(allChunks.length>0){
+      try {
+        const blob=new Blob(allChunks,{type:'audio/webm'});
+        const path=`recordings/${currentFamilyId}/${currentChildKey}/${now.getTime()}.webm`;
+        await uploadBytes(ref(storage,path),blob);
+        audioPath=path;
+        err.textContent='🎤 Hljóð vistað!';
+      } catch(e){ console.error('Storage villa:',e); }
+    }
+    await addDoc(collection(db,'sessions'),{
+      familyId:currentFamilyId, childKey:currentChildKey, childName:currentChildName,
+      title:pendingSession?.title||'Lestur',
+      pageStart:pendingSession?.pageStart||null, pageEnd:pageEnd||null,
+      pagesRead:(pendingSession?.pageStart&&pageEnd)?pageEnd-pendingSession.pageStart:null,
+      seconds:elapsedSecs, timerMode,
+      hasAudio:!!audioPath, audioPath,
+      timestamp:Date.now(), date:makeDateKey(now), createdAt:serverTimestamp()
+    });
+    finishReset();
+  } catch(e){
+    err.textContent='Ekki tókst að vista: '+e.message;
+    console.error(e);
+  }
+}
+
+window.saveSession=function(){
+  const pageEnd=parseInt(document.getElementById('page-end').value,10)||null;
+  doSaveSession(pageEnd);
+};
+window.skipSave=function(){ doSaveSession(null); };
+
+function finishReset(){
+  pendingSession=null; readingStartMs=null;
+  ['finish-card'].forEach(id=>document.getElementById(id).style.display='none');
+  document.getElementById('setup-card').style.display='';
+  document.getElementById('read-title').value='';
+  document.getElementById('page-start').value='';
+  document.getElementById('page-end').value='';
+  document.getElementById('pages-display').textContent='';
+  document.getElementById('save-error').textContent='';
+  document.getElementById('timer-display').textContent=timerMode==='down'?'15:00':'0:00';
+  document.getElementById('timer-display').className='timer-big';
+}
+
+// ── Parent login ──
+window.firebaseLogin = async function(){
+  const email=document.getElementById('login-email').value.trim();
+  const pw=document.getElementById('login-pw').value;
+  const err=document.getElementById('login-error');
+  err.textContent='';
+  try {
+    document.getElementById('login-email').disabled=true;
+    document.getElementById('login-pw').disabled=true;
+    await signInWithEmailAndPassword(auth,email,pw);
+  } catch(e){
+    err.textContent='Innskráning mistókst — athugaðu netfang og lykilorð.';
+    document.getElementById('login-email').disabled=false;
+    document.getElementById('login-pw').disabled=false;
+  }
+};
+
+// ── Auth state ──
+onAuthStateChanged(auth, async (user)=>{
+  if(user){
+    try {
+      const snap=await getDoc(doc(db,'users',user.uid));
+      const profile=snap.exists()?snap.data():null;
+      currentRole=     'parent';
+      currentFamilyId= profile?.familyId||user.uid;
+      currentParentName=profile?.name||'Foreldri';
+      document.getElementById('parent-pill').textContent=currentParentName;
+      document.getElementById('parent-hero').textContent=`Halló, ${currentParentName} 👋`;
+      if(profile?.children){
+        const codesCard=document.getElementById('codes-card');
+        codesCard.style.display='';
+        document.getElementById('codes-list').innerHTML=
+          profile.children.map(c=>`
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #eef3f9">
+              <div style="font-size:13px;font-weight:800;color:var(--deep)">👦 ${c.name}</div>
+              <div style="font-family:Georgia,serif;font-size:22px;font-weight:700;color:var(--moss);letter-spacing:3px">${c.code||''}</div>
+            </div>`).join('')+
+          (profile.familyCode?`<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;margin-top:4px">
+            <div style="font-size:12px;font-weight:800;color:var(--mist)">👨‍👩‍👦 Fjölskyldukóði</div>
+            <div style="font-family:Georgia,serif;font-size:16px;font-weight:700;color:var(--ocean);letter-spacing:2px">${profile.familyCode}</div>
+          </div>`:'');
+      }
+      startFamilyListener();
+      goTo('screen-parent-home');
+    } catch(e){ console.error('Auth villa:',e); }
+    return;
+  }
+  if(familyUnsub){familyUnsub();familyUnsub=null;}
+  familySessions=[];
+  const saved=localStorage.getItem('upphatt_child');
+  if(saved){
+    try {
+      const data=JSON.parse(saved);
+      currentRole=     'child';
+      currentFamilyId= data.familyId;
+      currentChildKey= data.childKey;
+      currentChildName=data.childName;
+      setupChildHome();
+      goTo('screen-child-home');
+      return;
+    } catch(e){localStorage.removeItem('upphatt_child');}
+  }
+  goTo('screen-login');
+});
+
+// ── Family listener ──
+function startFamilyListener(){
+  if(familyUnsub) familyUnsub();
+  const q=query(collection(db,'sessions'),where('familyId','==',currentFamilyId));
+  familyUnsub=onSnapshot(q, snap=>{
+    familySessions=snap.docs.map(d=>({_docId:d.id,...d.data()}))
+      .sort((a,b)=>(b.timestamp||0)-(a.timestamp||0));
+    renderParentHome();
+  }, e=>console.error('Family listener villa:',e));
+}
+
+// ── Parent home ──
+function renderParentHome(){
+  const root=document.getElementById('parent-content');
+  const groups={};
+  familySessions.forEach(s=>{if(!groups[s.childKey])groups[s.childKey]=[];groups[s.childKey].push(s);});
+  const keys=Object.keys(groups);
+  if(!keys.length){
+    root.innerHTML=`<div class="card"><div class="notice" style="text-align:center;padding:20px">Engar lotur enn — þegar barn klárar lestur birtist hún hér strax! 📖</div></div>`;
+    return;
+  }
+  root.innerHTML=keys.map(key=>{
+    const list=groups[key];
+    const childName=list[0]?.childName||key;
+    const totalSecs=list.reduce((a,s)=>a+(s.seconds||0),0);
+    const streak=getStreak(list);
+    const weekId=`week-${key}`;
+    return `
+      <div class="card">
+        <div class="group-title">${childName}</div>
+        <div class="stat-row">
+          <div class="stat-box"><div class="stat-val">${list.length}</div><div class="stat-lbl">Lotur</div></div>
+          <div class="stat-box"><div class="stat-val">${Math.round(totalSecs/60)}m</div><div class="stat-lbl">Samtals</div></div>
+          <div class="stat-box"><div class="stat-val">🔥${streak}</div><div class="stat-lbl">Röð</div></div>
+        </div>
+        <div class="week-dots" id="${weekId}" style="margin-bottom:14px"></div>
+        ${list.slice(0,8).map(s=>`
+          <div class="session">
+            <div class="session-title">${s.title||'Lestur'}${s.pagesRead?` · ${s.pagesRead} bls.`:''}</div>
+            <div class="session-meta">${formatLabel(s.createdAt)||s.date||''} · ${fmtTime(s.seconds||0)}${s.pageStart&&s.pageEnd?` · bls. ${s.pageStart}–${s.pageEnd}`:''}</div>
+            ${s.hasAudio&&s.audioPath?`
+              <div class="audio-box">
+                <button onclick="playAudio('${s.audioPath}','adiv-${s._docId}')"
+                  style="background:var(--moss);border:none;border-radius:50px;padding:6px 16px;font-size:12px;font-weight:800;color:#fff;cursor:pointer;">
+                  ▶ Hlusta á sýni (3 mín)
+                </button>
+                <div id="adiv-${s._docId}"></div>
+              </div>`:''}
+          </div>`).join('')}
+      </div>`;
+  }).join('');
+  keys.forEach(key=>renderWeekDots(groups[key],`week-${key}`));
+}
+
+// ── Audio player ──
+window.playAudio = async function(path, containerId){
+  const el=document.getElementById(containerId); if(!el) return;
+  el.innerHTML='<div style="font-size:11px;color:var(--mist);font-weight:700;padding:6px 0">⏳ Hleður hljóð...</div>';
+  try {
+    const url=await getDownloadURL(ref(storage,path));
+    el.innerHTML=`<audio controls autoplay preload="none" src="${url}" style="width:100%;margin-top:8px;border-radius:8px"></audio>`;
+  } catch(e){
+    el.innerHTML=`<div style="font-size:11px;color:var(--coral);font-weight:700;padding:6px 0">Ekki tókst að hlaða hljóði</div>`;
+    console.error('getDownloadURL villa:',e);
+  }
+};
+
+// ── Logout ──
+window.logout = async function(){
+  if(currentRole==='child'){
+    if(confirm('Skrá þig út? Þú þarft kóðann aftur til að skrá þig inn.')){
+      localStorage.removeItem('upphatt_child');
+      currentRole=null;currentFamilyId=null;currentChildKey=null;currentChildName=null;
+      cancelReading();
+      goTo('screen-login');
+    }
+    return;
+  }
+  if(familyUnsub){familyUnsub();familyUnsub=null;}
+  await signOut(auth);
+};
+</script>
 </body>
 </html>

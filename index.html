@@ -76,7 +76,7 @@ audio{width:100%;border-radius:8px}
 </style>
 </head>
 <body>
- 
+
 <!-- LOGIN -->
 <div id="screen-login" class="screen active">
   <div class="scroll-body" style="display:flex;align-items:center;justify-content:center;min-height:100vh;">
@@ -96,7 +96,7 @@ audio{width:100%;border-radius:8px}
     </div>
   </div>
 </div>
- 
+
 <!-- PARENT LOGIN -->
 <div id="screen-parent-login" class="screen">
   <div class="topbar">
@@ -118,7 +118,7 @@ audio{width:100%;border-radius:8px}
     </div>
   </div>
 </div>
- 
+
 <!-- CHILD LOGIN -->
 <div id="screen-child-login" class="screen">
   <div class="topbar">
@@ -152,7 +152,7 @@ audio{width:100%;border-radius:8px}
     </div>
   </div>
 </div>
- 
+
 <!-- CHILD HOME -->
 <div id="screen-child-home" class="screen">
   <div class="topbar">
@@ -161,17 +161,41 @@ audio{width:100%;border-radius:8px}
     <div class="pill" id="child-name-pill">Barn</div>
   </div>
   <div class="scroll-body">
-    <div class="hero green">
+
+    <!-- Hero með streak -->
+    <div class="hero green" id="child-hero-card">
       <div class="hero-label">Hæ!</div>
       <h1 id="child-hero">Ertu tilbúinn að lesa? 🌟</h1>
-      <div id="child-streak" class="streak-badge" style="display:none">🔥 <span id="streak-num">0</span> daga röð</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+        <div id="child-streak" style="display:none;background:rgba(255,184,48,0.25);border:1.5px solid rgba(255,184,48,0.6);border-radius:50px;padding:5px 14px;font-size:13px;font-weight:800;color:#fff">
+          🔥 <span id="streak-num">0</span> daga röð
+        </div>
+        <div id="child-shields" style="display:none;background:rgba(255,255,255,0.2);border-radius:50px;padding:5px 14px;font-size:13px;font-weight:800;color:#fff">
+          🛡️ <span id="shields-num">0</span> frídagar
+        </div>
+      </div>
     </div>
- 
+
+    <!-- Skjaldaboð — ef streak í hættu -->
+    <div id="shield-warning" style="display:none;background:#fff3cd;border-radius:14px;padding:14px;margin-bottom:12px;border-left:4px solid var(--sun)">
+      <div style="font-size:13px;font-weight:800;color:#856404">⚠️ Streak í hættu!</div>
+      <div style="font-size:12px;color:#856404;margin-top:3px" id="shield-warning-text">Les í dag til að halda röðinni.</div>
+    </div>
+
+    <!-- Vikudottar -->
     <div class="card" id="child-week-card">
       <div style="font-size:11px;font-weight:800;color:var(--mist);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">Þessi vika — markmið: 15 mín/dag</div>
       <div class="week-dots" id="child-week-dots"></div>
     </div>
- 
+
+    <!-- Verðlaun milestone -->
+    <div id="milestone-card" style="display:none;background:linear-gradient(135deg,var(--sun),#e8900a);border-radius:18px;padding:18px;margin-bottom:12px;text-align:center;color:var(--deep)">
+      <div style="font-size:36px;margin-bottom:6px" id="milestone-icon">🌱</div>
+      <div style="font-family:Georgia,serif;font-size:18px;font-weight:700" id="milestone-title">Verðlaun!</div>
+      <div style="font-size:13px;margin-top:4px;font-weight:600;opacity:.8" id="milestone-text"></div>
+    </div>
+
+    <!-- Setja upp lestrarlotur -->
     <div class="card" id="setup-card">
       <div style="font-size:13px;font-weight:800;color:var(--deep);margin-bottom:12px">Setja upp lestrarlotur</div>
       <div class="form-group">
@@ -189,7 +213,8 @@ audio{width:100%;border-radius:8px}
       </div>
       <button class="btn btn-primary" onclick="startReading()">🎤 Byrja að lesa</button>
     </div>
- 
+
+    <!-- Tíminn í gangi -->
     <div class="card" id="reading-card" style="display:none">
       <div class="timer-wrap">
         <div class="timer-big" id="timer-display">15:00</div>
@@ -199,12 +224,13 @@ audio{width:100%;border-radius:8px}
       <button class="btn btn-success" onclick="stopReading()">⏹ Klára lestrarlotur</button>
       <button class="btn btn-ghost" onclick="cancelReading()" style="margin-top:10px">Hætta við</button>
     </div>
- 
+
+    <!-- Lokaskjár -->
     <div class="card" id="finish-card" style="display:none">
       <div style="text-align:center;margin-bottom:16px">
         <div style="font-size:48px" id="finish-emoji">🎉</div>
         <div style="font-family:Georgia,serif;font-size:22px;font-weight:700;color:var(--deep)" id="finish-title">Frábær lestur!</div>
-        <div style="font-size:13px;color:var(--mist);margin-top:4px" id="finish-sub">Lotan er að vistast...</div>
+        <div style="font-size:13px;color:var(--mist);margin-top:4px" id="finish-sub"></div>
       </div>
       <div class="form-group">
         <label>Hvaða blaðsíðu ertu kominn á? (valfrjálst)</label>
@@ -215,14 +241,16 @@ audio{width:100%;border-radius:8px}
       <button class="btn btn-primary" onclick="saveSession()">✅ Vista og klára</button>
       <button class="btn btn-ghost" onclick="skipSave()" style="margin-top:10px">Sleppa blaðsíðutali</button>
     </div>
- 
+
+    <!-- Síðustu lotur -->
     <div id="child-sessions-wrap" style="display:none">
       <div style="font-size:11px;font-weight:800;color:var(--mist);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">Síðustu lotur</div>
       <div class="card" id="child-sessions-list"></div>
     </div>
+
   </div>
 </div>
- 
+
 <!-- PARENT HOME -->
 <div id="screen-parent-home" class="screen">
   <div class="topbar">
@@ -245,7 +273,7 @@ audio{width:100%;border-radius:8px}
     </div>
   </div>
 </div>
- 
+
 <script type="module">
 import { initializeApp }    from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js';
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut }
@@ -254,7 +282,7 @@ import { getFirestore, collection, addDoc, doc, getDoc, onSnapshot, query, where
                              from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js';
 import { getStorage, ref, uploadBytes, getDownloadURL }
                              from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-storage.js';
- 
+
 const firebaseConfig = {
   apiKey: 'AIzaSyAgTY3Uxd9_ZxixjqLj-sH8V3OhFAzg6DU',
   authDomain: 'lesum-22e85.firebaseapp.com',
@@ -263,12 +291,12 @@ const firebaseConfig = {
   messagingSenderId: '204392598388',
   appId: '1:204392598388:web:2dbbe3f476cd78d2ffba21'
 };
- 
+
 const app     = initializeApp(firebaseConfig);
 const auth    = getAuth(app);
 const db      = getFirestore(app);
 const storage = getStorage(app);
- 
+
 // ── State ──
 let currentRole      = null;
 let currentFamilyId  = null;
@@ -286,14 +314,14 @@ const TARGET         = 15 * 60;
 let audioStream      = null;
 let audioChunks      = { start:[], mid:[], end:[] };
 let snippetTimers    = [];
- 
+
 // ── Nav ──
 window.goTo = function(id){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   window.scrollTo(0,0);
 };
- 
+
 // ── Helpers ──
 function fmtTime(s){ return `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`; }
 function makeDateKey(d){ return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`; }
@@ -329,7 +357,7 @@ function getStreak(sessions){
   }
   return streak;
 }
- 
+
 // ── Timer mode ──
 window.setMode = function(mode){
   timerMode=mode;
@@ -337,7 +365,7 @@ window.setMode = function(mode){
   document.getElementById('mode-up').className='mode-btn'+(mode==='up'?' active':'');
   document.getElementById('timer-display').textContent=mode==='down'?'15:00':'0:00';
 };
- 
+
 // ── Child login ──
 window.childLogin = async function(){
   const code=document.getElementById('child-code-input').value.trim().toUpperCase();
@@ -366,47 +394,206 @@ window.childLogin = async function(){
     document.getElementById('child-code-input').disabled=false;
   }
 };
- 
+
 function setupChildHome(){
   document.getElementById('child-name-pill').textContent=currentChildName;
   document.getElementById('child-hero').textContent=`Halló, ${currentChildName} 🌟`;
   loadChildSessions();
 }
- 
-function loadChildSessions(){
-  const q=query(collection(db,'sessions'),
-    where('familyId','==',currentFamilyId),
-    where('childKey','==',currentChildKey));
-  onSnapshot(q, snap=>{
-    const sessions=snap.docs.map(d=>({...d.data()}))
-      .sort((a,b)=>(b.timestamp||0)-(a.timestamp||0));
-    renderWeekDots(sessions,'child-week-dots');
-    const streak=getStreak(sessions);
-    if(streak>1){
-      document.getElementById('child-streak').style.display='inline-flex';
-      document.getElementById('streak-num').textContent=streak;
-    } else {
-      document.getElementById('child-streak').style.display='none';
+
+// ── Hljóðviðbrögð ──
+function playSound(type) {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const now = ctx.currentTime;
+
+    if (type === 'done') {
+      // Þrjár hækkaðar nótur — "vel gert"
+      [[523,0],[659,0.15],[784,0.3],[1047,0.5]].forEach(([freq,delay]) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.frequency.value = freq; osc.type = 'sine';
+        gain.gain.setValueAtTime(0.3, now+delay);
+        gain.gain.exponentialRampToValueAtTime(0.001, now+delay+0.4);
+        osc.start(now+delay); osc.stop(now+delay+0.5);
+      });
+    } else if (type === 'milestone') {
+      // Fanfara — verðlaun
+      [[523,0],[659,0.1],[784,0.2],[1047,0.35],[1047,0.55]].forEach(([freq,delay]) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.frequency.value = freq; osc.type = 'triangle';
+        gain.gain.setValueAtTime(0.35, now+delay);
+        gain.gain.exponentialRampToValueAtTime(0.001, now+delay+0.5);
+        osc.start(now+delay); osc.stop(now+delay+0.6);
+      });
+    } else if (type === 'streak') {
+      // Sigurhrina
+      [[392,0],[523,0.2],[659,0.4],[784,0.6],[1047,0.8]].forEach(([freq,delay]) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.frequency.value = freq; osc.type = 'sine';
+        gain.gain.setValueAtTime(0.25, now+delay);
+        gain.gain.exponentialRampToValueAtTime(0.001, now+delay+0.6);
+        osc.start(now+delay); osc.stop(now+delay+0.7);
+      });
     }
-    if(sessions.length){
-      document.getElementById('child-sessions-wrap').style.display='';
-      document.getElementById('child-sessions-list').innerHTML=
-        sessions.slice(0,5).map(s=>`
+  } catch(e) { /* hljóð ekki stutt */ }
+}
+
+// ── Milestones ──
+const MILESTONES = [
+  { count: 1,  icon: '🌱', title: 'Fyrsta skrefið!',    text: 'Þú kláraðir fyrstu lotuna!' },
+  { count: 5,  icon: '⭐', title: 'Fimm lotur!',         text: 'Þú ert að verða lesari!' },
+  { count: 10, icon: '🦁', title: 'Sterkur lesari!',     text: 'Tíu lotur — stórkostlegt!' },
+  { count: 20, icon: '🏆', title: 'Meistarinn!',         text: 'Tuttugu lotur — þú ert snillingur!' },
+  { count: 50, icon: '🚀', title: 'Lestrarhetja!',       text: 'Fimmtíu lotur — ótrúlegt!' },
+];
+
+function checkMilestone(totalSessions) {
+  const m = MILESTONES.find(m => m.count === totalSessions);
+  if (!m) return;
+
+  const card = document.getElementById('milestone-card');
+  document.getElementById('milestone-icon').textContent  = m.icon;
+  document.getElementById('milestone-title').textContent = m.title;
+  document.getElementById('milestone-text').textContent  = m.text;
+  card.style.display = '';
+
+  // Fela eftir 8 sek
+  setTimeout(() => { card.style.display = 'none'; }, 8000);
+  setTimeout(() => playSound('milestone'), 300);
+}
+
+// ── Skjaldakerfi ──
+function getShields() {
+  return parseInt(localStorage.getItem('upphatt_shields_' + currentChildKey) || '0');
+}
+function setShields(n) {
+  localStorage.setItem('upphatt_shields_' + currentChildKey, Math.max(0, n));
+}
+function checkAndGrantShield(streak) {
+  const given = parseInt(localStorage.getItem('upphatt_shields_given_' + currentChildKey) || '0');
+  const earned = Math.floor(streak / 7);
+  if (earned > given) {
+    const newShields = earned - given;
+    localStorage.setItem('upphatt_shields_given_' + currentChildKey, earned);
+    setShields(getShields() + newShields);
+    return newShields;
+  }
+  return 0;
+}
+
+// ── Streakur með skjaldakerfi ──
+function getStreakWithShields(sessions) {
+  if (!sessions.length) return 0;
+  const shields = getShields();
+  let streak = 0;
+  let shieldsUsed = 0;
+  const d = new Date();
+
+  for (let i = 0; i < 180; i++) {
+    const k = makeDateKey(d);
+    const hasSession = sessions.some(s => s.date === k && (s.seconds || 0) >= 60);
+    if (hasSession) {
+      streak++; d.setDate(d.getDate() - 1);
+    } else if (i === 0) {
+      d.setDate(d.getDate() - 1); // í dag — ekki ennþá lesið
+    } else if (shieldsUsed < shields) {
+      shieldsUsed++; streak++; d.setDate(d.getDate() - 1);
+    } else {
+      break;
+    }
+  }
+  return streak;
+}
+
+// ── Hlaða barnaötu og uppfæra UI ──
+function loadChildSessions() {
+
+  const q = query(
+    collection(db, 'sessions'),
+    where('familyId', '==', currentFamilyId),
+    where('childKey', '==', currentChildKey)
+  );
+
+  onSnapshot(q, snap => {
+
+    const sessions = snap.docs.map(d => ({ ...d.data() }))
+      .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+
+    const total  = sessions.length;
+    const streak = getStreakWithShields(sessions);
+    const shields = getShields();
+
+    // Vikudottar
+    renderWeekDots(sessions, 'child-week-dots');
+
+    // Streak pill
+    if (streak > 0) {
+      document.getElementById('child-streak').style.display = 'inline-flex';
+      document.getElementById('streak-num').textContent = streak;
+    } else {
+      document.getElementById('child-streak').style.display = 'none';
+    }
+
+    // Skjaldapillur
+    if (shields > 0) {
+      document.getElementById('child-shields').style.display = 'inline-flex';
+      document.getElementById('shields-num').textContent = shields;
+    } else {
+      document.getElementById('child-shields').style.display = 'none';
+    }
+
+    // Athuga hvort skjöldur sé unninn
+    const newShields = checkAndGrantShield(streak);
+    if (newShields > 0) {
+      setTimeout(() => playSound('streak'), 300);
+    }
+
+    // Streak í hættu?
+    const today     = makeDateKey(new Date());
+    const yesterday = makeDateKey(new Date(Date.now() - 86400000));
+    const readToday = sessions.some(s => s.date === today && (s.seconds || 0) >= 60);
+    const readYesterday = sessions.some(s => s.date === yesterday && (s.seconds || 0) >= 60);
+    const warningEl = document.getElementById('shield-warning');
+    const warningText = document.getElementById('shield-warning-text');
+
+    if (!readToday && readYesterday && streak > 1) {
+      warningEl.style.display = '';
+      if (shields > 0) {
+        warningText.textContent = `Þú átt ${shields} frídaga — ef þú gleymir er skjöldurinn notaður sjálfkrafa.`;
+      } else {
+        warningText.textContent = `Les í dag til að halda ${streak} daga röðinni!`;
+      }
+    } else {
+      warningEl.style.display = 'none';
+    }
+
+    // Síðustu lotur
+    if (sessions.length) {
+      document.getElementById('child-sessions-wrap').style.display = '';
+      document.getElementById('child-sessions-list').innerHTML =
+        sessions.slice(0, 5).map(s => `
           <div class="session">
-            <div class="session-title">${s.title||'Lestur'}${s.pagesRead?` · ${s.pagesRead} bls.`:''}</div>
-            <div class="session-meta">${formatLabel(s.createdAt)||s.date||''} · ${fmtTime(s.seconds||0)}</div>
+            <div class="session-title">${s.title || 'Lestur'}${s.pagesRead ? ` · ${s.pagesRead} bls.` : ''}</div>
+            <div class="session-meta">${formatLabel(s.createdAt) || s.date || ''} · ${fmtTime(s.seconds || 0)}</div>
           </div>`).join('');
     }
-  }, e=>console.error('Child listener villa:',e));
+
+  }, e => console.error('Child listener villa:', e));
 }
- 
+
 // ── Start reading ──
 window.startReading = function(){
   pendingSession={ title:document.getElementById('read-title').value.trim()||'Lestur', pageStart:parseInt(document.getElementById('page-start').value,10)||null };
   elapsedSecs=0; readingStartMs=Date.now();
   audioChunks={start:[],mid:[],end:[]};
   snippetTimers.forEach(t=>clearTimeout(t)); snippetTimers=[];
- 
+
   document.getElementById('setup-card').style.display='none';
   document.getElementById('reading-card').style.display='';
   document.getElementById('finish-card').style.display='none';
@@ -415,7 +602,7 @@ window.startReading = function(){
   disp.className='timer-big running';
   document.getElementById('timer-status').textContent=timerMode==='down'?'Les upphátt — tíminn líður niður…':'Les upphátt…';
   document.getElementById('audio-status').textContent='';
- 
+
   if(timerInterval) clearInterval(timerInterval);
   timerInterval=setInterval(()=>{
     elapsedSecs=Math.floor((Date.now()-readingStartMs)/1000);
@@ -423,26 +610,25 @@ window.startReading = function(){
     disp.textContent=fmtTime(display);
     if(elapsedSecs>=TARGET){ disp.className='timer-big done'; document.getElementById('timer-status').textContent='Markmið náð! 🎉'; }
   },500);
- 
+
   startAudio();
 };
- 
+
 async function startAudio(){
   try {
     audioStream=await navigator.mediaDevices.getUserMedia({audio:true});
-    // Byrja eftir 1 mín — 15 sek sýni
-    const t0=setTimeout(()=>recordSnippet('start',15000), 60000);
-    // Miðja — eftir 7 mín — 15 sek sýni  
-    const t1=setTimeout(()=>recordSnippet('mid',15000), 7*60*1000);
-    // Lok — eftir 12 mín — 15 sek sýni
-    const t2=setTimeout(()=>recordSnippet('end',15000), 12*60*1000);
-    snippetTimers.push(t0,t1,t2);
-    document.getElementById('audio-status').textContent='🎤 Hljóðsýni verða tekin á 1, 7 og 12 mín';
+    // 4 handahófskenndar mínútur — 15 sek hvert sýni (~300KB hver)
+    const minutes = [1, 5, 9, 13].map(m => m*60*1000);
+    minutes.forEach((ms, i) => {
+      const t = setTimeout(()=>recordSnippet('s'+i, 15000), ms);
+      snippetTimers.push(t);
+    });
+    document.getElementById('audio-status').textContent='🎤 Hljóðsýni á mín. 1, 5, 9 og 13';
   } catch(e){
     document.getElementById('audio-status').textContent='🔇 Hljóðupptaka ekki í boði';
   }
 }
- 
+
 function getSupportedMimeType(){
   const types = ['audio/mp4','audio/aac','audio/webm;codecs=opus','audio/webm','audio/ogg'];
   for(const t of types){
@@ -450,7 +636,7 @@ function getSupportedMimeType(){
   }
   return '';
 }
- 
+
 function recordSnippet(label,duration){
   if(!audioStream) return;
   const chunks=[];
@@ -463,12 +649,12 @@ function recordSnippet(label,duration){
   rec.start();
   setTimeout(()=>{try{rec.stop();}catch(e){}},duration);
 }
- 
+
 function stopAudio(){
   snippetTimers.forEach(t=>clearTimeout(t)); snippetTimers=[];
   if(audioStream){audioStream.getTracks().forEach(t=>t.stop());audioStream=null;}
 }
- 
+
 // ── Stop reading ──
 window.stopReading = function(){
   if(!readingStartMs) return;
@@ -483,9 +669,12 @@ window.stopReading = function(){
   document.getElementById('reading-card').style.display='none';
   document.getElementById('finish-card').style.display='';
   const mins=Math.floor(elapsedSecs/60);
-  document.getElementById('finish-emoji').textContent=mins>=15?'🏆':mins>=5?'⭐':'👍';
-  document.getElementById('finish-title').textContent=mins>=15?'Frábær lestur!':mins>=5?'Vel gert!':'Byrjunin er góð!';
-  document.getElementById('finish-sub').textContent=`${fmtTime(elapsedSecs)} lesið`;
+  document.getElementById('finish-emoji').textContent  = mins>=15?'🏆':mins>=5?'⭐':'👍';
+  document.getElementById('finish-title').textContent  = mins>=15?'Frábær lestur!':mins>=5?'Vel gert!':'Byrjunin er góð!';
+  document.getElementById('finish-sub').textContent    = `${fmtTime(elapsedSecs)} lesið — skráðu blaðsíðuna til að rekja framfarir`;
+
+  // Hljóð eftir gæðum
+  setTimeout(() => playSound(mins >= 15 ? 'streak' : 'done'), 400);
   document.getElementById('page-end').oninput=function(){
     const start=parseInt(document.getElementById('page-start').value,10);
     const end=parseInt(this.value,10);
@@ -494,7 +683,7 @@ window.stopReading = function(){
     else pd.textContent='';
   };
 };
- 
+
 window.cancelReading = function(){
   clearInterval(timerInterval); timerInterval=null;
   stopAudio(); readingStartMs=null; elapsedSecs=0; pendingSession=null;
@@ -504,7 +693,7 @@ window.cancelReading = function(){
   document.getElementById('timer-display').textContent=timerMode==='down'?'15:00':'0:00';
   document.getElementById('timer-display').className='timer-big';
 };
- 
+
 // ── Save session ──
 async function doSaveSession(pageEnd){
   const err=document.getElementById('save-error');
@@ -512,10 +701,10 @@ async function doSaveSession(pageEnd){
   try {
     const now=new Date();
     let audioPath=null;
-    const allChunks=[...audioChunks.start,...audioChunks.mid,...audioChunks.end];
+    const allChunks=[...( audioChunks.s0||[]),...(audioChunks.s1||[]),...(audioChunks.s2||[]),...(audioChunks.s3||[])];
     if(allChunks.length>0){
       try {
-        const mimeType = audioChunks['start_mime'] || audioChunks['mid_mime'] || audioChunks['end_mime'] || 'audio/webm';
+        const mimeType = audioChunks['s0_mime']||audioChunks['s1_mime']||audioChunks['s2_mime']||audioChunks['s3_mime']||'audio/webm';
         const ext = mimeType.includes('mp4') ? 'mp4' : mimeType.includes('ogg') ? 'ogg' : 'webm';
         const blob=new Blob(allChunks,{type:mimeType});
         const path=`recordings/${currentFamilyId}/${currentChildKey}/${now.getTime()}.${ext}`;
@@ -533,19 +722,24 @@ async function doSaveSession(pageEnd){
       hasAudio:!!audioPath, audioPath,
       timestamp:Date.now(), date:makeDateKey(now), createdAt:serverTimestamp()
     });
+
+    // Milestone — notum fjölda úr family cache
+    const myCount = (familySessions||[]).filter(s=>s.childKey===currentChildKey).length + 1;
+    checkMilestone(myCount);
+
     finishReset();
   } catch(e){
     err.textContent='Ekki tókst að vista: '+e.message;
     console.error(e);
   }
 }
- 
+
 window.saveSession=function(){
   const pageEnd=parseInt(document.getElementById('page-end').value,10)||null;
   doSaveSession(pageEnd);
 };
 window.skipSave=function(){ doSaveSession(null); };
- 
+
 function finishReset(){
   pendingSession=null; readingStartMs=null;
   ['finish-card'].forEach(id=>document.getElementById(id).style.display='none');
@@ -558,7 +752,7 @@ function finishReset(){
   document.getElementById('timer-display').textContent=timerMode==='down'?'15:00':'0:00';
   document.getElementById('timer-display').className='timer-big';
 }
- 
+
 // ── Parent login ──
 window.firebaseLogin = async function(){
   const email=document.getElementById('login-email').value.trim();
@@ -575,7 +769,7 @@ window.firebaseLogin = async function(){
     document.getElementById('login-pw').disabled=false;
   }
 };
- 
+
 // ── Auth state ──
 onAuthStateChanged(auth, async (user)=>{
   if(user){
@@ -584,9 +778,11 @@ onAuthStateChanged(auth, async (user)=>{
       const profile=snap.exists()?snap.data():null;
       currentRole=     'parent';
       currentFamilyId= profile?.familyId||user.uid;
-      currentParentName=profile?.name||'Foreldri';
-      document.getElementById('parent-pill').textContent=currentParentName;
-      document.getElementById('parent-hero').textContent=`Halló, ${currentParentName} 👋`;
+      currentParentName = (profile?.name || 'Foreldri').split(' ')[0];
+      window._parentChildren = profile?.children || []; // geyma börn
+      window._expandedChildren = {}; // rekja hverjir eru opnir
+      document.getElementById('parent-pill').textContent  = currentParentName;
+      document.getElementById('parent-hero').textContent  = `Góðan dag, ${currentParentName}`;
       if(profile?.children){
         const codesCard=document.getElementById('codes-card');
         codesCard.style.display='';
@@ -623,7 +819,7 @@ onAuthStateChanged(auth, async (user)=>{
   }
   goTo('screen-login');
 });
- 
+
 // ── Family listener ──
 function startFamilyListener(){
   if(familyUnsub) familyUnsub();
@@ -634,50 +830,182 @@ function startFamilyListener(){
     renderParentHome();
   }, e=>console.error('Family listener villa:',e));
 }
- 
+
 // ── Parent home ──
-function renderParentHome(){
-  const root=document.getElementById('parent-content');
-  const groups={};
-  familySessions.forEach(s=>{if(!groups[s.childKey])groups[s.childKey]=[];groups[s.childKey].push(s);});
-  const keys=Object.keys(groups);
-  if(!keys.length){
-    root.innerHTML=`<div class="card"><div class="notice" style="text-align:center;padding:20px">Engar lotur enn — þegar barn klárar lestur birtist hún hér strax! 📖</div></div>`;
+// ── Parent home ──
+function renderParentHome() {
+
+  const root  = document.getElementById('parent-content');
+  const today = makeDateKey(new Date());
+  const mon   = getMonday();
+
+  // Flokka lotur eftir barni
+  const groups = {};
+  familySessions.forEach(s => {
+    if (!groups[s.childKey]) groups[s.childKey] = [];
+    groups[s.childKey].push(s);
+  });
+
+  // Sameina börn úr profile og sessions — sýna öll börn
+  const profileChildren = window._parentChildren || [];
+  const allKeys = [...new Set([
+    ...profileChildren.map(c => c.key),
+    ...Object.keys(groups)
+  ])];
+
+  if (!allKeys.length) {
+    root.innerHTML = `
+      <div style="background:#fff;border-radius:18px;padding:32px 20px;text-align:center;box-shadow:var(--card-shadow)">
+        <div style="font-size:40px;margin-bottom:12px">📖</div>
+        <div style="font-size:15px;font-weight:700;color:var(--deep)">Engar lotur enn</div>
+        <div style="font-size:13px;color:var(--mist);margin-top:6px">Þegar barn klárar lestur birtist hún hér strax</div>
+      </div>`;
     return;
   }
-  root.innerHTML=keys.map(key=>{
-    const list=groups[key];
-    const childName=list[0]?.childName||key;
-    const totalSecs=list.reduce((a,s)=>a+(s.seconds||0),0);
-    const streak=getStreak(list);
-    const weekId=`week-${key}`;
-    return `
-      <div class="card">
-        <div class="group-title">${childName}</div>
-        <div class="stat-row">
-          <div class="stat-box"><div class="stat-val">${list.length}</div><div class="stat-lbl">Lotur</div></div>
-          <div class="stat-box"><div class="stat-val">${Math.round(totalSecs/60)}m</div><div class="stat-lbl">Samtals</div></div>
-          <div class="stat-box"><div class="stat-val">🔥${streak}</div><div class="stat-lbl">Röð</div></div>
+
+  const DAYS = ['Mán','Þri','Mið','Fim','Fös','Lau','Sun'];
+
+  const childCards = allKeys.map(key => {
+
+    const list      = groups[key] || [];
+    const profChild = profileChildren.find(c => c.key === key);
+    const childName = list[0]?.childName || profChild?.name || key;
+    const readToday = list.some(s => s.date === today && (s.seconds||0) >= 60);
+    const streak    = getStreak(list);
+    const isExpanded = !!(window._expandedChildren && window._expandedChildren[key]);
+
+    // Vikudagar með mínútur og play merki
+    const weekDays = DAYS.map((lbl, i) => {
+      const d = new Date(mon); d.setDate(mon.getDate() + i);
+      const k = makeDateKey(d);
+      const daySessions = list.filter(s => s.date === k && (s.seconds||0) >= 60);
+      const mins = daySessions.reduce((a,s) => a + Math.floor((s.seconds||0)/60), 0);
+      const hasAudio = daySessions.some(s => s.hasAudio && s.audioPath);
+      const audioPath = daySessions.find(s => s.hasAudio && s.audioPath)?.audioPath;
+      const docId = (daySessions.find(s => s._docId)?._docId || k+key).replace(/[^a-z0-9]/gi,'');
+      const isToday = k === today;
+      const bg  = mins >= 15 ? '#4CAF7D' : mins > 0 ? '#b8e0c8' : '#f0f4f9';
+      const col = mins >= 15 ? '#fff' : mins > 0 ? '#2e7a4f' : '#aab7c4';
+      const border = isToday ? '2px solid var(--ocean)' : '2px solid transparent';
+      return `
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px">
+          <div style="font-size:8px;font-weight:800;color:var(--mist);text-transform:uppercase">${lbl}</div>
+          <div style="width:100%;aspect-ratio:1;border-radius:8px;background:${bg};border:${border};
+            display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;
+            cursor:${hasAudio?'pointer':'default'};position:relative"
+            ${hasAudio ? `onclick="playDayAudio('${audioPath}','adiv-${docId}')"` : ''}>
+            <div style="font-size:8px;font-weight:800;color:${col}">${mins>0?mins+'m':'—'}</div>
+            ${hasAudio ? '<div style="font-size:8px;color:'+col+'">▶</div>' : ''}
+          </div>
+          <div id="adiv-${docId}" style="display:none;position:absolute;z-index:10;width:280px;left:0;top:50px;background:#fff;border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,0.15);padding:8px"></div>
+        </div>`;
+    }).join('');
+
+    // Síðustu lotur þegar opið
+    const sessionList = isExpanded ? list.slice(0, 8).map(s => `
+      <div style="padding:8px 0;border-bottom:1px solid #f7fafc;display:flex;align-items:flex-start;justify-content:space-between;gap:8px">
+        <div style="flex:1;min-width:0">
+          <div style="font-size:12px;font-weight:700;color:var(--deep)">${s.title||'Lestur'}${s.pagesRead?' · '+s.pagesRead+' bls.':''}</div>
+          <div style="font-size:10px;color:var(--mist);margin-top:1px">${formatLabel(s.createdAt)||s.date||''}</div>
+          ${s.hasAudio && s.audioPath ? `
+            <button onclick="playAudio('${s.audioPath}','adiv2-${s._docId}')"
+              style="margin-top:4px;background:#f0f9f4;border:1px solid #4CAF7D;border-radius:50px;padding:3px 10px;font-size:10px;font-weight:800;color:#1a7a3f;cursor:pointer">
+              ▶ Hlusta
+            </button>
+            <div id="adiv2-${s._docId}"></div>` : ''}
         </div>
-        <div class="week-dots" id="${weekId}" style="margin-bottom:14px"></div>
-        ${list.slice(0,8).map(s=>`
-          <div class="session">
-            <div class="session-title">${s.title||'Lestur'}${s.pagesRead?` · ${s.pagesRead} bls.`:''}</div>
-            <div class="session-meta">${formatLabel(s.createdAt)||s.date||''} · ${fmtTime(s.seconds||0)}${s.pageStart&&s.pageEnd?` · bls. ${s.pageStart}–${s.pageEnd}`:''}</div>
-            ${s.hasAudio&&s.audioPath?`
-              <div class="audio-box">
-                <button onclick="playAudio('${s.audioPath}','adiv-${s._docId}')"
-                  style="background:var(--moss);border:none;border-radius:50px;padding:6px 16px;font-size:12px;font-weight:800;color:#fff;cursor:pointer;">
-                  ▶ Hlusta á sýni (3 mín)
-                </button>
-                <div id="adiv-${s._docId}"></div>
-              </div>`:''}
-          </div>`).join('')}
+        <div style="font-size:13px;font-weight:800;color:var(--ocean);flex-shrink:0">${fmtTime(s.seconds||0)}</div>
+      </div>`).join('') : '';
+
+    return `
+      <div style="background:#fff;border-radius:18px;margin-bottom:14px;box-shadow:var(--card-shadow);overflow:hidden">
+        <div style="padding:14px 16px;display:flex;align-items:center;justify-content:space-between">
+          <div style="font-size:16px;font-weight:800;color:var(--deep)">${childName}</div>
+          <div style="display:flex;align-items:center;gap:6px">
+            ${streak > 1 ? `<div style="background:#fff8e6;border:1.5px solid var(--sun);border-radius:50px;padding:3px 9px;font-size:11px;font-weight:800;color:#b07d00">🔥${streak}</div>` : ''}
+            <div style="padding:4px 12px;border-radius:50px;font-size:11px;font-weight:800;
+              background:${readToday?'#e6f9ef':'#fff0f0'};
+              color:${readToday?'#1a7a3f':'#c0392b'};
+              border:1.5px solid ${readToday?'#4CAF7D':'#FF6B6B'}">
+              ${readToday ? '✓ Las í dag' : '◯ Á eftir'}
+            </div>
+          </div>
+        </div>
+        <div style="padding:0 12px 14px;display:flex;gap:4px;position:relative">
+          ${weekDays}
+        </div>
+        <div style="border-top:1px solid #f0f4f9">
+          <button onclick="toggleExpand('${key}')"
+            style="width:100%;background:none;border:none;padding:10px;font-size:11px;font-weight:800;color:var(--ocean);cursor:pointer">
+            ${isExpanded ? '▲ Minna' : '▼ Meira — síðustu lotur'}
+          </button>
+        </div>
+        ${isExpanded ? `<div style="padding:0 16px 12px;border-top:1px solid #f0f4f9">${sessionList||'<div style="font-size:12px;color:var(--mist);text-align:center;padding:12px">Engar lotur enn</div>'}</div>` : ''}
+      </div>`;
+
+  }).join('');
+
+  root.innerHTML = childCards + renderMonthChart(familySessions);
+}
+
+// ── Toggle expand ──
+window.toggleExpand = function(key) {
+  if (!window._expandedChildren) window._expandedChildren = {};
+  window._expandedChildren[key] = !window._expandedChildren[key];
+  renderParentHome();
+};
+
+// ── Play audio á vikudagsskjá ──
+window.playDayAudio = async function(path, containerId) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  if (el.style.display !== 'none') { el.style.display = 'none'; return; }
+  el.style.display = '';
+  el.innerHTML = '⏳';
+  try {
+    const url = await getDownloadURL(ref(storage, path));
+    const resp = await fetch(url);
+    const blob = await resp.blob();
+    const ext  = path.split('.').pop().toLowerCase();
+    const mime = ext==='mp4' ? 'audio/mp4' : 'audio/webm';
+    const burl = URL.createObjectURL(new Blob([blob], {type:mime}));
+    el.innerHTML = `<audio controls preload="auto" src="${burl}" style="width:100%"></audio>`;
+  } catch(e) { el.innerHTML = '❌'; el.style.display='none'; }
+};
+
+// ── Mánuðabar chart ──
+function renderMonthChart(sessions) {
+  const now = new Date();
+  const months = [];
+  for (let i = 5; i >= 0; i--) {
+    const d     = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const label = d.toLocaleString('is-IS', { month: 'short' });
+    const mins  = sessions.filter(s => {
+      const sd = new Date(s.date);
+      return sd.getFullYear()===d.getFullYear() && sd.getMonth()===d.getMonth() && (s.seconds||0)>=60;
+    }).reduce((a,s) => a + Math.floor((s.seconds||0)/60), 0);
+    months.push({ label, mins });
+  }
+  const maxMins = Math.max(...months.map(m => m.mins), 1);
+  const bars = months.map(m => {
+    const pct = Math.round((m.mins / maxMins) * 100);
+    return `
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px">
+        <div style="font-size:9px;font-weight:700;color:var(--mist)">${m.mins>0?m.mins+'m':''}</div>
+        <div style="width:100%;background:#f0f4f9;border-radius:6px;height:60px;display:flex;align-items:flex-end;overflow:hidden">
+          <div style="width:100%;background:var(--ocean);border-radius:6px;height:${pct}%;min-height:${m.mins>0?'4px':'0'}"></div>
+        </div>
+        <div style="font-size:9px;font-weight:800;color:var(--mist);text-transform:capitalize">${m.label}</div>
       </div>`;
   }).join('');
-  keys.forEach(key=>renderWeekDots(groups[key],`week-${key}`));
+  return `
+    <div style="background:#fff;border-radius:18px;padding:16px;box-shadow:var(--card-shadow);margin-top:4px">
+      <div style="font-size:11px;font-weight:800;color:var(--mist);text-transform:uppercase;letter-spacing:.5px;margin-bottom:14px">📊 Iðkun eftir mánuðum</div>
+      <div style="display:flex;gap:6px;align-items:flex-end">${bars}</div>
+    </div>`;
 }
- 
+
+
 // ── Audio player ──
 window.playAudio = async function(path, containerId){
   const el=document.getElementById(containerId); if(!el) return;
@@ -685,18 +1013,18 @@ window.playAudio = async function(path, containerId){
   try {
     const audioRef = ref(storage, path);
     const url = await getDownloadURL(audioRef);
- 
+
     // Sækja sem blob — virkar betur á Safari/iOS
     const response = await fetch(url);
     if(!response.ok) throw new Error('Fetch mistókst: '+response.status);
     const blob = await response.blob();
- 
+
     // Búa til blob URL með réttum mime type
     const ext = path.split('.').pop().toLowerCase();
     const mimeType = ext==='mp4' ? 'audio/mp4' : ext==='ogg' ? 'audio/ogg' : 'audio/webm';
     const typedBlob = new Blob([blob], {type: mimeType});
     const blobUrl = URL.createObjectURL(typedBlob);
- 
+
     el.innerHTML=`<audio controls preload="auto" src="${blobUrl}" style="width:100%;margin-top:8px;border-radius:8px"></audio>`;
     el.querySelector('audio').onended = () => URL.revokeObjectURL(blobUrl);
   } catch(e){
@@ -704,7 +1032,7 @@ window.playAudio = async function(path, containerId){
     console.error('playAudio villa:',e);
   }
 };
- 
+
 // ── Logout ──
 window.logout = async function(){
   if(currentRole==='child'){

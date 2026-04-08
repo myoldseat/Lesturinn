@@ -123,7 +123,7 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const storage = getStorage(app);
-const BUILD = 'MIC stop';
+const BUILD = 'v3.2 — Storage pipe debug';
 
 let currentUser = null;
 let currentRole = null;
@@ -146,6 +146,37 @@ let snippetTimers = [];
 let snippetRecorderActive = 0;
 let activeSnippetRecorders = [];
 let audioFinalizeInProgress = false;
+let debugAudio = {};
+let currentSessionDocId = null;
+
+function resetDebugAudio(){
+  debugAudio = {
+    micRequested:false,
+    micGranted:false,
+    micError:null,
+    cleanupCalled:false,
+    cleanupAt:null,
+    snippet1Scheduled:false,
+    snippet2Scheduled:false,
+    snippet1Triggered:false,
+    snippet2Triggered:false,
+    snippet1RecorderStarted:false,
+    snippet2RecorderStarted:false,
+    snippet1Chunks:0,
+    snippet2Chunks:0,
+    snippet1BlobSize:0,
+    snippet2BlobSize:0,
+    snippet1UploadStarted:false,
+    snippet2UploadStarted:false,
+    snippet1UploadDone:false,
+    snippet2UploadDone:false,
+    snippet1UploadError:null,
+    snippet2UploadError:null,
+    finalizeStarted:false,
+    finalizeFinished:false
+  };
+}
+resetDebugAudio();
 
 window.goTo = function(id){
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -236,11 +267,20 @@ window.toggleSnippetPlayback = function(id, url, btn){
 
 async function ensureMicPermission(){
   if(micStream) return micStream;
-  micStream = await navigator.mediaDevices.getUserMedia({ audio:true });
-  return micStream;
+  debugAudio.micRequested = true;
+  try {
+    micStream = await navigator.mediaDevices.getUserMedia({ audio:true });
+    debugAudio.micGranted = true;
+    return micStream;
+  } catch(err){
+    debugAudio.micError = String(err && (err.message || err.name || err));
+    throw err;
+  }
 }
 
 function cleanupMicStream(){
+  debugAudio.cleanupCalled = true;
+  debugAudio.cleanupAt = Date.now();
   try {
     activeSnippetRecorders.forEach(rec => {
       try { if(rec && rec.state !== 'inactive') rec.stop(); } catch {}
@@ -274,12 +314,81 @@ function stopActiveAudioCapture(){
 
 async function uploadSnippetBlob(blob, type){
   const path = `audio/${currentFamilyId}/${currentChildKey}/${Date.now()}_${type}.webm`;
+  debugAudio[`snippet${type}Path`] = path;
   const storageRef = ref(storage, path);
   await uploadBytes(storageRef, blob, { contentType: blob.type || 'audio/webm' });
-  return await getDownloadURL(storageRef);
+  const url = await getDownloadURL(storageRef);
+  debugAudio[`snippet${type}UrlReady`] = true;
+  debugAudio[`snippet${type}Url`] = url;
+  if(!pendingAudioPatch.audio) pendingAudioPatch.audio = {};
+  pendingAudioPatch.audio[`snippet${type}Url`] = url;
+  pendingAudioPatch.audio[`snippet${type}Path`] = path;
+  pendingAudioPatch.audio[`snippet${type}AtSec`] = type === 1 ? 60 : 720;
+  pendingAudioPatch.hasAudio = true;
+  pendingAudioPatch.audioPending = false;
+  pendingAudioPatch.audioFailed = false;
+  if(currentSessionDocId){
+    try {
+      await applyPendingAudioPatch(currentSessionDocId);
+      debugAudio[`snippet${type}SessionUpdatedImmediate`] = true;
+    } catch(updateErr) {
+      debugAudio[`snippet${type}SessionUpdateImmediateError`] = String(updateErr && (updateErr.message || updateErr.code || updateErr));
+      console.error('Immediate audio patch villa', updateErr);
+    }
+  }
+  return { url, path };
+}
+
+
+async function applyPendingAudioPatch(docId){
+  if(!docId) return;
+  const patch = { ...pendingAudioPatch, debugAudio };
+  if(!patch.audio) patch.audio = {};
+  patch.hasAudio = !!(patch.audio.snippet1Url || patch.audio.snippet2Url || snippet1Url || snippet2Url);
+  if(patch.hasAudio){
+    patch.audioPending = false;
+    patch.audioFailed = false;
+  }
+  console.log('v3.2 applyPendingAudioPatch', docId, patch);
+  await updateDoc(doc(db,'sessions',docId), patch);
+}
+
+async function syncAudioToSession(docId){
+  if(!docId) return;
+  const audio = { ...(pendingAudioPatch.audio || {}) };
+  if(snippet1Url) audio.snippet1Url = snippet1Url;
+  if(snippet2Url) audio.snippet2Url = snippet2Url;
+  if(snippet1Url && !audio.snippet1AtSec) audio.snippet1AtSec = 60;
+  if(snippet2Url && !audio.snippet2AtSec) audio.snippet2AtSec = 720;
+  const hasAudio = !!(audio.snippet1Url || audio.snippet2Url);
+  const triedAudio = !!(debugAudio.snippet1Triggered || debugAudio.snippet2Triggered || debugAudio.snippet1Scheduled || debugAudio.snippet2Scheduled);
+  const patch = {
+    hasAudio,
+    audioPending: false,
+    audioFailed: triedAudio && !hasAudio,
+    audio,
+    debugAudio
+  };
+  console.log('v3.2 syncAudioToSession', docId, patch);
+  await updateDoc(doc(db,'sessions',docId), patch);
+}
+
+async function updateSessionWithSnippet(type, payload){
+  if(!payload || !payload.url) return;
+  if(!pendingAudioPatch.audio) pendingAudioPatch.audio = {};
+  pendingAudioPatch.audio[`snippet${type}Url`] = payload.url;
+  pendingAudioPatch.audio[`snippet${type}AtSec`] = type === 1 ? 60 : 720;
+  pendingAudioPatch.audio[`snippet${type}Path`] = payload.path;
+  pendingAudioPatch.hasAudio = true;
+  pendingAudioPatch.audioPending = false;
+  pendingAudioPatch.audioFailed = false;
+  if(!currentSessionDocId) return;
+  await applyPendingAudioPatch(currentSessionDocId);
 }
 
 function scheduleSnippet(atSec, type){
+  if(type === 1) debugAudio.snippet1Scheduled = true;
+  if(type === 2) debugAudio.snippet2Scheduled = true;
   const delayMs = Math.max(0, atSec * 1000);
   const timerId = setTimeout(() => {
     recordSnippet(type);
@@ -288,6 +397,8 @@ function scheduleSnippet(atSec, type){
 }
 
 function recordSnippet(type){
+  if(type === 1) debugAudio.snippet1Triggered = true;
+  if(type === 2) debugAudio.snippet2Triggered = true;
   if(!micStream || snippetRecorderActive > 0) return;
   snippetRecorderActive += 1;
   const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus') ? 'audio/webm;codecs=opus' : '';
@@ -308,7 +419,13 @@ function recordSnippet(type){
       finishTask();
     }, 30000);
 
-    recorder.ondataavailable = e => { if(e.data && e.data.size > 0) chunks.push(e.data); };
+    recorder.ondataavailable = e => {
+      if(e.data && e.data.size > 0){
+        chunks.push(e.data);
+        if(type === 1) debugAudio.snippet1Chunks += 1;
+        if(type === 2) debugAudio.snippet2Chunks += 1;
+      }
+    };
     recorder.onerror = (err) => {
       console.error('Snippet recorder villa', err);
       clearTimeout(watchdog);
@@ -317,13 +434,29 @@ function recordSnippet(type){
     recorder.onstop = async () => {
       try{
         const blob = new Blob(chunks, { type: recorder.mimeType || 'audio/webm' });
+        if(type === 1) debugAudio.snippet1BlobSize = blob.size;
+        if(type === 2) debugAudio.snippet2BlobSize = blob.size;
         console.log('MIC stop: snippet stoppað', type, 'size=', blob.size);
         if(blob.size > 0){
-          const url = await uploadSnippetBlob(blob, type);
-          if(type === 1) snippet1Url = url;
-          if(type === 2) snippet2Url = url;
+          if(type === 1) debugAudio.snippet1UploadStarted = true;
+          if(type === 2) debugAudio.snippet2UploadStarted = true;
+          const uploaded = await uploadSnippetBlob(blob, type);
+          if(type === 1) debugAudio.snippet1UploadDone = true;
+          if(type === 2) debugAudio.snippet2UploadDone = true;
+          if(type === 1) snippet1Url = uploaded.url;
+          if(type === 2) snippet2Url = uploaded.url;
+          try {
+            await updateSessionWithSnippet(type, uploaded);
+            if(type === 1) debugAudio.snippet1SessionUpdated = true;
+            if(type === 2) debugAudio.snippet2SessionUpdated = true;
+          } catch(updateErr) {
+            if(type === 1) debugAudio.snippet1SessionUpdateError = String(updateErr && (updateErr.message || updateErr.code || updateErr));
+            if(type === 2) debugAudio.snippet2SessionUpdateError = String(updateErr && (updateErr.message || updateErr.code || updateErr));
+          }
         }
       } catch(err){
+        if(type === 1) debugAudio.snippet1UploadError = String(err && (err.message || err.code || err));
+        if(type === 2) debugAudio.snippet2UploadError = String(err && (err.message || err.code || err));
         console.error('Snippet upload villa', err);
       } finally {
         clearTimeout(watchdog);
@@ -332,7 +465,12 @@ function recordSnippet(type){
     };
 
     try {
-      recorder.start();
+      if(type === 1) debugAudio.snippet1RecorderStarted = true;
+      if(type === 2) debugAudio.snippet2RecorderStarted = true;
+      recorder.start(250);
+      setTimeout(() => {
+        try { if(recorder.state === 'recording' && typeof recorder.requestData === 'function') recorder.requestData(); } catch {}
+      }, 14500);
       setTimeout(() => {
         try{ if(recorder.state !== 'inactive') recorder.stop(); } catch {}
       }, 15000);
@@ -346,14 +484,17 @@ function recordSnippet(type){
 }
 
 function resetSnippetState(){
+  resetDebugAudio();
   snippet1Url = null;
   snippet2Url = null;
+  pendingAudioPatch = { audio: {} };
   snippetTasks = [];
   snippetFlags = { one:false, two:false };
   snippetTimers.forEach(t => clearTimeout(t));
   snippetTimers = [];
   snippetRecorderActive = 0;
   activeSnippetRecorders = [];
+  currentSessionDocId = null;
 }
 
 window.firebaseLogin = async function(){
@@ -538,26 +679,24 @@ window.cancelReading = function(){
 
 async function finalizeAudioForSession(docId){
   audioFinalizeInProgress = true;
+  debugAudio.finalizeStarted = true;
+  currentSessionDocId = docId;
   try {
     const pending = [...snippetTasks];
     if(pending.length){
       await Promise.allSettled(pending);
     }
-    const audio = {};
-    if(snippet1Url) audio.snippet1Url = snippet1Url;
-    if(snippet2Url) audio.snippet2Url = snippet2Url;
-    if(snippet1Url) audio.snippet1AtSec = 60;
-    if(snippet2Url) audio.snippet2AtSec = 720;
-    await updateDoc(doc(db,'sessions',docId), {
-      hasAudio: !!(snippet1Url || snippet2Url),
-      audioPending: false,
-      audioFailed: false,
-      audio
-    });
+    const hasAudio = !!(snippet1Url || snippet2Url);
+    const triedAudio = !!(debugAudio.snippet1Triggered || debugAudio.snippet2Triggered || debugAudio.snippet1Scheduled || debugAudio.snippet2Scheduled);
+    debugAudio.finalizeFinished = true;
+    debugAudio.hasAudioAtFinalize = hasAudio;
+    debugAudio.triedAudio = triedAudio;
+    await syncAudioToSession(docId);
   } catch(e){
     console.error('Audio finalize villa', e);
     try {
-      await updateDoc(doc(db,'sessions',docId), { audioPending:false, audioFailed:true });
+      debugAudio.finalizeFinished = true;
+      await updateDoc(doc(db,'sessions',docId), { audioPending:false, audioFailed:true, debugAudio });
     } catch(inner) {
       console.error('Audio pending update villa', inner);
     }
@@ -586,16 +725,19 @@ window.saveFinishedSession = async function(){
       date: makeDateKey(now),
       createdAt: serverTimestamp(),
       hasAudio: false,
-      audioPending: !!(snippetTasks.length || snippetRecorderActive > 0),
+      audioPending: !!(snippetTasks.length || snippetRecorderActive > 0 || currentElapsedSecs >= 60),
       audioFailed: false,
-      audio: {}
+      audio: {},
+      debugAudio: { ...debugAudio }
     };
     const docRef = await addDoc(collection(db,'sessions'), sessionData);
+    currentSessionDocId = docRef.id;
     resetReadingUi();
     alert('Lotan var vistuð í Firestore.');
     finalizeAudioForSession(docRef.id);
   } catch(e){ err.textContent = 'Ekki tókst að vista lotu.'; console.error(e); }
 };
 </script>
+<div style="position:fixed;right:10px;bottom:10px;background:#111;color:#fff;padding:4px 8px;border-radius:8px;font-size:11px;opacity:.75;z-index:9999">v3.2 — Storage pipe debug</div>
 </body>
 </html>

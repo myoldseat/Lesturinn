@@ -297,7 +297,7 @@ audio{width:100%;border-radius:8px}
         <div class="timer-big" id="timer-display">15:00</div>
         <div class="timer-sub"><span class="rec-dot"></span><span id="timer-status">Les upphátt…</span></div>
       </div>
-      <div style="display:none;font-size:11px;color:var(--mist);font-weight:700;text-align:center;margin-bottom:16px" id="audio-status"></div>
+      <div style="font-size:11px;color:#fff;font-weight:700;text-align:center;margin-bottom:16px" id="audio-status"></div>
       <button class="btn btn-success" onclick="stopReading()">⏹ Klára lestrarlotur</button>
       <button class="btn btn-ghost" onclick="cancelReading()" style="margin-top:10px">Hætta við</button>
     </div>
@@ -630,7 +630,7 @@ window.startReading = function(){
   disp.className='timer-big running';
   document.getElementById('timer-status').textContent=S.timerMode==='down'?'Les upphátt — tíminn líður niður…':'Les upphátt…';
   const audioStatusEl=document.getElementById('audio-status');
-  if(audioStatusEl){audioStatusEl.textContent='';audioStatusEl.style.display='none';}
+  if(audioStatusEl){audioStatusEl.textContent='';audioStatusEl.style.display='block';audioStatusEl.style.color='#fff';}
   if(S.timerInterval)clearInterval(S.timerInterval);
   S.timerInterval=setInterval(()=>{
     S.elapsedSecs=Math.floor((Date.now()-S.readingStartMs)/1000);
@@ -684,14 +684,16 @@ async function startAudio() {
     
     const statusEl = document.getElementById('audio-status');
     if (statusEl) {
-      statusEl.textContent = '';
-      statusEl.style.display = 'none';
+      statusEl.textContent = '🎤 Tekur upp við mín. 1, 5, 9 og 13';
+      statusEl.style.display = 'block';
+      statusEl.style.color = '#fff';
     }
   } catch (e) {
     const statusEl = document.getElementById('audio-status');
     if (statusEl) {
       statusEl.textContent = '🔇 Hljóðupptaka ekki í boði';
       statusEl.style.display = 'block';
+      statusEl.style.color = 'var(--coral)';
     }
     console.error("Audio villa:", e);
   }

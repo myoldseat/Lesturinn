@@ -363,7 +363,7 @@ import {
   onAuthStateChanged, signOut, setPersistence, browserLocalPersistence
 } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js';
 import {
-  getFirestore, collection, addDoc, setDoc, doc, getDoc, getDocs,
+  getFirestore, collection, addDoc, setDoc, doc, getDoc, getDocs, updateDoc,
   onSnapshot, query, where, serverTimestamp
 } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js';
 import {
@@ -603,6 +603,7 @@ function loadChildSessions(){
         <div class="session">
           <div class="session-title">${s.title||'Lestur'}${s.pagesRead?` · ${s.pagesRead} bls.`:''}</div>
           <div class="session-meta">${formatLabel(s.createdAt)||s.date||''} · ${fmtTime(s.seconds||0)}</div>
+          ${s.parentListenedAt?`<div style="font-size:10px;color:#1a7a3f;font-weight:800;margin-top:4px">👂 ${(s.parentListenedBy||'Foreldri')} hlustaði${formatLabel(s.parentListenedAt)?` · ${formatLabel(s.parentListenedAt)}`:''}</div>`:''}
         </div>`).join('');
       if(listEl) listEl.style.display=S.childSessionsOpen?'block':'none';
       if(toggleBtn) toggleBtn.textContent=S.childSessionsOpen?'📚 Fela lotur ▴':'📚 Sjá lotur ▾';
@@ -1134,7 +1135,7 @@ function renderParentHome(){
         }
         return `
           <button id="${btnId}" class="clip-btn"
-            onclick="playClip('${path}','${playerId}','${btnId}')"
+            onclick="playClip('${path}','${playerId}','${btnId}','${s._docId}')"
             title="Hlusta á ${label}">
             ▶<br>${label}
           </button>
@@ -1234,7 +1235,19 @@ window.toggleExpand=function(key){
 // ══════════════════════════════════════════════
 // ── PLAY CLIP ────────────────────────────────
 // ══════════════════════════════════════════════
-window.playClip=async function(path,playerId,btnId){
+async function markSessionListened(sessionId){
+  if(!sessionId) return;
+  try{
+    await updateDoc(doc(db,'sessions',sessionId),{
+      parentListenedAt:serverTimestamp(),
+      parentListenedBy:S.parentName||'Pabbi'
+    });
+  }catch(e){
+    console.error('Ekki tókst að merkja hlustun:', e);
+  }
+}
+
+window.playClip=async function(path,playerId,btnId,sessionId){
   const playerEl=document.getElementById(playerId);
   const btnEl=document.getElementById(btnId);
   if(!playerEl)return;
@@ -1256,6 +1269,7 @@ window.playClip=async function(path,playerId,btnId){
     playerEl.innerHTML=`<audio controls preload="auto" src="${blobUrl}" style="width:100%;margin-top:4px;border-radius:8px"></audio>`;
     const audio=playerEl.querySelector('audio');
     if(audio)audio.play().catch(()=>{});
+    await markSessionListened(sessionId);
     if(btnEl)btnEl.className='clip-btn';
   }catch(e){
     playerEl.innerHTML='<div style="font-size:10px;color:var(--coral);font-weight:700;padding:4px">❌ Ekki tókst að hlaða</div>';

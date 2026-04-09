@@ -27,6 +27,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .hero-label{font-size:11px;font-weight:800;letter-spacing:1.3px;text-transform:uppercase;opacity:.8;margin-bottom:6px}
 .hero h1{font-family:Georgia,serif;font-size:28px;line-height:1.1;margin:0 0 8px}
 .hero p{margin:0;font-size:14px;opacity:.88;font-weight:600}
+.child-hero{padding:16px 18px}
+.child-hero-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.child-hero-top h1{margin:0;font-size:24px}
+.child-hero-badges{display:flex;align-items:flex-start;justify-content:flex-end;gap:8px;flex-wrap:wrap;min-width:132px}
 .card{background:#fff;border-radius:18px;padding:15px;margin-bottom:12px;box-shadow:var(--card-shadow)}
 .form-group{margin-bottom:14px}
 .form-group label{display:block;font-size:11px;font-weight:800;color:var(--deep);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px}
@@ -36,6 +40,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .btn-primary{background:var(--ocean);color:#fff}
 .btn-success{background:var(--moss);color:#fff}
 .btn-ghost{background:#fff;color:var(--deep);border:2px solid #dde5f0}
+.setup-start-btn{padding:18px;font-size:19px;box-shadow:0 8px 18px rgba(42,110,187,.25)}
+.setup-toggle-btn{margin-top:10px;font-size:14px;padding:13px}
+.setup-details{display:none;margin-top:12px;padding-top:12px;border-top:1px solid #e8eef6}
 .btn+.btn{margin-top:10px}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .choice{border:none;border-radius:20px;padding:24px 16px;color:#fff;cursor:pointer;width:100%}
@@ -52,11 +59,26 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .timer-sub{font-size:12px;color:var(--mist);font-weight:800;text-transform:uppercase;letter-spacing:.8px;margin-top:6px}
 .rec-dot{display:inline-block;width:8px;height:8px;background:var(--coral);border-radius:50%;margin-right:5px;animation:blink 1s infinite}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:0.2}}
-.week-dots{display:flex;gap:4px}
-.day-dot{flex:1;height:44px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-direction:column;font-size:8px;font-weight:800;gap:2px}
+.week-dots{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:10px}
+.day-dot{grid-column:span 2;min-height:82px;border-radius:14px;display:flex;align-items:flex-start;justify-content:space-between;flex-direction:column;padding:10px 10px 12px;font-weight:800;gap:8px;text-align:left}
+.day-dot.weekend{min-height:58px;padding:6px 10px 7px;gap:4px}
 .day-dot.full{background:var(--moss);color:#fff}
-.day-dot.partial{background:#b8e0c8;color:#2e7a4f}
-.day-dot.none{background:#f0f4f9;color:#aab7c4;border:1.5px dashed #dde5f0}
+.day-dot.partial{background:#d8efdf;color:#2e7a4f}
+.day-dot.none{background:#f0f4f9;color:#7f90a4;border:1.5px dashed #dde5f0}
+.day-name{font-size:13px;line-height:1.05;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.day-date{font-size:11px;opacity:.82;margin-top:3px}
+.day-mins{font-size:14px;line-height:1;font-weight:900}
+.day-dot.weekend-sat{grid-column:span 5}
+.day-dot.weekend-sun{grid-column:span 5}
+@media (max-width:420px){
+  .child-hero-top{flex-direction:column;align-items:stretch}
+  .child-hero-badges{justify-content:flex-start;min-width:0}
+  .week-dots{gap:8px}
+  .day-dot{min-height:76px;padding:9px 9px 10px}
+  .day-name{font-size:12px}
+  .day-date{font-size:10px}
+  .day-mins{font-size:13px}
+}
 .session{padding:12px 0;border-bottom:1px solid #eef3f9}
 .session:last-child{border-bottom:none}
 .session-title{font-size:14px;font-weight:800}
@@ -80,6 +102,15 @@ audio{width:100%;border-radius:8px}
 .clip-btn.loading{background:#fffbe6;border-color:var(--sun);color:#b07d00}
 .clip-player{margin-top:6px;display:none}
 .clip-player audio{width:100%;border-radius:8px}
+.power-toast{display:none;margin-top:8px;font-size:12px;font-weight:800;color:var(--deep);background:#fff8d9;border:1px solid #ffd46a;border-radius:10px;padding:7px 10px;text-align:center}
+.power-toast.show{display:block;animation:toastPop .35s ease}
+.reading-nudge{display:none;margin:8px 0 10px;text-align:center;font-size:22px;line-height:1.1;font-weight:900;color:#7a2e00;background:linear-gradient(135deg,#fff0b3,#ffd166);border:2px solid #ffb347;border-radius:14px;padding:12px 14px;box-shadow:0 10px 24px rgba(255,149,0,.35),0 0 0 4px rgba(255,184,48,.25)}
+.reading-nudge.show{display:block;animation:nudgePop .45s cubic-bezier(.2,.9,.2,1), nudgePulse 1.3s ease-in-out .45s 2}
+.hero-boost{animation:heroBoost .55s ease}
+@keyframes toastPop{0%{opacity:0;transform:translateY(5px) scale(.97)}100%{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes heroBoost{0%{transform:scale(1)}35%{transform:scale(1.02)}100%{transform:scale(1)}}
+@keyframes nudgePop{0%{opacity:0;transform:translateY(-8px) scale(.86)}60%{opacity:1;transform:translateY(2px) scale(1.04)}100%{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes nudgePulse{0%,100%{transform:scale(1)}50%{transform:scale(1.035)}}
 </style>
 </head>
 <body>
@@ -122,6 +153,37 @@ audio{width:100%;border-radius:8px}
       <div class="form-group"><label>Lykilorð</label><input id="login-pw" type="password" autocomplete="current-password" placeholder="••••••••"></div>
       <div id="login-error" class="notice" style="color:var(--coral);margin-bottom:10px"></div>
       <button class="btn btn-primary" onclick="firebaseLogin()">🔑 Skrá inn</button>
+      <button class="btn btn-ghost" onclick="goTo('screen-parent-signup')" style="margin-top:10px;font-size:14px">✨ Stofna nýjan aðgang</button>
+    </div>
+  </div>
+</div>
+
+<!-- PARENT SIGNUP -->
+<div id="screen-parent-signup" class="screen">
+  <div class="topbar">
+    <button class="back-btn" onclick="goTo('screen-parent-login')">← Til baka</button>
+    <div class="logo"><div class="logo-icon">U</div> Upphátt</div>
+    <div></div>
+  </div>
+  <div class="scroll-body">
+    <div class="hero purple" style="background:linear-gradient(135deg,var(--purple),var(--ocean))">
+      <div class="hero-label">Nýr aðgangur</div>
+      <h1>Stofna fjölskyldu</h1>
+      <p>Skráðu þig inn og bættu við börnum til að byrja.</p>
+    </div>
+    <div class="card">
+      <div class="form-group"><label>Fullt nafn</label><input id="reg-name" type="text" placeholder="Nafn Nafnsson"></div>
+      <div class="form-group"><label>Netfang</label><input id="reg-email" type="email" placeholder="netfang@netfang.is"></div>
+      <div class="form-group"><label>Lykilorð</label><input id="reg-pw" type="password" placeholder="Minnst 6 stafir"></div>
+      <div style="margin:20px 0 10px;border-top:1px solid #eee;padding-top:15px;">
+        <label style="font-size:11px;font-weight:800;color:var(--mist);text-transform:uppercase">Börn</label>
+      </div>
+      <div id="signup-children-list">
+        <div class="form-group"><input class="child-name-input" type="text" placeholder="Nafn barns"></div>
+      </div>
+      <button class="btn btn-ghost" style="font-size:13px;padding:10px;margin-bottom:15px" onclick="addChildInput()">+ Bæta við öðru barni</button>
+      <div id="reg-error" class="notice" style="color:var(--coral);margin-bottom:10px"></div>
+      <button class="btn btn-primary" onclick="firebaseSignup()">🚀 Stofna aðgang</button>
     </div>
   </div>
 </div>
@@ -154,7 +216,7 @@ audio{width:100%;border-radius:8px}
       <div id="child-code-error" class="notice" style="color:var(--coral);text-align:center;margin-bottom:10px"></div>
       <button class="btn btn-success" onclick="childLogin()">🎯 Skrá mig inn</button>
     </div>
-    <div style="background:#e8f4fd;border-radius:12px;padding:12px 14px;margin-top:4px;font-size:12px;color:var(--ocean);font-weight:700;text-align:center;">
+    <div style="background:#e8f4fd;border-radius:12px;padding:12px 14px;margin-top:4px;font-size:12px;color:var(--ocean);font-weight:700;text-align:center">
       💡 Þú þarft aðeins að slá inn kóðann einu sinni — tækið man eftir þér!
     </div>
   </div>
@@ -168,16 +230,16 @@ audio{width:100%;border-radius:8px}
     <div class="pill" id="child-name-pill">Barn</div>
   </div>
   <div class="scroll-body">
-
-    <div class="hero green" id="child-hero-card">
-      <div class="hero-label">Hæ!</div>
-      <h1 id="child-hero">Ertu tilbúinn að lesa? 🌟</h1>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+    <div class="hero green child-hero" id="child-hero-card">
+      <div class="child-hero-top">
+        <h1 id="child-hero">Ertu tilbúinn að lesa?</h1>
+        <div class="child-hero-badges">
         <div id="child-streak" style="display:none;background:rgba(255,184,48,0.25);border:1.5px solid rgba(255,184,48,0.6);border-radius:50px;padding:5px 14px;font-size:13px;font-weight:800;color:#fff">
           🔥 <span id="streak-num">0</span> daga röð
         </div>
         <div id="child-shields" style="display:none;background:rgba(255,255,255,0.2);border-radius:50px;padding:5px 14px;font-size:13px;font-weight:800;color:#fff">
           🛡️ <span id="shields-num">0</span> frídagar
+        </div>
         </div>
       </div>
     </div>
@@ -200,28 +262,42 @@ audio{width:100%;border-radius:8px}
 
     <div class="card" id="setup-card">
       <div style="font-size:13px;font-weight:800;color:var(--deep);margin-bottom:12px">Setja upp lestrarlotur</div>
-      <div class="form-group">
-        <label>Heiti bókar (valfrjálst)</label>
-        <input id="read-title" type="text" placeholder="t.d. Harry Potter">
+      <button class="btn btn-primary setup-start-btn" onclick="startReading()">🎤 Byrja að lesa</button>
+      <button class="btn btn-ghost setup-toggle-btn" id="setup-details-toggle" onclick="toggleSetupDetails()">📘 Bók og blaðsíða ▾</button>
+      <div class="setup-details" id="setup-details">
+        <div class="form-group">
+          <label>Heiti bókar (valfrjálst)</label>
+          <input id="read-title" type="text" placeholder="t.d. Harry Potter">
+        </div>
+        <div class="form-group">
+          <label>Byrjunarblaðsíða (valfrjálst)</label>
+          <input id="page-start" type="number" min="1" placeholder="t.d. 42" inputmode="numeric">
+        </div>
+        <div style="font-size:11px;font-weight:800;color:var(--deep);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Tímamælir</div>
+        <div class="mode-picker">
+          <button class="mode-btn active" id="mode-down" onclick="setMode('down')">⏳ Niðurtalning<br><span style="font-size:10px;font-weight:600;opacity:.7">15:00 → 0:00</span></button>
+          <button class="mode-btn" id="mode-up" onclick="setMode('up')">⏱ Upptalning<br><span style="font-size:10px;font-weight:600;opacity:.7">0:00 → 15:00+</span></button>
+        </div>
       </div>
-      <div class="form-group">
-        <label>Byrjunarblaðsíða (valfrjálst)</label>
-        <input id="page-start" type="number" min="1" placeholder="t.d. 42" inputmode="numeric">
-      </div>
-      <div style="font-size:11px;font-weight:800;color:var(--deep);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Tímamælir</div>
-      <div class="mode-picker">
-        <button class="mode-btn active" id="mode-down" onclick="setMode('down')">⏳ Niðurtalning<br><span style="font-size:10px;font-weight:600;opacity:.7">15:00 → 0:00</span></button>
-        <button class="mode-btn" id="mode-up" onclick="setMode('up')">⏱ Upptalning<br><span style="font-size:10px;font-weight:600;opacity:.7">0:00 → 15:00+</span></button>
-      </div>
-      <button class="btn btn-primary" onclick="startReading()">🎤 Byrja að lesa</button>
     </div>
 
     <div class="card" id="reading-card" style="display:none">
+      <div id="encouragement-container" style="width:100%; margin-bottom: 20px;">
+  <div style="display:flex; justify-content:space-between; margin-bottom:6px; font-size:12px; font-weight:700; color:var(--deep)">
+    <span>Lestrarkraftur</span>
+    <span id="power-label">Hafðu hátt! 🎤</span>
+  </div>
+  <div style="width:100%; height:20px; background:#e0e0e0; border-radius:10px; overflow:hidden; border:2px solid #fff; box-shadow:0 2px 5px rgba(0,0,0,0.1)">
+    <div id="encouragement-bar" style="width:0%; height:100%; background:var(--moss); transition: width 0.3s ease, background-color 0.5s ease;"></div>
+  </div>
+  <div id="power-toast" class="power-toast">🔥 Þú sprengdir skalann! Frábært tempó!</div>
+  <div id="reading-nudge" class="reading-nudge">Ertu ennþá að lesa?</div>
+</div>
       <div class="timer-wrap">
         <div class="timer-big" id="timer-display">15:00</div>
         <div class="timer-sub"><span class="rec-dot"></span><span id="timer-status">Les upphátt…</span></div>
       </div>
-      <div style="font-size:11px;color:var(--mist);font-weight:700;text-align:center;margin-bottom:16px" id="audio-status"></div>
+      <div style="display:none;font-size:11px;color:var(--mist);font-weight:700;text-align:center;margin-bottom:16px" id="audio-status"></div>
       <button class="btn btn-success" onclick="stopReading()">⏹ Klára lestrarlotur</button>
       <button class="btn btn-ghost" onclick="cancelReading()" style="margin-top:10px">Hætta við</button>
     </div>
@@ -243,10 +319,9 @@ audio{width:100%;border-radius:8px}
     </div>
 
     <div id="child-sessions-wrap" style="display:none">
-      <div style="font-size:11px;font-weight:800;color:var(--mist);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">Síðustu lotur</div>
-      <div class="card" id="child-sessions-list"></div>
+      <button class="btn btn-ghost setup-toggle-btn" id="child-sessions-toggle" onclick="toggleChildSessions()">📚 Sjá lotur ▾</button>
+      <div class="card" id="child-sessions-list" style="display:none"></div>
     </div>
-
   </div>
 </div>
 
@@ -272,21 +347,28 @@ audio{width:100%;border-radius:8px}
         <div id="codes-list"></div>
       </div>
     </div>
-
     <div id="parent-content">
       <div class="card"><div class="notice" style="text-align:center;padding:20px">Hleður gögn... ⏳</div></div>
     </div>
   </div>
 </div>
 
+<!-- ═══════════════════════════════════════════════ -->
+<!-- ── ALL JAVASCRIPT IN ONE MODULE BLOCK ──────── -->
+<!-- ═══════════════════════════════════════════════ -->
 <script type="module">
-import { initializeApp }    from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js';
-import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut }
-                             from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js';
-import { getFirestore, collection, addDoc, doc, getDoc, onSnapshot, query, where, serverTimestamp }
-                             from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js';
-import { getStorage, ref, uploadBytes, getDownloadURL }
-                             from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-storage.js';
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js';
+import {
+  getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword,
+  onAuthStateChanged, signOut, setPersistence, browserLocalPersistence
+} from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js';
+import {
+  getFirestore, collection, addDoc, setDoc, doc, getDoc, getDocs,
+  onSnapshot, query, where, serverTimestamp
+} from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js';
+import {
+  getStorage, ref, uploadBytes, getDownloadURL
+} from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-storage.js';
 
 const firebaseConfig = {
   apiKey: 'AIzaSyAgTY3Uxd9_ZxixjqLj-sH8V3OhFAzg6DU',
@@ -302,38 +384,49 @@ const auth    = getAuth(app);
 const db      = getFirestore(app);
 const storage = getStorage(app);
 
-window._appState = {
-  role:        null,
-  familyId:    null,
-  childKey:    null,
-  childName:   null,
-  parentName:  null,
-  familyUnsub: null,
-  sessions:    [],
-  timerMode:   'down',
-  timerInterval: null,
-  readingStartMs: null,
-  elapsedSecs:  0,
-  pendingSession: null,
-  audioStream:  null,
-  audioSnippets: {},
-  snippetTimers: [],
-  expandedChildren: {}
-};
+setPersistence(auth, browserLocalPersistence).catch(e => {
+  console.error('Auth persistence villa:', e);
+});
 
+/* ── Global state ── */
+window._appState = {
+  role: null, familyId: null, childKey: null, childName: null, parentName: null,
+  familyUnsub: null, sessions: [], timerMode: 'down', timerInterval: null,
+  readingStartMs: null, elapsedSecs: 0, pendingSession: null,
+  audioStream: null, audioSnippets: {}, snippetTimers: [], expandedChildren: {},
+  encouragementInterval: null, audioContext: null, analyser: null, monitorNode: null, encouragementScore: 0,
+  lastSoundDetected: Date.now(), topZoneSince: 0, topCooldownUntil: 0, topToastTimer: null,
+  cadenceScore: 0, lastInstantLevel: 0, labelBoostUntil: 0, childSessionsOpen: false,
+  silencePromptShown: false
+};
 const S = window._appState;
 const TARGET = 15 * 60;
 
-// ── Nav ──
+/* ── FIX: flag to block onAuthStateChanged during signup ── */
+let _signupInProgress = false;
+
+// ══════════════════════════════════════════════
+// ── NAV ──────────────────────────────────────
+// ══════════════════════════════════════════════
 window.goTo = function(id){
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
+  if(id==='screen-parent-login') hydrateParentLogin();
   window.scrollTo(0, 0);
 };
 
-// ── Helpers ──
+// ══════════════════════════════════════════════
+// ── HELPERS ──────────────────────────────────
+// ══════════════════════════════════════════════
 function fmtTime(s){ return `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`; }
 function makeDateKey(d){ return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`; }
+function getSavedParentEmail(){ return localStorage.getItem('upphatt_parent_email') || ''; }
+function setSavedParentEmail(email){ if(email) localStorage.setItem('upphatt_parent_email', email); }
+function hydrateParentLogin(){
+  const savedEmail = getSavedParentEmail();
+  const emailInput = document.getElementById('login-email');
+  if(emailInput && savedEmail && !emailInput.value) emailInput.value = savedEmail;
+}
 function formatLabel(v){
   const d = v?.toDate ? v.toDate() : (typeof v==='number' ? new Date(v) : null);
   if(!d || isNaN(d)) return '';
@@ -352,7 +445,9 @@ function renderWeekDots(sessions, containerId){
     const key=makeDateKey(d);
     const mins=sessions.filter(s=>s.date===key).reduce((a,s)=>a+Math.floor((s.seconds||0)/60),0);
     const cls=mins>=15?'full':mins>0?'partial':'none';
-    return `<div class="day-dot ${cls}"><div>${lbl}</div><div>${mins>0?mins+'m':'—'}</div></div>`;
+    const dateLabel=`${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}`;
+    const weekendClass=i===5?' weekend weekend-sat':i===6?' weekend weekend-sun':'';
+    return `<div class="day-dot ${cls}${weekendClass}"><div><div class="day-name">${lbl}</div><div class="day-date">${dateLabel}</div></div><div class="day-mins">${mins>0?mins+' mín':'—'}</div></div>`;
   }).join('');
 }
 function getStreak(sessions){
@@ -367,7 +462,9 @@ function getStreak(sessions){
   return streak;
 }
 
-// ── Timer mode ──
+// ══════════════════════════════════════════════
+// ── TIMER MODE ───────────────────────────────
+// ══════════════════════════════════════════════
 window.setMode = function(mode){
   S.timerMode=mode;
   document.getElementById('mode-down').className='mode-btn'+(mode==='down'?' active':'');
@@ -375,287 +472,284 @@ window.setMode = function(mode){
   document.getElementById('timer-display').textContent=mode==='down'?'15:00':'0:00';
 };
 
-// ── Child login ──
-window.childLogin = async function(){
-  const code=document.getElementById('child-code-input').value.trim().toUpperCase();
-  const err=document.getElementById('child-code-error');
-  err.textContent='';
-  if(code.length<4){ err.textContent='Sláðu inn kóðann þinn.'; return; }
-  try {
-    document.getElementById('child-code-input').disabled=true;
-    const snap=await getDoc(doc(db,'codes',code));
-    if(!snap.exists()){
-      err.textContent='Kóðinn fannst ekki — athugaðu með foreldri.';
-      document.getElementById('child-code-input').disabled=false; return;
-    }
-    const data=snap.data();
-    S.role=       'child';
-    S.familyId=   data.familyId;
-    S.childKey=   data.childKey;
-    S.childName=  data.childName;
-    localStorage.setItem('upphatt_child', JSON.stringify({
-      familyId:data.familyId, childKey:data.childKey, childName:data.childName, code
-    }));
-    setupChildHome();
-    goTo('screen-child-home');
-  } catch(e){
-    err.textContent='Villa: '+e.message;
-    document.getElementById('child-code-input').disabled=false;
-  }
+window.toggleSetupDetails = function(){
+  const details = document.getElementById('setup-details');
+  const btn = document.getElementById('setup-details-toggle');
+  if(!details || !btn) return;
+  const isOpen = getComputedStyle(details).display !== 'none';
+  details.style.display = isOpen ? 'none' : 'block';
+  btn.textContent = isOpen ? '📘 Bók og blaðsíða ▾' : '📘 Bók og blaðsíða ▴';
 };
 
-function setupChildHome(){
-  document.getElementById('child-name-pill').textContent=S.childName;
-  document.getElementById('child-hero').textContent=`Halló, ${S.childName} 🌟`;
-  loadChildSessions();
+window.toggleChildSessions = function(){
+  const list = document.getElementById('child-sessions-list');
+  const btn = document.getElementById('child-sessions-toggle');
+  if(!list || !btn) return;
+  S.childSessionsOpen = !S.childSessionsOpen;
+  list.style.display = S.childSessionsOpen ? 'block' : 'none';
+  btn.textContent = S.childSessionsOpen ? '📚 Fela lotur ▴' : '📚 Sjá lotur ▾';
+};
+
+// ══════════════════════════════════════════════
+// ── SOUND FX ─────────────────────────────────
+// ══════════════════════════════════════════════
+function playSound(type){
+  try{
+    const ctx=new(window.AudioContext||window.webkitAudioContext)();const now=ctx.currentTime;
+    if(type==='done'){[[523,0],[659,.15],[784,.3],[1047,.5]].forEach(([f,dl])=>{const o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.frequency.value=f;o.type='sine';g.gain.setValueAtTime(.3,now+dl);g.gain.exponentialRampToValueAtTime(.001,now+dl+.4);o.start(now+dl);o.stop(now+dl+.5)});}
+    else if(type==='milestone'){[[523,0],[659,.1],[784,.2],[1047,.35],[1047,.55]].forEach(([f,dl])=>{const o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.frequency.value=f;o.type='triangle';g.gain.setValueAtTime(.35,now+dl);g.gain.exponentialRampToValueAtTime(.001,now+dl+.5);o.start(now+dl);o.stop(now+dl+.6)});}
+    else if(type==='streak'){[[392,0],[523,.2],[659,.4],[784,.6],[1047,.8]].forEach(([f,dl])=>{const o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.frequency.value=f;o.type='sine';g.gain.setValueAtTime(.25,now+dl);g.gain.exponentialRampToValueAtTime(.001,now+dl+.6);o.start(now+dl);o.stop(now+dl+.7)});}
+  }catch(e){}
 }
 
-// ── Hljóðviðbrögð ──
-function playSound(type) {
-  try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    const now = ctx.currentTime;
-    if (type === 'done') {
-      [[523,0],[659,0.15],[784,0.3],[1047,0.5]].forEach(([freq,delay]) => {
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.connect(gain); gain.connect(ctx.destination);
-        osc.frequency.value = freq; osc.type = 'sine';
-        gain.gain.setValueAtTime(0.3, now+delay);
-        gain.gain.exponentialRampToValueAtTime(0.001, now+delay+0.4);
-        osc.start(now+delay); osc.stop(now+delay+0.5);
-      });
-    } else if (type === 'milestone') {
-      [[523,0],[659,0.1],[784,0.2],[1047,0.35],[1047,0.55]].forEach(([freq,delay]) => {
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.connect(gain); gain.connect(ctx.destination);
-        osc.frequency.value = freq; osc.type = 'triangle';
-        gain.gain.setValueAtTime(0.35, now+delay);
-        gain.gain.exponentialRampToValueAtTime(0.001, now+delay+0.5);
-        osc.start(now+delay); osc.stop(now+delay+0.6);
-      });
-    } else if (type === 'streak') {
-      [[392,0],[523,0.2],[659,0.4],[784,0.6],[1047,0.8]].forEach(([freq,delay]) => {
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.connect(gain); gain.connect(ctx.destination);
-        osc.frequency.value = freq; osc.type = 'sine';
-        gain.gain.setValueAtTime(0.25, now+delay);
-        gain.gain.exponentialRampToValueAtTime(0.001, now+delay+0.6);
-        osc.start(now+delay); osc.stop(now+delay+0.7);
-      });
-    }
-  } catch(e) {}
-}
-
-// ── Milestones ──
-const MILESTONES = [
-  { count:1,  icon:'🌱', title:'Fyrsta skrefið!',    text:'Þú kláraðir fyrstu lotuna!' },
-  { count:5,  icon:'⭐', title:'Fimm lotur!',         text:'Þú ert að verða lesari!' },
-  { count:10, icon:'🦁', title:'Sterkur lesari!',     text:'Tíu lotur — stórkostlegt!' },
-  { count:20, icon:'🏆', title:'Meistarinn!',         text:'Tuttugu lotur — þú ert snillingur!' },
-  { count:50, icon:'🚀', title:'Lestrarhetja!',       text:'Fimmtíu lotur — ótrúlegt!' },
+// ══════════════════════════════════════════════
+// ── MILESTONES ───────────────────────────────
+// ══════════════════════════════════════════════
+const MILESTONES=[
+  {count:1,icon:'🌱',title:'Fyrsta skrefið!',text:'Þú kláraðir fyrstu lotuna!'},
+  {count:5,icon:'⭐',title:'Fimm lotur!',text:'Þú ert að verða lesari!'},
+  {count:10,icon:'🦁',title:'Sterkur lesari!',text:'Tíu lotur — stórkostlegt!'},
+  {count:20,icon:'🏆',title:'Meistarinn!',text:'Tuttugu lotur — þú ert snillingur!'},
+  {count:50,icon:'🚀',title:'Lestrarhetja!',text:'Fimmtíu lotur — ótrúlegt!'},
 ];
-
-function checkMilestone(totalSessions) {
-  const m = MILESTONES.find(m => m.count === totalSessions);
-  if (!m) return;
-  const card = document.getElementById('milestone-card');
-  document.getElementById('milestone-icon').textContent  = m.icon;
-  document.getElementById('milestone-title').textContent = m.title;
-  document.getElementById('milestone-text').textContent  = m.text;
-  card.style.display = '';
-  setTimeout(() => { card.style.display = 'none'; }, 8000);
-  setTimeout(() => playSound('milestone'), 300);
+function checkMilestone(total){
+  const m=MILESTONES.find(x=>x.count===total); if(!m) return;
+  const card=document.getElementById('milestone-card');
+  document.getElementById('milestone-icon').textContent=m.icon;
+  document.getElementById('milestone-title').textContent=m.title;
+  document.getElementById('milestone-text').textContent=m.text;
+  card.style.display='';
+  setTimeout(()=>{card.style.display='none'},8000);
+  setTimeout(()=>playSound('milestone'),300);
 }
 
-// ── Skjaldakerfi ──
-function getShields() {
-  return parseInt(localStorage.getItem('upphatt_shields_' + S.childKey) || '0');
-}
-function setShields(n) {
-  localStorage.setItem('upphatt_shields_' + S.childKey, Math.max(0, n));
-}
-function checkAndGrantShield(streak) {
-  const given  = parseInt(localStorage.getItem('upphatt_shields_given_' + S.childKey) || '0');
-  const earned = Math.floor(streak / 7);
-  if (earned > given) {
-    const newShields = earned - given;
-    localStorage.setItem('upphatt_shields_given_' + S.childKey, earned);
-    setShields(getShields() + newShields);
-    return newShields;
-  }
+// ══════════════════════════════════════════════
+// ── SHIELDS ──────────────────────────────────
+// ══════════════════════════════════════════════
+function getShields(){ return parseInt(localStorage.getItem('upphatt_shields_'+S.childKey)||'0'); }
+function setShields(n){ localStorage.setItem('upphatt_shields_'+S.childKey, Math.max(0,n)); }
+function checkAndGrantShield(streak){
+  const given=parseInt(localStorage.getItem('upphatt_shields_given_'+S.childKey)||'0');
+  const earned=Math.floor(streak/7);
+  if(earned>given){ const n=earned-given; localStorage.setItem('upphatt_shields_given_'+S.childKey,earned); setShields(getShields()+n); return n; }
   return 0;
 }
-
-function getStreakWithShields(sessions) {
-  if (!sessions.length) return 0;
-  const shields = getShields();
-  let streak = 0;
-  let shieldsUsed = 0;
-  const d = new Date();
-  for (let i = 0; i < 180; i++) {
-    const k = makeDateKey(d);
-    const hasSession = sessions.some(s => s.date === k && (s.seconds||0) >= 60);
-    if (hasSession) {
-      streak++; d.setDate(d.getDate() - 1);
-    } else if (i === 0) {
-      d.setDate(d.getDate() - 1);
-    } else if (shieldsUsed < shields) {
-      shieldsUsed++; streak++; d.setDate(d.getDate() - 1);
-    } else {
-      break;
-    }
+function getStreakWithShields(sessions){
+  if(!sessions.length)return 0;
+  const shields=getShields(); let streak=0,used=0; const d=new Date();
+  for(let i=0;i<180;i++){
+    const k=makeDateKey(d);
+    const has=sessions.some(s=>s.date===k&&(s.seconds||0)>=60);
+    if(has){streak++;d.setDate(d.getDate()-1);}
+    else if(i===0){d.setDate(d.getDate()-1);}
+    else if(used<shields){used++;streak++;d.setDate(d.getDate()-1);}
+    else break;
   }
   return streak;
 }
 
-// ── Hlaða barnaötu ──
-// ── LAGFÆRING #1: Aðeins EIN Firestore fyrirspurn fyrir barnið ──
-// Við notum familyId + childKey filter beint — engin sérstök 'children' undirmappa
-function loadChildSessions() {
-  const q = query(
-    collection(db, 'sessions'),
-    where('familyId', '==', S.familyId),
-    where('childKey', '==', S.childKey)
-  );
-  onSnapshot(q, snap => {
-    const sessions = snap.docs.map(d => ({ id: d.id, ...d.data() }))
-      .sort((a, b) => (b.timestamp||0) - (a.timestamp||0));
-    const streak  = getStreakWithShields(sessions);
-    const shields = getShields();
-    renderWeekDots(sessions, 'child-week-dots');
-    if (streak > 0) {
-      document.getElementById('child-streak').style.display = 'inline-flex';
-      document.getElementById('streak-num').textContent = streak;
-    } else {
-      document.getElementById('child-streak').style.display = 'none';
-    }
-    if (shields > 0) {
-      document.getElementById('child-shields').style.display = 'inline-flex';
-      document.getElementById('shields-num').textContent = shields;
-    } else {
-      document.getElementById('child-shields').style.display = 'none';
-    }
-    const newShields = checkAndGrantShield(streak);
-    if (newShields > 0) setTimeout(() => playSound('streak'), 300);
-    const today     = makeDateKey(new Date());
-    const yesterday = makeDateKey(new Date(Date.now() - 86400000));
-    const readToday     = sessions.some(s => s.date === today     && (s.seconds||0) >= 60);
-    const readYesterday = sessions.some(s => s.date === yesterday && (s.seconds||0) >= 60);
-    const warningEl   = document.getElementById('shield-warning');
-    const warningText = document.getElementById('shield-warning-text');
-    if (!readToday && readYesterday && streak > 1) {
-      warningEl.style.display = '';
-      warningText.textContent = shields > 0
-        ? `Þú átt ${shields} frídaga — ef þú gleymir er skjöldurinn notaður sjálfkrafa.`
-        : `Les í dag til að halda ${streak} daga röðinni!`;
-    } else {
-      warningEl.style.display = 'none';
-    }
-    if (sessions.length) {
-      document.getElementById('child-sessions-wrap').style.display = '';
-      document.getElementById('child-sessions-list').innerHTML =
-        sessions.slice(0, 5).map(s => `
-          <div class="session">
-            <div class="session-title">${s.title||'Lestur'}${s.pagesRead ? ` · ${s.pagesRead} bls.` : ''}</div>
-            <div class="session-meta">${formatLabel(s.createdAt)||s.date||''} · ${fmtTime(s.seconds||0)}</div>
-          </div>`).join('');
-    }
-  }, e => console.error('Child listener villa:', e));
+// ══════════════════════════════════════════════
+// ── CHILD LOGIN ──────────────────────────────
+// ══════════════════════════════════════════════
+window.childLogin = async function(){
+  const code=document.getElementById('child-code-input').value.trim().toUpperCase();
+  const err=document.getElementById('child-code-error');
+  err.textContent='';
+  if(code.length<4){err.textContent='Sláðu inn kóðann þinn.';return;}
+  try{
+    document.getElementById('child-code-input').disabled=true;
+    const snap=await getDoc(doc(db,'codes',code));
+    if(!snap.exists()){err.textContent='Kóðinn fannst ekki — athugaðu með foreldri.';document.getElementById('child-code-input').disabled=false;return;}
+    const data=snap.data();
+    S.role='child'; S.familyId=data.familyId; S.childKey=data.childKey; S.childName=data.childName;
+    localStorage.setItem('upphatt_child',JSON.stringify({familyId:data.familyId,childKey:data.childKey,childName:data.childName,code}));
+    setupChildHome(); goTo('screen-child-home');
+  }catch(e){err.textContent='Villa: '+e.message;document.getElementById('child-code-input').disabled=false;}
+};
+
+function setupChildHome(){
+  document.getElementById('child-name-pill').textContent=S.childName;
+  document.getElementById('child-hero').textContent=`Halló, ${S.childName}`;
+  S.childSessionsOpen=false;
+  loadChildSessions();
 }
 
-// ══════════════════════════════════════════════════════════
-// ── START READING ─────────────────────────────────────────
-// ══════════════════════════════════════════════════════════
-window.startReading = function(){
-  S.pendingSession = {
-    title:     document.getElementById('read-title').value.trim() || 'Lestur',
-    pageStart: parseInt(document.getElementById('page-start').value, 10) || null
-  };
-  S.elapsedSecs    = 0;
-  S.readingStartMs = Date.now();
-  S.audioSnippets  = {
-    min1:  { chunks: [], mimeType: '' },
-    min5:  { chunks: [], mimeType: '' },
-    min9:  { chunks: [], mimeType: '' },
-    min13: { chunks: [], mimeType: '' }
-  };
-  S.snippetTimers.forEach(t => clearTimeout(t));
-  S.snippetTimers = [];
-
-  document.getElementById('setup-card').style.display   = 'none';
-  document.getElementById('reading-card').style.display = '';
-  document.getElementById('finish-card').style.display  = 'none';
-
-  const disp = document.getElementById('timer-display');
-  disp.textContent  = S.timerMode === 'down' ? '15:00' : '0:00';
-  disp.className    = 'timer-big running';
-  document.getElementById('timer-status').textContent =
-    S.timerMode === 'down' ? 'Les upphátt — tíminn líður niður…' : 'Les upphátt…';
-  document.getElementById('audio-status').textContent = '';
-
-  if (S.timerInterval) clearInterval(S.timerInterval);
-  S.timerInterval = setInterval(() => {
-    S.elapsedSecs = Math.floor((Date.now() - S.readingStartMs) / 1000);
-    const display = S.timerMode === 'down' ? Math.max(0, TARGET - S.elapsedSecs) : S.elapsedSecs;
-    disp.textContent = fmtTime(display);
-    if (S.elapsedSecs >= TARGET) {
-      disp.className = 'timer-big done';
-      document.getElementById('timer-status').textContent = 'Markmið náð! 🎉';
+// ══════════════════════════════════════════════
+// ── LOAD CHILD SESSIONS ─────────────────────
+// ══════════════════════════════════════════════
+function loadChildSessions(){
+  const q=query(collection(db,'sessions'),where('familyId','==',S.familyId),where('childKey','==',S.childKey));
+  onSnapshot(q,snap=>{
+    const sessions=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.timestamp||0)-(a.timestamp||0));
+    const streak=getStreakWithShields(sessions);
+    const shields=getShields();
+    renderWeekDots(sessions,'child-week-dots');
+    if(streak>0){document.getElementById('child-streak').style.display='inline-flex';document.getElementById('streak-num').textContent=streak;}
+    else{document.getElementById('child-streak').style.display='none';}
+    if(shields>0){document.getElementById('child-shields').style.display='inline-flex';document.getElementById('shields-num').textContent=shields;}
+    else{document.getElementById('child-shields').style.display='none';}
+    const ns=checkAndGrantShield(streak); if(ns>0) setTimeout(()=>playSound('streak'),300);
+    const today=makeDateKey(new Date()), yesterday=makeDateKey(new Date(Date.now()-86400000));
+    const readToday=sessions.some(s=>s.date===today&&(s.seconds||0)>=60);
+    const readYesterday=sessions.some(s=>s.date===yesterday&&(s.seconds||0)>=60);
+    const warningEl=document.getElementById('shield-warning'),warningText=document.getElementById('shield-warning-text');
+    if(!readToday&&readYesterday&&streak>1){warningEl.style.display='';warningText.textContent=shields>0?`Þú átt ${shields} frídaga — ef þú gleymir er skjöldurinn notaður sjálfkrafa.`:`Les í dag til að halda ${streak} daga röðinni!`;}
+    else{warningEl.style.display='none';}
+    if(sessions.length){
+      document.getElementById('child-sessions-wrap').style.display='';
+      const listEl=document.getElementById('child-sessions-list');
+      const toggleBtn=document.getElementById('child-sessions-toggle');
+      document.getElementById('child-sessions-list').innerHTML=sessions.slice(0,5).map(s=>`
+        <div class="session">
+          <div class="session-title">${s.title||'Lestur'}${s.pagesRead?` · ${s.pagesRead} bls.`:''}</div>
+          <div class="session-meta">${formatLabel(s.createdAt)||s.date||''} · ${fmtTime(s.seconds||0)}</div>
+        </div>`).join('');
+      if(listEl) listEl.style.display=S.childSessionsOpen?'block':'none';
+      if(toggleBtn) toggleBtn.textContent=S.childSessionsOpen?'📚 Fela lotur ▴':'📚 Sjá lotur ▾';
+    }else{
+      document.getElementById('child-sessions-wrap').style.display='none';
+      S.childSessionsOpen=false;
     }
-  }, 500);
+  },e=>console.error('Child listener villa:',e));
+}
 
+// ══════════════════════════════════════════════
+// ── START READING ────────────────────────────
+// ══════════════════════════════════════════════
+window.startReading = function(){
+  S.pendingSession={title:document.getElementById('read-title').value.trim()||'Lestur',pageStart:parseInt(document.getElementById('page-start').value,10)||null};
+  S.elapsedSecs=0; S.readingStartMs=Date.now();
+  S.audioSnippets={min1:{chunks:[],mimeType:''},min5:{chunks:[],mimeType:''},min9:{chunks:[],mimeType:''},min13:{chunks:[],mimeType:''}};
+  S.snippetTimers.forEach(t=>clearTimeout(t)); S.snippetTimers=[];
+  document.getElementById('setup-card').style.display='none';
+  document.getElementById('reading-card').style.display='';
+  document.getElementById('finish-card').style.display='none';
+  const disp=document.getElementById('timer-display');
+  disp.textContent=S.timerMode==='down'?'15:00':'0:00';
+  disp.className='timer-big running';
+  document.getElementById('timer-status').textContent=S.timerMode==='down'?'Les upphátt — tíminn líður niður…':'Les upphátt…';
+  const audioStatusEl=document.getElementById('audio-status');
+  if(audioStatusEl){audioStatusEl.textContent='';audioStatusEl.style.display='none';}
+  if(S.timerInterval)clearInterval(S.timerInterval);
+  S.timerInterval=setInterval(()=>{
+    S.elapsedSecs=Math.floor((Date.now()-S.readingStartMs)/1000);
+    const display=S.timerMode==='down'?Math.max(0,TARGET-S.elapsedSecs):S.elapsedSecs;
+    disp.textContent=fmtTime(display);
+    if(S.elapsedSecs>=TARGET){disp.className='timer-big done';document.getElementById('timer-status').textContent='Markmið náð! 🎉';}
+  },500);
   startAudio();
 };
 
-async function startAudio(){
+// --- Audio recording ---
+async function startAudio() {
   try {
-    S.audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    const schedule = [
-      { label: 'min1',  ms: 1  * 60 * 1000 },
-      { label: 'min5',  ms: 5  * 60 * 1000 },
-      { label: 'min9',  ms: 9  * 60 * 1000 },
-      { label: 'min13', ms: 13 * 60 * 1000 },
-    ];
-    schedule.forEach(({ label, ms }) => {
-      const t = setTimeout(() => { recordSnippet(label, 15000); }, ms);
+    S.audioStream = await navigator.mediaDevices.getUserMedia({
+      audio: {
+        echoCancellation: true,
+        noiseSuppression: true,
+        autoGainControl: true
+      }
+    });
+    
+    // Set up Web Audio API for real-time volume analysis
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioContext.state === 'suspended') await audioContext.resume();
+    S.audioContext = audioContext;
+    const source = audioContext.createMediaStreamSource(S.audioStream);
+    const analyser = audioContext.createAnalyser();
+    const monitorNode = audioContext.createGain();
+    analyser.fftSize = 2048;
+    analyser.smoothingTimeConstant = 0.82;
+    monitorNode.gain.value = 0;
+    source.connect(analyser);
+    analyser.connect(monitorNode);
+    monitorNode.connect(audioContext.destination);
+    S.analyser = analyser;
+    S.monitorNode = monitorNode;
+    S.lastSoundDetected = Date.now();
+
+    // Ræsa hvatningarmælinn (bætt við)
+    if (window.runEncouragementEngine) window.runEncouragementEngine();
+
+    [
+      { label: 'min1',  ms: 60000 },
+      { label: 'min5',  ms: 300000 },
+      { label: 'min9',  ms: 540000 },
+      { label: 'min13', ms: 780000 }
+    ].forEach(({ label, ms }) => {
+      const t = setTimeout(() => recordSnippet(label, 15000), ms);
       S.snippetTimers.push(t);
     });
-    document.getElementById('audio-status').textContent = '🎤 Tekur upp við mín. 1, 5, 9 og 13';
-  } catch(e){
-    document.getElementById('audio-status').textContent = '🔇 Hljóðupptaka ekki í boði';
+    
+    const statusEl = document.getElementById('audio-status');
+    if (statusEl) {
+      statusEl.textContent = '';
+      statusEl.style.display = 'none';
+    }
+  } catch (e) {
+    const statusEl = document.getElementById('audio-status');
+    if (statusEl) {
+      statusEl.textContent = '🔇 Hljóðupptaka ekki í boði';
+      statusEl.style.display = 'block';
+    }
+    console.error("Audio villa:", e);
   }
 }
 
-function getSupportedMimeType(){
-  const types = ['audio/mp4','audio/aac','audio/webm;codecs=opus','audio/webm','audio/ogg'];
-  for (const t of types) {
-    try { if (MediaRecorder.isTypeSupported(t)) return t; } catch(e) {}
+function getSupportedMimeType() {
+  for (const t of ['audio/mp4', 'audio/aac', 'audio/webm;codecs=opus', 'audio/webm', 'audio/ogg']) {
+    try { if (MediaRecorder.isTypeSupported(t)) return t; } catch (e) { }
   }
   return '';
 }
 
-function recordSnippet(label, duration){
+function recordSnippet(label, duration) {
   if (!S.audioStream) return;
-  const chunks   = [];
+  const chunks = [];
   const mimeType = getSupportedMimeType();
   let rec;
   try {
     rec = mimeType ? new MediaRecorder(S.audioStream, { mimeType }) : new MediaRecorder(S.audioStream);
-  } catch(e) {
-    try { rec = new MediaRecorder(S.audioStream); } catch(e2) { return; }
+  } catch (e) {
+    try { rec = new MediaRecorder(S.audioStream); } catch (e2) { return; }
   }
-  rec.ondataavailable = e => { if (e.data && e.data.size > 0) chunks.push(e.data); };
+  rec.ondataavailable = e => { if (e.data?.size > 0) chunks.push(e.data); };
   rec.onstop = () => {
     S.audioSnippets[label] = { chunks, mimeType: rec.mimeType || mimeType || 'audio/webm' };
   };
   rec.start(1000);
-  setTimeout(() => { if (rec.state !== 'inactive') try { rec.stop(); } catch(e) {} }, duration);
+  setTimeout(() => { if (rec.state !== 'inactive') try { rec.stop(); } catch (e) { } }, duration);
 }
 
-function stopAudio(){
+function stopAudio() {
+  if (S.encouragementInterval) clearInterval(S.encouragementInterval);
+  S.encouragementInterval = null;
+  if (S.audioContext) S.audioContext.close().catch(() => {});
+  S.audioContext = null;
+  S.analyser = null;
+  S.monitorNode = null;
+  S.encouragementScore = 0;
+  S.lastSoundDetected = Date.now();
+  S.topZoneSince = 0;
+  S.topCooldownUntil = 0;
+  S.cadenceScore = 0;
+  S.lastInstantLevel = 0;
+  S.labelBoostUntil = 0;
+  S.silencePromptShown = false;
+  if (S.topToastTimer) clearTimeout(S.topToastTimer);
+  S.topToastTimer = null;
+
+  const bar = document.getElementById('encouragement-bar');
+  const label = document.getElementById('power-label');
+  const toast = document.getElementById('power-toast');
+  const nudge = document.getElementById('reading-nudge');
+  const hero = document.getElementById('child-hero-card');
+  if (bar) bar.style.width = '0%';
+  if (label) label.textContent = 'Hafðu hátt! 🎤';
+  if (toast) toast.classList.remove('show');
+  if (nudge) nudge.classList.remove('show');
+  if (hero) hero.classList.remove('hero-boost');
+
   S.snippetTimers.forEach(t => clearTimeout(t));
   S.snippetTimers = [];
   if (S.audioStream) {
@@ -664,255 +758,323 @@ function stopAudio(){
   }
 }
 
+// ══════════════════════════════════════════════
+// ── STOP READING (LAGFÆRT) ───────────────────
+// ══════════════════════════════════════════════
 window.stopReading = function(){
-  if (!S.readingStartMs) return;
-  clearInterval(S.timerInterval); S.timerInterval = null;
-  S.elapsedSecs = Math.floor((Date.now() - S.readingStartMs) / 1000);
+  if(!S.readingStartMs) return;
+  clearInterval(S.timerInterval); S.timerInterval=null;
+  S.elapsedSecs=Math.floor((Date.now()-S.readingStartMs)/1000);
   stopAudio();
-  if (S.elapsedSecs < 60) {
-    if (confirm('Þú lasir í minna en 1 mínútu — lota verður ekki vistuð. Hætta við?')) {
-      cancelReading(); return;
-    }
+  if(S.elapsedSecs<60){
+    if(confirm('Hætta við lestrarlotu?')){cancelReading();return;}
   }
-  document.getElementById('reading-card').style.display = 'none';
-  document.getElementById('finish-card').style.display  = '';
-  const mins = Math.floor(S.elapsedSecs / 60);
-  document.getElementById('finish-emoji').textContent  = mins >= 15 ? '🏆' : mins >= 5 ? '⭐' : '👍';
-  document.getElementById('finish-title').textContent  = mins >= 15 ? 'Frábær lestur!' : mins >= 5 ? 'Vel gert!' : 'Byrjunin er góð!';
-  document.getElementById('finish-sub').textContent    = `${fmtTime(S.elapsedSecs)} lesið — skráðu blaðsíðuna til að rekja framfarir`;
-  setTimeout(() => playSound(mins >= 15 ? 'streak' : 'done'), 400);
-  document.getElementById('page-end').oninput = function(){
-    const start = parseInt(document.getElementById('page-start').value, 10);
-    const end   = parseInt(this.value, 10);
-    const pd    = document.getElementById('pages-display');
-    if (start && end && end > start) pd.textContent = `📖 ${end - start} blaðsíður lesnar!`;
-    else pd.textContent = '';
+  document.getElementById('reading-card').style.display='none';
+  document.getElementById('finish-card').style.display='';
+  const mins=Math.floor(S.elapsedSecs/60);
+  document.getElementById('finish-emoji').textContent=mins>=15?'🏆':mins>=5?'⭐':'👍';
+  document.getElementById('finish-title').textContent=mins>=15?'Frábær lestur!':mins>=5?'Vel gert!':'Byrjunin er góð!';
+  document.getElementById('finish-sub').textContent=`${fmtTime(S.elapsedSecs)} lesið — skráðu blaðsíðuna til að rekja framfarir`;
+  setTimeout(()=>playSound(mins>=15?'streak':'done'),400);
+  document.getElementById('page-end').oninput=function(){
+    const start=parseInt(document.getElementById('page-start').value,10);
+    const end=parseInt(this.value,10);
+    const pd=document.getElementById('pages-display');
+    if(start&&end&&end>start)pd.textContent=`📖 ${end-start} blaðsíður lesnar!`;
+    else pd.textContent='';
   };
 };
 
 window.cancelReading = function(){
-  clearInterval(S.timerInterval); S.timerInterval = null;
+  clearInterval(S.timerInterval); S.timerInterval=null;
   stopAudio();
-  S.readingStartMs = null; S.elapsedSecs = 0; S.pendingSession = null;
-  S.audioSnippets = {};
-  document.getElementById('reading-card').style.display = 'none';
-  document.getElementById('finish-card').style.display  = 'none';
-  document.getElementById('setup-card').style.display   = '';
-  document.getElementById('timer-display').textContent  = S.timerMode === 'down' ? '15:00' : '0:00';
-  document.getElementById('timer-display').className    = 'timer-big';
+  S.readingStartMs=null; S.elapsedSecs=0; S.pendingSession=null; S.audioSnippets={};
+  document.getElementById('reading-card').style.display='none';
+  document.getElementById('finish-card').style.display='none';
+  document.getElementById('setup-card').style.display='';
+  document.getElementById('timer-display').textContent=S.timerMode==='down'?'15:00':'0:00';
+  document.getElementById('timer-display').className='timer-big';
 };
 
-// ══════════════════════════════════════════════════════════
-// ── VISTA LOTU ────────────────────────────────────────────
-// ── LAGFÆRING #2: Vista AÐEINS í 'sessions' collection ───
-// ── Engin undirmappa, engin tvöföldun ─────────────────────
-// ══════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════
+// ── SAVE SESSION ─────────────────────────────
+// ══════════════════════════════════════════════
 async function doSaveSession(pageEnd){
-  const err = document.getElementById('save-error');
-  err.textContent = 'Vistar...';
-
-  try {
-    const now = new Date();
-    const ts  = now.getTime();
-
-    const clipDefs = [
-      { label: 'min1',  fileName: 'hljod_1'  },
-      { label: 'min5',  fileName: 'hljod_5'  },
-      { label: 'min9',  fileName: 'hljod_9'  },
-      { label: 'min13', fileName: 'hljod_13' },
-    ];
-
-    const audioPaths = {};
-    let uploadCount  = 0;
-
-    for (const { label, fileName } of clipDefs) {
-      const snippet = S.audioSnippets[label];
-      if (!snippet || !snippet.chunks || snippet.chunks.length === 0) {
-        audioPaths[label] = null;
-        continue;
-      }
-      try {
-        const mimeType  = snippet.mimeType || 'audio/webm';
-        const ext       = mimeType.includes('mp4') ? 'mp4' : mimeType.includes('ogg') ? 'ogg' : 'webm';
-        const blob      = new Blob(snippet.chunks, { type: mimeType });
-        // ── LAGFÆRING #3: Storage path — ekkert 'children/' undirskipulag ──
-        // Allar klippurnar fara í: recordings/{familyId}/{childKey}/{timestamp}/
-        const path      = `recordings/${S.familyId}/${S.childKey}/${ts}/${fileName}.${ext}`;
-        await uploadBytes(ref(storage, path), blob, { contentType: mimeType });
-        audioPaths[label] = path;
-        uploadCount++;
-      } catch(e) {
-        console.error(`Storage villa (${label}):`, e);
-        audioPaths[label] = null;
-      }
+  const err=document.getElementById('save-error'); err.textContent='Vistar...';
+  try{
+    const now=new Date(), ts=now.getTime();
+    const clipDefs=[{label:'min1',fileName:'hljod_1'},{label:'min5',fileName:'hljod_5'},{label:'min9',fileName:'hljod_9'},{label:'min13',fileName:'hljod_13'}];
+    const audioPaths={}; let uploadCount=0;
+    for(const{label,fileName}of clipDefs){
+      const snippet=S.audioSnippets[label];
+      if(!snippet||!snippet.chunks||snippet.chunks.length===0){audioPaths[label]=null;continue;}
+      try{
+        const mimeType=snippet.mimeType||'audio/webm';
+        const ext=mimeType.includes('mp4')?'mp4':mimeType.includes('ogg')?'ogg':'webm';
+        const blob=new Blob(snippet.chunks,{type:mimeType});
+        const path=`recordings/${S.familyId}/${S.childKey}/${ts}/${fileName}.${ext}`;
+        await uploadBytes(ref(storage,path),blob,{contentType:mimeType});
+        audioPaths[label]=path; uploadCount++;
+      }catch(e){console.error(`Storage villa (${label}):`,e);audioPaths[label]=null;}
     }
-
-    if (uploadCount > 0) err.textContent = `🎤 ${uploadCount} hljóðklippum vistað!`;
-
-    // ── LAGFÆRING #4: Vista AÐEINS í eina collection: 'sessions' ──
-    // Aldrei nota addDoc á undirmöppur eins og 'families/.../sessions'
-    await addDoc(collection(db, 'sessions'), {
-      familyId:        S.familyId,
-      childKey:        S.childKey,
-      childName:       S.childName,
-      title:           S.pendingSession?.title || 'Lestur',
-      pageStart:       S.pendingSession?.pageStart || null,
-      pageEnd:         pageEnd || null,
-      pagesRead:       (S.pendingSession?.pageStart && pageEnd)
-                         ? pageEnd - S.pendingSession.pageStart
-                         : null,
-      seconds:         S.elapsedSecs,
-      timerMode:       S.timerMode,
-      hasAudio:        uploadCount > 0,
-      audioPath_min1:  audioPaths.min1  || null,
-      audioPath_min5:  audioPaths.min5  || null,
-      audioPath_min9:  audioPaths.min9  || null,
-      audioPath_min13: audioPaths.min13 || null,
-      audioPath:       audioPaths.min1 || audioPaths.min5 || audioPaths.min9 || audioPaths.min13 || null,
-      timestamp:       ts,
-      date:            makeDateKey(now),
-      createdAt:       serverTimestamp()
+    if(uploadCount>0) err.textContent=`🎤 ${uploadCount} hljóðklippum vistað!`;
+    await addDoc(collection(db,'sessions'),{
+      familyId:S.familyId, childKey:S.childKey, childName:S.childName,
+      title:S.pendingSession?.title||'Lestur',
+      pageStart:S.pendingSession?.pageStart||null,
+      pageEnd:pageEnd||null,
+      pagesRead:(S.pendingSession?.pageStart&&pageEnd)?pageEnd-S.pendingSession.pageStart:null,
+      seconds:S.elapsedSecs, timerMode:S.timerMode,
+      hasAudio:uploadCount>0,
+      audioPath_min1:audioPaths.min1||null, audioPath_min5:audioPaths.min5||null,
+      audioPath_min9:audioPaths.min9||null, audioPath_min13:audioPaths.min13||null,
+      audioPath:audioPaths.min1||audioPaths.min5||audioPaths.min9||audioPaths.min13||null,
+      timestamp:ts, date:makeDateKey(now), createdAt:serverTimestamp()
     });
-
-    const myCount = (S.sessions||[]).filter(s => s.childKey === S.childKey).length + 1;
-    checkMilestone(myCount);
-    finishReset();
-
-  } catch(e) {
-    err.textContent = 'Ekki tókst að vista: ' + e.message;
-    console.error(e);
-  }
+    const myCount=(S.sessions||[]).filter(s=>s.childKey===S.childKey).length+1;
+    checkMilestone(myCount); finishReset();
+  }catch(e){err.textContent='Ekki tókst að vista: '+e.message;console.error(e);}
 }
-
-window.saveSession = function(){
-  const pageEnd = parseInt(document.getElementById('page-end').value, 10) || null;
-  doSaveSession(pageEnd);
-};
-window.skipSave = function(){ doSaveSession(null); };
+window.saveSession=function(){doSaveSession(parseInt(document.getElementById('page-end').value,10)||null);};
+window.skipSave=function(){doSaveSession(null);};
 
 function finishReset(){
-  S.pendingSession = null; S.readingStartMs = null; S.audioSnippets = {};
-  document.getElementById('finish-card').style.display  = 'none';
-  document.getElementById('setup-card').style.display   = '';
-  document.getElementById('read-title').value           = '';
-  document.getElementById('page-start').value           = '';
-  document.getElementById('page-end').value             = '';
-  document.getElementById('pages-display').textContent  = '';
-  document.getElementById('save-error').textContent     = '';
-  document.getElementById('timer-display').textContent  = S.timerMode === 'down' ? '15:00' : '0:00';
-  document.getElementById('timer-display').className    = 'timer-big';
+  S.pendingSession=null;S.readingStartMs=null;S.audioSnippets={};
+  document.getElementById('finish-card').style.display='none';
+  document.getElementById('setup-card').style.display='';
+  ['read-title','page-start','page-end'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('pages-display').textContent='';
+  document.getElementById('save-error').textContent='';
+  document.getElementById('timer-display').textContent=S.timerMode==='down'?'15:00':'0:00';
+  document.getElementById('timer-display').className='timer-big';
 }
 
-// ── Parent login ──
+// ══════════════════════════════════════════════
+// ── FIX: REUSABLE PARENT AUTH PROCESSING ─────
+// ══════════════════════════════════════════════
+async function processAuthUser(user) {
+  const snap = await getDoc(doc(db, 'users', user.uid));
+  const profile = snap.exists() ? snap.data() : null;
+
+  S.role = 'parent';
+  S.familyId = profile?.familyId || user.uid;
+  S.parentName = (profile?.name || 'Foreldri').split(' ')[0];
+  window._parentChildren = profile?.children || [];
+  window._expandedChildren = {};
+
+  document.getElementById('parent-pill').textContent = S.parentName;
+  document.getElementById('parent-hero').textContent = `Góðan dag, ${S.parentName}`;
+
+  // ── Sýna kóða ──
+  if (profile?.children && profile.children.length) {
+    document.getElementById('codes-list').innerHTML =
+      profile.children.map(c => `
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid rgba(255,255,255,0.15)">
+          <div style="font-size:13px;font-weight:800;color:white">👦 ${c.name}</div>
+          <div style="font-family:Georgia,serif;font-size:20px;font-weight:700;color:rgba(255,255,255,0.9);letter-spacing:3px">${c.code || '—'}</div>
+        </div>`).join('');
+  } else {
+    // Fallback: sækja kóða úr codes collection ef profile.children er tómt
+    try {
+      const codesQ = query(collection(db, 'codes'), where('familyId', '==', S.familyId));
+      const codesSnap = await getDocs(codesQ);
+      if (!codesSnap.empty) {
+        const codes = codesSnap.docs.map(d => ({ code: d.id, ...d.data() }));
+        window._parentChildren = codes.map(c => ({ name: c.childName, key: c.childKey, code: c.code }));
+        document.getElementById('codes-list').innerHTML =
+          codes.map(c => `
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid rgba(255,255,255,0.15)">
+              <div style="font-size:13px;font-weight:800;color:white">👦 ${c.childName}</div>
+              <div style="font-family:Georgia,serif;font-size:20px;font-weight:700;color:rgba(255,255,255,0.9);letter-spacing:3px">${c.code}</div>
+            </div>`).join('');
+      }
+    } catch (e) { console.error('Kóðaleit villa:', e); }
+  }
+
+  startFamilyListener();
+  goTo('screen-parent-home');
+
+  // FIX: Re-enable login inputs so they're ready if user logs out and back in
+  document.getElementById('login-email').disabled = false;
+  document.getElementById('login-pw').disabled = false;
+  document.getElementById('login-error').textContent = '';
+}
+
+// ══════════════════════════════════════════════
+// ── PARENT LOGIN (FIXED) ─────────────────────
+// ══════════════════════════════════════════════
 window.firebaseLogin = async function(){
   const email = document.getElementById('login-email').value.trim();
-  const pw    = document.getElementById('login-pw').value;
-  const err   = document.getElementById('login-error');
+  const pw = document.getElementById('login-pw').value;
+  const err = document.getElementById('login-error');
   err.textContent = '';
+  if (!email || !pw) { err.textContent = 'Sláðu inn netfang og lykilorð.'; return; }
   try {
     document.getElementById('login-email').disabled = true;
-    document.getElementById('login-pw').disabled    = true;
-    await signInWithEmailAndPassword(auth, email, pw);
+    document.getElementById('login-pw').disabled = true;
+    const cred = await signInWithEmailAndPassword(auth, email, pw);
+    setSavedParentEmail(email);
+    // FIX: Don't rely solely on onAuthStateChanged — it may not fire
+    // if the user was already signed in (same uid = no state change).
+    await processAuthUser(cred.user);
   } catch(e) {
+    console.error('Login villa:', e);
     err.textContent = 'Innskráning mistókst — athugaðu netfang og lykilorð.';
     document.getElementById('login-email').disabled = false;
-    document.getElementById('login-pw').disabled    = false;
+    document.getElementById('login-pw').disabled = false;
   }
 };
 
-// ── Auth state ──
-onAuthStateChanged(auth, async (user) => {
-  if (user) {
-    try {
-      const snap    = await getDoc(doc(db, 'users', user.uid));
-      const profile = snap.exists() ? snap.data() : null;
-      S.role       = 'parent';
-      S.familyId   = profile?.familyId || user.uid;
-      S.parentName = (profile?.name || 'Foreldri').split(' ')[0];
-      window._parentChildren   = profile?.children || [];
-      window._expandedChildren = {};
-      document.getElementById('parent-pill').textContent = S.parentName;
-      document.getElementById('parent-hero').textContent = `Góðan dag, ${S.parentName}`;
-      if (profile?.children) {
-        document.getElementById('codes-list').innerHTML =
-          profile.children.map(c => `
-            <div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid rgba(255,255,255,0.15)">
-              <div style="font-size:13px;font-weight:800;color:white">👦 ${c.name}</div>
-              <div style="font-family:Georgia,serif;font-size:20px;font-weight:700;color:rgba(255,255,255,0.9);letter-spacing:3px">${c.code||''}</div>
-            </div>`).join('') +
-          (profile.familyCode ? `
-            <div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;margin-top:2px">
-              <div style="font-size:12px;font-weight:800;color:rgba(255,255,255,0.7)">👨‍👩‍👦 Fjölskyldukóði</div>
-              <div style="font-family:Georgia,serif;font-size:15px;font-weight:700;color:rgba(255,255,255,0.85);letter-spacing:2px">${profile.familyCode}</div>
-            </div>` : '');
-      }
-      startFamilyListener();
-      goTo('screen-parent-home');
-    } catch(e) { console.error('Auth villa:', e); }
+// ══════════════════════════════════════════════
+// ── PARENT SIGNUP (FIXED) ────────────────────
+// ══════════════════════════════════════════════
+window.addChildInput = function(){
+  const container=document.getElementById('signup-children-list');
+  const div=document.createElement('div'); div.className='form-group';
+  div.innerHTML='<input class="child-name-input" type="text" placeholder="Nafn barns">';
+  container.appendChild(div);
+};
+
+window.firebaseSignup = async function(){
+  const name=document.getElementById('reg-name').value.trim();
+  const email=document.getElementById('reg-email').value.trim();
+  const pw=document.getElementById('reg-pw').value.trim();
+  const errorEl=document.getElementById('reg-error');
+  const childNames=Array.from(document.querySelectorAll('.child-name-input')).map(i=>i.value.trim()).filter(v=>v!=='');
+  if(!name||!email||pw.length<6||childNames.length===0){
+    errorEl.textContent='Vinsamlegast fylltu út allt og bættu við barni.'; return;
+  }
+  try{
+    errorEl.style.color='var(--ocean)'; errorEl.textContent='Stofna fjölskyldu... ⏳';
+
+    // FIX: Block onAuthStateChanged from running during signup
+    _signupInProgress = true;
+
+    const userCred=await createUserWithEmailAndPassword(auth,email,pw);
+    const uid=userCred.user.uid;
+    const familyId='FAM-'+Math.random().toString(36).substr(2,5).toUpperCase();
+    const childrenArray=[];
+    for(let cName of childNames){
+      const loginCode=(cName.replace(/\s/g,'').substr(0,3).toUpperCase()+Math.floor(10+Math.random()*90));
+      const childKey=Math.random().toString(36).substr(2,8);
+      await setDoc(doc(db,'codes',loginCode),{familyId,childKey,childName:cName});
+      childrenArray.push({name:cName, key:childKey, code:loginCode});
+    }
+    await setDoc(doc(db,'users',uid),{
+      name, email, role:'parent', familyId,
+      children: childrenArray,
+      createdAt:serverTimestamp()
+    });
+    setSavedParentEmail(email);
+
+    // FIX: Sign out so user must properly log in (prevents ghost auth state)
+    await signOut(auth);
+    _signupInProgress = false;
+
+    alert('Aðgangur tilbúinn! Þú getur nú skráð þig inn.');
+    goTo('screen-parent-login');
+  }catch(e){
+    _signupInProgress = false;
+    errorEl.style.color='var(--coral)';
+    errorEl.textContent='Villa: '+e.message;
+    // FIX: If signup partially succeeded but errored, sign out to clean up
+    try { await signOut(auth); } catch(_){}
+  }
+};
+
+// ══════════════════════════════════════════════
+// ── LOGOUT ───────────────────────────────────
+// ══════════════════════════════════════════════
+window.logout = async function(){
+  if(S.role==='child'){
+    if(confirm('Skrá þig út? Þú þarft kóðann aftur til að skrá þig inn.')){
+      localStorage.removeItem('upphatt_child');
+      S.role=null;S.familyId=null;S.childKey=null;S.childName=null;
+      cancelReading(); goTo('screen-login');
+    }
     return;
   }
+  if(confirm('Viltu skrá þig út?')){
+    if(S.familyUnsub){S.familyUnsub();S.familyUnsub=null;}
+    localStorage.removeItem('upphatt_child');
+    await signOut(auth);
+    location.reload();
+  }
+};
+
+// ══════════════════════════════════════════════
+// ── AUTH STATE (FIXED) ───────────────────────
+// ══════════════════════════════════════════════
+onAuthStateChanged(auth, async (user) => {
+  // FIX: Skip if signup is in progress (user doc hasn't been created yet)
+  if (_signupInProgress) return;
+
+  if (user) {
+    try {
+      setSavedParentEmail(user.email || getSavedParentEmail());
+      await processAuthUser(user);
+    } catch(e) {
+      console.error('Auth villa:', e);
+      // FIX: Recover from errors — re-enable inputs and show login
+      document.getElementById('login-email').disabled = false;
+      document.getElementById('login-pw').disabled = false;
+      document.getElementById('login-error').textContent = 'Villa við innskráningu. Reyndu aftur.';
+      goTo('screen-parent-login');
+    }
+    return;
+  }
+
+  // Enginn notandi innskráður
   if (S.familyUnsub) { S.familyUnsub(); S.familyUnsub = null; }
   S.sessions = [];
   const saved = localStorage.getItem('upphatt_child');
   if (saved) {
     try {
-      const data   = JSON.parse(saved);
-      S.role       = 'child';
-      S.familyId   = data.familyId;
-      S.childKey   = data.childKey;
-      S.childName  = data.childName;
-      setupChildHome();
-      goTo('screen-child-home');
-      return;
+      const data = JSON.parse(saved);
+      S.role='child'; S.familyId=data.familyId; S.childKey=data.childKey; S.childName=data.childName;
+      setupChildHome(); goTo('screen-child-home'); return;
     } catch(e) { localStorage.removeItem('upphatt_child'); }
   }
+  hydrateParentLogin();
   goTo('screen-login');
 });
 
-// ── Family listener ──
-// ── LAGFÆRING #5: Aðeins EIN onSnapshot — á 'sessions' collection ──
-// Engar tvöfaldar queries, engar undirmöppur
+// ══════════════════════════════════════════════
+// ── FAMILY LISTENER ──────────────────────────
+// ══════════════════════════════════════════════
 function startFamilyListener(){
-  if (S.familyUnsub) { S.familyUnsub(); S.familyUnsub = null; }
-  const q = query(collection(db, 'sessions'), where('familyId', '==', S.familyId));
-  S.familyUnsub = onSnapshot(q, snap => {
-    S.sessions = snap.docs.map(d => ({ _docId: d.id, ...d.data() }))
-      .sort((a, b) => (b.timestamp||0) - (a.timestamp||0));
+  if(S.familyUnsub){S.familyUnsub();S.familyUnsub=null;}
+  const q=query(collection(db,'sessions'),where('familyId','==',S.familyId));
+  S.familyUnsub=onSnapshot(q,snap=>{
+    S.sessions=snap.docs.map(d=>({_docId:d.id,...d.data()})).sort((a,b)=>(b.timestamp||0)-(a.timestamp||0));
     renderParentHome();
-  }, e => console.error('Family listener villa:', e));
+  },e=>console.error('Family listener villa:',e));
 }
 
-// ── PARENT HOME ──
-// ── LAGFÆRING #6: allKeys byggist KUN á childKey úr Firestore gögnum ──
-// Þetta kemur í veg fyrir tvöfalt barn ef profile.key != childKey í sessions
-function renderParentHome() {
-  const root  = document.getElementById('parent-content');
-  const today = makeDateKey(new Date());
-  const mon   = getMonday();
+// ══════════════════════════════════════════════
+// ── PARENT HOME RENDER (KLÁRUÐ) ─────────────
+// ══════════════════════════════════════════════
+function renderParentHome(){
+  const root=document.getElementById('parent-content');
+  const today=makeDateKey(new Date());
+  const mon=getMonday();
 
-  // Hópa lotur eftir childKey
-  const groups = {};
-  S.sessions.forEach(s => {
-    const key = s.childKey;
-    if (!key) return;
-    if (!groups[key]) groups[key] = [];
+  const groups={};
+  S.sessions.forEach(s=>{
+    const key=s.childKey; if(!key)return;
+    if(!groups[key])groups[key]=[];
     groups[key].push(s);
   });
 
-  // ── LYKILLAGFÆRING: nota KUN childKey úr Firestore — EKKI sameina við profile.children ──
-  // Þetta kemur í veg fyrir að sama barn birtist tvisvar ef profile.key er öðruvísi stafsettur
-  const sessionKeys = Object.keys(groups);
-
-  // Bætum við börnum úr profile sem hafa ENGAR lotur (svo foreldri sjái þau)
-  // En AÐEINS ef childKey passar nákvæmlega — notum childKey (ekki name) sem auðkenni
-  const profileChildren = window._parentChildren || [];
-  const allKeys = [...new Set([
+  const sessionKeys=Object.keys(groups);
+  const profileChildren=window._parentChildren||[];
+  const allKeys=[...new Set([
     ...sessionKeys,
-    ...profileChildren.map(c => c.key).filter(k => k && !sessionKeys.includes(k))
+    ...profileChildren.map(c=>c.key).filter(k=>k&&!sessionKeys.includes(k))
   ])];
 
-  if (!allKeys.length) {
-    root.innerHTML = `
+  if(!allKeys.length){
+    root.innerHTML=`
       <div style="background:#fff;border-radius:18px;padding:32px 20px;text-align:center;box-shadow:var(--card-shadow)">
         <div style="font-size:40px;margin-bottom:12px">📖</div>
         <div style="font-size:15px;font-weight:700;color:var(--deep)">Engar lotur enn</div>
@@ -921,49 +1083,49 @@ function renderParentHome() {
     return;
   }
 
-  const DAYS = ['Mán','Þri','Mið','Fim','Fös','Lau','Sun'];
+  const DAYS=['Mán','Þri','Mið','Fim','Fös','Lau','Sun'];
 
-  const childCards = allKeys.map(key => {
-    const list       = groups[key] || [];
-    // Sækja nafn: fyrst úr lotur, svo úr profile
-    const profChild  = profileChildren.find(c => c.key === key);
-    const childName  = list[0]?.childName || profChild?.name || key;
-    const readToday  = list.some(s => s.date === today && (s.seconds||0) >= 60);
-    const streak     = getStreak(list);
-    const isExpanded = !!(window._expandedChildren && window._expandedChildren[key]);
+  const childCards=allKeys.map(key=>{
+    const list=groups[key]||[];
+    const profChild=profileChildren.find(c=>c.key===key);
+    const childName=list[0]?.childName||profChild?.name||key;
+    const readToday=list.some(s=>s.date===today&&(s.seconds||0)>=60);
+    const streak=getStreak(list);
+    const isExpanded=!!(window._expandedChildren&&window._expandedChildren[key]);
 
-    const weekDays = DAYS.map((lbl, i) => {
-      const d   = new Date(mon); d.setDate(mon.getDate() + i);
-      const k   = makeDateKey(d);
-      const mins = list.filter(s => s.date === k).reduce((a,s) => a + Math.floor((s.seconds||0)/60), 0);
-      const isToday = k === today;
-      const bg  = mins >= 15 ? '#4CAF7D' : mins > 0 ? '#b8e0c8' : '#f0f4f9';
-      const col = mins >= 15 ? '#fff'    : mins > 0 ? '#2e7a4f' : '#aab7c4';
-      const border = isToday ? '2px solid var(--ocean)' : '2px solid transparent';
+    // ── Vikudagar ──
+    const weekDays=DAYS.map((lbl,i)=>{
+      const d=new Date(mon);d.setDate(mon.getDate()+i);
+      const k=makeDateKey(d);
+      const mins=list.filter(s=>s.date===k).reduce((a,s)=>a+Math.floor((s.seconds||0)/60),0);
+      const isToday=k===today;
+      const bg=mins>=15?'#4CAF7D':mins>0?'#b8e0c8':'#f0f4f9';
+      const col=mins>=15?'#fff':mins>0?'#2e7a4f':'#aab7c4';
+      const border=isToday?'2px solid var(--ocean)':'2px solid transparent';
       return `
         <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px">
           <div style="font-size:8px;font-weight:800;color:var(--mist);text-transform:uppercase">${lbl}</div>
           <div style="width:100%;aspect-ratio:1;border-radius:8px;background:${bg};border:${border};
             display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px">
-            <div style="font-size:8px;font-weight:800;color:${col}">${mins > 0 ? mins+'m' : '—'}</div>
+            <div style="font-size:8px;font-weight:800;color:${col}">${mins>0?mins+'m':'—'}</div>
           </div>
         </div>`;
     }).join('');
 
-    const sessionList = isExpanded ? list.slice(0, 8).map(s => {
-      const clipLabels = [
-        { key: 'audioPath_min1',  label: 'Mín. 1'  },
-        { key: 'audioPath_min5',  label: 'Mín. 5'  },
-        { key: 'audioPath_min9',  label: 'Mín. 9'  },
-        { key: 'audioPath_min13', label: 'Mín. 13' },
+    // ── Lotur (ef útvíkkað) ──
+    const sessionList=isExpanded?list.slice(0,8).map(s=>{
+      const clipLabels=[
+        {key:'audioPath_min1',label:'Mín. 1'},
+        {key:'audioPath_min5',label:'Mín. 5'},
+        {key:'audioPath_min9',label:'Mín. 9'},
+        {key:'audioPath_min13',label:'Mín. 13'}
       ];
-      const legacyPath = s.audioPath || null;
-
-      const clipButtons = clipLabels.map(({ key: pathKey, label }, idx) => {
-        const path     = s[pathKey] || (idx === 0 ? legacyPath : null);
-        const btnId    = `clipbtn-${s._docId}-${idx}`;
-        const playerId = `clipplay-${s._docId}-${idx}`;
-        if (!path) {
+      const legacyPath=s.audioPath||null;
+      const clipButtons=clipLabels.map(({key:pathKey,label},idx)=>{
+        const path=s[pathKey]||(idx===0?legacyPath:null);
+        const btnId=`clipbtn-${s._docId}-${idx}`;
+        const playerId=`clipplay-${s._docId}-${idx}`;
+        if(!path){
           return `
             <button class="clip-btn" disabled title="Engin upptaka">
               🎤<br>${label}<br><span style="font-size:9px;opacity:.5">—</span>
@@ -984,7 +1146,7 @@ function renderParentHome() {
           <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:6px">
             <div style="flex:1;min-width:0">
               <div style="font-size:12px;font-weight:700;color:var(--deep)">
-                ${s.title||'Lestur'}${s.pagesRead ? ' · '+s.pagesRead+' bls.' : ''}
+                ${s.title||'Lestur'}${s.pagesRead?' · '+s.pagesRead+' bls.':''}
               </div>
               <div style="font-size:10px;color:var(--mist);margin-top:1px">
                 ${formatLabel(s.createdAt)||s.date||''}
@@ -994,104 +1156,133 @@ function renderParentHome() {
               ${fmtTime(s.seconds||0)}
             </div>
           </div>
-          ${s.hasAudio ? `
+          ${s.hasAudio?`
             <div style="font-size:10px;font-weight:700;color:var(--mist);margin-bottom:4px">🎤 Hljóðklippingar:</div>
-            <div class="audio-clips-row">${clipButtons}</div>` : ''}
+            <div class="audio-clips-row">${clipButtons}</div>`:''}
         </div>`;
-    }).join('') : '';
+    }).join(''):'';
+
+    // ── Samantekt kort ──
+    const totalMins=list.reduce((a,s)=>a+Math.floor((s.seconds||0)/60),0);
+    const totalSessions=list.length;
 
     return `
       <div style="background:#fff;border-radius:18px;margin-bottom:14px;box-shadow:var(--card-shadow);overflow:hidden">
+        <!-- Haus -->
         <div style="padding:14px 16px;display:flex;align-items:center;justify-content:space-between">
           <div style="font-size:16px;font-weight:800;color:var(--deep)">${childName}</div>
           <div style="display:flex;align-items:center;gap:6px">
-            ${streak > 1 ? `<div style="background:#fff8e6;border:1.5px solid var(--sun);border-radius:50px;padding:3px 9px;font-size:11px;font-weight:800;color:#b07d00">🔥${streak}</div>` : ''}
+            ${streak>1?`<div style="background:#fff8e6;border:1.5px solid var(--sun);border-radius:50px;padding:3px 9px;font-size:11px;font-weight:800;color:#b07d00">🔥${streak}</div>`:''}
             <div style="padding:4px 12px;border-radius:50px;font-size:11px;font-weight:800;
               background:${readToday?'#e6f9ef':'#fff0f0'};
               color:${readToday?'#1a7a3f':'#c0392b'};
               border:1.5px solid ${readToday?'#4CAF7D':'#FF6B6B'}">
-              ${readToday ? '✓ Las í dag' : '◯ Á eftir'}
+              ${readToday?'✓ Las í dag':'◯ Á eftir'}
             </div>
           </div>
         </div>
-        <div style="padding:0 12px 14px;display:flex;gap:4px;position:relative">${weekDays}</div>
+
+        <!-- Tölfræði -->
+        <div style="padding:0 16px 8px">
+          <div class="stat-row">
+            <div class="stat-box">
+              <div class="stat-val">${totalSessions}</div>
+              <div class="stat-lbl">Lotur</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-val">${totalMins}</div>
+              <div class="stat-lbl">Mínútur</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-val">${streak}</div>
+              <div class="stat-lbl">Daga röð</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Vika -->
+        <div style="padding:0 12px 14px;display:flex;gap:4px">${weekDays}</div>
+
+        <!-- Expand/Collapse -->
         <div style="border-top:1px solid #f0f4f9">
           <button onclick="toggleExpand('${key}')"
             style="width:100%;background:none;border:none;padding:10px;font-size:11px;font-weight:800;color:var(--ocean);cursor:pointer">
-            ${isExpanded ? '▲ Minna' : '▼ Meira — síðustu lotur'}
+            ${isExpanded?'▲ Minna':'▼ Meira — síðustu lotur'}
           </button>
         </div>
-        ${isExpanded
-          ? `<div style="padding:0 16px 12px;border-top:1px solid #f0f4f9">
-              ${sessionList || '<div style="font-size:12px;color:var(--mist);text-align:center;padding:12px">Engar lotur enn</div>'}
-             </div>`
-          : ''}
+
+        <!-- Lotur (ef útvíkkað) -->
+        ${isExpanded?`
+          <div style="padding:0 16px 12px;border-top:1px solid #f0f4f9">
+            ${sessionList||'<div style="font-size:12px;color:var(--mist);text-align:center;padding:12px">Engar lotur enn</div>'}
+          </div>`:''}
       </div>`;
   }).join('');
 
-  root.innerHTML = childCards + renderMonthChart(S.sessions);
+  root.innerHTML=childCards+renderMonthChart(S.sessions);
 }
 
-window.toggleExpand = function(key) {
-  if (!window._expandedChildren) window._expandedChildren = {};
-  window._expandedChildren[key] = !window._expandedChildren[key];
+// ══════════════════════════════════════════════
+// ── TOGGLE EXPAND ────────────────────────────
+// ══════════════════════════════════════════════
+window.toggleExpand=function(key){
+  if(!window._expandedChildren)window._expandedChildren={};
+  window._expandedChildren[key]=!window._expandedChildren[key];
   renderParentHome();
 };
 
-// ── playClip ──
-window.playClip = async function(path, playerId, btnId) {
-  const playerEl = document.getElementById(playerId);
-  const btnEl    = document.getElementById(btnId);
-  if (!playerEl) return;
-  if (playerEl.style.display !== 'none' && playerEl.innerHTML !== '') {
-    playerEl.style.display = 'none';
-    playerEl.innerHTML = '';
-    if (btnEl) btnEl.className = 'clip-btn';
-    return;
+// ══════════════════════════════════════════════
+// ── PLAY CLIP ────────────────────────────────
+// ══════════════════════════════════════════════
+window.playClip=async function(path,playerId,btnId){
+  const playerEl=document.getElementById(playerId);
+  const btnEl=document.getElementById(btnId);
+  if(!playerEl)return;
+  if(playerEl.style.display!=='none'&&playerEl.innerHTML!==''){
+    playerEl.style.display='none'; playerEl.innerHTML='';
+    if(btnEl)btnEl.className='clip-btn'; return;
   }
-  if (btnEl) btnEl.className = 'clip-btn loading';
-  playerEl.style.display = '';
-  playerEl.innerHTML = '<div style="font-size:10px;color:var(--mist);font-weight:700;padding:4px">⏳ Hleður...</div>';
-  try {
-    const url  = await getDownloadURL(ref(storage, path));
-    const resp = await fetch(url);
-    if (!resp.ok) throw new Error('Fetch mistókst: ' + resp.status);
-    const blob = await resp.blob();
-    const ext      = path.split('.').pop().toLowerCase();
-    const mimeType = ext === 'mp4' ? 'audio/mp4' : ext === 'ogg' ? 'audio/ogg' : 'audio/webm';
-    const blobUrl  = URL.createObjectURL(new Blob([blob], { type: mimeType }));
-    playerEl.innerHTML = `
-      <audio controls preload="auto" src="${blobUrl}"
-        style="width:100%;margin-top:4px;border-radius:8px"
-        onended="URL.revokeObjectURL('${blobUrl}')">
-      </audio>`;
-    const audio = playerEl.querySelector('audio');
-    if (audio) audio.play().catch(() => {});
-    if (btnEl) btnEl.className = 'clip-btn';
-  } catch(e) {
-    playerEl.innerHTML = `<div style="font-size:10px;color:var(--coral);font-weight:700;padding:4px">❌ Ekki tókst að hlaða</div>`;
-    if (btnEl) btnEl.className = 'clip-btn';
+  if(btnEl)btnEl.className='clip-btn loading';
+  playerEl.style.display='';
+  playerEl.innerHTML='<div style="font-size:10px;color:var(--mist);font-weight:700;padding:4px">⏳ Hleður...</div>';
+  try{
+    const url=await getDownloadURL(ref(storage,path));
+    const resp=await fetch(url);
+    if(!resp.ok)throw new Error('Fetch mistókst: '+resp.status);
+    const blob=await resp.blob();
+    const ext=path.split('.').pop().toLowerCase();
+    const mimeType=ext==='mp4'?'audio/mp4':ext==='ogg'?'audio/ogg':'audio/webm';
+    const blobUrl=URL.createObjectURL(new Blob([blob],{type:mimeType}));
+    playerEl.innerHTML=`<audio controls preload="auto" src="${blobUrl}" style="width:100%;margin-top:4px;border-radius:8px"></audio>`;
+    const audio=playerEl.querySelector('audio');
+    if(audio)audio.play().catch(()=>{});
+    if(btnEl)btnEl.className='clip-btn';
+  }catch(e){
+    playerEl.innerHTML='<div style="font-size:10px;color:var(--coral);font-weight:700;padding:4px">❌ Ekki tókst að hlaða</div>';
+    if(btnEl)btnEl.className='clip-btn';
   }
 };
 
-function renderMonthChart(sessions) {
-  const now    = new Date();
-  const months = [];
-  for (let i = 5; i >= 0; i--) {
-    const d     = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    const label = d.toLocaleString('is-IS', { month: 'short' });
-    const mins  = sessions.filter(s => {
-      const sd = new Date(s.date);
-      return sd.getFullYear()===d.getFullYear() && sd.getMonth()===d.getMonth() && (s.seconds||0)>=60;
-    }).reduce((a,s) => a + Math.floor((s.seconds||0)/60), 0);
-    months.push({ label, mins });
+// ══════════════════════════════════════════════
+// ── MONTH CHART ──────────────────────────────
+// ══════════════════════════════════════════════
+function renderMonthChart(sessions){
+  const now=new Date(); const months=[];
+  for(let i=5;i>=0;i--){
+    const d=new Date(now.getFullYear(),now.getMonth()-i,1);
+    const label=d.toLocaleString('is-IS',{month:'short'});
+    const mins=sessions.filter(s=>{
+      const sd=new Date(s.date);
+      return sd.getFullYear()===d.getFullYear()&&sd.getMonth()===d.getMonth()&&(s.seconds||0)>=60;
+    }).reduce((a,s)=>a+Math.floor((s.seconds||0)/60),0);
+    months.push({label,mins});
   }
-  const maxMins = Math.max(...months.map(m => m.mins), 1);
-  const bars = months.map(m => {
-    const pct = Math.round((m.mins / maxMins) * 100);
+  const maxMins=Math.max(...months.map(m=>m.mins),1);
+  const bars=months.map(m=>{
+    const pct=Math.round((m.mins/maxMins)*100);
     return `
       <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px">
-        <div style="font-size:9px;font-weight:700;color:var(--mist)">${m.mins > 0 ? m.mins+'m' : ''}</div>
+        <div style="font-size:9px;font-weight:700;color:var(--mist)">${m.mins>0?m.mins+'m':''}</div>
         <div style="width:100%;background:#f0f4f9;border-radius:6px;height:60px;display:flex;align-items:flex-end;overflow:hidden">
           <div style="width:100%;background:var(--ocean);border-radius:6px;height:${pct}%;min-height:${m.mins>0?'4px':'0'}"></div>
         </div>
@@ -1105,27 +1296,148 @@ function renderMonthChart(sessions) {
     </div>`;
 }
 
-window.toggleCodes = function() {
-  const panel = document.getElementById('codes-panel');
-  const btn   = document.getElementById('codes-toggle-btn');
-  const open  = panel.style.display === 'none';
-  panel.style.display = open ? '' : 'none';
-  btn.textContent     = open ? '✕ Loka' : '🔑 Kóðar';
+// ══════════════════════════════════════════════
+// ── TOGGLE CODES ─────────────────────────────
+// ══════════════════════════════════════════════
+window.toggleCodes=function(){
+  const panel=document.getElementById('codes-panel');
+  const btn=document.getElementById('codes-toggle-btn');
+  const open=panel.style.display==='none';
+  panel.style.display=open?'':'none';
+  btn.textContent=open?'✕ Loka':'🔑 Kóðar';
 };
 
-window.logout = async function(){
-  if (S.role === 'child') {
-    if (confirm('Skrá þig út? Þú þarft kóðann aftur til að skrá þig inn.')) {
-      localStorage.removeItem('upphatt_child');
-      S.role=null; S.familyId=null; S.childKey=null; S.childName=null;
-      cancelReading();
-      goTo('screen-login');
-    }
-    return;
+function triggerTopMeterMoment(){
+  const toast = document.getElementById('power-toast');
+  const hero = document.getElementById('child-hero-card');
+  if (toast) {
+    toast.classList.add('show');
+    if (S.topToastTimer) clearTimeout(S.topToastTimer);
+    S.topToastTimer = setTimeout(() => {
+      toast.classList.remove('show');
+      S.topToastTimer = null;
+    }, 1800);
   }
-  if (S.familyUnsub) { S.familyUnsub(); S.familyUnsub = null; }
-  await signOut(auth);
+  if (hero) {
+    hero.classList.remove('hero-boost');
+    // Restart animation cleanly on each trigger.
+    void hero.offsetWidth;
+    hero.classList.add('hero-boost');
+    setTimeout(() => hero.classList.remove('hero-boost'), 600);
+  }
+  S.labelBoostUntil = Date.now() + 1800;
+  playSound('done');
+}
+
+// ══════════════════════════════════════════════
+// ── ENCOURAGEMENT ENGINE ─────────────────────
+// ══════════════════════════════════════════════
+window.runEncouragementEngine = function(){
+  if(S.encouragementInterval) clearInterval(S.encouragementInterval);
+  
+  const bar = document.getElementById('encouragement-bar');
+  const label = document.getElementById('power-label');
+  const nudge = document.getElementById('reading-nudge');
+  if(!bar || !label) return;
+  
+  S.encouragementScore = 0;
+  S.cadenceScore = 0;
+  S.lastInstantLevel = 0;
+  S.labelBoostUntil = 0;
+  S.silencePromptShown = false;
+  if(nudge) nudge.classList.remove('show');
+  bar.style.background = 'linear-gradient(90deg, #FF6B6B, #FF9500, #FFB830, #4CAF7D)';
+  
+  S.encouragementInterval = setInterval(() => {
+    if (!S.analyser) {
+      S.encouragementScore = Math.max(0, S.encouragementScore - 2);
+    } else {
+      const dataArray = new Uint8Array(S.analyser.fftSize);
+      S.analyser.getByteTimeDomainData(dataArray);
+
+      let sumSquares = 0;
+      let peak = 0;
+      for (let i = 0; i < dataArray.length; i++) {
+        const centered = (dataArray[i] - 128) / 128;
+        sumSquares += centered * centered;
+        const amplitude = Math.abs(centered);
+        if (amplitude > peak) peak = amplitude;
+      }
+      const rms = Math.sqrt(sumSquares / dataArray.length);
+      const detectedLevel = Math.max(0, Math.max(
+        (rms - 0.012) / 0.08,
+        (peak - 0.06) / 0.3
+      ));
+      const newScore = Math.min(100, detectedLevel * 88);
+      const instantLevel = Math.min(1, detectedLevel);
+      const swing = Math.abs(instantLevel - S.lastInstantLevel);
+      const inReadingBand = instantLevel > 0.18 && instantLevel < 0.85;
+
+      if (inReadingBand) {
+        const consistencyBoost = Math.max(0.15, 1.1 - swing * 2.4);
+        S.cadenceScore = Math.min(100, S.cadenceScore + consistencyBoost);
+      } else if (instantLevel >= 0.95) {
+        // Very loud spikes do not count as good reading tempo.
+        S.cadenceScore = Math.max(0, S.cadenceScore - 0.9);
+      } else {
+        S.cadenceScore = Math.max(0, S.cadenceScore - 0.35);
+      }
+      S.lastInstantLevel = instantLevel;
+
+      // Give sustained cadence a small boost so the last stretch is reachable.
+      const cadenceBonus = Math.max(0, (S.cadenceScore - 45) * 0.55);
+      const effectiveScore = Math.min(100, newScore + cadenceBonus);
+
+      if (effectiveScore > 7) {
+        S.lastSoundDetected = Date.now();
+      }
+
+      // Throttle-style rise: sustained reading builds the meter gradually.
+      if (effectiveScore > S.encouragementScore) {
+        const paceFactor = 0.55 + (S.cadenceScore / 100) * 1.05;
+        const riseStep = Math.min(2.6, (0.22 + effectiveScore * 0.02) * paceFactor);
+        S.encouragementScore = Math.min(100, S.encouragementScore + riseStep);
+      } else {
+        const silenceMs = Date.now() - S.lastSoundDetected;
+        const decay = silenceMs < 1800 ? 0.12 : silenceMs < 3200 ? 0.34 : 0.9;
+        S.encouragementScore = Math.max(0, S.encouragementScore - decay);
+      }
+    }
+    
+    const pct = Math.round(S.encouragementScore);
+    bar.style.width = pct + '%';
+
+    const now = Date.now();
+    const silenceMs = now - S.lastSoundDetected;
+    const showSilencePrompt = silenceMs >= 9000 && pct <= 35;
+    if (nudge) {
+      nudge.classList.toggle('show', showSilencePrompt);
+    }
+    S.silencePromptShown = showSilencePrompt;
+
+    const cadenceReady = pct >= 93 && S.cadenceScore >= 42;
+    const visualTopReady = pct >= 97;
+    if (cadenceReady || visualTopReady) {
+      if (!S.topZoneSince) S.topZoneSince = now;
+      if ((now - S.topZoneSince) >= 80 && now >= S.topCooldownUntil) {
+        S.topCooldownUntil = now + 9000;
+        S.topZoneSince = 0;
+        triggerTopMeterMoment();
+      }
+    } else if (pct < 86) {
+      S.topZoneSince = 0;
+    }
+
+    if (now < S.labelBoostUntil) {
+      label.textContent = 'Þú sprengdir skalann! Frábært tempó! 🚀';
+    } else if(pct < 20) label.textContent = 'Hafðu hátt! 🎤';
+    else if(pct < 40) label.textContent = 'Þú ert í gangi! 💪';
+    else if(pct < 60) label.textContent = 'Framúrskarandi! ⭐';
+    else if(pct < 80) label.textContent = 'Stórfenglegt! 🔥';
+    else label.textContent = 'Ótrúlegt tempó! 🚀';
+  }, 100);
 };
+
 </script>
 </body>
 </html>

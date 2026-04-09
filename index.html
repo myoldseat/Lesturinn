@@ -1262,16 +1262,15 @@ window.playClip=async function(path,playerId,btnId,sessionId){
   playerEl.innerHTML='<div style="font-size:10px;color:var(--mist);font-weight:700;padding:4px">⏳ Hleður...</div>';
   try{
     const url=await getDownloadURL(ref(storage,path));
-    const resp=await fetch(url);
-    if(!resp.ok)throw new Error('Fetch mistókst: '+resp.status);
-    const blob=await resp.blob();
-    const ext=path.split('.').pop().toLowerCase();
-    const mimeType=ext==='mp4'?'audio/mp4':ext==='ogg'?'audio/ogg':'audio/webm';
-    const blobUrl=URL.createObjectURL(new Blob([blob],{type:mimeType}));
-    playerEl.innerHTML=`<audio controls preload="auto" src="${blobUrl}" style="width:100%;margin-top:4px;border-radius:8px"></audio>`;
+    playerEl.innerHTML=`<audio controls preload="auto" src="${url}" style="width:100%;margin-top:4px;border-radius:8px"></audio>`;
     const audio=playerEl.querySelector('audio');
-    if(audio)audio.play().catch(()=>{});
-    await markSessionListened(sessionId);
+    if(audio){
+      audio.addEventListener('error',()=>{
+        playerEl.innerHTML='<div style="font-size:10px;color:var(--coral);font-weight:700;padding:4px">❌ Ekki tókst að spila</div>';
+      },{once:true});
+      audio.play().catch(()=>{});
+    }
+    markSessionListened(sessionId);
     if(btnEl)btnEl.className='clip-btn';
   }catch(e){
     playerEl.innerHTML='<div style="font-size:10px;color:var(--coral);font-weight:700;padding:4px">❌ Ekki tókst að hlaða</div>';

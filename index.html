@@ -1415,7 +1415,7 @@ window.runEncouragementEngine = function(){
       // Throttle-style rise: sustained reading builds the meter gradually.
       if (effectiveScore > S.encouragementScore) {
         const paceFactor = 0.55 + (S.cadenceScore / 100) * 1.05;
-        const riseStep = Math.min(2.6, (0.22 + effectiveScore * 0.02) * paceFactor);
+        const riseStep = Math.min(2.2, (0.12 + effectiveScore * 0.013) * (0.35 + (S.cadenceScore / 100) * 1.35));
         S.encouragementScore = Math.min(100, S.encouragementScore + riseStep);
       } else {
         const silenceMs = Date.now() - S.lastSoundDetected;

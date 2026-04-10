@@ -100,10 +100,22 @@ audio{width:100%;border-radius:8px}
   font-size:11px;font-weight:800;color:#1a7a3f;cursor:pointer;text-align:center;line-height:1.3}
 .clip-btn:disabled{background:#f5f5f5;border-color:#dde5f0;color:#aab7c4;cursor:default}
 .clip-btn.loading{background:#fffbe6;border-color:var(--sun);color:#b07d00}
+.clip-btn.playing{background:#e9f1ff;border-color:var(--ocean);color:#174a7e;box-shadow:0 0 0 3px rgba(42,110,187,.18);animation:clipPlayingPulse 1.1s ease-in-out infinite}
 .clip-player{margin-top:6px;display:none}
 .clip-player audio{width:100%;border-radius:8px}
 .power-toast{display:none;margin-top:8px;font-size:12px;font-weight:800;color:var(--deep);background:#fff8d9;border:1px solid #ffd46a;border-radius:10px;padding:7px 10px;text-align:center}
 .power-toast.show{display:block;animation:toastPop .35s ease}
+.mic-test-card{background:#f7fbff;border:2px solid #dde8f8;border-radius:14px;padding:12px;margin-bottom:12px}
+.mic-test-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px}
+.mic-test-title{font-size:11px;font-weight:800;color:var(--deep);text-transform:uppercase;letter-spacing:.5px}
+.mic-test-pill{font-size:10px;font-weight:800;border-radius:999px;padding:3px 10px;background:#eef3f9;color:#66788f}
+.mic-test-pill.pass{background:#e7f8ee;color:#1a7a3f}
+.mic-test-pill.warn{background:#fff5df;color:#a66a00}
+.mic-test-pill.fail{background:#ffe9e9;color:#b43232}
+.mic-test-sub{font-size:12px;color:#42566f;font-weight:700;margin-bottom:8px}
+.mic-test-live{width:100%;height:10px;background:#eaf0f8;border-radius:999px;overflow:hidden;margin:8px 0 10px}
+.mic-test-live-fill{width:0%;height:100%;background:linear-gradient(90deg,#ff6b6b,#ffb830,#4caf7d);transition:width .12s linear}
+.mic-test-note{font-size:11px;color:var(--mist);font-weight:700;min-height:16px}
 .reading-nudge{display:none;margin:8px 0 10px;text-align:center;font-size:22px;line-height:1.1;font-weight:900;color:#7a2e00;background:linear-gradient(135deg,#fff0b3,#ffd166);border:2px solid #ffb347;border-radius:14px;padding:12px 14px;box-shadow:0 10px 24px rgba(255,149,0,.35),0 0 0 4px rgba(255,184,48,.25)}
 .reading-nudge.show{display:block;animation:nudgePop .45s cubic-bezier(.2,.9,.2,1), nudgePulse 1.3s ease-in-out .45s 2}
 .hero-boost{animation:heroBoost .55s ease}
@@ -111,6 +123,7 @@ audio{width:100%;border-radius:8px}
 @keyframes heroBoost{0%{transform:scale(1)}35%{transform:scale(1.02)}100%{transform:scale(1)}}
 @keyframes nudgePop{0%{opacity:0;transform:translateY(-8px) scale(.86)}60%{opacity:1;transform:translateY(2px) scale(1.04)}100%{opacity:1;transform:translateY(0) scale(1)}}
 @keyframes nudgePulse{0%,100%{transform:scale(1)}50%{transform:scale(1.035)}}
+@keyframes clipPlayingPulse{0%,100%{box-shadow:0 0 0 3px rgba(42,110,187,.16)}50%{box-shadow:0 0 0 6px rgba(42,110,187,.30)}}
 </style>
 </head>
 <body>
@@ -262,6 +275,18 @@ audio{width:100%;border-radius:8px}
 
     <div class="card" id="setup-card">
       <div style="font-size:13px;font-weight:800;color:var(--deep);margin-bottom:12px">Setja upp lestrarlotur</div>
+      <div class="mic-test-card" id="mic-test-card">
+        <div class="mic-test-head">
+          <div class="mic-test-title">Hljóðnemapróf</div>
+          <div class="mic-test-pill" id="mic-test-pill">Óprófað</div>
+        </div>
+        <div class="mic-test-sub" id="mic-test-text">Mælt er með að prófa hljóðnema áður en fyrsta lota byrjar.</div>
+        <div class="mic-test-live">
+          <div class="mic-test-live-fill" id="mic-test-live-fill"></div>
+        </div>
+        <button class="btn btn-ghost" id="mic-test-btn" onclick="startMicQualityTest()" style="margin-top:0;padding:12px;font-size:14px">🎙️ Prófa hljóðnema (8 sek)</button>
+        <div class="mic-test-note" id="mic-test-note"></div>
+      </div>
       <button class="btn btn-primary setup-start-btn" onclick="startReading()">🎤 Byrja að lesa</button>
       <button class="btn btn-ghost setup-toggle-btn" id="setup-details-toggle" onclick="toggleSetupDetails()">📘 Bók og blaðsíða ▾</button>
       <div class="setup-details" id="setup-details">
@@ -397,7 +422,9 @@ window._appState = {
   encouragementInterval: null, audioContext: null, analyser: null, monitorNode: null, encouragementScore: 0,
   lastSoundDetected: Date.now(), topZoneSince: 0, topCooldownUntil: 0, topToastTimer: null,
   cadenceScore: 0, lastInstantLevel: 0, labelBoostUntil: 0, childSessionsOpen: false,
-  silencePromptShown: false
+  silencePromptShown: false, micQuality: null, micTestRunning: false,
+  micTestInterval: null, micTestContext: null, micTestAnalyser: null, micTestStream: null,
+  captureAudioEnabled: true, activeParentAudio: null
 };
 const S = window._appState;
 const TARGET = 15 * 60;
@@ -571,8 +598,202 @@ function setupChildHome(){
   document.getElementById('child-name-pill').textContent=S.childName;
   document.getElementById('child-hero').textContent=`Halló, ${S.childName}`;
   S.childSessionsOpen=false;
+  S.micQuality = loadMicQualityResult();
+  renderMicQualityStatus();
   loadChildSessions();
 }
+
+function micQualityStorageKey(){
+  return `upphatt_mic_quality_${S.childKey || 'unknown'}`;
+}
+
+function loadMicQualityResult(){
+  try{
+    const raw = localStorage.getItem(micQualityStorageKey());
+    if(!raw) return null;
+    const parsed = JSON.parse(raw);
+    if(!parsed || typeof parsed.score !== 'number' || !parsed.status) return null;
+    return parsed;
+  }catch(e){
+    return null;
+  }
+}
+
+function saveMicQualityResult(result){
+  try{ localStorage.setItem(micQualityStorageKey(), JSON.stringify(result)); }catch(e){}
+}
+
+function percentile(arr, p){
+  if(!arr.length) return 0;
+  const sorted = [...arr].sort((a,b)=>a-b);
+  const idx = Math.min(sorted.length - 1, Math.max(0, Math.floor((p / 100) * sorted.length)));
+  return sorted[idx];
+}
+
+function renderMicQualityStatus(){
+  const pill = document.getElementById('mic-test-pill');
+  const text = document.getElementById('mic-test-text');
+  const note = document.getElementById('mic-test-note');
+  const btn = document.getElementById('mic-test-btn');
+  if(!pill || !text || !note || !btn) return;
+
+  const result = S.micQuality;
+  pill.className = 'mic-test-pill';
+  if(!result){
+    pill.textContent = 'Óprófað';
+    text.textContent = 'Mælt er með að prófa hljóðnema áður en fyrsta lota byrjar.';
+    note.textContent = 'Prófið hlustar á styrk, suð og hvort röddin greinist vel.';
+    btn.textContent = '🎙️ Prófa hljóðnema (8 sek)';
+    return;
+  }
+
+  const testedAt = result.testedAt ? new Date(result.testedAt) : null;
+  const testedLabel = testedAt && !isNaN(testedAt)
+    ? testedAt.toLocaleString('is-IS',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})
+    : '';
+
+  pill.classList.add(result.status);
+  if(result.status === 'pass'){
+    pill.textContent = 'Gott';
+    text.textContent = `Hljóðgæði líta vel út (${result.score}/100).`;
+  }else if(result.status === 'warn'){
+    pill.textContent = 'Miðlungs';
+    text.textContent = `Hljóð er nothæft en mætti batna (${result.score}/100).`;
+  }else{
+    pill.textContent = 'Veikt';
+    text.textContent = `Hljóð virðist of veikt eða óskýrt (${result.score}/100). Talaðu beint í hljóðnemann eða sæktu foreldri.`;
+  }
+
+  const issues = Array.isArray(result.issues) ? result.issues.join(' · ') : '';
+  note.textContent = [issues, testedLabel ? `Síðast prófað: ${testedLabel}` : ''].filter(Boolean).join(' • ');
+  btn.textContent = '🔁 Prófa aftur';
+}
+
+function shouldBlockAudioCapture(){
+  return !!(S.micQuality && S.micQuality.status === 'fail');
+}
+
+async function runMicQualityTest(){
+  if(S.micTestRunning) return null;
+  const btn = document.getElementById('mic-test-btn');
+  const note = document.getElementById('mic-test-note');
+  const fill = document.getElementById('mic-test-live-fill');
+
+  S.micTestRunning = true;
+  if(btn) btn.disabled = true;
+  if(note) note.textContent = 'Segðu nokkrar setningar upphátt í 8 sekúndur...';
+
+  let rmsSamples = [];
+  let peakSamples = [];
+  try{
+    const stream = await navigator.mediaDevices.getUserMedia({
+      audio: { echoCancellation:true, noiseSuppression:true, autoGainControl:true }
+    });
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if(audioCtx.state === 'suspended') await audioCtx.resume();
+    const source = audioCtx.createMediaStreamSource(stream);
+    const analyser = audioCtx.createAnalyser();
+    analyser.fftSize = 2048;
+    analyser.smoothingTimeConstant = 0.82;
+    source.connect(analyser);
+
+    S.micTestStream = stream;
+    S.micTestContext = audioCtx;
+    S.micTestAnalyser = analyser;
+
+    const data = new Uint8Array(analyser.fftSize);
+    const started = Date.now();
+    const durationMs = 8000;
+
+    await new Promise(resolve => {
+      S.micTestInterval = setInterval(() => {
+        analyser.getByteTimeDomainData(data);
+        let sumSquares = 0;
+        let peak = 0;
+        for(let i=0;i<data.length;i++){
+          const centered = (data[i] - 128) / 128;
+          sumSquares += centered * centered;
+          const amp = Math.abs(centered);
+          if(amp > peak) peak = amp;
+        }
+        const rms = Math.sqrt(sumSquares / data.length);
+        rmsSamples.push(rms);
+        peakSamples.push(peak);
+        if(fill) fill.style.width = Math.min(100, Math.round(((rms - 0.008) / 0.09) * 100)) + '%';
+        if(Date.now() - started >= durationMs){
+          clearInterval(S.micTestInterval);
+          S.micTestInterval = null;
+          resolve();
+        }
+      }, 120);
+    });
+
+    const p20 = percentile(rmsSamples, 20);
+    const p95 = percentile(rmsSamples, 95);
+    const peak95 = percentile(peakSamples, 95);
+    const clippingRatio = peakSamples.length
+      ? peakSamples.filter(v => v > 0.98).length / peakSamples.length
+      : 1;
+    const speechThreshold = Math.max(0.02, p20 + 0.015);
+    const speechRatio = rmsSamples.length
+      ? rmsSamples.filter(v => v >= speechThreshold).length / rmsSamples.length
+      : 0;
+    const dynamicRange = p95 - p20;
+    const snrDb = 20 * Math.log10((p95 + 0.0001) / (p20 + 0.0001));
+
+    let score = 100;
+    const issues = [];
+
+    if(p95 < 0.035){ score -= 45; issues.push('Talaðu nær hljóðnema'); }
+    else if(p95 < 0.05){ score -= 22; issues.push('Hljóð er frekar lágt'); }
+
+    if(clippingRatio > 0.08){ score -= 24; issues.push('Hljóð klippir, talaðu aðeins mýkra'); }
+    if(snrDb < 8){ score -= 28; issues.push('Mikill bakgrunnshávaði'); }
+    else if(snrDb < 12){ score -= 14; issues.push('Nokkur bakgrunnshávaði'); }
+    if(speechRatio < 0.18){ score -= 20; issues.push('Rödd greinist stopult'); }
+    if(dynamicRange < 0.015){ score -= 12; issues.push('Mjög lítil hljóðsveifla'); }
+
+    score = Math.max(0, Math.min(100, Math.round(score)));
+    const status = score >= 70 ? 'pass' : score >= 45 ? 'warn' : 'fail';
+    const result = {
+      status,
+      score,
+      issues,
+      metrics:{p20,p95,peak95,clippingRatio,speechRatio,dynamicRange,snrDb},
+      testedAt:new Date().toISOString()
+    };
+
+    S.micQuality = result;
+    saveMicQualityResult(result);
+    renderMicQualityStatus();
+    if(note && status === 'pass') note.textContent = 'Frábært! Hljóðnemi er tilbúinn.';
+    if(note && status === 'warn') note.textContent = 'Hljóð virkar en þú færð betri upptökur nær hljóðnemanum.';
+    if(note && status === 'fail') note.textContent = 'Prófið bendir til veikra hljóðgæða. Talaðu beint í hljóðnemann eða farðu og sæktu foreldri.';
+    return result;
+  }catch(e){
+    if(note) note.textContent = 'Ekki tókst að keyra hljóðnemapróf. Talaðu í hljóðnemann eða fáðu foreldri til að hjálpa með heimildir.';
+    return null;
+  }finally{
+    if(S.micTestInterval) clearInterval(S.micTestInterval);
+    S.micTestInterval = null;
+    if(S.micTestStream){
+      S.micTestStream.getTracks().forEach(t=>t.stop());
+      S.micTestStream = null;
+    }
+    if(S.micTestContext){
+      S.micTestContext.close().catch(()=>{});
+      S.micTestContext = null;
+    }
+    S.micTestAnalyser = null;
+    S.micTestRunning = false;
+    if(fill) setTimeout(()=>{ fill.style.width='0%'; }, 450);
+    if(btn) btn.disabled = false;
+  }
+}
+
+window.startMicQualityTest = function(){
+  runMicQualityTest();
+};
 
 // ══════════════════════════════════════════════
 // ── LOAD CHILD SESSIONS ─────────────────────
@@ -617,7 +838,29 @@ function loadChildSessions(){
 // ══════════════════════════════════════════════
 // ── START READING ────────────────────────────
 // ══════════════════════════════════════════════
-window.startReading = function(){
+window.startReading = async function(){
+  if(S.micTestRunning) return;
+  const needsFirstTest = !S.micQuality;
+  if(needsFirstTest){
+    const tested = await runMicQualityTest();
+    if(!tested){
+      if(!confirm('Hljóðnemapróf mistókst. Viltu samt byrja lestrarlotu?')) return;
+    }else if(tested.status === 'fail'){
+      if(!confirm('Hljóðgæði virðast veik. Viltu samt byrja lestrarlotu?')) return;
+    }
+  }
+
+  if(shouldBlockAudioCapture()){
+    const retry = confirm('Hljóðnemapróf sýnir veik gæði. Talaðu beint í hljóðnemann eða sæktu foreldri. Ýttu á OK til að prófa aftur, eða Hætta við til að byrja lotu án hljóðupptöku.');
+    if(retry){
+      const testedAgain = await runMicQualityTest();
+      if(testedAgain && testedAgain.status === 'fail'){
+        alert('Hljóð verður ekki tekið upp í þessari lotu. Talaðu beint í hljóðnemann næst eða sæktu foreldri. Foreldri fær viðvörun um gæði.');
+      }
+    }
+  }
+
+  S.captureAudioEnabled = !shouldBlockAudioCapture();
   S.pendingSession={title:document.getElementById('read-title').value.trim()||'Lestur',pageStart:parseInt(document.getElementById('page-start').value,10)||null};
   S.elapsedSecs=0; S.readingStartMs=Date.now();
   S.audioSnippets={min1:{chunks:[],mimeType:''},min5:{chunks:[],mimeType:''},min9:{chunks:[],mimeType:''},min13:{chunks:[],mimeType:''}};
@@ -643,6 +886,16 @@ window.startReading = function(){
 
 // --- Audio recording ---
 async function startAudio() {
+  if(!S.captureAudioEnabled){
+    const statusEl = document.getElementById('audio-status');
+    if (statusEl) {
+      statusEl.textContent = '⚠️ Hljóðupptaka sleppt: hljóðnemapróf var of veikt. Talaðu beint í hljóðnemann eða sæktu foreldri.';
+      statusEl.style.display = 'block';
+      statusEl.style.color = '#b07d00';
+    }
+    return;
+  }
+
   try {
     S.audioStream = await navigator.mediaDevices.getUserMedia({
       audio: {
@@ -809,6 +1062,10 @@ async function doSaveSession(pageEnd){
     const clipDefs=[{label:'min1',fileName:'hljod_1'},{label:'min5',fileName:'hljod_5'},{label:'min9',fileName:'hljod_9'},{label:'min13',fileName:'hljod_13'}];
     const audioPaths={}; let uploadCount=0;
     for(const{label,fileName}of clipDefs){
+      if(!S.captureAudioEnabled){
+        audioPaths[label]=null;
+        continue;
+      }
       const snippet=S.audioSnippets[label];
       if(!snippet||!snippet.chunks||snippet.chunks.length===0){audioPaths[label]=null;continue;}
       try{
@@ -832,6 +1089,10 @@ async function doSaveSession(pageEnd){
       audioPath_min1:audioPaths.min1||null, audioPath_min5:audioPaths.min5||null,
       audioPath_min9:audioPaths.min9||null, audioPath_min13:audioPaths.min13||null,
       audioPath:audioPaths.min1||audioPaths.min5||audioPaths.min9||audioPaths.min13||null,
+      audioBlockedByMicQuality: !S.captureAudioEnabled,
+      micQualityStatus:S.micQuality?.status||null,
+      micQualityScore:Number.isFinite(S.micQuality?.score)?S.micQuality.score:null,
+      micQualityCheckedAt:S.micQuality?.testedAt||null,
       timestamp:ts, date:makeDateKey(now), createdAt:serverTimestamp()
     });
     const myCount=(S.sessions||[]).filter(s=>s.childKey===S.childKey).length+1;
@@ -1092,6 +1353,9 @@ function renderParentHome(){
     const list=groups[key]||[];
     const profChild=profileChildren.find(c=>c.key===key);
     const childName=list[0]?.childName||profChild?.name||key;
+    const recentSeven=list.slice(0,7);
+    const lowQualityRecent=recentSeven.filter(s=>s.micQualityStatus==='fail'||s.audioBlockedByMicQuality).length;
+    const warnQualityRecent=recentSeven.filter(s=>s.micQualityStatus==='warn').length;
     const readToday=list.some(s=>s.date===today&&(s.seconds||0)>=60);
     const streak=getStreak(list);
     const isExpanded=!!(window._expandedChildren&&window._expandedChildren[key]);
@@ -1154,6 +1418,8 @@ function renderParentHome(){
               <div style="font-size:10px;color:var(--mist);margin-top:1px">
                 ${formatLabel(s.createdAt)||s.date||''}
               </div>
+              ${(s.audioBlockedByMicQuality||s.micQualityStatus==='fail')?`<div style="font-size:10px;color:#b43232;font-weight:800;margin-top:3px">⚠️ Hljóðupptaka sleppt vegna veikra hljóðgæða</div>`:''}
+              ${(!s.audioBlockedByMicQuality&&s.micQualityStatus==='warn')?`<div style="font-size:10px;color:#a66a00;font-weight:800;margin-top:3px">⚠️ Hljóðgæði voru miðlungs í þessari lotu</div>`:''}
             </div>
             <div style="font-size:13px;font-weight:800;color:var(--ocean);flex-shrink:0">
               ${fmtTime(s.seconds||0)}
@@ -1175,6 +1441,8 @@ function renderParentHome(){
         <div style="padding:14px 16px;display:flex;align-items:center;justify-content:space-between">
           <div style="font-size:16px;font-weight:800;color:var(--deep)">${childName}</div>
           <div style="display:flex;align-items:center;gap:6px">
+            ${lowQualityRecent>0?`<div style="background:#ffe9e9;border:1.5px solid #ffb1b1;border-radius:50px;padding:3px 9px;font-size:11px;font-weight:800;color:#b43232">⚠️ hljóð ${lowQualityRecent}</div>`:''}
+            ${!lowQualityRecent&&warnQualityRecent>0?`<div style="background:#fff5df;border:1.5px solid #ffd18a;border-radius:50px;padding:3px 9px;font-size:11px;font-weight:800;color:#a66a00">⚠️ gæði ${warnQualityRecent}</div>`:''}
             ${streak>1?`<div style="background:#fff8e6;border:1.5px solid var(--sun);border-radius:50px;padding:3px 9px;font-size:11px;font-weight:800;color:#b07d00">🔥${streak}</div>`:''}
             <div style="padding:4px 12px;border-radius:50px;font-size:11px;font-weight:800;
               background:${readToday?'#e6f9ef':'#fff0f0'};
@@ -1252,11 +1520,42 @@ async function markSessionListened(sessionId){
 window.playClip=async function(path,playerId,btnId,sessionId){
   const playerEl=document.getElementById(playerId);
   const btnEl=document.getElementById(btnId);
+
+  const clearActiveAudioState = () => {
+    if (!S.activeParentAudio) return;
+    const activeBtn = document.getElementById(S.activeParentAudio.btnId);
+    if (activeBtn) activeBtn.className = 'clip-btn';
+    S.activeParentAudio = null;
+  };
+
+  const stopActiveAudioIfDifferent = () => {
+    if (!S.activeParentAudio) return;
+    if (S.activeParentAudio.btnId === btnId) return;
+    const activeAudio = S.activeParentAudio.audio;
+    const activePlayer = document.getElementById(S.activeParentAudio.playerId);
+    if (activeAudio) {
+      try { activeAudio.pause(); } catch(e) {}
+    }
+    if (activePlayer) {
+      activePlayer.style.display = 'none';
+      activePlayer.innerHTML = '';
+    }
+    clearActiveAudioState();
+  };
+
   if(!playerEl)return;
   if(playerEl.style.display!=='none'&&playerEl.innerHTML!==''){
+    if (S.activeParentAudio && S.activeParentAudio.btnId === btnId) {
+      const activeAudio = S.activeParentAudio.audio;
+      if (activeAudio) {
+        try { activeAudio.pause(); } catch(e) {}
+      }
+      clearActiveAudioState();
+    }
     playerEl.style.display='none'; playerEl.innerHTML='';
     if(btnEl)btnEl.className='clip-btn'; return;
   }
+  stopActiveAudioIfDifferent();
   if(btnEl)btnEl.className='clip-btn loading';
   playerEl.style.display='';
   playerEl.innerHTML='<div style="font-size:10px;color:var(--mist);font-weight:700;padding:4px">⏳ Hleður...</div>';
@@ -1266,18 +1565,29 @@ window.playClip=async function(path,playerId,btnId,sessionId){
     const audio=playerEl.querySelector('audio');
     if(audio){
       let listenedMarked=false;
+      S.activeParentAudio = { audio, btnId, playerId };
+      if(btnEl)btnEl.className='clip-btn playing';
       audio.addEventListener('error',()=>{
+        clearActiveAudioState();
         playerEl.innerHTML='<div style="font-size:10px;color:var(--coral);font-weight:700;padding:4px">❌ Ekki tókst að spila</div>';
       },{once:true});
+      audio.addEventListener('play',()=>{
+        if(btnEl)btnEl.className='clip-btn playing';
+      });
+      audio.addEventListener('pause',()=>{
+        if(audio.ended) return;
+        if(btnEl)btnEl.className='clip-btn';
+      });
       audio.addEventListener('ended',async ()=>{
+        clearActiveAudioState();
         if(listenedMarked) return;
         listenedMarked=true;
         await markSessionListened(sessionId);
       },{once:true});
       audio.play().catch(()=>{});
     }
-    if(btnEl)btnEl.className='clip-btn';
   }catch(e){
+    clearActiveAudioState();
     playerEl.innerHTML='<div style="font-size:10px;color:var(--coral);font-weight:700;padding:4px">❌ Ekki tókst að hlaða</div>';
     if(btnEl)btnEl.className='clip-btn';
   }

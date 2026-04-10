@@ -195,7 +195,20 @@ audio{width:100%;border-radius:8px}
       <div id="signup-children-list">
         <div class="form-group signup-child-row">
           <input class="child-name-input" type="text" placeholder="Nafn barns">
-          <input class="child-birthyear-input" type="number" min="2008" max="2026" inputmode="numeric" placeholder="Fæð.ár">
+          <select class="child-birthyear-input" style="width:100%;border:2px solid #dde5f0;border-radius:12px;padding:14px;font-size:16px;font-weight:600;background:#f7fbff;outline:none;color:var(--deep)">
+            <option value="">Fæð.ár</option>
+            <option value="2020">2020</option>
+            <option value="2019">2019</option>
+            <option value="2018">2018</option>
+            <option value="2017">2017</option>
+            <option value="2016">2016</option>
+            <option value="2015">2015</option>
+            <option value="2014">2014</option>
+            <option value="2013">2013</option>
+            <option value="2012">2012</option>
+            <option value="2011">2011</option>
+            <option value="2010">2010</option>
+          </select>
         </div>
       </div>
       <button class="btn btn-ghost" style="font-size:13px;padding:10px;margin-bottom:15px" onclick="addChildInput()">+ Bæta við öðru barni</button>
@@ -1273,7 +1286,20 @@ window.addChildInput = function(){
   const div=document.createElement('div'); div.className='form-group signup-child-row';
   div.innerHTML='\
     <input class="child-name-input" type="text" placeholder="Nafn barns">\
-    <input class="child-birthyear-input" type="number" min="2008" max="2026" inputmode="numeric" placeholder="Fæð.ár">';
+    <select class="child-birthyear-input" style="width:100%;border:2px solid #dde5f0;border-radius:12px;padding:14px;font-size:16px;font-weight:600;background:#f7fbff;outline:none;color:var(--deep)">\
+      <option value="">Fæð.ár</option>\
+      <option value="2020">2020</option>\
+      <option value="2019">2019</option>\
+      <option value="2018">2018</option>\
+      <option value="2017">2017</option>\
+      <option value="2016">2016</option>\
+      <option value="2015">2015</option>\
+      <option value="2014">2014</option>\
+      <option value="2013">2013</option>\
+      <option value="2012">2012</option>\
+      <option value="2011">2011</option>\
+      <option value="2010">2010</option>\
+    </select>';
   container.appendChild(div);
 };
 
@@ -1282,7 +1308,8 @@ window.firebaseSignup = async function(){
   const email=document.getElementById('reg-email').value.trim();
   const pw=document.getElementById('reg-pw').value.trim();
   const errorEl=document.getElementById('reg-error');
-  const yearNow = new Date().getFullYear();
+  const minBirthYear = 2010;
+  const maxBirthYear = 2020;
   const childRows=Array.from(document.querySelectorAll('#signup-children-list .signup-child-row')).map(row=>{
     const nameInput=row.querySelector('.child-name-input');
     const birthInput=row.querySelector('.child-birthyear-input');
@@ -1294,8 +1321,8 @@ window.firebaseSignup = async function(){
   if(!name||!email||pw.length<6||childRows.length===0){
     errorEl.textContent='Vinsamlegast fylltu út allt og bættu við barni með fæðingarári.'; return;
   }
-  if(childRows.some(c=>!c.name||!c.birthYear||c.birthYear<yearNow-18||c.birthYear>yearNow)){
-    errorEl.textContent='Settu nafn og gilt fæðingarár fyrir hvert barn.'; return;
+  if(childRows.some(c=>!c.name||!c.birthYear||c.birthYear<minBirthYear||c.birthYear>maxBirthYear)){
+    errorEl.textContent='Settu nafn og veldu fæðingarár á bilinu 2010-2020 fyrir hvert barn.'; return;
   }
   try{
     errorEl.style.color='var(--ocean)'; errorEl.textContent='Stofna fjölskyldu... ⏳';

@@ -30,10 +30,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .child-hero{padding:16px 18px}
 .child-hero-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
 .child-hero-top h1{margin:0;font-size:24px}
-.child-name-zone{position:relative;display:inline-flex;align-items:center;min-height:44px;padding-right:56px}
-.fragment-orbit{position:absolute;right:0;top:50%;width:52px;height:52px;transform:translateY(-50%);pointer-events:none}
-.fragment-orbit-shard{position:absolute;left:50%;top:50%;font-size:13px;line-height:1;color:rgba(255,255,255,.95);text-shadow:0 0 10px rgba(255,255,255,.35),0 0 20px rgba(255,184,48,.22);opacity:.94;transform:translate(-50%,-50%) rotate(var(--a)) translateY(calc(-1 * var(--r))) scale(var(--s));filter:drop-shadow(0 1px 2px rgba(0,0,0,.15))}
+.child-name-zone{display:inline-flex;align-items:center;min-height:44px}
+.fragment-orbit{display:inline-flex;align-items:center;gap:1px;margin-left:6px;pointer-events:none;min-height:16px}
+.fragment-orbit-shard{font-size:15px;line-height:1;color:rgba(255,255,255,.96);text-shadow:0 0 8px rgba(255,255,255,.34),0 0 14px rgba(255,184,48,.22);opacity:.96;filter:drop-shadow(0 1px 2px rgba(0,0,0,.18))}
 .fragment-orbit.dense .fragment-orbit-shard{animation:fragmentOrbitShimmer 2.4s ease-in-out infinite}
+.fragment-orbit-more{font-size:10px;font-weight:800;color:rgba(255,255,255,.92);margin-left:3px;letter-spacing:.2px}
 .fragment-orbit.pulse .fragment-orbit-shard{animation:fragmentOrbitPulse .62s cubic-bezier(.2,.9,.2,1)}
 .child-hero-badges{display:flex;align-items:flex-start;justify-content:flex-end;gap:8px;flex-wrap:wrap;min-width:132px}
 .card{background:#fff;border-radius:18px;padding:15px;margin-bottom:12px;box-shadow:var(--card-shadow)}
@@ -113,9 +114,9 @@ audio{width:100%;border-radius:8px}
 .power-toast.show{display:block;animation:toastPop .35s ease}
 .reading-glow-overlay{position:fixed;inset:0;pointer-events:none;z-index:15;opacity:0;transition:opacity .35s ease, box-shadow .35s ease;background:transparent;box-shadow:inset 0 0 0 0 rgba(0,0,0,0)}
 .reading-glow-overlay.active{opacity:1;animation:readingGlowPulse 3.2s ease-in-out infinite}
-.reading-glow-overlay.state-low{box-shadow:inset 0 0 36px rgba(123,137,156,.16), inset 0 0 90px rgba(123,137,156,.08)}
-.reading-glow-overlay.state-good{box-shadow:inset 0 0 42px rgba(76,175,125,.22), inset 0 0 120px rgba(76,175,125,.12)}
-.reading-glow-overlay.state-top{box-shadow:inset 0 0 54px rgba(255,184,48,.28), inset 0 0 140px rgba(76,175,125,.16)}
+.reading-glow-overlay.state-low{box-shadow:inset 0 0 44px rgba(123,137,156,.20), inset 0 0 110px rgba(123,137,156,.10)}
+.reading-glow-overlay.state-good{box-shadow:inset 0 0 56px rgba(76,175,125,.30), inset 0 0 155px rgba(76,175,125,.17)}
+.reading-glow-overlay.state-top{box-shadow:inset 0 0 64px rgba(255,184,48,.35), inset 0 0 175px rgba(76,175,125,.20)}
 .reading-glow-overlay.state-trap{box-shadow:inset 0 0 26px rgba(140,150,164,.12), inset 0 0 72px rgba(140,150,164,.06);animation:none}
 .stars-badge-boost{animation:starsBadgeBoost .7s cubic-bezier(.2,.9,.2,1)}
 .star-drop-layer{position:fixed;inset:0;pointer-events:none;z-index:25;overflow:hidden}
@@ -144,7 +145,7 @@ audio{width:100%;border-radius:8px}
 @keyframes starsBadgeBoost{0%{transform:scale(1)}35%{transform:scale(1.11)}100%{transform:scale(1)}}
 @keyframes starDropFly{0%{opacity:0;transform:translate3d(var(--star-start-x),var(--star-start-y),0) scale(.82)}12%{opacity:1}72%{opacity:1;transform:translate3d(calc(var(--star-end-x) + 5px),calc(var(--star-end-y) - 3px),0) scale(.7)}100%{opacity:0;transform:translate3d(var(--star-end-x),var(--star-end-y),0) scale(.56)}}
 @keyframes fragmentOrbitShimmer{0%,100%{opacity:.88;filter:drop-shadow(0 1px 2px rgba(0,0,0,.15))}50%{opacity:1;filter:drop-shadow(0 0 8px rgba(255,255,255,.42))}}
-@keyframes fragmentOrbitPulse{0%{transform:translate(-50%,-50%) rotate(var(--a)) translateY(calc(-1 * var(--r))) scale(var(--s))}45%{transform:translate(-50%,-50%) rotate(var(--a)) translateY(calc(-1 * var(--r))) scale(calc(var(--s) + .22))}100%{transform:translate(-50%,-50%) rotate(var(--a)) translateY(calc(-1 * var(--r))) scale(var(--s))}}
+@keyframes fragmentOrbitPulse{0%{transform:scale(1)}45%{transform:scale(1.28)}100%{transform:scale(1)}}
 </style>
 </head>
 <body>
@@ -286,7 +287,6 @@ audio{width:100%;border-radius:8px}
       <div class="child-hero-top">
         <div class="child-name-zone">
           <h1 id="child-hero">Ertu tilbúinn að lesa?</h1>
-          <div id="fragment-orbit" class="fragment-orbit"></div>
         </div>
         <div class="child-hero-badges">
         <div id="child-streak" style="display:none;background:rgba(255,184,48,0.25);border:1.5px solid rgba(255,184,48,0.6);border-radius:50px;padding:5px 14px;font-size:13px;font-weight:800;color:#fff">
@@ -294,6 +294,7 @@ audio{width:100%;border-radius:8px}
         </div>
         <div id="child-stars" style="background:rgba(255,255,255,0.2);border-radius:50px;padding:5px 14px;font-size:12px;font-weight:800;color:#fff;white-space:nowrap">
           ✦ <span id="stars-num">0</span> Fragments
+          <span id="fragment-orbit" class="fragment-orbit"></span>
         </div>
         <div id="child-shields" style="display:none;background:rgba(255,255,255,0.2);border-radius:50px;padding:5px 14px;font-size:13px;font-weight:800;color:#fff">
           🛡️ <span id="shields-num">0</span> frídagar
@@ -484,7 +485,7 @@ window._appState = {
   micTestInterval: null, micTestContext: null, micTestAnalyser: null, micTestStream: null,
   captureAudioEnabled: true, activeParentAudio: null,
   flatVoiceTicks: 0, sessionFragments: 0, totalFragments: 0,
-  currentHumanConfidence: 0, currentGlowState: 'low'
+  currentHumanConfidence: 0, currentGlowState: 'off', glowActive: false
 };
 const S = window._appState;
 const TARGET = 15 * 60;
@@ -722,7 +723,7 @@ function renderFragmentOrbit(){
   const orbit = document.getElementById('fragment-orbit');
   if(!orbit) return;
   const total = Math.max(0, S.totalFragments || 0);
-  const visible = Math.min(15, total);
+  const visible = Math.min(6, total);
   const dense = total >= 9;
   orbit.classList.toggle('dense', dense);
   if(!visible){
@@ -732,13 +733,11 @@ function renderFragmentOrbit(){
 
   const shards = [];
   for(let i=0;i<visible;i++){
-    const angle = (360 / visible) * i;
-    const radius = visible < 6 ? 15 : visible < 11 ? 17 : 19;
-    const scale = 0.78 + Math.min(0.34, (i % 4) * 0.07);
-    const alpha = 0.62 + Math.min(0.35, (i / Math.max(1, visible)) * 0.45);
-    shards.push(`<span class="fragment-orbit-shard" style="--a:${angle}deg;--r:${radius}px;--s:${scale};opacity:${alpha}">✦</span>`);
+    const alpha = 0.68 + (i * 0.05);
+    shards.push(`<span class="fragment-orbit-shard" style="opacity:${Math.min(1,alpha)}">✦</span>`);
   }
-  orbit.innerHTML = shards.join('');
+  const extra = total > visible ? `<span class="fragment-orbit-more">+${total-visible}</span>` : '';
+  orbit.innerHTML = shards.join('') + extra;
 }
 function pulseFragmentOrbit(){
   const orbit = document.getElementById('fragment-orbit');
@@ -751,13 +750,16 @@ function pulseFragmentOrbit(){
 function setReadingGlowState(state, active=true){
   const overlay = document.getElementById('reading-glow-overlay');
   if(!overlay) return;
+  const nextState = state || 'low';
+  if(S.currentGlowState === nextState && S.glowActive === !!active) return;
   overlay.className = 'reading-glow-overlay';
   if(!active) {
-    S.currentGlowState = 'low';
+    S.currentGlowState = 'off';
+    S.glowActive = false;
     return;
   }
-  const nextState = state || 'low';
   S.currentGlowState = nextState;
+  S.glowActive = true;
   overlay.classList.add('active', `state-${nextState}`);
 }
 function animateStarDrop(){
@@ -1236,6 +1238,7 @@ function stopAudio() {
   S.labelBoostUntil = 0;
   S.silencePromptShown = false;
   S.currentHumanConfidence = 0;
+  S.glowActive = false;
   if (S.topToastTimer) clearTimeout(S.topToastTimer);
   S.topToastTimer = null;
 
@@ -1963,6 +1966,7 @@ window.runEncouragementEngine = function(){
   S.labelBoostUntil = 0;
   S.silencePromptShown = false;
   const cal = getReadingCalibration();
+  const speechFloor = cal.speechRmsMin + 0.0045;
   const frameMs = 100;
   const windowFrames = Math.max(12, Math.round(3000 / frameMs));
   let pauseBankMs = 0;
@@ -2023,7 +2027,7 @@ window.runEncouragementEngine = function(){
       }
       prevFreq = freqArray;
 
-      const speechFrame = rms > cal.speechRmsMin ? 1 : 0;
+      const speechFrame = rms > speechFloor ? 1 : 0;
       const microPauseFrame = rms < cal.microPauseRms ? 1 : 0;
       const fluxFrame = flux > cal.fluxMin ? 1 : 0;
       const highVolumeFrame = (rms > (cal.speechRmsMaxSweet * 1.18) || peak > 0.97) ? 1 : 0;
@@ -2043,9 +2047,9 @@ window.runEncouragementEngine = function(){
       const flatRatio = sum(flatHistory) / flatHistory.length;
 
       let volumeScore = 0;
-      if (rms > cal.speechRmsMin) {
+      if (rms > speechFloor) {
         if (rms <= cal.speechRmsMaxSweet) {
-          volumeScore = clamp01((rms - cal.speechRmsMin) / (cal.speechRmsMaxSweet - cal.speechRmsMin));
+          volumeScore = clamp01((rms - speechFloor) / (cal.speechRmsMaxSweet - speechFloor));
         } else {
           const over = (rms - cal.speechRmsMaxSweet) / (cal.speechRmsMaxSweet * 0.9);
           volumeScore = clamp01(1 - (over * 0.65));
@@ -2069,6 +2073,13 @@ window.runEncouragementEngine = function(){
 
       if (constantToneTrap) {
         humanConfidence = Math.min(humanConfidence, 0.12);
+      }
+      const noiseLike = fluxRatio < (cal.minFluxFramesRatio * 0.72) && microPauses < cal.minMicroPausesPer3s;
+      if (noiseLike) {
+        humanConfidence = Math.min(humanConfidence, 0.22);
+      }
+      if (speechRatio < 0.16) {
+        humanConfidence = Math.min(humanConfidence, 0.18);
       }
       if (highRatio > 0.62) {
         humanConfidence *= 0.72;
@@ -2099,7 +2110,7 @@ window.runEncouragementEngine = function(){
         S.encouragementScore = Math.max(0, S.encouragementScore - 1.7);
       } else {
         S.flatVoiceTicks = Math.max(0, S.flatVoiceTicks - 2);
-        if (targetScore > S.encouragementScore) {
+        if (targetScore > S.encouragementScore && !noiseLike) {
           let riseStep = 0.22 + (humanConfidence * 2.05);
           if (highRatio > 0.45) riseStep *= 0.72;
           S.encouragementScore = Math.min(100, S.encouragementScore + Math.min(2.4, riseStep));
@@ -2129,11 +2140,16 @@ window.runEncouragementEngine = function(){
 
     const now = Date.now();
     const silenceMs = now - S.lastSoundDetected;
-    const showSilencePrompt = silenceMs >= 9000 && pct <= 35;
-    if (nudge) {
-      nudge.classList.toggle('show', showSilencePrompt);
+    // Hysteresis prevents flicker when values hover around boundaries.
+    const shouldShowNudge = silenceMs >= 9000 && pct <= 30;
+    const shouldHideNudge = silenceMs <= 3500 || pct >= 45;
+    if (!S.silencePromptShown && shouldShowNudge) {
+      S.silencePromptShown = true;
+      if (nudge) nudge.classList.add('show');
+    } else if (S.silencePromptShown && shouldHideNudge) {
+      S.silencePromptShown = false;
+      if (nudge) nudge.classList.remove('show');
     }
-    S.silencePromptShown = showSilencePrompt;
 
     let glowState = 'low';
     if (S.flatVoiceTicks >= 10) glowState = 'trap';

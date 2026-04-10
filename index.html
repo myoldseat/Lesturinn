@@ -36,6 +36,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .form-group label{display:block;font-size:11px;font-weight:800;color:var(--deep);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px}
 .form-group input{width:100%;border:2px solid #dde5f0;border-radius:12px;padding:14px;font-size:16px;font-weight:600;background:#f7fbff;outline:none}
 .form-group input:focus{border-color:var(--ocean);background:#fff}
+.signup-child-row{display:grid;grid-template-columns:1fr 130px;gap:10px}
 .btn{width:100%;border:none;border-radius:16px;padding:16px;font-size:17px;font-weight:800;cursor:pointer}
 .btn-primary{background:var(--ocean);color:#fff}
 .btn-success{background:var(--moss);color:#fff}
@@ -192,7 +193,10 @@ audio{width:100%;border-radius:8px}
         <label style="font-size:11px;font-weight:800;color:var(--mist);text-transform:uppercase">Börn</label>
       </div>
       <div id="signup-children-list">
-        <div class="form-group"><input class="child-name-input" type="text" placeholder="Nafn barns"></div>
+        <div class="form-group signup-child-row">
+          <input class="child-name-input" type="text" placeholder="Nafn barns">
+          <input class="child-birthyear-input" type="number" min="2008" max="2026" inputmode="numeric" placeholder="Fæð.ár">
+        </div>
       </div>
       <button class="btn btn-ghost" style="font-size:13px;padding:10px;margin-bottom:15px" onclick="addChildInput()">+ Bæta við öðru barni</button>
       <div id="reg-error" class="notice" style="color:var(--coral);margin-bottom:10px"></div>
@@ -249,6 +253,9 @@ audio{width:100%;border-radius:8px}
         <div class="child-hero-badges">
         <div id="child-streak" style="display:none;background:rgba(255,184,48,0.25);border:1.5px solid rgba(255,184,48,0.6);border-radius:50px;padding:5px 14px;font-size:13px;font-weight:800;color:#fff">
           🔥 <span id="streak-num">0</span> daga röð
+        </div>
+        <div id="child-stars" style="background:rgba(255,255,255,0.2);border-radius:50px;padding:5px 14px;font-size:13px;font-weight:800;color:#fff">
+          ⭐ <span id="stars-num">0</span>
         </div>
         <div id="child-shields" style="display:none;background:rgba(255,255,255,0.2);border-radius:50px;padding:5px 14px;font-size:13px;font-weight:800;color:#fff">
           🛡️ <span id="shields-num">0</span> frídagar
@@ -369,6 +376,16 @@ audio{width:100%;border-radius:8px}
       </div>
       <p>Lotur birtast hér strax þegar börnin klára.</p>
       <div id="codes-panel" style="display:none;margin-top:12px;background:rgba(255,255,255,0.15);border-radius:12px;padding:12px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+          <label for="codes-age-filter" style="font-size:10px;font-weight:800;color:rgba(255,255,255,0.9);text-transform:uppercase;letter-spacing:.5px;white-space:nowrap">Sía eftir aldri</label>
+          <select id="codes-age-filter" onchange="setCodesAgeFilter(this.value)" style="flex:1;border:none;border-radius:10px;padding:7px 9px;font-size:12px;font-weight:700;color:var(--deep);background:#fff">
+            <option value="all">Allir</option>
+            <option value="young">6-7 ára</option>
+            <option value="middle">8-10 ára</option>
+            <option value="older">11+ ára</option>
+            <option value="unknown">Óþekktur aldur</option>
+          </select>
+        </div>
         <div id="codes-list"></div>
       </div>
     </div>
@@ -416,6 +433,7 @@ setPersistence(auth, browserLocalPersistence).catch(e => {
 /* ── Global state ── */
 window._appState = {
   role: null, familyId: null, childKey: null, childName: null, parentName: null,
+  childBirthYear: null, parentCodesFilter: 'all',
   familyUnsub: null, sessions: [], timerMode: 'down', timerInterval: null,
   readingStartMs: null, elapsedSecs: 0, pendingSession: null,
   audioStream: null, audioSnippets: {}, snippetTimers: [], expandedChildren: {},
@@ -424,7 +442,8 @@ window._appState = {
   cadenceScore: 0, lastInstantLevel: 0, labelBoostUntil: 0, childSessionsOpen: false,
   silencePromptShown: false, micQuality: null, micTestRunning: false,
   micTestInterval: null, micTestContext: null, micTestAnalyser: null, micTestStream: null,
-  captureAudioEnabled: true, activeParentAudio: null
+  captureAudioEnabled: true, activeParentAudio: null,
+  flatVoiceTicks: 0, sessionStars: 0, totalStars: 0
 };
 const S = window._appState;
 const TARGET = 15 * 60;
@@ -462,6 +481,51 @@ function formatLabel(v){
 function getMonday(date=new Date()){
   const d=new Date(date); d.setHours(12,0,0,0);
   const day=d.getDay(); d.setDate(d.getDate()+(day===0?-6:1-day)); return d;
+}
+function getAgeFromBirthYear(birthYear){
+  const y = parseInt(birthYear, 10);
+  if(!Number.isFinite(y)) return null;
+  const nowYear = new Date().getFullYear();
+  const age = nowYear - y;
+  return age >= 0 && age <= 25 ? age : null;
+}
+function getAgeBandFromBirthYear(birthYear){
+  const age = getAgeFromBirthYear(birthYear);
+  if(age === null) return 'unknown';
+  if(age <= 7) return 'young';
+  if(age <= 10) return 'middle';
+  return 'older';
+}
+function getReadingCalibration(){
+  const band = getAgeBandFromBirthYear(S.childBirthYear);
+  if(band === 'young') return { inMin: 0.14, inMax: 0.88, flatMinLevel: 0.5, flatSwing: 0.01, topCadenceMin: 33, topCooldownMs: 1500 };
+  if(band === 'older') return { inMin: 0.2, inMax: 0.82, flatMinLevel: 0.42, flatSwing: 0.011, topCadenceMin: 46, topCooldownMs: 2200 };
+  return { inMin: 0.18, inMax: 0.85, flatMinLevel: 0.42, flatSwing: 0.012, topCadenceMin: 42, topCooldownMs: 1800 };
+}
+function renderCodesList(children){
+  const listEl = document.getElementById('codes-list');
+  if(!listEl) return;
+  const filter = S.parentCodesFilter || 'all';
+  const filtered = (children || []).filter(c => {
+    const band = getAgeBandFromBirthYear(c.birthYear);
+    return filter === 'all' ? true : band === filter;
+  });
+  if(!filtered.length){
+    listEl.innerHTML = '<div style="font-size:12px;font-weight:700;color:rgba(255,255,255,.85);text-align:center;padding:8px 0">Engin börn í þessum aldurshópi</div>';
+    return;
+  }
+  listEl.innerHTML = filtered.map(c => {
+    const age = getAgeFromBirthYear(c.birthYear);
+    const ageLabel = age === null ? 'aldur óþekktur' : `${age} ára`;
+    return `
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid rgba(255,255,255,0.15)">
+        <div>
+          <div style="font-size:13px;font-weight:800;color:white">👦 ${c.name}</div>
+          <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.85)">${ageLabel}</div>
+        </div>
+        <div style="font-family:Georgia,serif;font-size:20px;font-weight:700;color:rgba(255,255,255,0.9);letter-spacing:3px">${c.code || '—'}</div>
+      </div>`;
+  }).join('');
 }
 function renderWeekDots(sessions, containerId){
   const el=document.getElementById(containerId); if(!el) return;
@@ -517,6 +581,11 @@ window.toggleChildSessions = function(){
   btn.textContent = S.childSessionsOpen ? '📚 Fela lotur ▴' : '📚 Sjá lotur ▾';
 };
 
+window.setCodesAgeFilter = function(value){
+  S.parentCodesFilter = value || 'all';
+  renderCodesList(window._parentChildren || []);
+};
+
 // ══════════════════════════════════════════════
 // ── SOUND FX ─────────────────────────────────
 // ══════════════════════════════════════════════
@@ -555,6 +624,12 @@ function checkMilestone(total){
 // ══════════════════════════════════════════════
 function getShields(){ return parseInt(localStorage.getItem('upphatt_shields_'+S.childKey)||'0'); }
 function setShields(n){ localStorage.setItem('upphatt_shields_'+S.childKey, Math.max(0,n)); }
+function getTotalStars(){ return parseInt(localStorage.getItem('upphatt_total_stars_'+S.childKey)||'0'); }
+function setTotalStars(n){ localStorage.setItem('upphatt_total_stars_'+S.childKey, Math.max(0, n)); }
+function renderTotalStars(){
+  const el = document.getElementById('stars-num');
+  if(el) el.textContent = String(Math.max(0, S.totalStars || 0));
+}
 function checkAndGrantShield(streak){
   const given=parseInt(localStorage.getItem('upphatt_shields_given_'+S.childKey)||'0');
   const earned=Math.floor(streak/7);
@@ -588,8 +663,8 @@ window.childLogin = async function(){
     const snap=await getDoc(doc(db,'codes',code));
     if(!snap.exists()){err.textContent='Kóðinn fannst ekki — athugaðu með foreldri.';document.getElementById('child-code-input').disabled=false;return;}
     const data=snap.data();
-    S.role='child'; S.familyId=data.familyId; S.childKey=data.childKey; S.childName=data.childName;
-    localStorage.setItem('upphatt_child',JSON.stringify({familyId:data.familyId,childKey:data.childKey,childName:data.childName,code}));
+    S.role='child'; S.familyId=data.familyId; S.childKey=data.childKey; S.childName=data.childName; S.childBirthYear=data.birthYear||null;
+    localStorage.setItem('upphatt_child',JSON.stringify({familyId:data.familyId,childKey:data.childKey,childName:data.childName,birthYear:data.birthYear||null,code}));
     setupChildHome(); goTo('screen-child-home');
   }catch(e){err.textContent='Villa: '+e.message;document.getElementById('child-code-input').disabled=false;}
 };
@@ -598,6 +673,8 @@ function setupChildHome(){
   document.getElementById('child-name-pill').textContent=S.childName;
   document.getElementById('child-hero').textContent=`Halló, ${S.childName}`;
   S.childSessionsOpen=false;
+  S.totalStars = getTotalStars();
+  renderTotalStars();
   S.micQuality = loadMicQualityResult();
   renderMicQualityStatus();
   loadChildSessions();
@@ -863,6 +940,8 @@ window.startReading = async function(){
   S.captureAudioEnabled = !shouldBlockAudioCapture();
   S.pendingSession={title:document.getElementById('read-title').value.trim()||'Lestur',pageStart:parseInt(document.getElementById('page-start').value,10)||null};
   S.elapsedSecs=0; S.readingStartMs=Date.now();
+  S.sessionStars=0;
+  S.flatVoiceTicks=0;
   S.audioSnippets={min1:{chunks:[],mimeType:''},min5:{chunks:[],mimeType:''},min9:{chunks:[],mimeType:''},min13:{chunks:[],mimeType:''}};
   S.snippetTimers.forEach(t=>clearTimeout(t)); S.snippetTimers=[];
   document.getElementById('setup-card').style.display='none';
@@ -990,6 +1069,7 @@ function stopAudio() {
   S.topCooldownUntil = 0;
   S.cadenceScore = 0;
   S.lastInstantLevel = 0;
+  S.flatVoiceTicks = 0;
   S.labelBoostUntil = 0;
   S.silencePromptShown = false;
   if (S.topToastTimer) clearTimeout(S.topToastTimer);
@@ -1030,7 +1110,7 @@ window.stopReading = function(){
   const mins=Math.floor(S.elapsedSecs/60);
   document.getElementById('finish-emoji').textContent=mins>=15?'🏆':mins>=5?'⭐':'👍';
   document.getElementById('finish-title').textContent=mins>=15?'Frábær lestur!':mins>=5?'Vel gert!':'Byrjunin er góð!';
-  document.getElementById('finish-sub').textContent=`${fmtTime(S.elapsedSecs)} lesið — skráðu blaðsíðuna til að rekja framfarir`;
+  document.getElementById('finish-sub').textContent=`${fmtTime(S.elapsedSecs)} lesið · ⭐ ${S.sessionStars||0} stjörnur`;
   setTimeout(()=>playSound(mins>=15?'streak':'done'),400);
   document.getElementById('page-end').oninput=function(){
     const start=parseInt(document.getElementById('page-start').value,10);
@@ -1090,6 +1170,10 @@ async function doSaveSession(pageEnd){
       audioPath_min9:audioPaths.min9||null, audioPath_min13:audioPaths.min13||null,
       audioPath:audioPaths.min1||audioPaths.min5||audioPaths.min9||audioPaths.min13||null,
       audioBlockedByMicQuality: !S.captureAudioEnabled,
+      birthYearAtSession:S.childBirthYear||null,
+      ageBandAtSession:getAgeBandFromBirthYear(S.childBirthYear),
+      starsEarned:S.sessionStars||0,
+      starsTotal:S.totalStars||0,
       micQualityStatus:S.micQuality?.status||null,
       micQualityScore:Number.isFinite(S.micQuality?.score)?S.micQuality.score:null,
       micQualityCheckedAt:S.micQuality?.testedAt||null,
@@ -1104,6 +1188,8 @@ window.skipSave=function(){doSaveSession(null);};
 
 function finishReset(){
   S.pendingSession=null;S.readingStartMs=null;S.audioSnippets={};
+  S.sessionStars=0;
+  S.flatVoiceTicks=0;
   document.getElementById('finish-card').style.display='none';
   document.getElementById('setup-card').style.display='';
   ['read-title','page-start','page-end'].forEach(id=>document.getElementById(id).value='');
@@ -1131,12 +1217,7 @@ async function processAuthUser(user) {
 
   // ── Sýna kóða ──
   if (profile?.children && profile.children.length) {
-    document.getElementById('codes-list').innerHTML =
-      profile.children.map(c => `
-        <div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid rgba(255,255,255,0.15)">
-          <div style="font-size:13px;font-weight:800;color:white">👦 ${c.name}</div>
-          <div style="font-family:Georgia,serif;font-size:20px;font-weight:700;color:rgba(255,255,255,0.9);letter-spacing:3px">${c.code || '—'}</div>
-        </div>`).join('');
+    renderCodesList(profile.children);
   } else {
     // Fallback: sækja kóða úr codes collection ef profile.children er tómt
     try {
@@ -1144,13 +1225,8 @@ async function processAuthUser(user) {
       const codesSnap = await getDocs(codesQ);
       if (!codesSnap.empty) {
         const codes = codesSnap.docs.map(d => ({ code: d.id, ...d.data() }));
-        window._parentChildren = codes.map(c => ({ name: c.childName, key: c.childKey, code: c.code }));
-        document.getElementById('codes-list').innerHTML =
-          codes.map(c => `
-            <div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid rgba(255,255,255,0.15)">
-              <div style="font-size:13px;font-weight:800;color:white">👦 ${c.childName}</div>
-              <div style="font-family:Georgia,serif;font-size:20px;font-weight:700;color:rgba(255,255,255,0.9);letter-spacing:3px">${c.code}</div>
-            </div>`).join('');
+        window._parentChildren = codes.map(c => ({ name: c.childName, key: c.childKey, code: c.code, birthYear: c.birthYear || null }));
+        renderCodesList(window._parentChildren);
       }
     } catch (e) { console.error('Kóðaleit villa:', e); }
   }
@@ -1194,8 +1270,10 @@ window.firebaseLogin = async function(){
 // ══════════════════════════════════════════════
 window.addChildInput = function(){
   const container=document.getElementById('signup-children-list');
-  const div=document.createElement('div'); div.className='form-group';
-  div.innerHTML='<input class="child-name-input" type="text" placeholder="Nafn barns">';
+  const div=document.createElement('div'); div.className='form-group signup-child-row';
+  div.innerHTML='\
+    <input class="child-name-input" type="text" placeholder="Nafn barns">\
+    <input class="child-birthyear-input" type="number" min="2008" max="2026" inputmode="numeric" placeholder="Fæð.ár">';
   container.appendChild(div);
 };
 
@@ -1204,9 +1282,20 @@ window.firebaseSignup = async function(){
   const email=document.getElementById('reg-email').value.trim();
   const pw=document.getElementById('reg-pw').value.trim();
   const errorEl=document.getElementById('reg-error');
-  const childNames=Array.from(document.querySelectorAll('.child-name-input')).map(i=>i.value.trim()).filter(v=>v!=='');
-  if(!name||!email||pw.length<6||childNames.length===0){
-    errorEl.textContent='Vinsamlegast fylltu út allt og bættu við barni.'; return;
+  const yearNow = new Date().getFullYear();
+  const childRows=Array.from(document.querySelectorAll('#signup-children-list .signup-child-row')).map(row=>{
+    const nameInput=row.querySelector('.child-name-input');
+    const birthInput=row.querySelector('.child-birthyear-input');
+    return {
+      name:nameInput?.value.trim()||'',
+      birthYear:parseInt((birthInput?.value||'').trim(),10)||null
+    };
+  }).filter(x=>x.name!==''||x.birthYear!==null);
+  if(!name||!email||pw.length<6||childRows.length===0){
+    errorEl.textContent='Vinsamlegast fylltu út allt og bættu við barni með fæðingarári.'; return;
+  }
+  if(childRows.some(c=>!c.name||!c.birthYear||c.birthYear<yearNow-18||c.birthYear>yearNow)){
+    errorEl.textContent='Settu nafn og gilt fæðingarár fyrir hvert barn.'; return;
   }
   try{
     errorEl.style.color='var(--ocean)'; errorEl.textContent='Stofna fjölskyldu... ⏳';
@@ -1218,11 +1307,12 @@ window.firebaseSignup = async function(){
     const uid=userCred.user.uid;
     const familyId='FAM-'+Math.random().toString(36).substr(2,5).toUpperCase();
     const childrenArray=[];
-    for(let cName of childNames){
+    for(let child of childRows){
+      const cName = child.name;
       const loginCode=(cName.replace(/\s/g,'').substr(0,3).toUpperCase()+Math.floor(10+Math.random()*90));
       const childKey=Math.random().toString(36).substr(2,8);
-      await setDoc(doc(db,'codes',loginCode),{familyId,childKey,childName:cName});
-      childrenArray.push({name:cName, key:childKey, code:loginCode});
+      await setDoc(doc(db,'codes',loginCode),{familyId,childKey,childName:cName,birthYear:child.birthYear});
+      childrenArray.push({name:cName, key:childKey, code:loginCode, birthYear:child.birthYear});
     }
     await setDoc(doc(db,'users',uid),{
       name, email, role:'parent', familyId,
@@ -1295,7 +1385,7 @@ onAuthStateChanged(auth, async (user) => {
   if (saved) {
     try {
       const data = JSON.parse(saved);
-      S.role='child'; S.familyId=data.familyId; S.childKey=data.childKey; S.childName=data.childName;
+      S.role='child'; S.familyId=data.familyId; S.childKey=data.childKey; S.childName=data.childName; S.childBirthYear=data.birthYear||null;
       setupChildHome(); goTo('screen-child-home'); return;
     } catch(e) { localStorage.removeItem('upphatt_child'); }
   }
@@ -1655,6 +1745,14 @@ function triggerTopMeterMoment(){
     hero.classList.add('hero-boost');
     setTimeout(() => hero.classList.remove('hero-boost'), 600);
   }
+  S.sessionStars = (S.sessionStars || 0) + 1;
+  S.totalStars = (S.totalStars || 0) + 1;
+  setTotalStars(S.totalStars);
+  renderTotalStars();
+  S.encouragementScore = 0;
+  S.cadenceScore = Math.max(0, S.cadenceScore - 18);
+  const bar = document.getElementById('encouragement-bar');
+  if (bar) bar.style.width = '0%';
   S.labelBoostUntil = Date.now() + 1800;
   playSound('done');
 }
@@ -1673,8 +1771,10 @@ window.runEncouragementEngine = function(){
   S.encouragementScore = 0;
   S.cadenceScore = 0;
   S.lastInstantLevel = 0;
+  S.flatVoiceTicks = 0;
   S.labelBoostUntil = 0;
   S.silencePromptShown = false;
+  const cal = getReadingCalibration();
   if(nudge) nudge.classList.remove('show');
   bar.style.background = 'linear-gradient(90deg, #FF6B6B, #FF9500, #FFB830, #4CAF7D)';
   
@@ -1701,7 +1801,11 @@ window.runEncouragementEngine = function(){
       const newScore = Math.min(100, detectedLevel * 88);
       const instantLevel = Math.min(1, detectedLevel);
       const swing = Math.abs(instantLevel - S.lastInstantLevel);
-      const inReadingBand = instantLevel > 0.18 && instantLevel < 0.85;
+      const inReadingBand = instantLevel > cal.inMin && instantLevel < cal.inMax;
+      const veryFlatVoice = instantLevel > cal.flatMinLevel && swing < cal.flatSwing;
+      if (veryFlatVoice) S.flatVoiceTicks = Math.min(120, (S.flatVoiceTicks || 0) + 1);
+      else S.flatVoiceTicks = Math.max(0, (S.flatVoiceTicks || 0) - 2);
+      const monotoneDetected = (S.flatVoiceTicks || 0) >= 10;
 
       if (inReadingBand) {
         const consistencyBoost = Math.max(0.15, 1.1 - swing * 2.4);
@@ -1718,12 +1822,15 @@ window.runEncouragementEngine = function(){
       const cadenceBonus = Math.max(0, (S.cadenceScore - 45) * 0.55);
       const effectiveScore = Math.min(100, newScore + cadenceBonus);
 
-      if (effectiveScore > 7) {
+      if (effectiveScore > 7 && !monotoneDetected) {
         S.lastSoundDetected = Date.now();
       }
 
       // Throttle-style rise: sustained reading builds the meter gradually.
-      if (effectiveScore > S.encouragementScore) {
+      if (monotoneDetected) {
+        S.cadenceScore = Math.max(0, S.cadenceScore - 1.2);
+        S.encouragementScore = Math.max(0, S.encouragementScore - 1.4);
+      } else if (effectiveScore > S.encouragementScore) {
         const paceFactor = 0.55 + (S.cadenceScore / 100) * 1.05;
         const riseStep = Math.min(2.2, (0.12 + effectiveScore * 0.013) * (0.35 + (S.cadenceScore / 100) * 1.35));
         S.encouragementScore = Math.min(100, S.encouragementScore + riseStep);
@@ -1745,12 +1852,12 @@ window.runEncouragementEngine = function(){
     }
     S.silencePromptShown = showSilencePrompt;
 
-    const cadenceReady = pct >= 93 && S.cadenceScore >= 42;
+    const cadenceReady = pct >= 93 && S.cadenceScore >= cal.topCadenceMin && S.flatVoiceTicks < 8;
     const visualTopReady = pct >= 97;
     if (cadenceReady || visualTopReady) {
       if (!S.topZoneSince) S.topZoneSince = now;
       if ((now - S.topZoneSince) >= 80 && now >= S.topCooldownUntil) {
-        S.topCooldownUntil = now + 9000;
+        S.topCooldownUntil = now + cal.topCooldownMs;
         S.topZoneSince = 0;
         triggerTopMeterMoment();
       }
@@ -1760,6 +1867,8 @@ window.runEncouragementEngine = function(){
 
     if (now < S.labelBoostUntil) {
       label.textContent = 'Þú sprengdir skalann! Frábært tempó! 🚀';
+    } else if (S.flatVoiceTicks >= 10) {
+      label.textContent = 'Breyttu takti og haltu lestrarrythma 📚';
     } else if(pct < 20) label.textContent = 'Hafðu hátt! 🎤';
     else if(pct < 40) label.textContent = 'Þú ert í gangi! 💪';
     else if(pct < 60) label.textContent = 'Framúrskarandi! ⭐';

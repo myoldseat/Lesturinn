@@ -1265,12 +1265,17 @@ window.playClip=async function(path,playerId,btnId,sessionId){
     playerEl.innerHTML=`<audio controls preload="auto" src="${url}" style="width:100%;margin-top:4px;border-radius:8px"></audio>`;
     const audio=playerEl.querySelector('audio');
     if(audio){
+      let listenedMarked=false;
       audio.addEventListener('error',()=>{
         playerEl.innerHTML='<div style="font-size:10px;color:var(--coral);font-weight:700;padding:4px">❌ Ekki tókst að spila</div>';
       },{once:true});
+      audio.addEventListener('ended',async ()=>{
+        if(listenedMarked) return;
+        listenedMarked=true;
+        await markSessionListened(sessionId);
+      },{once:true});
       audio.play().catch(()=>{});
     }
-    markSessionListened(sessionId);
     if(btnEl)btnEl.className='clip-btn';
   }catch(e){
     playerEl.innerHTML='<div style="font-size:10px;color:var(--coral);font-weight:700;padding:4px">❌ Ekki tókst að hlaða</div>';

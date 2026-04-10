@@ -28,16 +28,27 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .hero h1{font-family:Georgia,serif;font-size:28px;line-height:1.1;margin:0 0 8px}
 .hero p{margin:0;font-size:14px;opacity:.88;font-weight:600}
 .child-hero{padding:16px 18px}
+.child-hero.glow-low{box-shadow:0 0 0 2px rgba(184,196,212,.45),0 10px 28px rgba(26,58,92,.18)}
+.child-hero.glow-good{box-shadow:0 0 0 2px rgba(139,224,173,.65),0 0 20px rgba(76,175,125,.38),0 12px 30px rgba(26,58,92,.20)}
+.child-hero.glow-top{box-shadow:0 0 0 2px rgba(255,214,120,.82),0 0 28px rgba(255,184,48,.48),0 0 18px rgba(76,175,125,.36),0 12px 30px rgba(26,58,92,.20)}
+.child-hero.glow-trap{box-shadow:0 0 0 2px rgba(170,178,190,.45),0 8px 24px rgba(26,58,92,.14)}
 .child-hero-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
 .child-hero-top h1{margin:0;font-size:24px}
 .child-name-zone{display:inline-flex;align-items:center;min-height:44px}
-.fragment-orbit{display:inline-flex;align-items:center;gap:1px;margin-left:6px;pointer-events:none;min-height:16px}
-.fragment-orbit-shard{font-size:15px;line-height:1;color:rgba(255,255,255,.96);text-shadow:0 0 8px rgba(255,255,255,.34),0 0 14px rgba(255,184,48,.22);opacity:.96;filter:drop-shadow(0 1px 2px rgba(0,0,0,.18))}
-.fragment-orbit.dense .fragment-orbit-shard{animation:fragmentOrbitShimmer 2.4s ease-in-out infinite}
+.fragment-orbit{display:inline-flex;align-items:center;gap:2px;margin-left:6px;pointer-events:none;min-height:18px}
+.child-stars-gem{vertical-align:-2px;margin-right:4px}
+.fragment-orbit-shard{width:14px;height:13px;opacity:.98;animation:diamondShine 2.8s ease-in-out infinite}
+.fragment-orbit-shard.big{width:18px;height:16px}
+.fragment-orbit.dense .fragment-orbit-shard{animation:fragmentOrbitShimmer 2.2s ease-in-out infinite}
 .fragment-orbit-more{font-size:10px;font-weight:800;color:rgba(255,255,255,.92);margin-left:3px;letter-spacing:.2px}
 .fragment-orbit.pulse .fragment-orbit-shard{animation:fragmentOrbitPulse .62s cubic-bezier(.2,.9,.2,1)}
 .child-hero-badges{display:flex;align-items:flex-start;justify-content:flex-end;gap:8px;flex-wrap:wrap;min-width:132px}
 .card{background:#fff;border-radius:18px;padding:15px;margin-bottom:12px;box-shadow:var(--card-shadow)}
+.glow-reactive{transition:box-shadow .35s ease, border-color .35s ease}
+.glow-reactive.glow-low{box-shadow:0 0 0 1px rgba(176,190,208,.36),var(--card-shadow)}
+.glow-reactive.glow-good{box-shadow:0 0 0 1px rgba(122,220,166,.58),0 0 16px rgba(76,175,125,.18),var(--card-shadow)}
+.glow-reactive.glow-top{box-shadow:0 0 0 1px rgba(255,212,122,.72),0 0 22px rgba(255,184,48,.24),0 0 12px rgba(76,175,125,.18),var(--card-shadow)}
+.glow-reactive.glow-trap{box-shadow:0 0 0 1px rgba(176,184,194,.45),var(--card-shadow)}
 .form-group{margin-bottom:14px}
 .form-group label{display:block;font-size:11px;font-weight:800;color:var(--deep);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px}
 .form-group input{width:100%;border:2px solid #dde5f0;border-radius:12px;padding:14px;font-size:16px;font-weight:600;background:#f7fbff;outline:none}
@@ -77,6 +88,290 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .day-mins{font-size:14px;line-height:1;font-weight:900}
 .day-dot.weekend-sat{grid-column:span 5}
 .day-dot.weekend-sun{grid-column:span 5}
+.currency-tile{padding:12px 12px 10px}
+.currency-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.currency-option{border:none;border-radius:12px;padding:10px 8px;background:#f3f7fd;color:#204061;text-align:center;font-size:11px;font-weight:800;line-height:1.2}
+.currency-option.active{background:linear-gradient(135deg,#dff4ff,#bfe9ff);box-shadow:inset 0 0 0 2px rgba(98,212,255,.5);color:#0d3658}
+.currency-option .emoji{display:block;margin-bottom:4px}
+.gem-icon{display:inline-block;position:relative;animation:gemShine 2.8s ease-in-out infinite;clip-path:polygon(50% 0%,96% 34%,78% 92%,22% 92%,4% 34%);background:linear-gradient(145deg,var(--g1),var(--g2));box-shadow:inset -2px -2px 4px rgba(0,0,0,.2),inset 2px 2px 4px rgba(255,255,255,.58),0 0 0 1px rgba(255,255,255,.24),0 0 10px var(--g3),0 0 20px var(--g4)}
+.gem-icon::before{content:'';position:absolute;left:18%;top:14%;width:64%;height:36%;clip-path:polygon(50% 0%,100% 55%,72% 100%,28% 100%,0 55%);background:rgba(255,255,255,.33)}
+.gem-icon::after{content:'';position:absolute;left:24%;top:12%;width:34%;height:18%;border-radius:999px;background:rgba(255,255,255,.56)}
+.gem-icon.diamond{width:18px;height:16px;--g1:#dffcff;--g2:#87d9f4;--g3:rgba(140,227,255,.65);--g4:rgba(98,212,255,.38)}
+.gem-icon.emerald{width:22px;height:20px;--g1:#ccffe0;--g2:#38cb79;--g3:rgba(106,255,160,.74);--g4:rgba(52,214,126,.5)}
+.gem-icon.ruby{width:27px;height:24px;--g1:#ffc7d2;--g2:#df4464;--g3:rgba(255,122,140,.86);--g4:rgba(188,27,83,.58);animation:gemShine 2.2s ease-in-out infinite, rubyHueShift 3.4s linear infinite}
+.teaser-gem{display:inline-block;vertical-align:-2px;margin-right:8px}
+.currency-option .sub{display:block;font-size:9px;font-weight:700;opacity:.72;margin-top:3px}
+.currency-option.locked{background:#eef2f7;color:#6f8198;border:1px dashed #cfdae8}
+.currency-option.locked{cursor:pointer}
+.currency-option.locked:active{transform:scale(.985)}
+.teaser-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);display:none;align-items:flex-end;justify-content:center;z-index:65;padding:16px}
+.teaser-backdrop.show{display:flex}
+.teaser-sheet{width:100%;max-width:520px;background:linear-gradient(180deg,rgba(20,40,60,.8) 0%,rgba(12,22,40,.7) 100%);border-radius:18px;padding:16px 16px 14px;box-shadow:0 0 0 1px rgba(95,170,215,.24), 0 20px 48px rgba(0,0,0,.5);border:1.5px solid rgba(95,170,215,.2)}
+.teaser-title{font-size:18px;font-weight:900;color:#6fd4ff;margin:0 0 4px}
+.teaser-sub{font-size:12px;color:#9db3c4;font-weight:700;line-height:1.35;margin:0 0 10px}
+.teaser-progress{background:rgba(95,170,215,.12);border-radius:12px;padding:10px 12px;font-size:12px;font-weight:800;color:#7eb9d6;margin-bottom:10px;border:1px solid rgba(95,170,215,.2)}
+.teaser-actions{display:flex;gap:8px}
+.teaser-actions .btn{padding:12px;font-size:14px;border-radius:12px}
+#child-streak,#child-stars,#child-shields,#shield-warning,#currency-tile-card,#milestone-card,#currency-teaser-backdrop,#power-toast,#finish-fragment-tease,#child-week-card{display:none !important}
+
+/* Premium refresh */
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Plus+Jakarta+Sans:wght@500;700;800&display=swap');
+
+:root{
+  --sky:#eef4f8;
+  --ocean:#0f4f8c;
+  --deep:#0f2d4a;
+  --moss:#1f8a70;
+  --sun:#d89b3a;
+  --mist:#6f8398;
+  --card-shadow:0 14px 34px rgba(16,43,70,.10);
+}
+
+body{
+  font-family:'Plus Jakarta Sans','Avenir Next','Segoe UI',sans-serif;
+  background:#0c1628;
+  color:#e8eef7;
+  position:relative;
+  overflow-x:hidden;
+  background-image:
+    radial-gradient(1200px 800px at 15% 25%, rgba(31,138,112,.14), transparent 50%),
+    radial-gradient(900px 700px at 85% 75%, rgba(26,106,168,.16), transparent 52%),
+    radial-gradient(600px 400px at -10% 70%, rgba(138,43,226,.08), transparent 60%),
+    linear-gradient(135deg, rgba(12,22,40,.6) 0%, rgba(15,40,70,.4) 50%, rgba(12,22,40,.6) 100%);
+  background-attachment:fixed;
+}
+
+body::before{
+  content:'';
+  position:fixed;
+  inset:0;
+  background:
+    radial-gradient(1000px 600px at 50% 0%, rgba(95,170,215,.08), transparent 50%),
+    radial-gradient(800px 900px at 0% 100%, rgba(138,43,226,.06), transparent 55%),
+    radial-gradient(700px 600px at 100% 50%, rgba(31,138,112,.07), transparent 58%);
+  pointer-events:none;
+  z-index:-1;
+}
+
+.logo,.logo-icon,.hero h1,.group-title,.timer-big,.stat-val{font-family:'Fraunces',Georgia,serif}
+
+.topbar{
+  background:linear-gradient(115deg,#0a1820,#061118 62%,#040d12 100%);
+  border-bottom:1px solid rgba(95,170,215,.12);
+  box-shadow:0 0 0 1px rgba(95,170,215,.08), 0 8px 28px rgba(0,0,0,.4);
+}
+
+.back-btn{
+  background:rgba(95,170,215,.15);
+  border:1.5px solid rgba(95,170,215,.24);
+  backdrop-filter:blur(6px);
+  color:#c4dff0;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.1);
+}
+
+.logo-icon{
+  border-radius:9px;
+  box-shadow:0 0 16px rgba(26,106,168,.3);
+  background:linear-gradient(135deg,#0f4f8c,#0f2d4a);
+}
+
+#screen-child-home .scroll-body{padding:20px 16px 44px}
+
+#screen-child-home .hero.green{
+  position:relative;
+  overflow:hidden;
+  background:linear-gradient(132deg,#2f886f 0%,#226451 58%,#163f3a 100%);
+  border:1.5px solid rgba(95,185,143,.42);
+  box-shadow:0 0 0 1px rgba(47,136,111,.26), 0 0 24px rgba(31,138,112,.18), 0 16px 30px rgba(17,52,46,.22);
+}
+
+#screen-child-home .hero.green::after{
+  content:'';
+  position:absolute;
+  inset:-36% -20% auto auto;
+  width:240px;
+  height:240px;
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(255,255,255,.24) 0%,rgba(255,255,255,0) 70%);
+  pointer-events:none;
+}
+
+#screen-child-home .card{
+  border-radius:20px;
+  border:1.5px solid rgba(95,170,215,.24);
+  background:linear-gradient(180deg,rgba(20,40,60,.4) 0%,rgba(16,35,55,.3) 100%);
+  box-shadow:0 0 0 1px rgba(95,170,215,.12), 0 6px 20px rgba(15,50,90,.2), inset 0 1px 0 rgba(255,255,255,.08);
+  padding:16px;
+  backdrop-filter:blur(2px);
+}
+
+#screen-child-home .card.glow-reactive.glow-good{box-shadow:0 0 0 1px rgba(95,185,143,.28),0 0 20px rgba(31,138,112,.22)}
+#screen-child-home .card.glow-reactive.glow-top{box-shadow:0 0 0 1px rgba(216,155,58,.24),0 0 22px rgba(216,155,58,.2)}
+
+.form-group input{
+  border:1.5px solid rgba(95,170,215,.28);
+  border-radius:14px;
+  background:rgba(20,40,60,.5);
+  font-weight:700;
+  color:#c4dff0;
+  backdrop-filter:blur(2px);
+}
+
+.form-group input::placeholder{
+  color:rgba(155,180,205,.5);
+}
+
+.form-group input:focus{
+  border-color:rgba(95,170,215,.5);
+  box-shadow:0 0 0 4px rgba(95,170,215,.2), inset 0 1px 0 rgba(255,255,255,.08);
+  background:rgba(20,40,60,.7);
+}
+
+.mode-btn{
+  border-radius:16px;
+  border:1.5px solid rgba(95,170,215,.24);
+  background:rgba(20,40,60,.4);
+  color:#c4dff0;
+  backdrop-filter:blur(2px);
+}
+
+.mode-btn.active{
+  background:linear-gradient(135deg,#1b639f,#174e7f);
+  border-color:rgba(95,170,215,.4);
+  box-shadow:0 0 20px rgba(26,106,168,.3);
+}
+
+.btn{border-radius:16px;letter-spacing:.2px;position:relative}
+
+.btn-primary,.btn-success{
+  background:linear-gradient(135deg,#1a6aa8,#184f7f);
+  box-shadow:0 0 0 1px rgba(95,170,215,.12), 0 4px 16px rgba(26,106,168,.24), 0 10px 22px rgba(24,80,128,.28);
+}
+
+.btn-primary:hover,.btn-success:hover{
+  box-shadow:0 0 0 1px rgba(95,170,215,.2), 0 6px 20px rgba(26,106,168,.32), 0 12px 28px rgba(24,80,128,.36);
+}
+
+.btn-ghost{
+  background:rgba(20,40,60,.6);
+  border:1.5px solid rgba(95,170,215,.24);
+  color:#c4dff0;
+  backdrop-filter:blur(2px);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.08);
+}
+
+/* Stats Table */
+#child-stats-table{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:12px;
+  margin-bottom:16px;
+  padding:0;
+}
+
+.stat-item{
+  background:linear-gradient(180deg,rgba(20,40,60,.5) 0%,rgba(12,22,40,.4) 100%);
+  border:1.5px solid rgba(95,170,215,.22);
+  border-radius:16px;
+  padding:14px 12px;
+  text-align:center;
+  box-shadow:0 0 0 1px rgba(95,170,215,.08), 0 4px 16px rgba(31,138,112,.12), inset 0 1px 0 rgba(255,255,255,.06);
+  backdrop-filter:blur(2px);
+}
+
+.stat-item.featured{
+  grid-column:1/-1;
+  background:linear-gradient(135deg,rgba(31,138,112,.2) 0%,rgba(26,106,168,.15) 100%);
+  border:1.5px solid rgba(95,170,215,.28);
+  padding:16px 14px;
+  box-shadow:0 0 0 1px rgba(95,170,215,.14), 0 0 20px rgba(31,138,112,.16), inset 0 1px 0 rgba(255,255,255,.08);
+}
+
+.stat-label{
+  font-size:11px;
+  font-weight:800;
+  text-transform:uppercase;
+  letter-spacing:.4px;
+  color:#6b9dC4;
+  margin-bottom:6px;
+}
+
+.stat-val{
+  font-size:24px;
+  font-weight:700;
+  color:#5fc4e8;
+  letter-spacing:-.3px;
+}
+
+.stat-item.featured .stat-label{
+  font-size:12px;
+  color:#7eb9d6;
+}
+
+.stat-item.featured .stat-val{
+  font-size:32px;
+  color:#6fd4ff;
+}
+
+.stat-unit{
+  font-size:11px;
+  font-weight:600;
+  color:var(--mist);
+  margin-top:3px;
+}
+
+.power-bar{
+  width:100%;
+  height:3px;
+  background:rgba(95,170,215,.07);
+  border-radius:50px;
+  margin-top:10px;
+  overflow:hidden;
+}
+
+.power-bar-fill{
+  height:100%;
+  background:linear-gradient(90deg,rgba(122,185,226,.55),rgba(95,196,165,.5),rgba(216,155,58,.45));
+  border-radius:50px;
+  transition:width 0.6s ease-out;
+}
+
+.setup-start-btn{
+  position:relative !important;
+  box-shadow:0 0 0 1px rgba(95,170,215,.16), 0 8px 24px rgba(26,106,168,.26) !important;
+  transition:all 0.3s ease;
+}
+
+.setup-start-btn::before{
+  content:'';
+  position:absolute;
+  inset:-20px;
+  background:radial-gradient(circle, rgba(26,106,168,.12) 0%, transparent 70%);
+  border-radius:inherit;
+  pointer-events:none;
+  z-index:-1;
+  opacity:0;
+  transition:opacity .25s ease;
+}
+
+.setup-start-btn:hover{
+  box-shadow:0 0 0 1px rgba(95,170,215,.2), 0 10px 28px rgba(26,106,168,.3) !important;
+  transform:translateY(-2px);
+}
+
+.setup-start-btn.mic-ready{
+  animation:startBtnBreathe 1.8s ease-in-out infinite;
+  box-shadow:0 0 0 1px rgba(122,220,166,.38), 0 0 34px rgba(76,175,125,.36), 0 12px 30px rgba(26,106,168,.34) !important;
+}
+
+.setup-start-btn.mic-ready::before{
+  opacity:1;
+  background:radial-gradient(circle, rgba(76,175,125,.2) 0%, rgba(26,106,168,.08) 46%, transparent 75%);
+}
+
+#screen-child-home #reading-card .timer-sub{color:#9db3c4}
+#screen-child-home #timer-status{font-weight:800}
+
 @media (max-width:420px){
   .child-hero-top{flex-direction:column;align-items:stretch}
   .child-hero-badges{justify-content:flex-start;min-width:0}
@@ -85,12 +380,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   .day-name{font-size:12px}
   .day-date{font-size:10px}
   .day-mins{font-size:13px}
+  .currency-grid{grid-template-columns:1fr}
 }
-.session{padding:12px 0;border-bottom:1px solid #eef3f9}
+.session{padding:12px 0;border-bottom:1px solid rgba(95,170,215,.1)}
 .session:last-child{border-bottom:none}
-.session-title{font-size:14px;font-weight:800}
-.session-meta{font-size:11px;color:var(--mist);margin-top:3px}
-.group-title{font-family:Georgia,serif;font-size:22px;color:var(--deep);margin:4px 0 12px;font-weight:700}
+.session-title{font-size:14px;font-weight:800;color:#c4dff0}
+.session-meta{font-size:11px;color:#7eb9d6;margin-top:3px}
+.group-title{font-family:Georgia,serif;font-size:22px;color:#c4dff0;margin:4px 0 12px;font-weight:700}
 .audio-box{margin-top:8px}
 audio{width:100%;border-radius:8px}
 .streak-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(255,184,48,0.25);border-radius:50px;padding:6px 14px;font-size:13px;font-weight:800;color:var(--deep);margin-top:8px}
@@ -112,26 +408,34 @@ audio{width:100%;border-radius:8px}
 .clip-player audio{width:100%;border-radius:8px}
 .power-toast{display:none;margin-top:8px;font-size:12px;font-weight:800;color:var(--deep);background:#fff8d9;border:1px solid #ffd46a;border-radius:10px;padding:7px 10px;text-align:center}
 .power-toast.show{display:block;animation:toastPop .35s ease}
-.reading-glow-overlay{position:fixed;inset:0;pointer-events:none;z-index:15;opacity:0;transition:opacity .35s ease, box-shadow .35s ease;background:transparent;box-shadow:inset 0 0 0 0 rgba(0,0,0,0)}
+.encouragement-track{width:100%;height:12px;background:rgba(22,42,67,0.08);border-radius:999px;overflow:hidden;border:1px solid rgba(255,255,255,0.7);box-shadow:inset 0 1px 2px rgba(0,0,0,0.06);position:relative}
+.encouragement-track::before{content:'';position:absolute;left:-30%;top:0;height:100%;width:28%;background:linear-gradient(90deg,rgba(255,255,255,0),rgba(255,255,255,.55),rgba(255,255,255,0));opacity:.35;animation:drillSweep 2.6s linear infinite}
+.encouragement-track.shatter{animation:trackShatter .45s ease}
+.reading-glow-overlay{position:fixed;inset:0;pointer-events:none;z-index:50;opacity:0;transition:opacity .35s ease, box-shadow .35s ease;background:transparent;box-shadow:inset 0 0 0 0 rgba(0,0,0,0)}
 .reading-glow-overlay.active{opacity:1;animation:readingGlowPulse 3.2s ease-in-out infinite}
-.reading-glow-overlay.state-low{box-shadow:inset 0 0 44px rgba(123,137,156,.20), inset 0 0 110px rgba(123,137,156,.10)}
-.reading-glow-overlay.state-good{box-shadow:inset 0 0 56px rgba(76,175,125,.30), inset 0 0 155px rgba(76,175,125,.17)}
-.reading-glow-overlay.state-top{box-shadow:inset 0 0 64px rgba(255,184,48,.35), inset 0 0 175px rgba(76,175,125,.20)}
+.reading-glow-overlay.state-low{box-shadow:inset 0 0 0 3px rgba(132,146,163,.24), inset 0 0 58px rgba(132,146,163,.20), inset 0 0 138px rgba(132,146,163,.12)}
+.reading-glow-overlay.state-good{box-shadow:inset 0 0 0 3px rgba(108,214,150,.36), inset 0 0 78px rgba(76,175,125,.32), inset 0 0 178px rgba(76,175,125,.18)}
+.reading-glow-overlay.state-top{box-shadow:inset 0 0 0 3px rgba(255,208,112,.46), inset 0 0 92px rgba(255,184,48,.40), inset 0 0 196px rgba(76,175,125,.22)}
 .reading-glow-overlay.state-trap{box-shadow:inset 0 0 26px rgba(140,150,164,.12), inset 0 0 72px rgba(140,150,164,.06);animation:none}
 .stars-badge-boost{animation:starsBadgeBoost .7s cubic-bezier(.2,.9,.2,1)}
 .star-drop-layer{position:fixed;inset:0;pointer-events:none;z-index:25;overflow:hidden}
-.star-drop{position:fixed;left:0;top:0;font-size:24px;line-height:1;will-change:transform,opacity;transform:translate3d(0,0,0) scale(.9);animation:starDropFly .72s cubic-bezier(.2,.9,.2,1) forwards}
-.mic-test-card{background:#f7fbff;border:2px solid #dde8f8;border-radius:14px;padding:12px;margin-bottom:12px}
+.star-drop{position:fixed;left:0;top:0;width:28px;height:25px;will-change:transform,opacity;transform:translate3d(0,0,0) scale(.9);animation:starDropFly .72s cubic-bezier(.2,.9,.2,1) forwards}
+.diamond-trail{position:fixed;left:0;top:0;height:3px;border-radius:999px;background:linear-gradient(90deg,rgba(149,235,255,0),rgba(149,235,255,.95),rgba(149,235,255,0));filter:drop-shadow(0 0 6px rgba(149,235,255,.75));transform-origin:left center;opacity:0;animation:diamondTrailFly .52s ease forwards}
+.mic-test-card{background:linear-gradient(180deg,rgba(20,40,60,.5) 0%,rgba(12,22,40,.4) 100%);border:1.5px solid rgba(95,170,215,.24);border-radius:14px;padding:12px;margin-bottom:12px;backdrop-filter:blur(2px);box-shadow:inset 0 1px 0 rgba(255,255,255,.06)}
 .mic-test-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px}
-.mic-test-title{font-size:11px;font-weight:800;color:var(--deep);text-transform:uppercase;letter-spacing:.5px}
-.mic-test-pill{font-size:10px;font-weight:800;border-radius:999px;padding:3px 10px;background:#eef3f9;color:#66788f}
-.mic-test-pill.pass{background:#e7f8ee;color:#1a7a3f}
-.mic-test-pill.warn{background:#fff5df;color:#a66a00}
-.mic-test-pill.fail{background:#ffe9e9;color:#b43232}
-.mic-test-sub{font-size:12px;color:#42566f;font-weight:700;margin-bottom:8px}
-.mic-test-live{width:100%;height:10px;background:#eaf0f8;border-radius:999px;overflow:hidden;margin:8px 0 10px}
+.mic-test-title{font-size:11px;font-weight:800;color:#6fd4ff;text-transform:uppercase;letter-spacing:.5px}
+.mic-test-pill{font-size:10px;font-weight:800;border-radius:999px;padding:3px 10px;background:rgba(95,170,215,.15);color:#7eb9d6;border:1px solid rgba(95,170,215,.2)}
+.mic-test-pill.pass{background:rgba(31,138,112,.25);color:#5fc4e8;border-color:rgba(31,138,112,.4)}
+.mic-test-pill.warn{background:rgba(216,155,58,.2);color:#d89b3a;border-color:rgba(216,155,58,.3)}
+.mic-test-pill.fail{background:rgba(220,53,69,.2);color:#ff7f84;border-color:rgba(220,53,69,.3)}
+.mic-test-sub{font-size:12px;color:#9db3c4;font-weight:700;margin-bottom:8px}
+.mic-test-live{width:100%;height:10px;background:rgba(95,170,215,.1);border-radius:999px;overflow:hidden;margin:8px 0 10px;border:1px solid rgba(95,170,215,.15)}
 .mic-test-live-fill{width:0%;height:100%;background:linear-gradient(90deg,#ff6b6b,#ffb830,#4caf7d);transition:width .12s linear}
-.mic-test-note{font-size:11px;color:var(--mist);font-weight:700;min-height:16px}
+.mic-test-note{font-size:11px;color:#7eb9d6;font-weight:700;min-height:16px}
+
+/* Child-friendly mic tile: keep only one simple action button visible */
+.mic-test-card{padding:0;background:transparent;border:none;box-shadow:none;backdrop-filter:none;margin-bottom:10px}
+.mic-test-head,.mic-test-sub,.mic-test-live,.mic-test-note{display:none}
 .meter-debug{display:none;margin-top:8px;padding:8px 10px;border-radius:10px;background:#0f1f34;color:#d6e6ff;font-size:10px;font-weight:700;line-height:1.35;letter-spacing:.2px;white-space:pre-wrap}
 .reading-nudge{display:none;margin:8px 0 10px;text-align:center;font-size:22px;line-height:1.1;font-weight:900;color:#7a2e00;background:linear-gradient(135deg,#fff0b3,#ffd166);border:2px solid #ffb347;border-radius:14px;padding:12px 14px;box-shadow:0 10px 24px rgba(255,149,0,.35),0 0 0 4px rgba(255,184,48,.25)}
 .reading-nudge.show{display:block;animation:nudgePop .45s cubic-bezier(.2,.9,.2,1), nudgePulse 1.3s ease-in-out .45s 2}
@@ -140,17 +444,35 @@ audio{width:100%;border-radius:8px}
 @keyframes heroBoost{0%{transform:scale(1)}35%{transform:scale(1.02)}100%{transform:scale(1)}}
 @keyframes nudgePop{0%{opacity:0;transform:translateY(-8px) scale(.86)}60%{opacity:1;transform:translateY(2px) scale(1.04)}100%{opacity:1;transform:translateY(0) scale(1)}}
 @keyframes nudgePulse{0%,100%{transform:scale(1)}50%{transform:scale(1.035)}}
+@keyframes startBtnBreathe{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-1px) scale(1.012)}}
+@keyframes drillSweep{0%{left:-35%}100%{left:110%}}
+@keyframes trackShatter{0%{transform:scaleX(1)}40%{transform:scaleX(1.02)}100%{transform:scaleX(1)}}
 @keyframes clipPlayingPulse{0%,100%{box-shadow:0 0 0 3px rgba(42,110,187,.16)}50%{box-shadow:0 0 0 6px rgba(42,110,187,.30)}}
 @keyframes readingGlowPulse{0%,100%{opacity:.72}50%{opacity:1}}
 @keyframes starsBadgeBoost{0%{transform:scale(1)}35%{transform:scale(1.11)}100%{transform:scale(1)}}
 @keyframes starDropFly{0%{opacity:0;transform:translate3d(var(--star-start-x),var(--star-start-y),0) scale(.82)}12%{opacity:1}72%{opacity:1;transform:translate3d(calc(var(--star-end-x) + 5px),calc(var(--star-end-y) - 3px),0) scale(.7)}100%{opacity:0;transform:translate3d(var(--star-end-x),var(--star-end-y),0) scale(.56)}}
+@keyframes diamondTrailFly{0%{opacity:0;transform:translate3d(var(--trail-start-x),var(--trail-start-y),0) rotate(var(--trail-angle)) scaleX(.2)}20%{opacity:.95}85%{opacity:.62}100%{opacity:0;transform:translate3d(var(--trail-start-x),var(--trail-start-y),0) rotate(var(--trail-angle)) scaleX(1)}}
 @keyframes fragmentOrbitShimmer{0%,100%{opacity:.88;filter:drop-shadow(0 1px 2px rgba(0,0,0,.15))}50%{opacity:1;filter:drop-shadow(0 0 8px rgba(255,255,255,.42))}}
 @keyframes fragmentOrbitPulse{0%{transform:scale(1)}45%{transform:scale(1.28)}100%{transform:scale(1)}}
+@keyframes diamondShine{0%,100%{filter:drop-shadow(0 1px 2px rgba(0,0,0,.2)) brightness(1)}50%{filter:drop-shadow(0 0 10px rgba(164,236,255,.62)) brightness(1.18)}}
+@keyframes gemShine{0%,100%{transform:scale(1);filter:drop-shadow(0 1px 2px rgba(0,0,0,.16)) brightness(1)}50%{transform:scale(1.03);filter:drop-shadow(0 0 10px rgba(255,255,255,.5)) brightness(1.14)}}
+@keyframes rubyHueShift{0%{filter:hue-rotate(0deg) saturate(1.1)}50%{filter:hue-rotate(-10deg) saturate(1.2)}100%{filter:hue-rotate(0deg) saturate(1.1)}}
 </style>
 </head>
 <body>
 <div id="reading-glow-overlay" class="reading-glow-overlay"></div>
 <div id="star-drop-layer" class="star-drop-layer"></div>
+<div id="currency-teaser-backdrop" class="teaser-backdrop" onclick="closeCurrencyTeaser(event)">
+  <div class="teaser-sheet" role="dialog" aria-modal="true" aria-labelledby="teaser-title" onclick="event.stopPropagation()">
+    <h3 id="teaser-title" class="teaser-title">Theme Locked</h3>
+    <p id="teaser-sub" class="teaser-sub">Keep collecting Diamonds to unlock this vibe.</p>
+    <div id="teaser-progress" class="teaser-progress"></div>
+    <div class="teaser-actions">
+      <button class="btn btn-ghost" onclick="closeCurrencyTeaser()">Close</button>
+      <button class="btn btn-primary" onclick="closeCurrencyTeaser()">Keep Mining 💎</button>
+    </div>
+  </div>
+</div>
 
 <!-- LOGIN -->
 <div id="screen-login" class="screen active">
@@ -293,7 +615,7 @@ audio{width:100%;border-radius:8px}
           🔥 <span id="streak-num">0</span> daga röð
         </div>
         <div id="child-stars" style="background:rgba(255,255,255,0.2);border-radius:50px;padding:5px 14px;font-size:12px;font-weight:800;color:#fff;white-space:nowrap">
-          ✦ <span id="stars-num">0</span> Fragments
+          <span class="gem-icon diamond child-stars-gem" aria-hidden="true"></span><span id="stars-num">0</span> Diamonds
           <span id="fragment-orbit" class="fragment-orbit"></span>
         </div>
         <div id="child-shields" style="display:none;background:rgba(255,255,255,0.2);border-radius:50px;padding:5px 14px;font-size:13px;font-weight:800;color:#fff">
@@ -308,9 +630,53 @@ audio{width:100%;border-radius:8px}
       <div style="font-size:12px;color:#856404;margin-top:3px" id="shield-warning-text">Les í dag til að halda röðinni.</div>
     </div>
 
-    <div class="card" id="child-week-card">
+    <div id="child-stats-table">
+      <div class="stat-item">
+        <div class="stat-label">Í dag</div>
+        <div class="stat-val" id="stat-today">0</div>
+        <div class="stat-unit">mín</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-label">Þessari viku</div>
+        <div class="stat-val" id="stat-week">0</div>
+        <div class="stat-unit">mín</div>
+      </div>
+      <div class="stat-item featured">
+        <div class="power-bar">
+          <div class="power-bar-fill" id="power-bar-fill" style="width:0%"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="shield-warning" style="display:none;background:#fff3cd;border-radius:14px;padding:14px;margin-bottom:12px;border-left:4px solid var(--sun)">
+      <div style="font-size:13px;font-weight:800;color:#856404">⚠️ Streak í hættu!</div>
+      <div style="font-size:12px;color:#856404;margin-top:3px" id="shield-warning-text">Les í dag til að halda röðinni.</div>
+    </div>
+
+    <div class="card glow-reactive" id="child-week-card">
       <div style="font-size:11px;font-weight:800;color:var(--mist);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">Þessi vika — markmið: 15 mín/dag</div>
       <div class="week-dots" id="child-week-dots"></div>
+    </div>
+
+    <div class="card currency-tile glow-reactive" id="currency-tile-card">
+      <div style="font-size:11px;font-weight:800;color:var(--mist);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Currency Vibe</div>
+      <div class="currency-grid">
+        <div class="currency-option active">
+          <span class="emoji"><span class="gem-icon diamond" aria-hidden="true"></span></span>
+          Diamonds
+          <span class="sub">ACTIVE</span>
+        </div>
+        <div class="currency-option locked" onclick="openCurrencyTeaser('emerald')">
+          <span class="emoji"><span class="gem-icon emerald" aria-hidden="true"></span></span>
+          Emeralds
+          <span class="sub">COMING SOON</span>
+        </div>
+        <div class="currency-option locked" onclick="openCurrencyTeaser('ruby')">
+          <span class="emoji"><span class="gem-icon ruby" aria-hidden="true"></span></span>
+          Rubies
+          <span class="sub">COMING SOON</span>
+        </div>
+      </div>
     </div>
 
     <div id="milestone-card" style="display:none;background:linear-gradient(135deg,var(--sun),#e8900a);border-radius:18px;padding:18px;margin-bottom:12px;text-align:center;color:var(--deep)">
@@ -319,7 +685,7 @@ audio{width:100%;border-radius:8px}
       <div style="font-size:13px;margin-top:4px;font-weight:600;opacity:.8" id="milestone-text"></div>
     </div>
 
-    <div class="card" id="setup-card">
+    <div class="card glow-reactive" id="setup-card">
       <div style="font-size:13px;font-weight:800;color:var(--deep);margin-bottom:12px">Setja upp lestrarlotur</div>
       <div class="mic-test-card" id="mic-test-card">
         <div class="mic-test-head">
@@ -330,7 +696,7 @@ audio{width:100%;border-radius:8px}
         <div class="mic-test-live">
           <div class="mic-test-live-fill" id="mic-test-live-fill"></div>
         </div>
-        <button class="btn btn-ghost" id="mic-test-btn" onclick="startMicQualityTest()" style="margin-top:0;padding:12px;font-size:14px">🎙️ Prófa hljóðnema (8 sek)</button>
+        <button class="btn btn-ghost" id="mic-test-btn" onclick="startMicQualityTest()" style="margin-top:0;padding:12px;font-size:14px">ýttu á mig fyrst</button>
         <div class="mic-test-note" id="mic-test-note"></div>
       </div>
       <button class="btn btn-primary setup-start-btn" onclick="startReading()">🎤 Byrja að lesa</button>
@@ -352,16 +718,16 @@ audio{width:100%;border-radius:8px}
       </div>
     </div>
 
-    <div class="card" id="reading-card" style="display:none">
+    <div class="card glow-reactive" id="reading-card" style="display:none">
       <div id="encouragement-container" style="width:100%; margin-bottom: 20px;">
   <div style="display:flex; justify-content:space-between; margin-bottom:6px; font-size:12px; font-weight:700; color:var(--deep)">
-    <span>Lestrarkraftur</span>
+        <span>Lestrarmælir</span>
     <span id="power-label">Hafðu hátt! 🎤</span>
   </div>
-  <div style="width:100%; height:12px; background:rgba(22,42,67,0.08); border-radius:999px; overflow:hidden; border:1px solid rgba(255,255,255,0.7); box-shadow:inset 0 1px 2px rgba(0,0,0,0.06)">
+  <div id="encouragement-track" class="encouragement-track">
     <div id="encouragement-bar" style="width:0%; height:100%; background:linear-gradient(90deg, rgba(255,107,107,.82), rgba(255,184,48,.86), rgba(76,175,125,.92)); transition: width 0.3s ease, background-color 0.5s ease, opacity 0.3s ease; opacity:.88"></div>
   </div>
-  <div id="power-toast" class="power-toast">🔥 Þú sprengdir skalann! Frábært tempó!</div>
+  <div id="power-toast" class="power-toast">💎 Diamond secured!</div>
   <div id="reading-nudge" class="reading-nudge">Ertu ennþá að lesa?</div>
   <div id="meter-debug" class="meter-debug"></div>
 </div>
@@ -485,7 +851,8 @@ window._appState = {
   micTestInterval: null, micTestContext: null, micTestAnalyser: null, micTestStream: null,
   captureAudioEnabled: true, activeParentAudio: null,
   flatVoiceTicks: 0, sessionFragments: 0, totalFragments: 0,
-  currentHumanConfidence: 0, currentGlowState: 'off', glowActive: false
+  currentHumanConfidence: 0, currentGlowState: 'off', glowActive: false,
+  glowLockUntil: 0
 };
 const S = window._appState;
 const TARGET = 15 * 60;
@@ -542,31 +909,22 @@ function getAgeBandFromBirthYear(birthYear){
 function getReadingCalibration(){
   const band = getAgeBandFromBirthYear(S.childBirthYear);
   if(band === 'young') return {
-    speechRmsMin: 0.014, speechRmsMaxSweet: 0.060,
-    microPauseRms: 0.010, minMicroPausesPer3s: 1,
-    fluxMin: 0.010, minFluxFramesRatio: 0.28,
-    heavyDecayStartMs: 5200, heavyDecayPerTick: 0.55,
-    topCadenceMin: 28, topCooldownMs: 1400,
-    humanConfidenceTopMin: 0.58,
-    maxPauseBankMs: 6000, pauseBankBuildMsPerTick: 95, pauseBankDrainMsPerTick: 120
+    inMin: 0.14, inMax: 0.90,
+    flatMinLevel: 0.50, flatSwing: 0.010,
+    topCadenceMin: 24, topCooldownMs: 70000,
+    humanConfidenceTopMin: 0.56
   };
   if(band === 'older') return {
-    speechRmsMin: 0.018, speechRmsMaxSweet: 0.070,
-    microPauseRms: 0.012, minMicroPausesPer3s: 2,
-    fluxMin: 0.014, minFluxFramesRatio: 0.36,
-    heavyDecayStartMs: 3500, heavyDecayPerTick: 0.90,
-    topCadenceMin: 42, topCooldownMs: 2000,
-    humanConfidenceTopMin: 0.66,
-    maxPauseBankMs: 5500, pauseBankBuildMsPerTick: 80, pauseBankDrainMsPerTick: 140
+    inMin: 0.20, inMax: 0.82,
+    flatMinLevel: 0.42, flatSwing: 0.011,
+    topCadenceMin: 36, topCooldownMs: 95000,
+    humanConfidenceTopMin: 0.64
   };
   return {
-    speechRmsMin: 0.016, speechRmsMaxSweet: 0.065,
-    microPauseRms: 0.011, minMicroPausesPer3s: 1,
-    fluxMin: 0.012, minFluxFramesRatio: 0.32,
-    heavyDecayStartMs: 4300, heavyDecayPerTick: 0.70,
-    topCadenceMin: 35, topCooldownMs: 1700,
-    humanConfidenceTopMin: 0.62,
-    maxPauseBankMs: 5800, pauseBankBuildMsPerTick: 88, pauseBankDrainMsPerTick: 130
+    inMin: 0.18, inMax: 0.86,
+    flatMinLevel: 0.44, flatSwing: 0.012,
+    topCadenceMin: 30, topCooldownMs: 85000,
+    humanConfidenceTopMin: 0.60
   };
 }
 function isMeterDebugEnabled(){
@@ -581,6 +939,35 @@ window.toggleMeterDebug = function(force){
   const el = document.getElementById('meter-debug');
   if(el) el.style.display = next ? 'block' : 'none';
   return next;
+};
+window.openCurrencyTeaser = function(type){
+  const backdrop = document.getElementById('currency-teaser-backdrop');
+  const title = document.getElementById('teaser-title');
+  const sub = document.getElementById('teaser-sub');
+  const progress = document.getElementById('teaser-progress');
+  if(!backdrop || !title || !sub || !progress) return;
+
+  const goals = {
+    emerald: { gemClass: 'emerald', name: 'Emerald Theme', unlockAt: 120 },
+    ruby: { gemClass: 'ruby', name: 'Ruby Theme', unlockAt: 260 }
+  };
+  const cfg = goals[type] || goals.emerald;
+  const current = Math.max(0, S.totalFragments || 0);
+  const left = Math.max(0, cfg.unlockAt - current);
+
+  title.innerHTML = `<span class="teaser-gem gem-icon ${cfg.gemClass}" aria-hidden="true"></span>${cfg.name}`;
+  sub.textContent = left > 0
+    ? `Collect ${left} more Diamonds to unlock this vibe.`
+    : 'Unlocked! Theme switcher coming soon.';
+  progress.textContent = `Diamonds: ${current} / ${cfg.unlockAt}`;
+
+  backdrop.classList.add('show');
+};
+
+window.closeCurrencyTeaser = function(event){
+  if(event && event.target && event.target !== event.currentTarget) return;
+  const backdrop = document.getElementById('currency-teaser-backdrop');
+  if(backdrop) backdrop.classList.remove('show');
 };
 function renderCodesList(children){
   const listEl = document.getElementById('codes-list');
@@ -631,6 +1018,32 @@ function getStreak(sessions){
     else break;
   }
   return streak;
+}
+
+function updateStatsTable(sessions){
+  const today=makeDateKey(new Date());
+  const weekStart=getMonday();
+  
+  // Today's minutes
+  const todayMins=sessions.filter(s=>s.date===today).reduce((a,s)=>a+Math.floor((s.seconds||0)/60),0);
+  
+  // This week's minutes
+  let weekMins=0;
+  for(let i=0;i<7;i++){
+    const d=new Date(weekStart);
+    d.setDate(d.getDate()+i);
+    weekMins+=sessions.filter(s=>s.date===makeDateKey(d)).reduce((a,s)=>a+Math.floor((s.seconds||0)/60),0);
+  }
+  
+  // Total minutes (power calculation)
+  const totalMins=sessions.reduce((a,s)=>a+Math.floor((s.seconds||0)/60),0);
+  const powerLevel=Math.min(100,Math.floor(totalMins/30));
+  
+  document.getElementById('stat-today').textContent=todayMins;
+  document.getElementById('stat-week').textContent=weekMins;
+  const statPowerEl=document.getElementById('stat-power');
+  if(statPowerEl) statPowerEl.textContent=Math.min(999,Math.floor(totalMins/5));
+  document.getElementById('power-bar-fill').style.width=powerLevel+'%';
 }
 
 // ══════════════════════════════════════════════
@@ -723,20 +1136,28 @@ function renderFragmentOrbit(){
   const orbit = document.getElementById('fragment-orbit');
   if(!orbit) return;
   const total = Math.max(0, S.totalFragments || 0);
-  const visible = Math.min(6, total);
+  const bigDiamonds = Math.floor(total / 15);
+  const smallRemainder = total % 15;
+  const visibleBig = Math.min(3, bigDiamonds);
+  const visibleSmall = Math.min(5, smallRemainder);
   const dense = total >= 9;
   orbit.classList.toggle('dense', dense);
-  if(!visible){
+  if(!visibleBig && !visibleSmall){
     orbit.innerHTML = '';
     return;
   }
 
   const shards = [];
-  for(let i=0;i<visible;i++){
-    const alpha = 0.68 + (i * 0.05);
-    shards.push(`<span class="fragment-orbit-shard" style="opacity:${Math.min(1,alpha)}">✦</span>`);
+  for(let i=0;i<visibleBig;i++){
+    shards.push('<span class="fragment-orbit-shard gem-icon diamond big" aria-hidden="true"></span>');
   }
-  const extra = total > visible ? `<span class="fragment-orbit-more">+${total-visible}</span>` : '';
+  for(let i=0;i<visibleSmall;i++){
+    shards.push('<span class="fragment-orbit-shard gem-icon diamond" aria-hidden="true"></span>');
+  }
+  const hiddenBig = Math.max(0, bigDiamonds - visibleBig);
+  const hiddenSmall = Math.max(0, smallRemainder - visibleSmall);
+  const extraCount = hiddenBig + hiddenSmall;
+  const extra = extraCount > 0 ? `<span class="fragment-orbit-more">+${extraCount}</span>` : '';
   orbit.innerHTML = shards.join('') + extra;
 }
 function pulseFragmentOrbit(){
@@ -749,10 +1170,14 @@ function pulseFragmentOrbit(){
 }
 function setReadingGlowState(state, active=true){
   const overlay = document.getElementById('reading-glow-overlay');
+  const hero = document.getElementById('child-hero-card');
+  const glowCards = document.querySelectorAll('.glow-reactive');
   if(!overlay) return;
   const nextState = state || 'low';
   if(S.currentGlowState === nextState && S.glowActive === !!active) return;
   overlay.className = 'reading-glow-overlay';
+  if(hero) hero.classList.remove('glow-low','glow-good','glow-top','glow-trap');
+  glowCards.forEach(el => el.classList.remove('glow-low','glow-good','glow-top','glow-trap'));
   if(!active) {
     S.currentGlowState = 'off';
     S.glowActive = false;
@@ -761,6 +1186,8 @@ function setReadingGlowState(state, active=true){
   S.currentGlowState = nextState;
   S.glowActive = true;
   overlay.classList.add('active', `state-${nextState}`);
+  if(hero) hero.classList.add(`glow-${nextState}`);
+  glowCards.forEach(el => el.classList.add(`glow-${nextState}`));
 }
 function animateStarDrop(){
   const layer = document.getElementById('star-drop-layer');
@@ -770,14 +1197,29 @@ function animateStarDrop(){
 
   const sourceRect = bar.getBoundingClientRect();
   const targetRect = target.getBoundingClientRect();
+  const startX = Math.round(sourceRect.left + Math.max(8, sourceRect.width));
+  const startY = Math.round(sourceRect.top + sourceRect.height / 2);
+  const endX = Math.round(targetRect.left + targetRect.width / 2);
+  const endY = Math.round(targetRect.top + targetRect.height / 2);
+  const dx = endX - startX;
+  const dy = endY - startY;
+  const distance = Math.max(20, Math.sqrt(dx*dx + dy*dy));
+  const angle = Math.atan2(dy, dx) + 'rad';
+
+  const trail = document.createElement('div');
+  trail.className = 'diamond-trail';
+  trail.style.width = `${Math.round(distance)}px`;
+  trail.style.setProperty('--trail-start-x', `${startX}px`);
+  trail.style.setProperty('--trail-start-y', `${startY}px`);
+  trail.style.setProperty('--trail-angle', angle);
+  layer.appendChild(trail);
+
   const star = document.createElement('div');
-  star.className = 'star-drop';
-  star.textContent = '✦';
-  const barTipX = sourceRect.left + Math.max(8, sourceRect.width);
-  star.style.setProperty('--star-start-x', `${Math.round(barTipX)}px`);
-  star.style.setProperty('--star-start-y', `${Math.round(sourceRect.top + sourceRect.height / 2)}px`);
-  star.style.setProperty('--star-end-x', `${Math.round(targetRect.left + targetRect.width / 2)}px`);
-  star.style.setProperty('--star-end-y', `${Math.round(targetRect.top + targetRect.height / 2)}px`);
+  star.className = 'star-drop gem-icon diamond';
+  star.style.setProperty('--star-start-x', `${startX}px`);
+  star.style.setProperty('--star-start-y', `${startY}px`);
+  star.style.setProperty('--star-end-x', `${endX}px`);
+  star.style.setProperty('--star-end-y', `${endY}px`);
   layer.appendChild(star);
 
   const badge = document.getElementById('child-stars');
@@ -792,6 +1234,7 @@ function animateStarDrop(){
       try { navigator.vibrate(10); } catch(e) {}
     }
   }, 620);
+  setTimeout(() => trail.remove(), 560);
   setTimeout(() => star.remove(), 760);
 }
 function checkAndGrantShield(streak){
@@ -876,15 +1319,21 @@ function renderMicQualityStatus(){
   const text = document.getElementById('mic-test-text');
   const note = document.getElementById('mic-test-note');
   const btn = document.getElementById('mic-test-btn');
+  const startBtn = document.querySelector('.setup-start-btn');
+  const micCard = document.getElementById('mic-test-card');
   if(!pill || !text || !note || !btn) return;
+
+  const micPrimaryLabel = 'ýttu á mig fyrst';
 
   const result = S.micQuality;
   pill.className = 'mic-test-pill';
+  if(startBtn) startBtn.classList.remove('mic-ready');
+  if(micCard) micCard.style.display = '';
   if(!result){
     pill.textContent = 'Óprófað';
     text.textContent = 'Mælt er með að prófa hljóðnema áður en fyrsta lota byrjar.';
     note.textContent = 'Prófið hlustar á styrk, suð og hvort röddin greinist vel.';
-    btn.textContent = '🎙️ Prófa hljóðnema (8 sek)';
+    btn.textContent = micPrimaryLabel;
     return;
   }
 
@@ -897,6 +1346,8 @@ function renderMicQualityStatus(){
   if(result.status === 'pass'){
     pill.textContent = 'Gott';
     text.textContent = `Hljóðgæði líta vel út (${result.score}/100).`;
+    if(startBtn) startBtn.classList.add('mic-ready');
+    if(micCard) micCard.style.display = 'none';
   }else if(result.status === 'warn'){
     pill.textContent = 'Miðlungs';
     text.textContent = `Hljóð er nothæft en mætti batna (${result.score}/100).`;
@@ -907,7 +1358,7 @@ function renderMicQualityStatus(){
 
   const issues = Array.isArray(result.issues) ? result.issues.join(' · ') : '';
   note.textContent = [issues, testedLabel ? `Síðast prófað: ${testedLabel}` : ''].filter(Boolean).join(' • ');
-  btn.textContent = '🔁 Prófa aftur';
+  btn.textContent = micPrimaryLabel;
 }
 
 function shouldBlockAudioCapture(){
@@ -1046,6 +1497,7 @@ function loadChildSessions(){
     const streak=getStreakWithShields(sessions);
     const shields=getShields();
     renderWeekDots(sessions,'child-week-dots');
+    updateStatsTable(sessions);
     if(streak>0){document.getElementById('child-streak').style.display='inline-flex';document.getElementById('streak-num').textContent=streak;}
     else{document.getElementById('child-streak').style.display='none';}
     if(shields>0){document.getElementById('child-shields').style.display='inline-flex';document.getElementById('shields-num').textContent=shields;}
@@ -1117,6 +1569,7 @@ window.startReading = async function(){
   document.getElementById('timer-status').textContent=S.timerMode==='down'?'Les upphátt — tíminn líður niður…':'Les upphátt…';
   const audioStatusEl=document.getElementById('audio-status');
   if(audioStatusEl){audioStatusEl.textContent='';audioStatusEl.style.display='block';audioStatusEl.style.color='#fff';}
+  S.glowLockUntil = Date.now() + 1600;
   setReadingGlowState('low', true);
   if(S.timerInterval)clearInterval(S.timerInterval);
   S.timerInterval=setInterval(()=>{
@@ -1239,6 +1692,7 @@ function stopAudio() {
   S.silencePromptShown = false;
   S.currentHumanConfidence = 0;
   S.glowActive = false;
+  S.glowLockUntil = 0;
   if (S.topToastTimer) clearTimeout(S.topToastTimer);
   S.topToastTimer = null;
 
@@ -1278,9 +1732,9 @@ window.stopReading = function(){
   const mins=Math.floor(S.elapsedSecs/60);
   document.getElementById('finish-emoji').textContent=mins>=15?'🏆':mins>=5?'⭐':'👍';
   document.getElementById('finish-title').textContent=mins>=15?'Frábær lestur!':mins>=5?'Vel gert!':'Byrjunin er góð!';
-  document.getElementById('finish-sub').textContent=`${fmtTime(S.elapsedSecs)} lesið · ✦ ${S.sessionFragments||0} Fragments stored`;
-  document.getElementById('finish-fragment-tease').textContent=`Total Fragments: ${S.totalFragments||0} · Use your Fragments to change your Glow next time.`;
-  setTimeout(()=>playSound(mins>=15?'streak':'done'),400);
+  document.getElementById('finish-sub').textContent=`${fmtTime(S.elapsedSecs)} lesið`;
+  document.getElementById('finish-fragment-tease').textContent='';
+  setTimeout(()=>playSound('done'),400);
   document.getElementById('page-end').oninput=function(){
     const start=parseInt(document.getElementById('page-start').value,10);
     const end=parseInt(this.value,10);
@@ -1708,6 +2162,7 @@ function renderParentHome(){
     // ── Samantekt kort ──
     const totalMins=list.reduce((a,s)=>a+Math.floor((s.seconds||0)/60),0);
     const totalSessions=list.length;
+    const avgMins=totalSessions?Math.round(totalMins/totalSessions):0;
 
     return `
       <div style="background:#fff;border-radius:18px;margin-bottom:14px;box-shadow:var(--card-shadow);overflow:hidden">
@@ -1717,7 +2172,6 @@ function renderParentHome(){
           <div style="display:flex;align-items:center;gap:6px">
             ${lowQualityRecent>0?`<div style="background:#ffe9e9;border:1.5px solid #ffb1b1;border-radius:50px;padding:3px 9px;font-size:11px;font-weight:800;color:#b43232">⚠️ hljóð ${lowQualityRecent}</div>`:''}
             ${!lowQualityRecent&&warnQualityRecent>0?`<div style="background:#fff5df;border:1.5px solid #ffd18a;border-radius:50px;padding:3px 9px;font-size:11px;font-weight:800;color:#a66a00">⚠️ gæði ${warnQualityRecent}</div>`:''}
-            ${streak>1?`<div style="background:#fff8e6;border:1.5px solid var(--sun);border-radius:50px;padding:3px 9px;font-size:11px;font-weight:800;color:#b07d00">🔥${streak}</div>`:''}
             <div style="padding:4px 12px;border-radius:50px;font-size:11px;font-weight:800;
               background:${readToday?'#e6f9ef':'#fff0f0'};
               color:${readToday?'#1a7a3f':'#c0392b'};
@@ -1739,8 +2193,8 @@ function renderParentHome(){
               <div class="stat-lbl">Mínútur</div>
             </div>
             <div class="stat-box">
-              <div class="stat-val">${streak}</div>
-              <div class="stat-lbl">Daga röð</div>
+              <div class="stat-val">${avgMins}</div>
+              <div class="stat-lbl">Meðaltal mín</div>
             </div>
           </div>
         </div>
@@ -1914,7 +2368,9 @@ window.toggleCodes=function(){
 function triggerTopMeterMoment(){
   const toast = document.getElementById('power-toast');
   const hero = document.getElementById('child-hero-card');
+  const track = document.getElementById('encouragement-track');
   if (toast) {
+    toast.textContent = 'Vel gert!';
     toast.classList.add('show');
     if (S.topToastTimer) clearTimeout(S.topToastTimer);
     S.topToastTimer = setTimeout(() => {
@@ -1933,6 +2389,12 @@ function triggerTopMeterMoment(){
   S.totalFragments = (S.totalFragments || 0) + 1;
   setTotalFragments(S.totalFragments);
   renderTotalFragments();
+  if(track){
+    track.classList.remove('shatter');
+    void track.offsetWidth;
+    track.classList.add('shatter');
+    setTimeout(()=>track.classList.remove('shatter'), 460);
+  }
   animateStarDrop();
   if((S.sessionFragments || 0) % 15 === 0){
     pulseFragmentOrbit();
@@ -1966,29 +2428,25 @@ window.runEncouragementEngine = function(){
   S.labelBoostUntil = 0;
   S.silencePromptShown = false;
   const cal = getReadingCalibration();
-  const speechFloor = cal.speechRmsMin + 0.0045;
-  const frameMs = 100;
-  const windowFrames = Math.max(12, Math.round(3000 / frameMs));
-  let pauseBankMs = 0;
-  let prevRms = 0;
-  let prevFreq = null;
-  const speechHistory = [];
-  const fluxHistory = [];
-  const microPauseHistory = [];
-  const highVolumeHistory = [];
-  const flatHistory = [];
+  const engineStartMs = Date.now();
+  let lastFragmentAt = engineStartMs - cal.topCooldownMs;
+  const firstFragmentReadyAt = engineStartMs + 20000;
+  let sustainedToneTicks = 0;
+  let sustainedResetCooldownUntil = 0;
+  let whistleLatched = false;
+  const toneLikeHistory = [];
 
-  const clamp01 = v => Math.max(0, Math.min(1, v));
-  const pushWindow = (arr, value) => {
+  const pushWindow = (arr, value, maxLen) => {
     arr.push(value);
-    if(arr.length > windowFrames) arr.shift();
+    if (arr.length > maxLen) arr.shift();
   };
-  const sum = arr => arr.reduce((a,b)=>a+b,0);
+  const sumWindow = (arr) => arr.reduce((a,b)=>a+b,0);
 
   if(nudge) nudge.classList.remove('show');
   bar.style.background = 'linear-gradient(90deg, #FF6B6B, #FF9500, #FFB830, #4CAF7D)';
   
   S.encouragementInterval = setInterval(() => {
+    let whistleLikeNow = false;
     let debugData = {
       mode: 'idle',
       humanConfidence: 0,
@@ -1996,11 +2454,12 @@ window.runEncouragementEngine = function(){
       microPauses: 0,
       speechRatio: 0,
       highRatio: 0,
-      pauseBankMs,
+      pauseBankMs: 0,
       trap: false
     };
     if (!S.analyser) {
-      S.encouragementScore = Math.max(0, S.encouragementScore - 2);
+      S.encouragementScore = Math.max(0, S.encouragementScore - 1.2);
+      S.currentHumanConfidence = 0;
       debugData.mode = 'no-analyser';
     } else {
       const dataArray = new Uint8Array(S.analyser.fftSize);
@@ -2018,119 +2477,128 @@ window.runEncouragementEngine = function(){
       }
       const rms = Math.sqrt(sumSquares / dataArray.length);
 
-      let flux = 0;
-      if (prevFreq && prevFreq.length === freqArray.length) {
-        for (let i = 0; i < freqArray.length; i++) {
-          flux += Math.abs(freqArray[i] - prevFreq[i]);
-        }
-        flux = flux / (freqArray.length * 255);
+      const detectedLevel = Math.max(0, Math.max(
+        (rms - 0.012) / 0.08,
+        (peak - 0.06) / 0.3
+      ));
+      const newScore = Math.min(100, detectedLevel * 88);
+      const instantLevel = Math.min(1, detectedLevel);
+      const swing = Math.abs(instantLevel - S.lastInstantLevel);
+      const inReadingBand = instantLevel > cal.inMin && instantLevel < cal.inMax;
+      const veryFlatVoice = instantLevel > cal.flatMinLevel && swing < cal.flatSwing;
+
+      if (veryFlatVoice) S.flatVoiceTicks = Math.min(120, (S.flatVoiceTicks || 0) + 1);
+      else S.flatVoiceTicks = Math.max(0, (S.flatVoiceTicks || 0) - 2);
+
+      let totalFreq = 0;
+      let peakFreqVal = 0;
+      let peakFreqIdx = 0;
+      for(let i=0;i<freqArray.length;i++){
+        const v = freqArray[i];
+        totalFreq += v;
+        if(v > peakFreqVal){ peakFreqVal = v; peakFreqIdx = i; }
       }
-      prevFreq = freqArray;
+      let bandSum = 0;
+      const left = Math.max(0, peakFreqIdx - 2);
+      const right = Math.min(freqArray.length - 1, peakFreqIdx + 2);
+      for(let i=left;i<=right;i++) bandSum += freqArray[i];
 
-      const speechFrame = rms > speechFloor ? 1 : 0;
-      const microPauseFrame = rms < cal.microPauseRms ? 1 : 0;
-      const fluxFrame = flux > cal.fluxMin ? 1 : 0;
-      const highVolumeFrame = (rms > (cal.speechRmsMaxSweet * 1.18) || peak > 0.97) ? 1 : 0;
-      const flatFrame = (Math.abs(rms - prevRms) < 0.0017 && flux < cal.fluxMin * 0.7) ? 1 : 0;
-      prevRms = rms;
-
-      pushWindow(speechHistory, speechFrame);
-      pushWindow(microPauseHistory, microPauseFrame);
-      pushWindow(fluxHistory, fluxFrame);
-      pushWindow(highVolumeHistory, highVolumeFrame);
-      pushWindow(flatHistory, flatFrame);
-
-      const speechRatio = sum(speechHistory) / speechHistory.length;
-      const microPauses = sum(microPauseHistory);
-      const fluxRatio = sum(fluxHistory) / fluxHistory.length;
-      const highRatio = sum(highVolumeHistory) / highVolumeHistory.length;
-      const flatRatio = sum(flatHistory) / flatHistory.length;
-
-      let volumeScore = 0;
-      if (rms > speechFloor) {
-        if (rms <= cal.speechRmsMaxSweet) {
-          volumeScore = clamp01((rms - speechFloor) / (cal.speechRmsMaxSweet - speechFloor));
-        } else {
-          const over = (rms - cal.speechRmsMaxSweet) / (cal.speechRmsMaxSweet * 0.9);
-          volumeScore = clamp01(1 - (over * 0.65));
-        }
+      let binsAbovePeakFrac = 0;
+      const spreadThreshold = peakFreqVal * 0.25;
+      for(let i=0;i<freqArray.length;i++){
+        if(freqArray[i] >= spreadThreshold) binsAbovePeakFrac++;
       }
-      if (highRatio > 0.45) volumeScore *= 0.75;
 
-      const textureScore = clamp01((fluxRatio - (cal.minFluxFramesRatio * 0.45)) / (cal.minFluxFramesRatio * 0.9));
-      const articulationScore = clamp01(microPauses / Math.max(1, cal.minMicroPausesPer3s));
-      const consistencyScore = clamp01(speechRatio / 0.65);
+      const bandRatio = totalFreq > 0 ? (bandSum / totalFreq) : 0;
+      const dominantRatio = totalFreq > 0 ? (peakFreqVal / totalFreq) : 0;
+      const spreadRatio = totalFreq > 0 ? (binsAbovePeakFrac / freqArray.length) : 1;
+      const highPitch = peakFreqIdx > Math.floor(freqArray.length * 0.28);
 
-      let humanConfidence =
-        (textureScore * 0.45) +
-        (articulationScore * 0.35) +
-        (Math.min(volumeScore, consistencyScore) * 0.20);
+      const toneLikeFrame = (
+        dominantRatio > 0.16 &&
+        bandRatio > 0.42 &&
+        spreadRatio < 0.040 &&
+        rms > 0.014
+      ) || (
+        highPitch &&
+        dominantRatio > 0.12 &&
+        bandRatio > 0.35 &&
+        spreadRatio < 0.050 &&
+        rms > 0.014
+      );
 
-      const constantToneTrap =
-        flatRatio > 0.62 &&
-        fluxRatio < (cal.minFluxFramesRatio * 0.55) &&
-        microPauses === 0;
+      pushWindow(toneLikeHistory, toneLikeFrame ? 1 : 0, 24);
+      const tonalRatio = toneLikeHistory.length ? (sumWindow(toneLikeHistory) / toneLikeHistory.length) : 0;
 
-      if (constantToneTrap) {
-        humanConfidence = Math.min(humanConfidence, 0.12);
+      if (!whistleLatched && tonalRatio >= 0.58) whistleLatched = true;
+      if (whistleLatched && tonalRatio <= 0.34) whistleLatched = false;
+
+      whistleLikeNow = whistleLatched;
+
+      const sustainedToneNow = instantLevel > 0.22 && swing < 0.016;
+      if (sustainedToneNow) sustainedToneTicks = Math.min(80, sustainedToneTicks + 1);
+      else sustainedToneTicks = Math.max(0, sustainedToneTicks - 3);
+      const hardSustainedReset = sustainedToneTicks >= 12 || tonalRatio >= 0.72;
+
+      const monotoneDetected = (S.flatVoiceTicks || 0) >= 10 || whistleLikeNow || hardSustainedReset;
+
+      if (inReadingBand) {
+        const consistencyBoost = Math.max(0.15, 1.05 - swing * 2.2);
+        S.cadenceScore = Math.min(100, S.cadenceScore + consistencyBoost);
+      } else if (instantLevel >= 0.95) {
+        S.cadenceScore = Math.max(0, S.cadenceScore - 0.9);
+      } else {
+        S.cadenceScore = Math.max(0, S.cadenceScore - 0.35);
       }
-      const noiseLike = fluxRatio < (cal.minFluxFramesRatio * 0.72) && microPauses < cal.minMicroPausesPer3s;
-      if (noiseLike) {
-        humanConfidence = Math.min(humanConfidence, 0.22);
-      }
-      if (speechRatio < 0.16) {
-        humanConfidence = Math.min(humanConfidence, 0.18);
-      }
-      if (highRatio > 0.62) {
-        humanConfidence *= 0.72;
-      }
+
+      S.lastInstantLevel = instantLevel;
+
+      const cadenceBonus = Math.max(0, (S.cadenceScore - 48) * 0.45);
+      const effectiveScore = Math.min(100, newScore + cadenceBonus);
+      const humanConfidence = Math.max(0, Math.min(1,
+        (effectiveScore / 100) * 0.74 +
+        (inReadingBand ? 0.2 : 0) +
+        (monotoneDetected ? -0.2 : 0)
+      ));
       S.currentHumanConfidence = humanConfidence;
 
-      if (speechFrame && humanConfidence > 0.55) {
-        pauseBankMs = Math.min(cal.maxPauseBankMs, pauseBankMs + cal.pauseBankBuildMsPerTick);
-      } else if (!speechFrame) {
-        pauseBankMs = Math.max(0, pauseBankMs - cal.pauseBankDrainMsPerTick);
-      }
-
-      if (speechFrame && humanConfidence > 0.22 && !constantToneTrap) {
+      if (effectiveScore > 7 && !monotoneDetected && !whistleLikeNow) {
         S.lastSoundDetected = Date.now();
       }
 
-      const targetScore = Math.round(clamp01(humanConfidence) * 100);
-      if (humanConfidence >= 0.62 && !constantToneTrap) {
-        S.cadenceScore = Math.min(100, S.cadenceScore + 1.0);
-      } else if (humanConfidence >= 0.42 && !constantToneTrap) {
-        S.cadenceScore = Math.min(100, S.cadenceScore + 0.35);
-      } else {
-        S.cadenceScore = Math.max(0, S.cadenceScore - 0.75);
+      const loopNow = Date.now();
+      if (hardSustainedReset && loopNow >= sustainedResetCooldownUntil) {
+        S.encouragementScore = 0;
+        S.cadenceScore = Math.max(0, S.cadenceScore - 20);
+        S.topZoneSince = 0;
+        sustainedResetCooldownUntil = loopNow + 2200;
       }
 
-      if (constantToneTrap) {
-        S.flatVoiceTicks = Math.min(120, S.flatVoiceTicks + 2);
-        S.encouragementScore = Math.max(0, S.encouragementScore - 1.7);
+      if (monotoneDetected) {
+        S.cadenceScore = Math.max(0, S.cadenceScore - 1.1);
+        const trapDecay = whistleLikeNow || hardSustainedReset ? 1.7 : 1.2;
+        S.encouragementScore = Math.max(0, S.encouragementScore - trapDecay);
+      } else if (effectiveScore > S.encouragementScore) {
+        const riseStep = Math.min(1.7, 0.14 + (effectiveScore * 0.0105) + ((S.cadenceScore / 100) * 0.34));
+        S.encouragementScore = Math.min(100, S.encouragementScore + riseStep);
+      } else if (Math.abs(effectiveScore - S.encouragementScore) <= 3 && effectiveScore > 25) {
+        // Prevent sticky mid-band drop while steady reading continues.
+        S.encouragementScore = Math.min(100, S.encouragementScore + 0.05);
       } else {
-        S.flatVoiceTicks = Math.max(0, S.flatVoiceTicks - 2);
-        if (targetScore > S.encouragementScore && !noiseLike) {
-          let riseStep = 0.22 + (humanConfidence * 2.05);
-          if (highRatio > 0.45) riseStep *= 0.72;
-          S.encouragementScore = Math.min(100, S.encouragementScore + Math.min(2.4, riseStep));
-        } else {
-          const silenceMs = Date.now() - S.lastSoundDetected;
-          const effectiveSilenceMs = Math.max(0, silenceMs - pauseBankMs);
-          const decay = effectiveSilenceMs < cal.heavyDecayStartMs ? 0.15 : cal.heavyDecayPerTick;
-          const confidencePenalty = humanConfidence < 0.25 ? 0.25 : 0;
-          S.encouragementScore = Math.max(0, S.encouragementScore - (decay + confidencePenalty));
-        }
+        const silenceMs = Date.now() - S.lastSoundDetected;
+        const decay = silenceMs < 2600 ? 0.05 : silenceMs < 4300 ? 0.18 : 0.45;
+        S.encouragementScore = Math.max(0, S.encouragementScore - decay);
       }
+
       debugData = {
         mode: 'analyser',
         humanConfidence,
-        fluxRatio,
-        microPauses,
-        speechRatio,
-        highRatio,
-        pauseBankMs,
-        trap: constantToneTrap
+        fluxRatio: tonalRatio,
+        microPauses: 0,
+        speechRatio: inReadingBand ? 1 : 0,
+        highRatio: whistleLikeNow ? 1 : (instantLevel >= 0.95 ? 1 : 0),
+        pauseBankMs: 0,
+        trap: monotoneDetected
       };
     }
     
@@ -2152,26 +2620,47 @@ window.runEncouragementEngine = function(){
     }
 
     let glowState = 'low';
-    if (S.flatVoiceTicks >= 10) glowState = 'trap';
-    else if (pct >= 88 && S.currentHumanConfidence >= cal.humanConfidenceTopMin) glowState = 'top';
-    else if (S.currentHumanConfidence >= 0.52) glowState = 'good';
+    if (now >= S.glowLockUntil) {
+      const topZoneVisual = pct >= 90;
+      if (S.flatVoiceTicks >= 10) glowState = 'trap';
+      else if (topZoneVisual) glowState = 'top';
+      else if (S.currentHumanConfidence >= 0.50) glowState = 'good';
+    }
     setReadingGlowState(glowState, true);
 
-    const cadenceReady = pct >= 93 && S.cadenceScore >= cal.topCadenceMin && S.flatVoiceTicks < 8;
-    const visualTopReady = pct >= 97;
+    const sustainedResetActive = sustainedToneTicks >= 12;
+    const cadenceReady = pct >= 88 && S.cadenceScore >= cal.topCadenceMin && S.flatVoiceTicks < 10 && !whistleLikeNow && !sustainedResetActive;
+    const visualTopReady = pct >= 92 && !whistleLikeNow && !sustainedResetActive;
+    const nextRewardAt = Math.max(firstFragmentReadyAt, lastFragmentAt + cal.topCooldownMs);
+    const minTimeGate = now >= nextRewardAt;
+    const waitMs = Math.max(0, nextRewardAt - now);
     if (cadenceReady || visualTopReady) {
       if (!S.topZoneSince) S.topZoneSince = now;
-      if ((now - S.topZoneSince) >= 160 && now >= S.topCooldownUntil) {
-        S.topCooldownUntil = now + cal.topCooldownMs;
+      if ((now - S.topZoneSince) >= 220 && now >= S.topCooldownUntil && minTimeGate) {
+        S.topCooldownUntil = now + 1800;
         S.topZoneSince = 0;
+        lastFragmentAt = now;
         triggerTopMeterMoment();
       }
-    } else if (pct < 86) {
+    } else if (pct < 84) {
       S.topZoneSince = 0;
+    }
+
+    // Keep the bar from sticking at max while cooldown is active.
+    if (!minTimeGate && pct >= 92) {
+      S.encouragementScore = 90;
+      bar.style.width = '90%';
     }
 
     if (now < S.labelBoostUntil) {
       label.textContent = 'Þú sprengdir skalann! Frábært tempó! 🚀';
+    } else if (sustainedResetActive) {
+      label.textContent = 'Tone held too long - meter reset. Keep natural reading rhythm 📚';
+    } else if (whistleLikeNow) {
+      label.textContent = 'Whistle detected - read words aloud 📖';
+    } else if (!minTimeGate && pct >= 84) {
+      const secs = Math.max(1, Math.ceil(waitMs / 1000));
+      label.textContent = `Heldur áfram... ${fmtTime(secs)} ⏳`;
     } else if (S.flatVoiceTicks >= 10) {
       label.textContent = 'Heyri stöðugt hljóð - lestu orð skýrar 📚';
     } else if(pct < 20) label.textContent = 'Hafðu hátt! 🎤';

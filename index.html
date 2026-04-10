@@ -30,6 +30,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .child-hero{padding:16px 18px}
 .child-hero-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
 .child-hero-top h1{margin:0;font-size:24px}
+.child-name-zone{position:relative;display:inline-flex;align-items:center;min-height:44px;padding-right:56px}
+.fragment-orbit{position:absolute;right:0;top:50%;width:52px;height:52px;transform:translateY(-50%);pointer-events:none}
+.fragment-orbit-shard{position:absolute;left:50%;top:50%;font-size:13px;line-height:1;color:rgba(255,255,255,.95);text-shadow:0 0 10px rgba(255,255,255,.35),0 0 20px rgba(255,184,48,.22);opacity:.94;transform:translate(-50%,-50%) rotate(var(--a)) translateY(calc(-1 * var(--r))) scale(var(--s));filter:drop-shadow(0 1px 2px rgba(0,0,0,.15))}
+.fragment-orbit.dense .fragment-orbit-shard{animation:fragmentOrbitShimmer 2.4s ease-in-out infinite}
+.fragment-orbit.pulse .fragment-orbit-shard{animation:fragmentOrbitPulse .62s cubic-bezier(.2,.9,.2,1)}
 .child-hero-badges{display:flex;align-items:flex-start;justify-content:flex-end;gap:8px;flex-wrap:wrap;min-width:132px}
 .card{background:#fff;border-radius:18px;padding:15px;margin-bottom:12px;box-shadow:var(--card-shadow)}
 .form-group{margin-bottom:14px}
@@ -106,6 +111,15 @@ audio{width:100%;border-radius:8px}
 .clip-player audio{width:100%;border-radius:8px}
 .power-toast{display:none;margin-top:8px;font-size:12px;font-weight:800;color:var(--deep);background:#fff8d9;border:1px solid #ffd46a;border-radius:10px;padding:7px 10px;text-align:center}
 .power-toast.show{display:block;animation:toastPop .35s ease}
+.reading-glow-overlay{position:fixed;inset:0;pointer-events:none;z-index:15;opacity:0;transition:opacity .35s ease, box-shadow .35s ease;background:transparent;box-shadow:inset 0 0 0 0 rgba(0,0,0,0)}
+.reading-glow-overlay.active{opacity:1;animation:readingGlowPulse 3.2s ease-in-out infinite}
+.reading-glow-overlay.state-low{box-shadow:inset 0 0 36px rgba(123,137,156,.16), inset 0 0 90px rgba(123,137,156,.08)}
+.reading-glow-overlay.state-good{box-shadow:inset 0 0 42px rgba(76,175,125,.22), inset 0 0 120px rgba(76,175,125,.12)}
+.reading-glow-overlay.state-top{box-shadow:inset 0 0 54px rgba(255,184,48,.28), inset 0 0 140px rgba(76,175,125,.16)}
+.reading-glow-overlay.state-trap{box-shadow:inset 0 0 26px rgba(140,150,164,.12), inset 0 0 72px rgba(140,150,164,.06);animation:none}
+.stars-badge-boost{animation:starsBadgeBoost .7s cubic-bezier(.2,.9,.2,1)}
+.star-drop-layer{position:fixed;inset:0;pointer-events:none;z-index:25;overflow:hidden}
+.star-drop{position:fixed;left:0;top:0;font-size:24px;line-height:1;will-change:transform,opacity;transform:translate3d(0,0,0) scale(.9);animation:starDropFly .72s cubic-bezier(.2,.9,.2,1) forwards}
 .mic-test-card{background:#f7fbff;border:2px solid #dde8f8;border-radius:14px;padding:12px;margin-bottom:12px}
 .mic-test-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px}
 .mic-test-title{font-size:11px;font-weight:800;color:var(--deep);text-transform:uppercase;letter-spacing:.5px}
@@ -117,6 +131,7 @@ audio{width:100%;border-radius:8px}
 .mic-test-live{width:100%;height:10px;background:#eaf0f8;border-radius:999px;overflow:hidden;margin:8px 0 10px}
 .mic-test-live-fill{width:0%;height:100%;background:linear-gradient(90deg,#ff6b6b,#ffb830,#4caf7d);transition:width .12s linear}
 .mic-test-note{font-size:11px;color:var(--mist);font-weight:700;min-height:16px}
+.meter-debug{display:none;margin-top:8px;padding:8px 10px;border-radius:10px;background:#0f1f34;color:#d6e6ff;font-size:10px;font-weight:700;line-height:1.35;letter-spacing:.2px;white-space:pre-wrap}
 .reading-nudge{display:none;margin:8px 0 10px;text-align:center;font-size:22px;line-height:1.1;font-weight:900;color:#7a2e00;background:linear-gradient(135deg,#fff0b3,#ffd166);border:2px solid #ffb347;border-radius:14px;padding:12px 14px;box-shadow:0 10px 24px rgba(255,149,0,.35),0 0 0 4px rgba(255,184,48,.25)}
 .reading-nudge.show{display:block;animation:nudgePop .45s cubic-bezier(.2,.9,.2,1), nudgePulse 1.3s ease-in-out .45s 2}
 .hero-boost{animation:heroBoost .55s ease}
@@ -125,9 +140,16 @@ audio{width:100%;border-radius:8px}
 @keyframes nudgePop{0%{opacity:0;transform:translateY(-8px) scale(.86)}60%{opacity:1;transform:translateY(2px) scale(1.04)}100%{opacity:1;transform:translateY(0) scale(1)}}
 @keyframes nudgePulse{0%,100%{transform:scale(1)}50%{transform:scale(1.035)}}
 @keyframes clipPlayingPulse{0%,100%{box-shadow:0 0 0 3px rgba(42,110,187,.16)}50%{box-shadow:0 0 0 6px rgba(42,110,187,.30)}}
+@keyframes readingGlowPulse{0%,100%{opacity:.72}50%{opacity:1}}
+@keyframes starsBadgeBoost{0%{transform:scale(1)}35%{transform:scale(1.11)}100%{transform:scale(1)}}
+@keyframes starDropFly{0%{opacity:0;transform:translate3d(var(--star-start-x),var(--star-start-y),0) scale(.82)}12%{opacity:1}72%{opacity:1;transform:translate3d(calc(var(--star-end-x) + 5px),calc(var(--star-end-y) - 3px),0) scale(.7)}100%{opacity:0;transform:translate3d(var(--star-end-x),var(--star-end-y),0) scale(.56)}}
+@keyframes fragmentOrbitShimmer{0%,100%{opacity:.88;filter:drop-shadow(0 1px 2px rgba(0,0,0,.15))}50%{opacity:1;filter:drop-shadow(0 0 8px rgba(255,255,255,.42))}}
+@keyframes fragmentOrbitPulse{0%{transform:translate(-50%,-50%) rotate(var(--a)) translateY(calc(-1 * var(--r))) scale(var(--s))}45%{transform:translate(-50%,-50%) rotate(var(--a)) translateY(calc(-1 * var(--r))) scale(calc(var(--s) + .22))}100%{transform:translate(-50%,-50%) rotate(var(--a)) translateY(calc(-1 * var(--r))) scale(var(--s))}}
 </style>
 </head>
 <body>
+<div id="reading-glow-overlay" class="reading-glow-overlay"></div>
+<div id="star-drop-layer" class="star-drop-layer"></div>
 
 <!-- LOGIN -->
 <div id="screen-login" class="screen active">
@@ -262,13 +284,16 @@ audio{width:100%;border-radius:8px}
   <div class="scroll-body">
     <div class="hero green child-hero" id="child-hero-card">
       <div class="child-hero-top">
-        <h1 id="child-hero">Ertu tilbúinn að lesa?</h1>
+        <div class="child-name-zone">
+          <h1 id="child-hero">Ertu tilbúinn að lesa?</h1>
+          <div id="fragment-orbit" class="fragment-orbit"></div>
+        </div>
         <div class="child-hero-badges">
         <div id="child-streak" style="display:none;background:rgba(255,184,48,0.25);border:1.5px solid rgba(255,184,48,0.6);border-radius:50px;padding:5px 14px;font-size:13px;font-weight:800;color:#fff">
           🔥 <span id="streak-num">0</span> daga röð
         </div>
-        <div id="child-stars" style="background:rgba(255,255,255,0.2);border-radius:50px;padding:5px 14px;font-size:13px;font-weight:800;color:#fff">
-          ⭐ <span id="stars-num">0</span>
+        <div id="child-stars" style="background:rgba(255,255,255,0.2);border-radius:50px;padding:5px 14px;font-size:12px;font-weight:800;color:#fff;white-space:nowrap">
+          ✦ <span id="stars-num">0</span> Fragments
         </div>
         <div id="child-shields" style="display:none;background:rgba(255,255,255,0.2);border-radius:50px;padding:5px 14px;font-size:13px;font-weight:800;color:#fff">
           🛡️ <span id="shields-num">0</span> frídagar
@@ -332,11 +357,12 @@ audio{width:100%;border-radius:8px}
     <span>Lestrarkraftur</span>
     <span id="power-label">Hafðu hátt! 🎤</span>
   </div>
-  <div style="width:100%; height:20px; background:#e0e0e0; border-radius:10px; overflow:hidden; border:2px solid #fff; box-shadow:0 2px 5px rgba(0,0,0,0.1)">
-    <div id="encouragement-bar" style="width:0%; height:100%; background:var(--moss); transition: width 0.3s ease, background-color 0.5s ease;"></div>
+  <div style="width:100%; height:12px; background:rgba(22,42,67,0.08); border-radius:999px; overflow:hidden; border:1px solid rgba(255,255,255,0.7); box-shadow:inset 0 1px 2px rgba(0,0,0,0.06)">
+    <div id="encouragement-bar" style="width:0%; height:100%; background:linear-gradient(90deg, rgba(255,107,107,.82), rgba(255,184,48,.86), rgba(76,175,125,.92)); transition: width 0.3s ease, background-color 0.5s ease, opacity 0.3s ease; opacity:.88"></div>
   </div>
   <div id="power-toast" class="power-toast">🔥 Þú sprengdir skalann! Frábært tempó!</div>
   <div id="reading-nudge" class="reading-nudge">Ertu ennþá að lesa?</div>
+  <div id="meter-debug" class="meter-debug"></div>
 </div>
       <div class="timer-wrap">
         <div class="timer-big" id="timer-display">15:00</div>
@@ -352,6 +378,7 @@ audio{width:100%;border-radius:8px}
         <div style="font-size:48px" id="finish-emoji">🎉</div>
         <div style="font-family:Georgia,serif;font-size:22px;font-weight:700;color:var(--deep)" id="finish-title">Frábær lestur!</div>
         <div style="font-size:13px;color:var(--mist);margin-top:4px" id="finish-sub"></div>
+        <div style="font-size:12px;color:var(--deep);margin-top:10px;font-weight:800;line-height:1.4" id="finish-fragment-tease"></div>
       </div>
       <div class="form-group">
         <label>Hvaða blaðsíðu ertu kominn á? (valfrjálst)</label>
@@ -456,10 +483,12 @@ window._appState = {
   silencePromptShown: false, micQuality: null, micTestRunning: false,
   micTestInterval: null, micTestContext: null, micTestAnalyser: null, micTestStream: null,
   captureAudioEnabled: true, activeParentAudio: null,
-  flatVoiceTicks: 0, sessionStars: 0, totalStars: 0
+  flatVoiceTicks: 0, sessionFragments: 0, totalFragments: 0,
+  currentHumanConfidence: 0, currentGlowState: 'low'
 };
 const S = window._appState;
 const TARGET = 15 * 60;
+const DEBUG_METER_KEY = 'upphatt_debug_meter';
 
 /* ── FIX: flag to block onAuthStateChanged during signup ── */
 let _signupInProgress = false;
@@ -511,10 +540,47 @@ function getAgeBandFromBirthYear(birthYear){
 }
 function getReadingCalibration(){
   const band = getAgeBandFromBirthYear(S.childBirthYear);
-  if(band === 'young') return { inMin: 0.14, inMax: 0.88, flatMinLevel: 0.5, flatSwing: 0.01, topCadenceMin: 33, topCooldownMs: 1500 };
-  if(band === 'older') return { inMin: 0.2, inMax: 0.82, flatMinLevel: 0.42, flatSwing: 0.011, topCadenceMin: 46, topCooldownMs: 2200 };
-  return { inMin: 0.18, inMax: 0.85, flatMinLevel: 0.42, flatSwing: 0.012, topCadenceMin: 42, topCooldownMs: 1800 };
+  if(band === 'young') return {
+    speechRmsMin: 0.014, speechRmsMaxSweet: 0.060,
+    microPauseRms: 0.010, minMicroPausesPer3s: 1,
+    fluxMin: 0.010, minFluxFramesRatio: 0.28,
+    heavyDecayStartMs: 5200, heavyDecayPerTick: 0.55,
+    topCadenceMin: 28, topCooldownMs: 1400,
+    humanConfidenceTopMin: 0.58,
+    maxPauseBankMs: 6000, pauseBankBuildMsPerTick: 95, pauseBankDrainMsPerTick: 120
+  };
+  if(band === 'older') return {
+    speechRmsMin: 0.018, speechRmsMaxSweet: 0.070,
+    microPauseRms: 0.012, minMicroPausesPer3s: 2,
+    fluxMin: 0.014, minFluxFramesRatio: 0.36,
+    heavyDecayStartMs: 3500, heavyDecayPerTick: 0.90,
+    topCadenceMin: 42, topCooldownMs: 2000,
+    humanConfidenceTopMin: 0.66,
+    maxPauseBankMs: 5500, pauseBankBuildMsPerTick: 80, pauseBankDrainMsPerTick: 140
+  };
+  return {
+    speechRmsMin: 0.016, speechRmsMaxSweet: 0.065,
+    microPauseRms: 0.011, minMicroPausesPer3s: 1,
+    fluxMin: 0.012, minFluxFramesRatio: 0.32,
+    heavyDecayStartMs: 4300, heavyDecayPerTick: 0.70,
+    topCadenceMin: 35, topCooldownMs: 1700,
+    humanConfidenceTopMin: 0.62,
+    maxPauseBankMs: 5800, pauseBankBuildMsPerTick: 88, pauseBankDrainMsPerTick: 130
+  };
 }
+function isMeterDebugEnabled(){
+  return localStorage.getItem(DEBUG_METER_KEY) === '1';
+}
+function setMeterDebugEnabled(enabled){
+  localStorage.setItem(DEBUG_METER_KEY, enabled ? '1' : '0');
+}
+window.toggleMeterDebug = function(force){
+  const next = typeof force === 'boolean' ? force : !isMeterDebugEnabled();
+  setMeterDebugEnabled(next);
+  const el = document.getElementById('meter-debug');
+  if(el) el.style.display = next ? 'block' : 'none';
+  return next;
+};
 function renderCodesList(children){
   const listEl = document.getElementById('codes-list');
   if(!listEl) return;
@@ -637,11 +703,94 @@ function checkMilestone(total){
 // ══════════════════════════════════════════════
 function getShields(){ return parseInt(localStorage.getItem('upphatt_shields_'+S.childKey)||'0'); }
 function setShields(n){ localStorage.setItem('upphatt_shields_'+S.childKey, Math.max(0,n)); }
-function getTotalStars(){ return parseInt(localStorage.getItem('upphatt_total_stars_'+S.childKey)||'0'); }
-function setTotalStars(n){ localStorage.setItem('upphatt_total_stars_'+S.childKey, Math.max(0, n)); }
-function renderTotalStars(){
+function getTotalFragments(){
+  const nextKey = 'upphatt_total_fragments_' + S.childKey;
+  const legacyKey = 'upphatt_total_stars_' + S.childKey;
+  const fromNew = localStorage.getItem(nextKey);
+  if(fromNew !== null) return parseInt(fromNew || '0');
+  return parseInt(localStorage.getItem(legacyKey) || '0');
+}
+function setTotalFragments(n){
+  localStorage.setItem('upphatt_total_fragments_'+S.childKey, Math.max(0, n));
+}
+function renderTotalFragments(){
   const el = document.getElementById('stars-num');
-  if(el) el.textContent = String(Math.max(0, S.totalStars || 0));
+  if(el) el.textContent = String(Math.max(0, S.totalFragments || 0));
+  renderFragmentOrbit();
+}
+function renderFragmentOrbit(){
+  const orbit = document.getElementById('fragment-orbit');
+  if(!orbit) return;
+  const total = Math.max(0, S.totalFragments || 0);
+  const visible = Math.min(15, total);
+  const dense = total >= 9;
+  orbit.classList.toggle('dense', dense);
+  if(!visible){
+    orbit.innerHTML = '';
+    return;
+  }
+
+  const shards = [];
+  for(let i=0;i<visible;i++){
+    const angle = (360 / visible) * i;
+    const radius = visible < 6 ? 15 : visible < 11 ? 17 : 19;
+    const scale = 0.78 + Math.min(0.34, (i % 4) * 0.07);
+    const alpha = 0.62 + Math.min(0.35, (i / Math.max(1, visible)) * 0.45);
+    shards.push(`<span class="fragment-orbit-shard" style="--a:${angle}deg;--r:${radius}px;--s:${scale};opacity:${alpha}">✦</span>`);
+  }
+  orbit.innerHTML = shards.join('');
+}
+function pulseFragmentOrbit(){
+  const orbit = document.getElementById('fragment-orbit');
+  if(!orbit) return;
+  orbit.classList.remove('pulse');
+  void orbit.offsetWidth;
+  orbit.classList.add('pulse');
+  setTimeout(()=>orbit.classList.remove('pulse'), 700);
+}
+function setReadingGlowState(state, active=true){
+  const overlay = document.getElementById('reading-glow-overlay');
+  if(!overlay) return;
+  overlay.className = 'reading-glow-overlay';
+  if(!active) {
+    S.currentGlowState = 'low';
+    return;
+  }
+  const nextState = state || 'low';
+  S.currentGlowState = nextState;
+  overlay.classList.add('active', `state-${nextState}`);
+}
+function animateStarDrop(){
+  const layer = document.getElementById('star-drop-layer');
+  const bar = document.getElementById('encouragement-bar');
+  const target = document.getElementById('fragment-orbit');
+  if(!layer || !bar || !target) return;
+
+  const sourceRect = bar.getBoundingClientRect();
+  const targetRect = target.getBoundingClientRect();
+  const star = document.createElement('div');
+  star.className = 'star-drop';
+  star.textContent = '✦';
+  const barTipX = sourceRect.left + Math.max(8, sourceRect.width);
+  star.style.setProperty('--star-start-x', `${Math.round(barTipX)}px`);
+  star.style.setProperty('--star-start-y', `${Math.round(sourceRect.top + sourceRect.height / 2)}px`);
+  star.style.setProperty('--star-end-x', `${Math.round(targetRect.left + targetRect.width / 2)}px`);
+  star.style.setProperty('--star-end-y', `${Math.round(targetRect.top + targetRect.height / 2)}px`);
+  layer.appendChild(star);
+
+  const badge = document.getElementById('child-stars');
+  if(badge){
+    badge.classList.remove('stars-badge-boost');
+    void badge.offsetWidth;
+    badge.classList.add('stars-badge-boost');
+    setTimeout(() => badge.classList.remove('stars-badge-boost'), 720);
+  }
+  setTimeout(() => {
+    if (navigator.vibrate) {
+      try { navigator.vibrate(10); } catch(e) {}
+    }
+  }, 620);
+  setTimeout(() => star.remove(), 760);
 }
 function checkAndGrantShield(streak){
   const given=parseInt(localStorage.getItem('upphatt_shields_given_'+S.childKey)||'0');
@@ -686,8 +835,8 @@ function setupChildHome(){
   document.getElementById('child-name-pill').textContent=S.childName;
   document.getElementById('child-hero').textContent=`Halló, ${S.childName}`;
   S.childSessionsOpen=false;
-  S.totalStars = getTotalStars();
-  renderTotalStars();
+  S.totalFragments = getTotalFragments();
+  renderTotalFragments();
   S.micQuality = loadMicQualityResult();
   renderMicQualityStatus();
   loadChildSessions();
@@ -953,7 +1102,7 @@ window.startReading = async function(){
   S.captureAudioEnabled = !shouldBlockAudioCapture();
   S.pendingSession={title:document.getElementById('read-title').value.trim()||'Lestur',pageStart:parseInt(document.getElementById('page-start').value,10)||null};
   S.elapsedSecs=0; S.readingStartMs=Date.now();
-  S.sessionStars=0;
+  S.sessionFragments=0;
   S.flatVoiceTicks=0;
   S.audioSnippets={min1:{chunks:[],mimeType:''},min5:{chunks:[],mimeType:''},min9:{chunks:[],mimeType:''},min13:{chunks:[],mimeType:''}};
   S.snippetTimers.forEach(t=>clearTimeout(t)); S.snippetTimers=[];
@@ -966,6 +1115,7 @@ window.startReading = async function(){
   document.getElementById('timer-status').textContent=S.timerMode==='down'?'Les upphátt — tíminn líður niður…':'Les upphátt…';
   const audioStatusEl=document.getElementById('audio-status');
   if(audioStatusEl){audioStatusEl.textContent='';audioStatusEl.style.display='block';audioStatusEl.style.color='#fff';}
+  setReadingGlowState('low', true);
   if(S.timerInterval)clearInterval(S.timerInterval);
   S.timerInterval=setInterval(()=>{
     S.elapsedSecs=Math.floor((Date.now()-S.readingStartMs)/1000);
@@ -1085,6 +1235,7 @@ function stopAudio() {
   S.flatVoiceTicks = 0;
   S.labelBoostUntil = 0;
   S.silencePromptShown = false;
+  S.currentHumanConfidence = 0;
   if (S.topToastTimer) clearTimeout(S.topToastTimer);
   S.topToastTimer = null;
 
@@ -1098,6 +1249,7 @@ function stopAudio() {
   if (toast) toast.classList.remove('show');
   if (nudge) nudge.classList.remove('show');
   if (hero) hero.classList.remove('hero-boost');
+  setReadingGlowState('low', false);
 
   S.snippetTimers.forEach(t => clearTimeout(t));
   S.snippetTimers = [];
@@ -1123,7 +1275,8 @@ window.stopReading = function(){
   const mins=Math.floor(S.elapsedSecs/60);
   document.getElementById('finish-emoji').textContent=mins>=15?'🏆':mins>=5?'⭐':'👍';
   document.getElementById('finish-title').textContent=mins>=15?'Frábær lestur!':mins>=5?'Vel gert!':'Byrjunin er góð!';
-  document.getElementById('finish-sub').textContent=`${fmtTime(S.elapsedSecs)} lesið · ⭐ ${S.sessionStars||0} stjörnur`;
+  document.getElementById('finish-sub').textContent=`${fmtTime(S.elapsedSecs)} lesið · ✦ ${S.sessionFragments||0} Fragments stored`;
+  document.getElementById('finish-fragment-tease').textContent=`Total Fragments: ${S.totalFragments||0} · Use your Fragments to change your Glow next time.`;
   setTimeout(()=>playSound(mins>=15?'streak':'done'),400);
   document.getElementById('page-end').oninput=function(){
     const start=parseInt(document.getElementById('page-start').value,10);
@@ -1185,8 +1338,8 @@ async function doSaveSession(pageEnd){
       audioBlockedByMicQuality: !S.captureAudioEnabled,
       birthYearAtSession:S.childBirthYear||null,
       ageBandAtSession:getAgeBandFromBirthYear(S.childBirthYear),
-      starsEarned:S.sessionStars||0,
-      starsTotal:S.totalStars||0,
+      fragmentsEarned:S.sessionFragments||0,
+      fragmentsTotal:S.totalFragments||0,
       micQualityStatus:S.micQuality?.status||null,
       micQualityScore:Number.isFinite(S.micQuality?.score)?S.micQuality.score:null,
       micQualityCheckedAt:S.micQuality?.testedAt||null,
@@ -1201,13 +1354,14 @@ window.skipSave=function(){doSaveSession(null);};
 
 function finishReset(){
   S.pendingSession=null;S.readingStartMs=null;S.audioSnippets={};
-  S.sessionStars=0;
+  S.sessionFragments=0;
   S.flatVoiceTicks=0;
   document.getElementById('finish-card').style.display='none';
   document.getElementById('setup-card').style.display='';
   ['read-title','page-start','page-end'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('pages-display').textContent='';
   document.getElementById('save-error').textContent='';
+  document.getElementById('finish-fragment-tease').textContent='';
   document.getElementById('timer-display').textContent=S.timerMode==='down'?'15:00':'0:00';
   document.getElementById('timer-display').className='timer-big';
 }
@@ -1772,10 +1926,14 @@ function triggerTopMeterMoment(){
     hero.classList.add('hero-boost');
     setTimeout(() => hero.classList.remove('hero-boost'), 600);
   }
-  S.sessionStars = (S.sessionStars || 0) + 1;
-  S.totalStars = (S.totalStars || 0) + 1;
-  setTotalStars(S.totalStars);
-  renderTotalStars();
+  S.sessionFragments = (S.sessionFragments || 0) + 1;
+  S.totalFragments = (S.totalFragments || 0) + 1;
+  setTotalFragments(S.totalFragments);
+  renderTotalFragments();
+  animateStarDrop();
+  if((S.sessionFragments || 0) % 15 === 0){
+    pulseFragmentOrbit();
+  }
   S.encouragementScore = 0;
   S.cadenceScore = Math.max(0, S.cadenceScore - 18);
   const bar = document.getElementById('encouragement-bar');
@@ -1793,6 +1951,9 @@ window.runEncouragementEngine = function(){
   const bar = document.getElementById('encouragement-bar');
   const label = document.getElementById('power-label');
   const nudge = document.getElementById('reading-nudge');
+  const debugEl = document.getElementById('meter-debug');
+  const debugOn = isMeterDebugEnabled();
+  if(debugEl) debugEl.style.display = debugOn ? 'block' : 'none';
   if(!bar || !label) return;
   
   S.encouragementScore = 0;
@@ -1802,15 +1963,46 @@ window.runEncouragementEngine = function(){
   S.labelBoostUntil = 0;
   S.silencePromptShown = false;
   const cal = getReadingCalibration();
+  const frameMs = 100;
+  const windowFrames = Math.max(12, Math.round(3000 / frameMs));
+  let pauseBankMs = 0;
+  let prevRms = 0;
+  let prevFreq = null;
+  const speechHistory = [];
+  const fluxHistory = [];
+  const microPauseHistory = [];
+  const highVolumeHistory = [];
+  const flatHistory = [];
+
+  const clamp01 = v => Math.max(0, Math.min(1, v));
+  const pushWindow = (arr, value) => {
+    arr.push(value);
+    if(arr.length > windowFrames) arr.shift();
+  };
+  const sum = arr => arr.reduce((a,b)=>a+b,0);
+
   if(nudge) nudge.classList.remove('show');
   bar.style.background = 'linear-gradient(90deg, #FF6B6B, #FF9500, #FFB830, #4CAF7D)';
   
   S.encouragementInterval = setInterval(() => {
+    let debugData = {
+      mode: 'idle',
+      humanConfidence: 0,
+      fluxRatio: 0,
+      microPauses: 0,
+      speechRatio: 0,
+      highRatio: 0,
+      pauseBankMs,
+      trap: false
+    };
     if (!S.analyser) {
       S.encouragementScore = Math.max(0, S.encouragementScore - 2);
+      debugData.mode = 'no-analyser';
     } else {
       const dataArray = new Uint8Array(S.analyser.fftSize);
+      const freqArray = new Uint8Array(S.analyser.frequencyBinCount);
       S.analyser.getByteTimeDomainData(dataArray);
+      S.analyser.getByteFrequencyData(freqArray);
 
       let sumSquares = 0;
       let peak = 0;
@@ -1821,55 +2013,119 @@ window.runEncouragementEngine = function(){
         if (amplitude > peak) peak = amplitude;
       }
       const rms = Math.sqrt(sumSquares / dataArray.length);
-      const detectedLevel = Math.max(0, Math.max(
-        (rms - 0.012) / 0.08,
-        (peak - 0.06) / 0.3
-      ));
-      const newScore = Math.min(100, detectedLevel * 88);
-      const instantLevel = Math.min(1, detectedLevel);
-      const swing = Math.abs(instantLevel - S.lastInstantLevel);
-      const inReadingBand = instantLevel > cal.inMin && instantLevel < cal.inMax;
-      const veryFlatVoice = instantLevel > cal.flatMinLevel && swing < cal.flatSwing;
-      if (veryFlatVoice) S.flatVoiceTicks = Math.min(120, (S.flatVoiceTicks || 0) + 1);
-      else S.flatVoiceTicks = Math.max(0, (S.flatVoiceTicks || 0) - 2);
-      const monotoneDetected = (S.flatVoiceTicks || 0) >= 10;
 
-      if (inReadingBand) {
-        const consistencyBoost = Math.max(0.15, 1.1 - swing * 2.4);
-        S.cadenceScore = Math.min(100, S.cadenceScore + consistencyBoost);
-      } else if (instantLevel >= 0.95) {
-        // Very loud spikes do not count as good reading tempo.
-        S.cadenceScore = Math.max(0, S.cadenceScore - 0.9);
-      } else {
-        S.cadenceScore = Math.max(0, S.cadenceScore - 0.35);
+      let flux = 0;
+      if (prevFreq && prevFreq.length === freqArray.length) {
+        for (let i = 0; i < freqArray.length; i++) {
+          flux += Math.abs(freqArray[i] - prevFreq[i]);
+        }
+        flux = flux / (freqArray.length * 255);
       }
-      S.lastInstantLevel = instantLevel;
+      prevFreq = freqArray;
 
-      // Give sustained cadence a small boost so the last stretch is reachable.
-      const cadenceBonus = Math.max(0, (S.cadenceScore - 45) * 0.55);
-      const effectiveScore = Math.min(100, newScore + cadenceBonus);
+      const speechFrame = rms > cal.speechRmsMin ? 1 : 0;
+      const microPauseFrame = rms < cal.microPauseRms ? 1 : 0;
+      const fluxFrame = flux > cal.fluxMin ? 1 : 0;
+      const highVolumeFrame = (rms > (cal.speechRmsMaxSweet * 1.18) || peak > 0.97) ? 1 : 0;
+      const flatFrame = (Math.abs(rms - prevRms) < 0.0017 && flux < cal.fluxMin * 0.7) ? 1 : 0;
+      prevRms = rms;
 
-      if (effectiveScore > 7 && !monotoneDetected) {
+      pushWindow(speechHistory, speechFrame);
+      pushWindow(microPauseHistory, microPauseFrame);
+      pushWindow(fluxHistory, fluxFrame);
+      pushWindow(highVolumeHistory, highVolumeFrame);
+      pushWindow(flatHistory, flatFrame);
+
+      const speechRatio = sum(speechHistory) / speechHistory.length;
+      const microPauses = sum(microPauseHistory);
+      const fluxRatio = sum(fluxHistory) / fluxHistory.length;
+      const highRatio = sum(highVolumeHistory) / highVolumeHistory.length;
+      const flatRatio = sum(flatHistory) / flatHistory.length;
+
+      let volumeScore = 0;
+      if (rms > cal.speechRmsMin) {
+        if (rms <= cal.speechRmsMaxSweet) {
+          volumeScore = clamp01((rms - cal.speechRmsMin) / (cal.speechRmsMaxSweet - cal.speechRmsMin));
+        } else {
+          const over = (rms - cal.speechRmsMaxSweet) / (cal.speechRmsMaxSweet * 0.9);
+          volumeScore = clamp01(1 - (over * 0.65));
+        }
+      }
+      if (highRatio > 0.45) volumeScore *= 0.75;
+
+      const textureScore = clamp01((fluxRatio - (cal.minFluxFramesRatio * 0.45)) / (cal.minFluxFramesRatio * 0.9));
+      const articulationScore = clamp01(microPauses / Math.max(1, cal.minMicroPausesPer3s));
+      const consistencyScore = clamp01(speechRatio / 0.65);
+
+      let humanConfidence =
+        (textureScore * 0.45) +
+        (articulationScore * 0.35) +
+        (Math.min(volumeScore, consistencyScore) * 0.20);
+
+      const constantToneTrap =
+        flatRatio > 0.62 &&
+        fluxRatio < (cal.minFluxFramesRatio * 0.55) &&
+        microPauses === 0;
+
+      if (constantToneTrap) {
+        humanConfidence = Math.min(humanConfidence, 0.12);
+      }
+      if (highRatio > 0.62) {
+        humanConfidence *= 0.72;
+      }
+      S.currentHumanConfidence = humanConfidence;
+
+      if (speechFrame && humanConfidence > 0.55) {
+        pauseBankMs = Math.min(cal.maxPauseBankMs, pauseBankMs + cal.pauseBankBuildMsPerTick);
+      } else if (!speechFrame) {
+        pauseBankMs = Math.max(0, pauseBankMs - cal.pauseBankDrainMsPerTick);
+      }
+
+      if (speechFrame && humanConfidence > 0.22 && !constantToneTrap) {
         S.lastSoundDetected = Date.now();
       }
 
-      // Throttle-style rise: sustained reading builds the meter gradually.
-      if (monotoneDetected) {
-        S.cadenceScore = Math.max(0, S.cadenceScore - 1.2);
-        S.encouragementScore = Math.max(0, S.encouragementScore - 1.4);
-      } else if (effectiveScore > S.encouragementScore) {
-        const paceFactor = 0.55 + (S.cadenceScore / 100) * 1.05;
-        const riseStep = Math.min(2.2, (0.12 + effectiveScore * 0.013) * (0.35 + (S.cadenceScore / 100) * 1.35));
-        S.encouragementScore = Math.min(100, S.encouragementScore + riseStep);
+      const targetScore = Math.round(clamp01(humanConfidence) * 100);
+      if (humanConfidence >= 0.62 && !constantToneTrap) {
+        S.cadenceScore = Math.min(100, S.cadenceScore + 1.0);
+      } else if (humanConfidence >= 0.42 && !constantToneTrap) {
+        S.cadenceScore = Math.min(100, S.cadenceScore + 0.35);
       } else {
-        const silenceMs = Date.now() - S.lastSoundDetected;
-        const decay = silenceMs < 1800 ? 0.12 : silenceMs < 3200 ? 0.34 : 0.9;
-        S.encouragementScore = Math.max(0, S.encouragementScore - decay);
+        S.cadenceScore = Math.max(0, S.cadenceScore - 0.75);
       }
+
+      if (constantToneTrap) {
+        S.flatVoiceTicks = Math.min(120, S.flatVoiceTicks + 2);
+        S.encouragementScore = Math.max(0, S.encouragementScore - 1.7);
+      } else {
+        S.flatVoiceTicks = Math.max(0, S.flatVoiceTicks - 2);
+        if (targetScore > S.encouragementScore) {
+          let riseStep = 0.22 + (humanConfidence * 2.05);
+          if (highRatio > 0.45) riseStep *= 0.72;
+          S.encouragementScore = Math.min(100, S.encouragementScore + Math.min(2.4, riseStep));
+        } else {
+          const silenceMs = Date.now() - S.lastSoundDetected;
+          const effectiveSilenceMs = Math.max(0, silenceMs - pauseBankMs);
+          const decay = effectiveSilenceMs < cal.heavyDecayStartMs ? 0.15 : cal.heavyDecayPerTick;
+          const confidencePenalty = humanConfidence < 0.25 ? 0.25 : 0;
+          S.encouragementScore = Math.max(0, S.encouragementScore - (decay + confidencePenalty));
+        }
+      }
+      debugData = {
+        mode: 'analyser',
+        humanConfidence,
+        fluxRatio,
+        microPauses,
+        speechRatio,
+        highRatio,
+        pauseBankMs,
+        trap: constantToneTrap
+      };
     }
     
     const pct = Math.round(S.encouragementScore);
     bar.style.width = pct + '%';
+    bar.style.opacity = pct < 20 ? '.62' : pct < 60 ? '.78' : '.92';
 
     const now = Date.now();
     const silenceMs = now - S.lastSoundDetected;
@@ -1879,11 +2135,17 @@ window.runEncouragementEngine = function(){
     }
     S.silencePromptShown = showSilencePrompt;
 
+    let glowState = 'low';
+    if (S.flatVoiceTicks >= 10) glowState = 'trap';
+    else if (pct >= 88 && S.currentHumanConfidence >= cal.humanConfidenceTopMin) glowState = 'top';
+    else if (S.currentHumanConfidence >= 0.52) glowState = 'good';
+    setReadingGlowState(glowState, true);
+
     const cadenceReady = pct >= 93 && S.cadenceScore >= cal.topCadenceMin && S.flatVoiceTicks < 8;
     const visualTopReady = pct >= 97;
     if (cadenceReady || visualTopReady) {
       if (!S.topZoneSince) S.topZoneSince = now;
-      if ((now - S.topZoneSince) >= 80 && now >= S.topCooldownUntil) {
+      if ((now - S.topZoneSince) >= 160 && now >= S.topCooldownUntil) {
         S.topCooldownUntil = now + cal.topCooldownMs;
         S.topZoneSince = 0;
         triggerTopMeterMoment();
@@ -1895,12 +2157,20 @@ window.runEncouragementEngine = function(){
     if (now < S.labelBoostUntil) {
       label.textContent = 'Þú sprengdir skalann! Frábært tempó! 🚀';
     } else if (S.flatVoiceTicks >= 10) {
-      label.textContent = 'Breyttu takti og haltu lestrarrythma 📚';
+      label.textContent = 'Heyri stöðugt hljóð - lestu orð skýrar 📚';
     } else if(pct < 20) label.textContent = 'Hafðu hátt! 🎤';
     else if(pct < 40) label.textContent = 'Þú ert í gangi! 💪';
     else if(pct < 60) label.textContent = 'Framúrskarandi! ⭐';
     else if(pct < 80) label.textContent = 'Stórfenglegt! 🔥';
     else label.textContent = 'Ótrúlegt tempó! 🚀';
+
+    if (debugOn && debugEl) {
+      debugEl.textContent =
+        `DEBUG meter\n`+
+        `pct=${pct} fragments=${S.sessionFragments || 0} trap=${debugData.trap ? 'yes' : 'no'}\n`+
+        `human=${debugData.humanConfidence.toFixed(2)} fluxR=${debugData.fluxRatio.toFixed(2)} micro=${debugData.microPauses}\n`+
+        `speechR=${debugData.speechRatio.toFixed(2)} highR=${debugData.highRatio.toFixed(2)} bank=${Math.round(debugData.pauseBankMs)}ms`;
+    }
   }, 100);
 };
 

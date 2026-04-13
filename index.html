@@ -8,99 +8,30 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Upphátt">
 <title>Upphátt</title>
+<link rel="icon" type="image/png" href="icon-teale.png">
+<link rel="apple-touch-icon" href="icon-teale.png">
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
-<!-- LOGIN -->
-<div id="screen-login" class="screen">
-  <div class="scroll-body" style="display:flex;align-items:center;justify-content:center;min-height:100vh;">
-    <div style="width:100%;max-width:420px">
-      <div class="hero landing" style="margin-bottom:20px;">
-        <div class="hero-label">Velkomin/n</div>
-        <h1 style="font-size:38px; margin:0 0 10px; line-height:1.05;">Lestrarapp fyrir börn og unglinga</h1>
-        <p id="app-subtitle" style="font-size:15px; margin:0; opacity:.9;">Íslenskt lestrarforrit</p>
-      </div>
-      <div class="age-switch">
-        <button class="age-btn active" id="age-kids-btn" onclick="setAgeMode('kids')">Börn</button>
-        <button class="age-btn" id="age-teens-btn" onclick="setAgeMode('teens')">Unglingar</button>
-      </div>
-      <div class="grid2" style="margin-top:16px;">
-        <button class="choice blue" onclick="goTo('screen-parent-login')">
-          <span class="big" id="choice-icon-parent">👩</span><span class="title">Ég er foreldri</span><div class="sub">Netfang + lykilorð</div>
-        </button>
-        <button class="choice green" onclick="goTo('screen-child-login')">
-          <span class="big" id="choice-icon-child">👦</span><span class="title">Ég er barn</span><div class="sub">Kóði frá foreldri</div>
-        </button>
-      </div>
-      <div class="grid2 feature-grid" style="margin-top:16px;">
-        <div class="card feature-card">
-          <div class="feature-title">Fjölskyldu-öruggt</div>
-          <p>Börn skrá sig inn með stuttum kóða sem foreldri býr til.</p>
-        </div>
-        <div class="card feature-card">
-          <div class="feature-title">Sjálfstætt lestrarflow</div>
-          <p>Tímateljari og upptalning gera lesturinn skemmtilegan og skýrann.</p>
-        </div>
-      </div>
-      <div class="card" style="margin-top:14px;text-align:center;background:#eef5ff;color:var(--deep);">
-        <div style="font-weight:800;margin-bottom:6px;">Einn rammi, tveir stílar</div>
-        <div>Veldu Börn eða Unglingar og prófaðu þemað sem passar ykkur.</div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- PARENT LOGIN -->
-<div id="screen-parent-login" class="screen">
-  <div class="topbar">
-    <button class="back-btn" onclick="goTo('screen-child-login')">← Til baka</button>
-    <div class="logo"><div class="logo-icon">U</div> Upphátt</div>
-    <div></div>
-  </div>
-  <div class="scroll-body">
-    <div class="hero purple">
-      <div class="hero-label">Foreldri</div>
-      <h1>Velkomin/n</h1>
-      <p>Skráðu þig inn og fylgstu með í rauntíma.</p>
-    </div>
-    <div class="card">
-      <div class="form-group"><label>Netfang</label><input id="login-email" type="email" autocomplete="email" placeholder="þu@dæmi.is"></div>
-      <div class="form-group"><label>Lykilorð</label><input id="login-pw" type="password" autocomplete="current-password" placeholder="••••••••"></div>
-      <div id="login-error" class="notice" style="color:var(--coral);margin-bottom:10px"></div>
-      <button class="btn btn-primary" onclick="firebaseLogin()">🔑 Skrá inn</button>
-      <button class="btn btn-ghost" onclick="goTo('screen-parent-signup')" style="margin-top:10px;font-size:14px">✨ Stofna nýjan aðgang</button>
-    </div>
-  </div>
-</div>
-
-<!-- PARENT SIGNUP -->
-<div id="screen-parent-signup" class="screen">
-  <div class="topbar">
-    <button class="back-btn" onclick="goTo('screen-parent-login')">← Til baka</button>
-    <div class="logo"><div class="logo-icon">U</div> Upphátt</div>
-    <div></div>
-  </div>
-  <div class="scroll-body">
-    <div class="hero purple" style="background:linear-gradient(135deg,var(--purple),var(--ocean))">
-      <div class="hero-label">Nýr aðgangur</div>
-      <h1>Stofna fjölskyldu</h1>
-      <p>Skráðu þig inn og bættu við börnum til að byrja.</p>
-    </div>
-    <div class="card">
-      <div class="form-group"><label>Fullt nafn</label><input id="reg-name" type="text" placeholder="Nafn Nafnsson"></div>
-      <div class="form-group"><label>Netfang</label><input id="reg-email" type="email" placeholder="netfang@netfang.is"></div>
-      <div class="form-group"><label>Lykilorð</label><input id="reg-pw" type="password" placeholder="Minnst 6 stafir"></div>
-      <div style="margin:20px 0 10px;border-top:1px solid #eee;padding-top:15px;">
-        <label style="font-size:11px;font-weight:800;color:var(--mist);text-transform:uppercase">Börn</label>
-      </div>
-      <div id="signup-children-list">
-        <div class="form-group"><input class="child-name-input" type="text" placeholder="Nafn barns"></div>
-      </div>
-      <button class="btn btn-ghost" style="font-size:13px;padding:10px;margin-bottom:15px" onclick="addChildInput()">+ Bæta við öðru barni</button>
-      <div id="reg-error" class="notice" style="color:var(--coral);margin-bottom:10px"></div>
-      <button class="btn btn-primary" onclick="firebaseSignup()">🚀 Stofna aðgang</button>
-    </div>
+<!-- Hidden legacy elements — auth.js þarfnast þessara IDs -->
+<div style="display:none">
+  <input id="login-email" type="email">
+  <input id="login-pw" type="password">
+  <div id="login-error"></div>
+  <div id="parent-pill"></div>
+  <div id="parent-hero"></div>
+  <div id="codes-panel"><div id="codes-list"></div></div>
+  <button id="codes-toggle-btn"></button>
+  <div id="parent-content"></div>
+  <div id="screen-login"></div>
+  <div id="screen-parent-login"></div>
+  <div id="screen-parent-signup">
+    <input id="reg-name" type="text">
+    <input id="reg-email" type="email">
+    <input id="reg-pw" type="password">
+    <div id="reg-error"></div>
+    <div id="signup-children-list"></div>
   </div>
 </div>
 
@@ -210,19 +141,8 @@
   </div>
 </div>
 
-<!-- PARENT HOME — nýr dashboard -->
+<!-- PARENT HOME -->
 <div id="screen-parent-home" class="screen ph-screen">
-
-  <!-- Hidden legacy IDs — auth.js skrifar í þá -->
-  <div style="display:none">
-    <div id="parent-pill"></div>
-    <div id="parent-hero"></div>
-    <div id="codes-panel"><div id="codes-list"></div></div>
-    <button id="codes-toggle-btn"></button>
-    <div id="parent-content"></div>
-  </div>
-
-  <!-- Topbar -->
   <div class="ph-topbar">
     <div class="ph-topbar-left">
       <div class="ph-brand"><span class="ph-brand-upp">Upp</span><span class="ph-brand-hatt">Hátt</span></div>
@@ -236,10 +156,7 @@
       </button>
     </div>
   </div>
-
   <div class="ph-body">
-
-    <!-- Tile 1: Börn + Fjölskylda -->
     <div class="ph-tile ph-tile-split">
       <div class="ph-tile-left">
         <div class="ph-tile-header">
@@ -265,15 +182,11 @@
         </div>
       </div>
     </div>
-
-    <!-- Stats -->
     <div class="ph-stats-row">
       <div class="ph-stat-card"><div class="ph-stat-val" id="ph-stat-mins">0</div><div class="ph-stat-lbl">Mínútur</div></div>
       <div class="ph-stat-card"><div class="ph-stat-val" id="ph-stat-sessions">0</div><div class="ph-stat-lbl">Lotur</div></div>
       <div class="ph-stat-card"><div class="ph-stat-val" id="ph-stat-clips">0</div><div class="ph-stat-lbl">Klippingar</div></div>
     </div>
-
-    <!-- Tabs -->
     <div class="ph-tabs">
       <button class="ph-tab ph-tab-active" id="ph-tab-activity" onclick="switchTab('activity')">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
@@ -284,8 +197,6 @@
         Upptökur
       </button>
     </div>
-
-    <!-- Activity tab -->
     <div class="ph-tab-content" id="ph-content-activity">
       <div class="ph-tile">
         <div class="ph-tile-header" style="margin-bottom:14px">
@@ -299,8 +210,6 @@
         <div id="ph-heatmap-content"></div>
       </div>
     </div>
-
-    <!-- Recordings tab -->
     <div class="ph-tab-content" id="ph-content-recordings" style="display:none">
       <div class="ph-tile">
         <div class="ph-tile-header" style="margin-bottom:14px">
@@ -312,11 +221,10 @@
         </div>
       </div>
     </div>
-
   </div>
 </div>
 
-<!-- POPUP 1: FORELDRI INNSKRÁNING (3 views) -->
+<!-- POPUP 1: FORELDRI INNSKRÁNING -->
 <div id="parent-login-popup" class="modal-overlay" style="display:none">
   <div class="rg-popup-card">
     <div class="rg-popup-glow-line"></div>
@@ -325,7 +233,6 @@
       <div class="rg-popup-brand"><span class="rg-popup-brand-read">Upp</span><span class="rg-popup-brand-glow">Hátt</span></div>
       <p class="rg-popup-subtitle">Foreldri innskráning</p>
     </div>
-    <!-- View A: Login -->
     <div id="login-view-a" class="rg-popup-body">
       <div class="rg-popup-welcome">Velkomin/n aftur</div>
       <div class="rg-popup-desc">Skráðu þig inn til að fylgjast með lestri barns þíns</div>
@@ -344,7 +251,6 @@
       <button class="rg-popup-btn" onclick="parentLoginFromPopup()">Skrá inn</button>
       <p class="rg-popup-signup">Ertu ekki með reikning? <span onclick="openSignupPopup()" class="rg-popup-signup-link">Nýskrá hér</span></p>
     </div>
-    <!-- View B: Gleymt lykilorð -->
     <div id="login-view-b" class="rg-popup-body" style="display:none">
       <div class="rg-popup-welcome">Gleymt lykilorð?</div>
       <div class="rg-popup-desc">Sláðu inn netfangið þitt og við sendum þér link til að endurstilla lykilorðið</div>
@@ -356,7 +262,6 @@
       <button class="rg-popup-btn" onclick="sendPasswordReset()">Senda link</button>
       <p class="rg-popup-signup"><span onclick="backToLogin()" class="rg-popup-signup-link">← Til baka</span></p>
     </div>
-    <!-- View C: Link sendur -->
     <div id="login-view-c" class="rg-popup-body" style="display:none">
       <div style="text-align:center;padding:12px 0 20px">
         <div style="font-size:44px;margin-bottom:14px">📬</div>

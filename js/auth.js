@@ -41,7 +41,6 @@ async function processAuthUser(user) {
 
   await restoreMissingCodeDocsFromProfile(S.familyId, S.parentChildren);
 
-  // Legacy IDs — kept for backward compat, hidden in new dashboard
   document.getElementById('parent-pill').textContent = S.parentName;
   document.getElementById('parent-hero').textContent = `Góðan dag, ${S.parentName}`;
 
@@ -62,14 +61,12 @@ async function processAuthUser(user) {
     } catch (e) { console.error('Kóðaleit villa:', e); }
   }
 
-  // Init new dashboard UI
   const emailEl = document.getElementById('ph-user-email');
   if (emailEl) emailEl.textContent = S.parentEmail;
   const fcEl = document.getElementById('ph-family-code');
   if (fcEl) fcEl.textContent = profile?.familyCode || '—';
 
   initParentTheme();
-
   startFamilyListener();
   goTo('screen-parent-home');
 
@@ -199,6 +196,8 @@ export function openSignupPopup() {
 }
 
 export function closeSignupPopup() {
+  // Hreinsa _signupInProgress og fara á child-login þegar popup lokar
+  _signupInProgress = false;
   const modal = document.getElementById('parent-signup-popup');
   if (modal) modal.style.display = 'none';
   ['su-name','su-email','su-pw','su-pw2'].forEach(id => {
@@ -208,9 +207,11 @@ export function closeSignupPopup() {
   document.getElementById('signup-error').textContent = '';
   const btn = document.querySelector('#signup-view-form .rg-popup-btn');
   if (btn) { btn.textContent = 'Stofna aðgang'; btn.disabled = false; }
+  goTo('screen-child-login');
 }
 
 export function backToLoginFromSignup() {
+  _signupInProgress = false;
   closeSignupPopup();
   openParentLoginPopup();
 }
@@ -228,7 +229,7 @@ export async function firebaseSignupPopup() {
   if (pw.length < 6) { errEl.textContent = 'Lykilorð verður að vera minnst 6 stafir.'; return; }
   if (pw !== pw2)    { errEl.textContent = 'Lykilorðin passa ekki saman.'; return; }
   try {
-    _signupInProgress = true;
+    _signupInProgress = true; // Blokkum onAuthStateChanged meðan signup er í gangi
     ['su-name','su-email','su-pw','su-pw2'].forEach(id => {
       const el = document.getElementById(id); if (el) el.disabled = true;
     });
@@ -242,7 +243,7 @@ export async function firebaseSignupPopup() {
     await sendEmailVerification(user);
     await signOut(auth);
     localStorage.removeItem('upphatt_child'); // TÍMABUNDIÐ — þarf að laga emailVerified check síðar
-    _signupInProgress = false;
+    // _signupInProgress = false kemur í closeSignupPopup — ekki hér
     document.getElementById('signup-view-form').style.display    = 'none';
     document.getElementById('signup-view-success').style.display = '';
   } catch (e) {
@@ -295,7 +296,7 @@ export async function firebaseSignup() {
       name, email, role: 'parent', familyId, children: childrenArray, createdAt: serverTimestamp()
     });
     await signOut(auth);
-    localStorage.removeItem('upphatt_child'); // TÍMABUNDIÐ — þarf að laga emailVerified check síðar
+    localStorage.removeItem('upphatt_child');
     _signupInProgress = false;
     alert('Aðgangur tilbúinn! Þú getur nú skráð þig inn.');
     goTo('screen-parent-login');

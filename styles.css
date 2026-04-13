@@ -682,3 +682,13 @@ audio { width: 100%; border-radius: 8px }
   .ph-hm-cell    { height: 18px; }
   .ph-hm-yr-cell { width: 10px; height: 10px; }
 }
+/* ── Dagstölur undir 7 daga dotum ── */
+.ph-wday-cell { gap: 3px; }
+.ph-wday-num {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ph-soft);
+}
+.ph-wday-num.ph-wday-today {
+  color: var(--ph-accent);
+}

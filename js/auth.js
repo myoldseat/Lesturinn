@@ -18,11 +18,14 @@ let _signupInProgress = false;
 // KÓÐA BÚNINGUR
 // ══════════════════════════════════════════
 
+// FAM####LL — 4 tölur + 2 bókstafir — t.d. FAM4161AB
+// Gefur ~4.7 milljón mögulegar samsetningar
 function makeFamilyCode() {
-  const nums   = Math.floor(1000 + Math.random() * 9000);
-  const alpha  = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
-  const letter = alpha[Math.floor(Math.random() * alpha.length)];
-  return `FAM${nums}${letter}`;
+  const nums  = Math.floor(1000 + Math.random() * 9000);
+  const alpha = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+  const l1    = alpha[Math.floor(Math.random() * alpha.length)];
+  const l2    = alpha[Math.floor(Math.random() * alpha.length)];
+  return `FAM${nums}${l1}${l2}`;
 }
 
 function makeChildCode(name) {
@@ -66,10 +69,18 @@ async function processAuthUser(user) {
   S.parentChildren  = profile?.children || [];
   S.expandedChildren = {};
 
+  // Auto-migration: ef familyCode vantar, búum við til og vistum
   if (!profile?.familyCode) {
     const newCode = makeFamilyCode();
     try {
       await setDoc(doc(db, 'users', user.uid), { familyCode: newCode }, { merge: true });
+      // Vista líka í familycodes collection
+      await setDoc(doc(db, 'familycodes', newCode), {
+        familyId:  S.familyId,
+        parentUid: user.uid,
+        parentName: profile?.name || 'Foreldri',
+        createdAt: serverTimestamp()
+      });
       S.familyCode = newCode;
     } catch(e) { console.warn('Could not save familyCode:', e); S.familyCode = '—'; }
   } else {
@@ -113,7 +124,7 @@ async function processAuthUser(user) {
 }
 
 // ══════════════════════════════════════════
-// PARENT LOGIN (screen)
+// PARENT LOGIN (screen — legacy)
 // ══════════════════════════════════════════
 
 export async function firebaseLogin() {
@@ -164,6 +175,10 @@ export function closeParentLoginPopup() {
   if (emailEl) { emailEl.value = ''; emailEl.disabled = false; }
   if (pwEl)    { pwEl.value = '';    pwEl.disabled = false; }
   if (resetEl) { resetEl.value = ''; }
+  const famInput = document.getElementById('fam-code-input');
+  const famErr   = document.getElementById('fam-code-error');
+  if (famInput) famInput.value = '';
+  if (famErr)   famErr.textContent = '';
   const btn = document.querySelector('#login-view-a .rg-popup-btn');
   if (btn) { btn.textContent = 'Skrá inn'; btn.disabled = false; }
   _loginShowView('a');
@@ -217,6 +232,65 @@ export async function sendPasswordReset() {
   } catch (e) {
     errEl.textContent = 'Ekki tókst að senda — athugaðu netfangið.';
     if (btn) { btn.textContent = 'Senda link'; btn.disabled = false; }
+  }
+}
+
+// ══════════════════════════════════════════
+// FAM KÓÐA LOGIN — amma, afi, frændi o.fl.
+// Notar familycodes collection — document ID er kóðinn
+// ══════════════════════════════════════════
+
+export async function famCodeLogin() {
+  const input = document.getElementById('fam-code-input');
+  const errEl = document.getElementById('fam-code-error');
+  const btn   = document.getElementById('fam-code-btn');
+  const code  = (input?.value || '').trim().toUpperCase();
+  errEl.textContent = '';
+  if (!code) { errEl.textContent = 'Sláðu inn fjölskyldukóða.'; return; }
+  if (btn) { btn.textContent = 'Leita...'; btn.disabled = true; }
+  try {
+    // Document lookup á ID — engin query, engin index þarf
+    const snap = await getDoc(doc(db, 'familycodes', code));
+    if (!snap.exists()) {
+      errEl.textContent = 'Kóðinn fannst ekki — athugaðu með fjölskyldumeðlim.';
+      if (btn) { btn.textContent = 'Tengjast fjölskyldu'; btn.disabled = false; }
+      return;
+    }
+    const data = snap.data();
+    S.role           = 'guest';
+    S.familyId       = data.familyId;
+    S.parentName     = (data.parentName || 'Fjölskylda').split(' ')[0];
+    S.parentEmail    = '';
+    S.parentChildren = [];
+    S.familyCode     = code;
+    S.expandedChildren = {};
+
+    // Sækja börn úr users collection með parentUid
+    if (data.parentUid) {
+      try {
+        const userSnap = await getDoc(doc(db, 'users', data.parentUid));
+        if (userSnap.exists()) {
+          S.parentChildren = userSnap.data()?.children || [];
+        }
+      } catch(e) { console.warn('Could not fetch children:', e); }
+    }
+
+    document.getElementById('parent-pill').textContent = S.parentName;
+    document.getElementById('parent-hero').textContent = `Góðan dag!`;
+    document.getElementById('codes-list').innerHTML = '';
+    const emailEl = document.getElementById('ph-user-email');
+    if (emailEl) emailEl.textContent = `Fjölskylda ${S.parentName}`;
+    const fcEl = document.getElementById('ph-family-code');
+    if (fcEl) fcEl.textContent = code;
+
+    closeParentLoginPopup();
+    initParentTheme();
+    startFamilyListener();
+    goTo('screen-parent-home');
+  } catch(e) {
+    errEl.textContent = 'Villa — reyndu aftur.';
+    console.error('FAM code login villa:', e);
+    if (btn) { btn.textContent = 'Tengjast fjölskyldu'; btn.disabled = false; }
   }
 }
 
@@ -277,9 +351,20 @@ export async function firebaseSignupPopup() {
     const user       = cred.user;
     const familyId   = 'FAM-' + Math.random().toString(36).substr(2,5).toUpperCase();
     const familyCode = makeFamilyCode();
+
+    // Vista notanda
     await setDoc(doc(db, 'users', user.uid), {
       name, email, role: 'parent', familyId, familyCode, children: [], createdAt: serverTimestamp()
     });
+
+    // Vista í familycodes collection — document ID er kóðinn
+    await setDoc(doc(db, 'familycodes', familyCode), {
+      familyId,
+      parentUid:  user.uid,
+      parentName: name,
+      createdAt:  serverTimestamp()
+    });
+
     await sendEmailVerification(user);
     await signOut(auth);
     localStorage.removeItem('upphatt_child');
@@ -299,80 +384,149 @@ export async function firebaseSignupPopup() {
 }
 
 // ══════════════════════════════════════════
+// STILLINGAR POPUP
+// ══════════════════════════════════════════
+
+export function openSettingsPopup() {
+  const modal = document.getElementById('settings-modal');
+  if (!modal) return;
+  const emailEl = document.getElementById('st-email');
+  const famEl   = document.getElementById('st-famcode');
+  if (emailEl) emailEl.textContent = S.parentEmail || '—';
+  if (famEl)   famEl.textContent   = S.familyCode  || '—';
+  const kidsList = document.getElementById('st-kids-list');
+  if (kidsList) {
+    if (!S.parentChildren?.length) {
+      kidsList.innerHTML = '<div class="st-empty">Engin börn skráð</div>';
+    } else {
+      kidsList.innerHTML = S.parentChildren.map(c => `
+        <div class="st-kid-row" id="st-kid-${c.key}">
+          <div class="st-kid-info">
+            <div class="st-kid-name">${c.name}</div>
+            <div class="st-kid-code">${c.code || ''}</div>
+          </div>
+          <button class="st-delete-btn" onclick="confirmDeleteChild('${c.key}')">Eyða</button>
+        </div>`).join('');
+    }
+  }
+  modal.style.display = 'grid';
+}
+
+export function closeSettingsPopup() {
+  const modal = document.getElementById('settings-modal');
+  if (modal) modal.style.display = 'none';
+}
+
+export function confirmDeleteChild(key) {
+  const row = document.getElementById('st-kid-' + key);
+  if (!row) return;
+  const btn = row.querySelector('.st-delete-btn');
+  if (!btn) return;
+  if (btn.dataset.confirming === 'true') {
+    _deleteChild(key);
+  } else {
+    btn.textContent = 'Ertu viss?';
+    btn.dataset.confirming = 'true';
+    btn.classList.add('st-delete-btn-confirm');
+    setTimeout(() => {
+      if (btn.dataset.confirming === 'true') {
+        btn.textContent = 'Eyða';
+        btn.dataset.confirming = '';
+        btn.classList.remove('st-delete-btn-confirm');
+      }
+    }, 3000);
+  }
+}
+
+async function _deleteChild(key) {
+  try {
+    const child = S.parentChildren.find(c => c.key === key);
+    if (!child) return;
+    if (child.code) {
+      await setDoc(doc(db, 'codes', child.code), { deleted: true }, { merge: true });
+    }
+    const updatedChildren = S.parentChildren.filter(c => c.key !== key);
+    if (auth.currentUser) {
+      await setDoc(doc(db, 'users', auth.currentUser.uid), {
+        children: updatedChildren
+      }, { merge: true });
+    }
+    S.parentChildren = updatedChildren;
+    renderDashboard();
+    openSettingsPopup();
+  } catch(e) {
+    console.error('Delete child villa:', e);
+  }
+}
+
+// ══════════════════════════════════════════
 // YEAR PICKER — iOS scroll wheel stíll
 // ══════════════════════════════════════════
 
-const YEARS = Array.from({length: 11}, (_, i) => 2010 + i); // 2010–2020
-const ITEM_H = 44; // px per item
+const YEARS  = Array.from({length: 11}, (_, i) => 2010 + i);
+const ITEM_H = 36;
 
 function buildYearPicker(containerId, selectedYear) {
   const container = document.getElementById(containerId);
   if (!container) return;
-
   container.innerHTML = `
-    <div class="yp-wrap" id="yp-wrap">
+    <div class="yp-wrap">
       <div class="yp-fade-top"></div>
       <div class="yp-drum" id="yp-drum"></div>
       <div class="yp-selector"></div>
       <div class="yp-fade-bottom"></div>
     </div>`;
-
-  const drum = document.getElementById('yp-drum');
-
-  // Fylla drum með árum — með padding ofan og neðan til að hægt sé að skruna
-  const pad = 2; // fjöldi tómra lína ofan/neðan
+  const drum = container.querySelector('.yp-drum');
+  const pad  = 2;
   for (let p = 0; p < pad; p++) {
-    const el = document.createElement('div');
-    el.className = 'yp-item yp-padding';
-    drum.appendChild(el);
+    const el = document.createElement('div'); el.className = 'yp-item yp-padding'; drum.appendChild(el);
   }
   YEARS.forEach(y => {
     const el = document.createElement('div');
-    el.className = 'yp-item';
-    el.textContent = y;
-    el.dataset.year = y;
+    el.className = 'yp-item'; el.textContent = y; el.dataset.year = y;
     drum.appendChild(el);
   });
   for (let p = 0; p < pad; p++) {
-    const el = document.createElement('div');
-    el.className = 'yp-item yp-padding';
-    drum.appendChild(el);
+    const el = document.createElement('div'); el.className = 'yp-item yp-padding'; drum.appendChild(el);
   }
-
-  // Setja upphafsstaðsetningu
   const initIdx = YEARS.indexOf(selectedYear || 2015);
   drum.scrollTop = initIdx * ITEM_H;
-  updateYearHighlight(drum);
-
-  // Hlusta á scroll
+  _updateYearHighlight(drum);
   let scrollTimer;
   drum.addEventListener('scroll', () => {
-    updateYearHighlight(drum);
+    _updateYearHighlight(drum);
     clearTimeout(scrollTimer);
-    scrollTimer = setTimeout(() => snapToNearest(drum), 150);
+    scrollTimer = setTimeout(() => _snapToNearest(drum), 120);
   }, { passive: true });
+  drum.addEventListener('wheel', (e) => {
+    e.preventDefault(); e.stopPropagation();
+    const dir     = e.deltaY > 0 ? 1 : -1;
+    const current = Math.round(drum.scrollTop / ITEM_H);
+    const next    = Math.max(0, Math.min(YEARS.length - 1, current + dir));
+    drum.scrollTo({ top: next * ITEM_H, behavior: 'smooth' });
+  }, { passive: false });
 }
 
-function updateYearHighlight(drum) {
+function _updateYearHighlight(drum) {
   const centerIdx = Math.round(drum.scrollTop / ITEM_H);
   drum.querySelectorAll('.yp-item:not(.yp-padding)').forEach((el, i) => {
     const dist = Math.abs(i - centerIdx);
     el.classList.toggle('yp-item-selected', i === centerIdx);
-    el.classList.toggle('yp-item-near', dist === 1);
-    el.classList.toggle('yp-item-far', dist >= 2);
+    el.classList.toggle('yp-item-near',     dist === 1);
+    el.classList.toggle('yp-item-far',      dist >= 2);
   });
 }
 
-function snapToNearest(drum) {
+function _snapToNearest(drum) {
   const idx = Math.round(drum.scrollTop / ITEM_H);
   drum.scrollTo({ top: idx * ITEM_H, behavior: 'smooth' });
 }
 
-function getSelectedYear() {
-  const drum = document.getElementById('yp-drum');
+function _getSelectedYear() {
+  const drum = document.querySelector('#add-child-popup .yp-drum');
   if (!drum) return null;
   const idx = Math.round(drum.scrollTop / ITEM_H);
-  return YEARS[idx] || null;
+  return YEARS[idx] ?? null;
 }
 
 // ══════════════════════════════════════════
@@ -394,9 +548,9 @@ export function openAddChildPopup() {
           <p class="rg-popup-subtitle">Bæta við barni</p>
         </div>
         <div class="rg-popup-body">
-          <div style="text-align:center;margin-bottom:16px">
-            <div style="width:56px;height:56px;border-radius:50%;background:rgba(29,205,211,0.15);border:2px solid rgba(29,205,211,0.3);display:flex;align-items:center;justify-content:center;margin:0 auto">
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#1dcdd3" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <div style="text-align:center;margin-bottom:14px">
+            <div style="width:48px;height:48px;border-radius:50%;background:rgba(29,205,211,0.15);border:2px solid rgba(29,205,211,0.3);display:flex;align-items:center;justify-content:center;margin:0 auto">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1dcdd3" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
             </div>
           </div>
           <div class="rg-field">
@@ -407,100 +561,39 @@ export function openAddChildPopup() {
             <label class="rg-label">Fæðingarár</label>
             <div id="ac-year-picker"></div>
           </div>
-          <div id="ac-code-display" style="display:none;background:rgba(29,205,211,0.08);border:1px solid rgba(29,205,211,0.25);border-radius:10px;padding:16px;text-align:center;margin-bottom:12px">
-            <div style="font-size:11px;font-weight:700;color:#7a8fa0;text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px">Innskráningarkóði barns</div>
-            <div id="ac-code-val" style="font-family:Georgia,serif;font-size:32px;font-weight:800;color:#1dcdd3;letter-spacing:5px"></div>
-            <div style="font-size:11px;color:#7a8fa0;margin-top:8px">Gefðu barninu þennan kóða</div>
+          <div id="ac-code-display" style="display:none;background:rgba(29,205,211,0.08);border:1px solid rgba(29,205,211,0.25);border-radius:10px;padding:14px;text-align:center;margin-bottom:12px">
+            <div style="font-size:11px;font-weight:700;color:#7a8fa0;text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px">Innskráningarkóði barns</div>
+            <div id="ac-code-val" style="font-family:Georgia,serif;font-size:28px;font-weight:800;color:#1dcdd3;letter-spacing:4px"></div>
+            <div style="font-size:11px;color:#7a8fa0;margin-top:6px">Gefðu barninu þennan kóða</div>
           </div>
           <div id="ac-error" class="rg-popup-error"></div>
           <button id="ac-btn" class="rg-popup-btn" onclick="submitAddChild()">Bæta við barni</button>
         </div>
       </div>
       <style>
-        .yp-wrap {
-          position: relative;
-          height: ${ITEM_H * 5}px;
-          overflow: hidden;
-          border-radius: 12px;
-          background: rgba(29,205,211,0.05);
-          border: 1px solid rgba(29,205,211,0.18);
-          margin: 4px 0 8px;
-        }
-        .yp-drum {
-          height: 100%;
-          overflow-y: scroll;
-          scroll-snap-type: y mandatory;
-          scrollbar-width: none;
-          -ms-overflow-style: none;
-        }
-        .yp-drum::-webkit-scrollbar { display: none; }
-        .yp-item {
-          height: ${ITEM_H}px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-family: Georgia, serif;
-          font-size: 22px;
-          font-weight: 700;
-          color: rgba(29,205,211,0.25);
-          scroll-snap-align: start;
-          cursor: pointer;
-          transition: color 0.15s ease, font-size 0.15s ease;
-          user-select: none;
-        }
-        .yp-item-near  { color: rgba(29,205,211,0.5); font-size: 20px; }
-        .yp-item-selected {
-          color: #1dcdd3;
-          font-size: 28px;
-          text-shadow: 0 0 20px rgba(29,205,211,0.4);
-        }
-        .yp-item-far   { color: rgba(29,205,211,0.15); font-size: 16px; }
-        .yp-padding    { color: transparent; }
-        .yp-selector {
-          position: absolute;
-          top: 50%;
-          left: 12px; right: 12px;
-          height: ${ITEM_H}px;
-          transform: translateY(-50%);
-          border-top: 1px solid rgba(29,205,211,0.35);
-          border-bottom: 1px solid rgba(29,205,211,0.35);
-          pointer-events: none;
-          border-radius: 4px;
-        }
-        .yp-fade-top {
-          position: absolute;
-          top: 0; left: 0; right: 0;
-          height: ${ITEM_H * 2}px;
-          background: linear-gradient(to bottom, rgba(6,14,26,0.9) 0%, transparent 100%);
-          pointer-events: none;
-          z-index: 2;
-        }
-        .yp-fade-bottom {
-          position: absolute;
-          bottom: 0; left: 0; right: 0;
-          height: ${ITEM_H * 2}px;
-          background: linear-gradient(to top, rgba(6,14,26,0.9) 0%, transparent 100%);
-          pointer-events: none;
-          z-index: 2;
-        }
+        .yp-wrap { position:relative;height:${ITEM_H*5}px;overflow:hidden;border-radius:10px;background:rgba(29,205,211,0.04);border:1px solid rgba(29,205,211,0.16);margin:4px 0 6px; }
+        .yp-drum { height:100%;overflow-y:scroll;scrollbar-width:none;-ms-overflow-style:none; }
+        .yp-drum::-webkit-scrollbar { display:none; }
+        .yp-item { height:${ITEM_H}px;display:flex;align-items:center;justify-content:center;font-family:Georgia,serif;font-size:15px;font-weight:700;color:rgba(29,205,211,0.2);cursor:pointer;transition:color 0.12s ease,font-size 0.12s ease;user-select:none; }
+        .yp-item-near     { color:rgba(29,205,211,0.45);font-size:16px; }
+        .yp-item-selected { color:#1dcdd3;font-size:22px;text-shadow:0 0 14px rgba(29,205,211,0.35); }
+        .yp-item-far      { color:rgba(29,205,211,0.12);font-size:13px; }
+        .yp-padding       { color:transparent !important; }
+        .yp-selector { position:absolute;top:50%;left:10%;right:10%;height:${ITEM_H}px;transform:translateY(-50%);border-top:1px solid rgba(29,205,211,0.3);border-bottom:1px solid rgba(29,205,211,0.3);pointer-events:none; }
+        .yp-fade-top { position:absolute;top:0;left:0;right:0;height:${ITEM_H*2}px;background:linear-gradient(to bottom,rgba(6,14,26,0.92) 0%,transparent 100%);pointer-events:none;z-index:2; }
+        .yp-fade-bottom { position:absolute;bottom:0;left:0;right:0;height:${ITEM_H*2}px;background:linear-gradient(to top,rgba(6,14,26,0.92) 0%,transparent 100%);pointer-events:none;z-index:2; }
       </style>`;
     document.body.appendChild(popup);
     window.closeAddChildPopup = closeAddChildPopup;
     window.submitAddChild     = submitAddChild;
   }
-
-  // Hreinsa
   document.getElementById('ac-name').value = '';
   document.getElementById('ac-error').textContent = '';
   document.getElementById('ac-code-display').style.display = 'none';
   const btn = document.getElementById('ac-btn');
   if (btn) { btn.textContent = 'Bæta við barni'; btn.disabled = false; btn.onclick = submitAddChild; }
-
   popup.style.display = 'grid';
-
-  // Byggja year picker
   buildYearPicker('ac-year-picker', 2015);
-
   setTimeout(() => document.getElementById('ac-name')?.focus(), 80);
 }
 
@@ -511,42 +604,30 @@ export function closeAddChildPopup() {
 
 export async function submitAddChild() {
   const name      = document.getElementById('ac-name').value.trim();
-  const birthYear = getSelectedYear();
+  const birthYear = _getSelectedYear();
   const errEl     = document.getElementById('ac-error');
   const btn       = document.getElementById('ac-btn');
   errEl.textContent = '';
-
   if (!name)      { errEl.textContent = 'Sláðu inn nafn barns.'; return; }
   if (!birthYear) { errEl.textContent = 'Veldu fæðingarár.'; return; }
-
   btn.textContent = 'Hleður...'; btn.disabled = true;
-
   try {
     const code     = makeChildCode(name);
     const childKey = Math.random().toString(36).substr(2, 10);
-
     await setDoc(doc(db, 'codes', code), {
-      familyId:  S.familyId,
-      childKey,
-      childName: name,
-      birthYear: parseInt(birthYear)
+      familyId: S.familyId, childKey, childName: name, birthYear: parseInt(birthYear)
     });
-
     const newChild = { name, key: childKey, code, birthYear: parseInt(birthYear) };
     const updatedChildren = [...(S.parentChildren || []), newChild];
     await setDoc(doc(db, 'users', auth.currentUser.uid), {
       children: updatedChildren
     }, { merge: true });
-
     S.parentChildren = updatedChildren;
-
     document.getElementById('ac-code-val').textContent = code;
     document.getElementById('ac-code-display').style.display = '';
     btn.textContent = 'Loka'; btn.disabled = false;
     btn.onclick = closeAddChildPopup;
-
     renderDashboard();
-
   } catch(e) {
     errEl.textContent = 'Villa — reyndu aftur.';
     console.error('Add child villa:', e);
@@ -554,7 +635,7 @@ export async function submitAddChild() {
   }
 }
 
-// ── Old screen signup (kept for back-compat) ──
+// ── Old screen signup (back-compat) ──
 export function addChildInput() {
   const container = document.getElementById('signup-children-list');
   const div = document.createElement('div');
@@ -591,16 +672,18 @@ export async function firebaseSignup() {
     await setDoc(doc(db, 'users', uid), {
       name, email, role: 'parent', familyId, familyCode, children: childrenArray, createdAt: serverTimestamp()
     });
+    await setDoc(doc(db, 'familycodes', familyCode), {
+      familyId, parentUid: uid, parentName: name, createdAt: serverTimestamp()
+    });
     await signOut(auth);
     localStorage.removeItem('upphatt_child');
     _signupInProgress = false;
-    alert('Aðgangur tilbúinn! Þú getur nú skráð þig inn.');
     goTo('screen-parent-login');
   } catch (e) {
     _signupInProgress = false;
     errorEl.style.color = 'var(--coral)';
     errorEl.textContent = 'Villa: ' + e.message;
-    try { await signOut(auth); } catch (_) { /* ok */ }
+    try { await signOut(auth); } catch (_) {}
   }
 }
 
@@ -633,23 +716,26 @@ export async function childLogin() {
   }
 }
 
-// ── Logout ──
+// ── Logout — án confirm dialog ──
 export async function logout() {
+  if (S.familyUnsub) { S.familyUnsub(); S.familyUnsub = null; }
   if (S.role === 'child') {
-    if (confirm('Skrá þig út? Þú þarft kóðann aftur til að skrá þig inn.')) {
-      localStorage.removeItem('upphatt_child');
-      S.role = null; S.familyId = null; S.childKey = null; S.childName = null;
-      cancelReading();
-      goTo('screen-child-login');
-    }
+    localStorage.removeItem('upphatt_child');
+    S.role = null; S.familyId = null; S.childKey = null; S.childName = null;
+    cancelReading();
+    goTo('screen-child-login');
     return;
   }
-  if (confirm('Viltu skrá þig út?')) {
-    if (S.familyUnsub) { S.familyUnsub(); S.familyUnsub = null; }
-    await signOut(auth);
+  if (S.role === 'guest') {
+    S.role = null; S.familyId = null;
     localStorage.clear();
     location.reload();
+    return;
   }
+  // Parent
+  await signOut(auth);
+  localStorage.clear();
+  location.reload();
 }
 
 // ── Theme toggle ──
@@ -688,12 +774,6 @@ export function initAuth() {
     }
     if (S.familyUnsub) { S.familyUnsub(); S.familyUnsub = null; }
     S.sessions = [];
-    const skipChildRedirectOnce = sessionStorage.getItem('upphatt_skip_child_redirect_once') === '1';
-    if (skipChildRedirectOnce) {
-      sessionStorage.removeItem('upphatt_skip_child_redirect_once');
-      goTo('screen-child-login');
-      return;
-    }
     const saved = localStorage.getItem('upphatt_child');
     if (saved) {
       try {

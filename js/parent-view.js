@@ -15,7 +15,6 @@ import { fmtTime, makeDateKey, formatLabel, getMonday, getStreak } from './helpe
 const IS_MONTHS = ['janúar','febrúar','mars','apríl','maí','júní',
                    'júlí','ágúst','september','október','nóvember','desember'];
 
-// "2026-4-13" → "13. apríl"
 function fmtDateIS(dateStr) {
   if (!dateStr) return '';
   const parts = dateStr.split('-');
@@ -25,7 +24,6 @@ function fmtDateIS(dateStr) {
   return `${day}. ${IS_MONTHS[month] || ''}`;
 }
 
-// "2026-4-13" → "13. apríl 2026"
 function fmtDateISFull(dateStr) {
   if (!dateStr) return '';
   const parts = dateStr.split('-');
@@ -113,16 +111,18 @@ export function selectChild(key) {
   renderRecordings();
 }
 
-// ── 7 daga grid — með dagstölum ──
+// ── 7 daga grid ──
+// DAY_LABELS: 0=Sun, 1=Mán, ... 6=Lau — passar við getDay()
+const DAY_LABELS = ['S','M','Þ','M','F','F','L'];
+
 function renderWeekGrid() {
   const grid = document.getElementById('ph-week-grid');
   if (!grid) return;
   const sessions = S.sessions || [];
-  const days  = ['M','Þ','M','F','F','L','S'];
   const today = new Date(); today.setHours(12,0,0,0);
   const cells = [];
   for (let i = 6; i >= 0; i--) {
-    const d = new Date(today); d.setDate(today.getDate() - i);
+    const d       = new Date(today); d.setDate(today.getDate() - i);
     const key     = makeDateKey(d);
     const isToday = i === 0;
     const daySessions = sessions.filter(s => {
@@ -133,10 +133,9 @@ function renderWeekGrid() {
     const dotClass = mins === 0 ? 'ph-wdot-empty' : mins < 15 ? 'ph-wdot-low' : mins < 30 ? 'ph-wdot-mid' : 'ph-wdot-full';
     cells.push(`
       <div class="ph-wday-cell">
-        <div class="ph-wday-lbl ${isToday ? 'ph-wday-today' : ''}">${days[6-i]}</div>
-        <div class="ph-wdot ${dotClass} ${isToday ? 'ph-wdot-today' : ''}" title="${mins > 0 ? mins + ' mín' : 'Ekki lesið'}" style="display:flex;align-items:center;justify-content:center;">
-          <span style="font-size:9px;font-weight:800;color:rgba(255,255,255,0.75);line-height:1;">${d.getDate()}</span>
-        </div>
+        <div class="ph-wday-lbl ${isToday ? 'ph-wday-today' : ''}">${DAY_LABELS[d.getDay()]}</div>
+        <div class="ph-wdot ${dotClass} ${isToday ? 'ph-wdot-today' : ''}" title="${mins > 0 ? mins + ' mín' : 'Ekki lesið'}"></div>
+        <div class="ph-wday-num ${isToday ? 'ph-wday-today' : ''}">${d.getDate()}</div>
       </div>`);
   }
   grid.innerHTML = cells.join('');

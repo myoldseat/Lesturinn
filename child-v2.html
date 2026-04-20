@@ -1,0 +1,1780 @@
+<!DOCTYPE html>
+<html lang="is">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Upphatt Child V2</title>
+  <style>
+    :root {
+      --bg: #0f1115;
+      --panel: rgba(7, 16, 30, 0.48);
+      --panel-border: rgba(122, 187, 218, 0.22);
+      --text-strong: #d9e5ef;
+      --text-soft: #94a4b4;
+      --button-top: #1dcdd3;
+      --button-mid: #1ac5cb;
+      --button-base: #18bcc2;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      font-family: "Manrope", "Segoe UI", sans-serif;
+    }
+
+    .screen {
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      background: var(--bg);
+      color: #d7dee9;
+      padding: 18px;
+      position: relative;
+      overflow: hidden;
+      isolation: isolate;
+    }
+
+    .constellation {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+      opacity: 1;
+      background:
+        radial-gradient(circle at 20% 25%, rgba(62, 130, 173, 0.12), rgba(62, 130, 173, 0) 40%),
+        radial-gradient(circle at 82% 32%, rgba(47, 184, 187, 0.1), rgba(47, 184, 187, 0) 38%),
+        radial-gradient(circle at 62% 78%, rgba(98, 116, 170, 0.1), rgba(98, 116, 170, 0) 44%);
+    }
+
+    .constellation::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: none;
+      filter: blur(0.2px);
+      pointer-events: none;
+    }
+
+    .star {
+      position: absolute;
+      width: 14px;
+      height: 14px;
+      border: 0;
+      border-radius: 999px;
+      background: radial-gradient(circle at 40% 40%, rgba(220, 243, 255, 0.86), rgba(126, 205, 224, 0.45) 44%, rgba(126, 205, 224, 0.04) 72%, rgba(126, 205, 224, 0) 100%);
+      box-shadow: 0 0 8px rgba(108, 214, 238, 0.12);
+      opacity: 0;
+      transform: scale(1);
+      transition: opacity 240ms ease, transform 240ms ease, box-shadow 260ms ease;
+      pointer-events: none;
+      cursor: pointer;
+      z-index: 8;
+      mix-blend-mode: screen;
+    }
+
+    .star.active {
+      opacity: 0.22;
+      pointer-events: auto;
+    }
+
+    .star.frozen {
+      opacity: 0.42;
+      pointer-events: auto;
+      box-shadow: 0 0 12px rgba(120, 240, 255, 0.24), 0 0 28px rgba(120, 240, 255, 0.1);
+    }
+
+    .star:hover {
+      opacity: 0.45;
+    }
+
+    .constellation-lines {
+      position: absolute;
+      inset: 0;
+      z-index: 7;
+      pointer-events: none;
+      overflow: visible;
+    }
+
+    .listen-line {
+      stroke: rgba(140, 226, 246, 0.3);
+      stroke-width: 1.9;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      opacity: 0;
+      stroke-dasharray: 0;
+      stroke-dashoffset: 0;
+      fill: none;
+      filter: drop-shadow(0 0 5px rgba(122, 233, 255, 0.34)) drop-shadow(0 0 12px rgba(122, 233, 255, 0.18));
+    }
+
+    .listen-line.animating {
+      animation: lightning-flicker 180ms ease-in-out infinite alternate;
+    }
+
+    @keyframes lightning-flicker {
+      0% {
+        opacity: 0.32;
+        filter: drop-shadow(0 0 5px rgba(160, 240, 255, 0.28)) drop-shadow(0 0 11px rgba(130, 225, 255, 0.16));
+      }
+      100% {
+        opacity: 0.64;
+        filter: drop-shadow(0 0 10px rgba(216, 252, 255, 0.54)) drop-shadow(0 0 22px rgba(168, 245, 255, 0.34));
+      }
+    }
+
+    .listen-line.frozen {
+      stroke: rgba(150, 222, 240, 0.26);
+      stroke-width: 2.2;
+      opacity: 0.42;
+      stroke-dasharray: none;
+      stroke-dashoffset: 0;
+      filter: drop-shadow(0 0 4px rgba(122, 233, 255, 0.14));
+    }
+
+    .listen-line.flash {
+      stroke: rgba(255, 255, 255, 1);
+      stroke-width: 4.1;
+      opacity: 1;
+      filter: drop-shadow(0 0 16px rgba(255, 255, 255, 1)) drop-shadow(0 0 36px rgba(168, 245, 255, 1));
+    }
+
+    .star.listened {
+      opacity: 0.96;
+      transform: scale(1.35);
+      box-shadow: 0 0 14px rgba(120, 240, 255, 0.65), 0 0 32px rgba(120, 240, 255, 0.35);
+    }
+
+    .star.flash {
+      opacity: 1;
+      transform: scale(1.8);
+      box-shadow: 0 0 28px rgba(255, 255, 255, 1), 0 0 60px rgba(168, 245, 255, 1);
+    }
+
+    .star-1 { top: 12%; left: 18%; }
+    .star-2 { top: 18%; left: 72%; }
+    .star-3 { top: 28%; left: 44%; }
+    .star-4 { top: 40%; left: 82%; }
+    .star-5 { top: 54%; left: 26%; }
+    .star-6 { top: 61%; left: 67%; }
+    .star-7 { top: 72%; left: 13%; }
+    .star-8 { top: 78%; left: 54%; }
+    .star-9 { top: 84%; left: 86%; }
+
+    .toast {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translateY(18px);
+      padding: 10px 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(147, 217, 236, 0.35);
+      background: rgba(9, 27, 43, 0.88);
+      color: #d8edf8;
+      font-size: 0.9rem;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 1.7s cubic-bezier(0.22, 0.61, 0.36, 1), transform 1.7s cubic-bezier(0.22, 0.61, 0.36, 1);
+      z-index: 9;
+      white-space: nowrap;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+      transition: opacity 2.2s cubic-bezier(0.22, 0.61, 0.36, 1), transform 2.2s cubic-bezier(0.22, 0.61, 0.36, 1);
+    }
+
+    .panel-top {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 40px;
+    }
+
+    .home-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 999px;
+      border: 1px solid rgba(200, 223, 244, 0.24);
+      background: rgba(20, 32, 50, 0.45);
+      color: #c7d8e7;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background 220ms ease, border-color 220ms ease, transform 220ms ease;
+    }
+
+    .home-btn:hover {
+      background: rgba(33, 50, 74, 0.62);
+      border-color: rgba(200, 223, 244, 0.36);
+      transform: translateY(-1px);
+    }
+
+    .greeting {
+      margin: 0;
+      text-align: center;
+      font-size: clamp(1.7rem, 5.4vw, 2.15rem);
+      font-weight: 700;
+      color: var(--text-strong);
+      line-height: 1.15;
+    }
+
+    .greeting-name {
+      color: #27d8e5;
+    }
+
+    .panel {
+      flex: 1;
+      margin-top: max(10px, env(safe-area-inset-top));
+      border-radius: 24px;
+      border: 1px solid var(--panel-border);
+      background:
+        radial-gradient(circle at 50% 45%, rgba(32, 151, 168, 0.14), rgba(32, 151, 168, 0) 62%),
+        var(--panel);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 28px 20px 32px;
+      gap: 10px;
+      backdrop-filter: blur(4px);
+      position: relative;
+      z-index: 3;
+    }
+
+    .title {
+      margin: 0;
+      text-align: center;
+      font-size: clamp(2rem, 6.4vw, 2.7rem);
+      font-weight: 700;
+      color: #d9e5ef;
+      position: relative;
+      z-index: 4;
+    }
+
+    .subtitle {
+      margin: 0;
+      text-align: center;
+      font-size: clamp(1rem, 3.8vw, 1.25rem);
+      color: var(--text-soft);
+      max-width: 520px;
+      line-height: 1.45;
+      position: relative;
+      z-index: 4;
+    }
+
+    .orb-wrap {
+      position: relative;
+      width: min(86vw, 560px);
+      height: min(78vw, 500px);
+      display: grid;
+      place-items: center;
+      margin: 46px 0 16px;
+      overflow: visible;
+    }
+
+    .aura-reactive {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: min(76vw, 500px);
+      height: min(76vw, 500px);
+      transform: translate(-50%, -50%) scale(1);
+      opacity: 0.56;
+      transition: opacity 260ms ease;
+      pointer-events: none;
+      filter: saturate(0.98);
+    }
+
+    .aura-breathe {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      background: radial-gradient(circle at center, rgba(31, 198, 213, 0.68), rgba(31, 198, 213, 0.22) 46%, rgba(31, 198, 213, 0.05) 72%, rgba(31, 198, 213, 0) 100%);
+      animation: breathe 6.8s ease-in-out infinite;
+    }
+
+    @keyframes breathe {
+      0%, 100% {
+        transform: scale(0.94);
+      }
+      50% {
+        transform: scale(1.08);
+      }
+    }
+
+    .main-btn {
+      width: min(40vw, 190px);
+      height: min(40vw, 190px);
+      border: 1px solid rgba(158, 255, 241, 0.5);
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 25%, var(--button-top) 0%, var(--button-mid) 48%, var(--button-base) 100%);
+      color: #081012;
+      font-size: clamp(1.2rem, 4.8vw, 1.9rem);
+      font-weight: 700;
+      letter-spacing: 0.015em;
+      cursor: pointer;
+      outline: none;
+      transform: scale(1);
+      box-shadow: 0 0 45px rgba(77, 255, 232, 0.3);
+      filter: saturate(0.92);
+      transition: transform 240ms ease, box-shadow 300ms ease, filter 300ms ease;
+      -webkit-tap-highlight-color: transparent;
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .main-btn:active {
+      transform: scale(0.97);
+      box-shadow: 0 0 24px rgba(77, 255, 232, 0.24);
+      filter: saturate(1.08);
+    }
+
+    @keyframes tapPulse {
+      0% {
+        transform: scale(1);
+        box-shadow: 0 0 34px rgba(77, 255, 232, 0.25);
+      }
+      45% {
+        transform: scale(0.95);
+        box-shadow: 0 0 18px rgba(77, 255, 232, 0.2);
+      }
+      100% {
+        transform: scale(1.03);
+        box-shadow: 0 0 54px rgba(77, 255, 232, 0.42);
+      }
+    }
+
+    @keyframes tapPulseStop {
+      0% {
+        transform: scale(1);
+        box-shadow: 0 0 34px rgba(77, 255, 232, 0.25);
+      }
+      45% {
+        transform: scale(0.94);
+        box-shadow: 0 0 16px rgba(77, 255, 232, 0.18);
+      }
+      100% {
+        transform: scale(1);
+        box-shadow: 0 0 38px rgba(77, 255, 232, 0.32);
+      }
+    }
+
+    .main-btn.visual-tap {
+      animation: tapPulse 280ms ease-out;
+    }
+
+    .main-btn.visual-stop {
+      animation: tapPulseStop 300ms ease-out;
+    }
+
+    .mic-mark {
+      width: clamp(18px, 6vw, 26px);
+      height: clamp(18px, 6vw, 26px);
+      line-height: 1;
+      opacity: 0.92;
+      display: inline-block;
+    }
+
+    .mic-mark svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+      stroke: #051219;
+    }
+
+    .btn-label {
+      line-height: 1;
+      font-size: clamp(0.6rem, 2vw, 0.8rem);
+    }
+
+    .helper {
+      margin: 44px 0 0;
+      text-align: center;
+      color: var(--text-soft);
+      font-size: clamp(0.98rem, 3.4vw, 1.18rem);
+    }
+
+    .save-btn {
+      margin-top: 40px;
+      border: 1px solid rgba(158, 255, 241, 0.5);
+      border-radius: 999px;
+      background: rgba(16, 57, 71, 0.8);
+      color: #d8f8fa;
+      font-size: clamp(0.92rem, 3.2vw, 1.05rem);
+      font-weight: 700;
+      letter-spacing: 0.01em;
+      padding: 10px 18px;
+      cursor: pointer;
+    }
+
+    .save-btn.visual-tap {
+      transform: scale(0.98);
+      box-shadow: 0 0 18px rgba(122, 233, 243, 0.28);
+      transition: transform 180ms ease, box-shadow 220ms ease;
+    }
+
+    .save-btn[hidden] {
+      display: none;
+    }
+
+    .save-status {
+      margin: 18px 0 0;
+      min-height: 18px;
+      text-align: center;
+      color: #9fd3d9;
+      font-size: clamp(0.82rem, 2.8vw, 0.95rem);
+      opacity: 0.92;
+    }
+
+    .dependency-node {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+      user-select: none;
+      color: var(--bg);
+    }
+
+    @media (max-width: 720px) {
+      .screen {
+        padding: 0;
+      }
+
+      .panel {
+        margin-top: 0;
+        min-height: 100dvh;
+        border-radius: 0;
+        border-left: 0;
+        border-right: 0;
+        padding:
+          calc(28px + env(safe-area-inset-top))
+          calc(14px + env(safe-area-inset-right))
+          calc(22px + env(safe-area-inset-bottom))
+          calc(14px + env(safe-area-inset-left));
+        overflow-y: auto;
+      }
+
+      .panel-top {
+        margin-bottom: 20px;
+      }
+
+      .orb-wrap {
+        width: min(92vw, 560px);
+        height: min(60vw, 360px);
+        margin: clamp(18px, 10vh, 96px) 0 clamp(18px, 8vh, 68px);
+        overflow: visible;
+      }
+
+      .main-btn {
+        width: min(36vw, 170px);
+        height: min(36vw, 170px);
+      }
+
+      .helper {
+        margin-top: 0;
+      }
+
+      .save-btn {
+        margin-top: 16px;
+      }
+
+      .save-status {
+        margin-top: 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="screen">
+    <div class="constellation" aria-hidden="true"></div>
+    <button class="star star-1" type="button" aria-label="Star"></button>
+    <button class="star star-2" type="button" aria-label="Star"></button>
+    <button class="star star-3" type="button" aria-label="Star"></button>
+    <button class="star star-4" type="button" aria-label="Star"></button>
+    <button class="star star-5" type="button" aria-label="Star"></button>
+    <button class="star star-6" type="button" aria-label="Star"></button>
+    <button class="star star-7" type="button" aria-label="Star"></button>
+    <button class="star star-8" type="button" aria-label="Star"></button>
+    <button class="star star-9" type="button" aria-label="Star"></button>
+    <svg class="constellation-lines" width="100%" height="100%" aria-hidden="true">
+      <g id="frozen-lines"></g>
+      <path id="listen-line" class="listen-line" d="M 0 0 L 0 0"></path>
+    </svg>
+
+    <section class="panel">
+      <div class="panel-top">
+        <button id="home-btn" class="home-btn" type="button" aria-label="Go home">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M4 11.5L12 5L20 11.5V19C20 19.5523 19.5523 20 19 20H15V14H9V20H5C4.44772 20 4 19.5523 4 19V11.5Z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+
+        <p id="greeting" class="greeting">Hæ, <span id="greeting-name" class="greeting-name">Lesari</span>!</p>
+      </div>
+
+      <h1 class="title">Tími til að lesa!</h1>
+      
+
+      <div class="orb-wrap">
+        <div id="aura-reactive" class="aura-reactive" aria-hidden="true">
+          <div class="aura-breathe"></div>
+        </div>
+
+        <button id="record-btn" class="main-btn" type="button" aria-label="Start recording">
+          <span class="mic-mark" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 3.5C10.067 3.5 8.5 5.067 8.5 7V12C8.5 13.933 10.067 15.5 12 15.5C13.933 15.5 15.5 13.933 15.5 12V7C15.5 5.067 13.933 3.5 12 3.5Z" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M5.5 11.5C5.5 15.09 8.41 18 12 18C15.59 18 18.5 15.09 18.5 11.5" stroke-width="2.4" stroke-linecap="round"/>
+              <path d="M12 18V21" stroke-width="2.4" stroke-linecap="round"/>
+            </svg>
+          </span>
+          <span id="record-btn-label" class="btn-label">Byrja</span>
+        </button>
+      </div>
+
+      <p id="helper-text" class="helper">Ýttu á takkann til að byrja að lesa upphátt</p>
+      <button id="save-session-btn" class="save-btn" type="button" hidden>Vista</button>
+      <p id="save-session-status" class="save-status"></p>
+    </section>
+
+    <span id="recording-dependency" class="dependency-node" aria-hidden="true">recording active</span>
+    <div id="listen-toast" class="toast" role="status" aria-live="polite">Einhver hlustaði í dag</div>
+  </main>
+
+  <script>
+    (function () {
+      var childSession = (function () {
+        try {
+          var raw = localStorage.getItem("upphatt_child");
+          return raw ? JSON.parse(raw) : null;
+        } catch (e) {
+          return null;
+        }
+      })();
+      var childName = localStorage.getItem("childName") || (childSession && childSession.childName ? childSession.childName : null) || "Lesari";
+      var childStorageKey = childSession && childSession.childKey ? String(childSession.childKey) : "unknown";
+      var greetingNameEl = document.getElementById("greeting-name");
+      greetingNameEl.textContent = childName;
+
+      var homeBtn = document.getElementById("home-btn");
+      var screenEl = document.querySelector(".screen");
+      var panelEl = document.querySelector(".panel");
+      var orbWrapEl = document.querySelector(".orb-wrap");
+      var auraReactiveEl = document.getElementById("aura-reactive");
+      var recordBtn = document.getElementById("record-btn");
+      var recordBtnLabel = document.getElementById("record-btn-label");
+      var helperTextEl = document.getElementById("helper-text");
+      var saveSessionBtn = document.getElementById("save-session-btn");
+      var saveSessionStatus = document.getElementById("save-session-status");
+      var starEls = Array.prototype.slice.call(document.querySelectorAll(".star"));
+      var frozenLinesEl = document.getElementById("frozen-lines");
+      var listenLineEl = document.getElementById("listen-line");
+      var toastEl = document.getElementById("listen-toast");
+      var LISTEN_STORAGE_KEY = "upphatt_listen_connections_v1_" + childStorageKey;
+      var FROZEN_FULL_BRIGHT_MS = 5 * 1000;
+      var FROZEN_FADE_MS = 24 * 60 * 60 * 1000;
+      var CONNECTION_LIFETIME_MS = FROZEN_FULL_BRIGHT_MS + FROZEN_FADE_MS;
+      var isRecording = false;
+      var glowLevel = 0;
+      var smoothedInput = 0;
+
+      var stream = null;
+      var audioContext = null;
+      var analyser = null;
+      var mediaRecorder = null;
+      var recordingStartedAt = 0;
+      var snippetCaptureTimers = [];
+      var activeSnippetRecorders = [];
+      var snippetClips = {
+        min1: { chunks: [], mimeType: "" },
+        min5: { chunks: [], mimeType: "" },
+        min9: { chunks: [], mimeType: "" },
+        min13: { chunks: [], mimeType: "" }
+      };
+      var rafId = null;
+      var settleTimer = null;
+      var listenTimeout = null;
+      var toastTimeout = null;
+      var lineFadeTimeout = null;
+      var flashTimeout = null;
+      var pendingSavePayload = null;
+      var saveInFlight = false;
+      var listenEventQueue = [];
+      var listenAnimationRunning = false;
+      var listenAnimationStartedAt = 0;
+
+      function triggerHaptic(pattern) {
+        try {
+          if (navigator.vibrate) {
+            navigator.vibrate(pattern);
+          }
+        } catch (e) {
+          // no-op
+        }
+      }
+
+      function playMicCue(kind) {
+        try {
+          var Ctx = window.AudioContext || window.webkitAudioContext;
+          if (!Ctx) {
+            return;
+          }
+
+          var ctx = new Ctx();
+          var now = ctx.currentTime;
+          if (kind === "on") {
+            [
+              { f: 620, t: 0.0, d: 0.055 },
+              { f: 880, t: 0.06, d: 0.075 }
+            ].forEach(function (tone) {
+              var oscOn = ctx.createOscillator();
+              var gainOn = ctx.createGain();
+              oscOn.type = "triangle";
+              oscOn.frequency.value = tone.f;
+              gainOn.gain.setValueAtTime(0.0001, now + tone.t);
+              gainOn.gain.exponentialRampToValueAtTime(0.024, now + tone.t + 0.01);
+              gainOn.gain.exponentialRampToValueAtTime(0.0001, now + tone.t + tone.d);
+              oscOn.connect(gainOn);
+              gainOn.connect(ctx.destination);
+              oscOn.start(now + tone.t);
+              oscOn.stop(now + tone.t + tone.d + 0.01);
+            });
+          } else {
+            // Softer descending two-note cue for mic-off.
+            [
+              { f0: 520, f1: 460, t: 0.0, d: 0.08, a: 0.015 },
+              { f0: 420, f1: 360, t: 0.085, d: 0.11, a: 0.013 }
+            ].forEach(function (tone) {
+              var oscOff = ctx.createOscillator();
+              var gainOff = ctx.createGain();
+              oscOff.type = "sine";
+              oscOff.frequency.setValueAtTime(tone.f0, now + tone.t);
+              oscOff.frequency.exponentialRampToValueAtTime(tone.f1, now + tone.t + tone.d);
+              gainOff.gain.setValueAtTime(0.0001, now + tone.t);
+              gainOff.gain.exponentialRampToValueAtTime(tone.a, now + tone.t + 0.016);
+              gainOff.gain.exponentialRampToValueAtTime(0.0001, now + tone.t + tone.d);
+              oscOff.connect(gainOff);
+              gainOff.connect(ctx.destination);
+              oscOff.start(now + tone.t);
+              oscOff.stop(now + tone.t + tone.d + 0.015);
+            });
+          }
+
+          setTimeout(function () {
+            ctx.close().catch(function () {});
+          }, 240);
+        } catch (e) {
+          // no-op
+        }
+      }
+
+      function triggerVisualTap(el, className) {
+        if (!el) {
+          return;
+        }
+        var name = className || "visual-tap";
+        el.classList.remove("visual-tap");
+        el.classList.remove("visual-stop");
+        // Force reflow to restart animation on repeated taps.
+        void el.offsetWidth;
+        el.classList.add(name);
+        setTimeout(function () {
+          el.classList.remove(name);
+        }, 320);
+      }
+
+      function playListenImpactCue() {
+        try {
+          var Ctx = window.AudioContext || window.webkitAudioContext;
+          if (!Ctx) {
+            return;
+          }
+
+          var ctx = new Ctx();
+          var now = ctx.currentTime;
+
+          [
+            { f0: 740, f1: 980, t: 0.0, d: 0.06, a: 0.013 },
+            { f0: 920, f1: 1220, t: 0.05, d: 0.07, a: 0.011 },
+            { f0: 1080, f1: 1320, t: 0.11, d: 0.08, a: 0.009 }
+          ].forEach(function (tone) {
+            var osc = ctx.createOscillator();
+            var gain = ctx.createGain();
+            osc.type = "triangle";
+            osc.frequency.setValueAtTime(tone.f0, now + tone.t);
+            osc.frequency.exponentialRampToValueAtTime(tone.f1, now + tone.t + tone.d);
+            gain.gain.setValueAtTime(0.0001, now + tone.t);
+            gain.gain.exponentialRampToValueAtTime(tone.a, now + tone.t + 0.012);
+            gain.gain.exponentialRampToValueAtTime(0.0001, now + tone.t + tone.d);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(now + tone.t);
+            osc.stop(now + tone.t + tone.d + 0.015);
+          });
+
+          setTimeout(function () {
+            ctx.close().catch(function () {});
+          }, 320);
+        } catch (e) {
+          // no-op
+        }
+      }
+
+      function updateHelperVisibility() {
+        if (!helperTextEl) {
+          return;
+        }
+        var shouldHide = isRecording || !!pendingSavePayload || saveInFlight;
+        helperTextEl.hidden = shouldHide;
+      }
+
+      function getSupportedMimeType() {
+        var candidates = ["audio/mp4", "audio/aac", "audio/webm;codecs=opus", "audio/webm", "audio/ogg"];
+        for (var i = 0; i < candidates.length; i += 1) {
+          try {
+            if (MediaRecorder.isTypeSupported(candidates[i])) {
+              return candidates[i];
+            }
+          } catch (e) {
+            // no-op
+          }
+        }
+        return "";
+      }
+
+      function clearSnippetTimers() {
+        snippetCaptureTimers.forEach(function (t) { clearTimeout(t); });
+        snippetCaptureTimers = [];
+      }
+
+      function captureSnippet(label, durationMs) {
+        if (!stream) {
+          return;
+        }
+
+        var chunks = [];
+        var mimeType = getSupportedMimeType();
+        var recorder = null;
+
+        try {
+          recorder = mimeType ? new MediaRecorder(stream, { mimeType: mimeType }) : new MediaRecorder(stream);
+        } catch (e) {
+          try {
+            recorder = new MediaRecorder(stream);
+          } catch (e2) {
+            return;
+          }
+        }
+
+        recorder.ondataavailable = function (event) {
+          if (event.data && event.data.size > 0) {
+            chunks.push(event.data);
+          }
+        };
+
+        recorder.onstop = function () {
+          snippetClips[label] = {
+            chunks: chunks,
+            mimeType: recorder.mimeType || mimeType || "audio/webm"
+          };
+          activeSnippetRecorders = activeSnippetRecorders.filter(function (r) { return r !== recorder; });
+        };
+
+        recorder.start(1000);
+        activeSnippetRecorders.push(recorder);
+
+        setTimeout(function () {
+          if (recorder.state !== "inactive") {
+            try {
+              recorder.stop();
+            } catch (e) {
+              // no-op
+            }
+          }
+        }, durationMs);
+      }
+
+      function scheduleSnippetCaptures() {
+        clearSnippetTimers();
+
+        [
+          { label: "min1", atMs: 30 * 1000 },
+          { label: "min5", atMs: 2 * 60 * 1000 },
+          { label: "min9", atMs: 5 * 60 * 1000 },
+          { label: "min13", atMs: 8 * 60 * 1000 }
+        ].forEach(function (item) {
+          var t = setTimeout(function () {
+            captureSnippet(item.label, 15 * 1000);
+          }, item.atMs);
+          snippetCaptureTimers.push(t);
+        });
+      }
+
+      function readFrozenConnections() {
+        try {
+          var raw = localStorage.getItem(LISTEN_STORAGE_KEY);
+          var parsed = raw ? JSON.parse(raw) : [];
+          return Array.isArray(parsed) ? parsed : [];
+        } catch (error) {
+          return [];
+        }
+      }
+
+      function writeFrozenConnections(items) {
+        localStorage.setItem(LISTEN_STORAGE_KEY, JSON.stringify(items));
+      }
+
+      function formatListenerMessage(listenerName, timestamp) {
+        var safeName = typeof listenerName === "string" ? listenerName.trim() : "";
+        var when = "";
+        if (timestamp) {
+          var tsDate = new Date(timestamp);
+          var today = new Date(); today.setHours(0,0,0,0);
+          var yesterday = new Date(today); yesterday.setDate(today.getDate() - 1);
+          tsDate.setHours(0,0,0,0);
+          when = tsDate >= today ? " í dag" : " í gær";
+        } else {
+          when = " í dag";
+        }
+        return (safeName || "Einhver") + " hlustaði" + when;
+      }
+
+      function pruneFrozenConnections() {
+        var now = Date.now();
+        var items = readFrozenConnections().filter(function (item) {
+          return item && typeof item.starIndex === "number" && now - item.timestamp < CONNECTION_LIFETIME_MS;
+        });
+        writeFrozenConnections(items);
+        return items;
+      }
+
+      function getCenterRelativeToScreen(el) {
+        var screenRect = screenEl.getBoundingClientRect();
+        var rect = el.getBoundingClientRect();
+        return {
+          x: rect.left + rect.width / 2 - screenRect.left,
+          y: rect.top + rect.height / 2 - screenRect.top
+        };
+      }
+
+      function positionOrbForMobileThirds() {
+        if (!panelEl || !orbWrapEl) {
+          return;
+        }
+
+        var isMobile = window.matchMedia("(max-width: 720px)").matches;
+        // CSS handles mobile vertical rhythm to avoid text/circle overlap.
+        if (isMobile) {
+          orbWrapEl.style.transform = "";
+          return;
+        }
+
+        orbWrapEl.style.transform = "";
+      }
+
+      function buildListenPath(star) {
+        var center = getCenterRelativeToScreen(recordBtn);
+        var target = getCenterRelativeToScreen(star);
+        var dirX = target.x - center.x;
+        var dirY = target.y - center.y;
+        var distance = Math.hypot(dirX, dirY) || 1;
+        var perpX = -dirY / distance;
+        var perpY = dirX / distance;
+        var arc = Math.min(48, Math.max(18, distance * 0.16));
+
+        var c1x = center.x + dirX * 0.22 + perpX * arc;
+        var c1y = center.y + dirY * 0.22 + perpY * arc;
+        var c2x = center.x + dirX * 0.44 - perpX * arc * 0.78;
+        var c2y = center.y + dirY * 0.44 - perpY * arc * 0.78;
+        var midX = center.x + dirX * 0.58 + perpX * arc * 0.5;
+        var midY = center.y + dirY * 0.58 + perpY * arc * 0.5;
+        var c3x = center.x + dirX * 0.74 - perpX * arc * 0.68;
+        var c3y = center.y + dirY * 0.74 - perpY * arc * 0.68;
+        var c4x = center.x + dirX * 0.9 + perpX * arc * 0.34;
+        var c4y = center.y + dirY * 0.9 + perpY * arc * 0.34;
+
+        return "M " + center.x + " " + center.y +
+          " C " + c1x + " " + c1y + ", " + c2x + " " + c2y + ", " + midX + " " + midY +
+          " S " + c3x + " " + c3y + ", " + target.x + " " + target.y;
+      }
+
+      function resetStarStates() {
+        starEls.forEach(function (star) {
+          star.classList.remove("active");
+          star.classList.remove("frozen");
+          star.style.opacity = "";
+          star.style.transform = "";
+          star.style.boxShadow = "";
+        });
+      }
+
+      function getFrozenConnectionStrength(timestamp) {
+        var age = Date.now() - Number(timestamp || 0);
+        if (age < 0) age = 0;
+
+        if (age <= FROZEN_FULL_BRIGHT_MS) {
+          return 1;
+        }
+
+        var fadeAge = age - FROZEN_FULL_BRIGHT_MS;
+        var t = 1 - fadeAge / FROZEN_FADE_MS;
+        t = Math.max(0, Math.min(1, t));
+        return 0.25 * t;
+      }
+
+      function renderFrozenConnections() {
+        var items = pruneFrozenConnections();
+        frozenLinesEl.innerHTML = "";
+        resetStarStates();
+
+        items.forEach(function (item) {
+          var star = starEls[item.starIndex];
+          if (!star) {
+            return;
+          }
+
+          var strength = getFrozenConnectionStrength(item.timestamp);
+          if (strength <= 0) {
+            return;
+          }
+
+          star.classList.add("active");
+          star.classList.add("frozen");
+          star.style.opacity = String(0.08 + strength * 0.92);
+          star.style.transform = "scale(" + (1 + strength * 0.42).toFixed(3) + ")";
+          star.style.boxShadow =
+            "0 0 " + (8 + strength * 18).toFixed(1) + "px rgba(170, 244, 255, " + (0.16 + strength * 0.56).toFixed(3) + "), " +
+            "0 0 " + (20 + strength * 40).toFixed(1) + "px rgba(120, 240, 255, " + (0.08 + strength * 0.34).toFixed(3) + ")";
+
+          var path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+          path.setAttribute("d", buildListenPath(star));
+          path.setAttribute("class", "listen-line frozen");
+          path.style.opacity = String(0.04 + strength * 0.96);
+          path.style.strokeWidth = String(1.4 + strength * 2.4);
+          path.style.stroke = "rgba(188, 245, 255, " + (0.1 + strength * 0.9).toFixed(3) + ")";
+          path.style.filter =
+            "drop-shadow(0 0 " + (2 + strength * 8).toFixed(1) + "px rgba(168, 245, 255, " + (0.12 + strength * 0.46).toFixed(3) + ")) " +
+            "drop-shadow(0 0 " + (6 + strength * 18).toFixed(1) + "px rgba(168, 245, 255, " + (0.06 + strength * 0.24).toFixed(3) + "))";
+          frozenLinesEl.appendChild(path);
+        });
+      }
+
+      function persistFrozenConnection(starIndex, listenerName) {
+        var items = pruneFrozenConnections().filter(function (item) {
+          return item.starIndex !== starIndex;
+        });
+        items.push({
+          starIndex: starIndex,
+          timestamp: Date.now(),
+          listenerName: typeof listenerName === "string" ? listenerName.trim() : ""
+        });
+        writeFrozenConnections(items);
+        renderFrozenConnections();
+      }
+
+      function getFrozenConnectionByStarIndex(starIndex) {
+        var items = pruneFrozenConnections();
+        for (var i = 0; i < items.length; i += 1) {
+          if (items[i].starIndex === starIndex) {
+            return items[i];
+          }
+        }
+        return null;
+      }
+
+      function pickRandomStarIndex() {
+        var center = getCenterRelativeToScreen(recordBtn);
+        var btnRect = recordBtn.getBoundingClientRect();
+        var minDistance = Math.max(btnRect.width * 1.35, window.matchMedia("(max-width: 720px)").matches ? 120 : 140);
+
+        var perimeterIndexes = starEls
+          .map(function (star, index) {
+            var point = getCenterRelativeToScreen(star);
+            var dx = point.x - center.x;
+            var dy = point.y - center.y;
+            return { index: index, distance: Math.hypot(dx, dy) };
+          })
+          .filter(function (item) { return item.distance >= minDistance; })
+          .map(function (item) { return item.index; });
+
+        var candidateIndexes = perimeterIndexes.length
+          ? perimeterIndexes
+          : starEls.map(function (_star, index) { return index; });
+
+        var frozenIndexes = pruneFrozenConnections().map(function (item) {
+          return item.starIndex;
+        });
+        var availableIndexes = candidateIndexes
+          .filter(function (index) { return frozenIndexes.indexOf(index) === -1; });
+
+        if (!availableIndexes.length) {
+          availableIndexes = candidateIndexes;
+        }
+
+        if (!availableIndexes.length) {
+          availableIndexes = starEls.map(function (_star, index) { return index; });
+        }
+
+        return availableIndexes[Math.floor(Math.random() * availableIndexes.length)];
+      }
+
+      homeBtn.addEventListener("click", function () {
+        try {
+          sessionStorage.setItem("upphatt_skip_child_redirect_once", "1");
+        } catch (e) {
+          // no-op
+        }
+        window.location.href = "index.html";
+      });
+
+      function showListenToastNearStar(star, listenerName, timestamp) {
+        var screenRect = screenEl.getBoundingClientRect();
+        var centerRect = recordBtn.getBoundingClientRect();
+        var starRect = star.getBoundingClientRect();
+        var centerX = centerRect.left + centerRect.width / 2 - screenRect.left;
+        var centerY = centerRect.top + centerRect.height / 2 - screenRect.top;
+        var starX = starRect.left + starRect.width / 2 - screenRect.left;
+        var starY = starRect.top + starRect.height / 2 - screenRect.top;
+        var dirX = starX - centerX;
+        var dirY = starY - centerY;
+        var distance = Math.hypot(dirX, dirY) || 1;
+        var unitX = dirX / distance;
+        var unitY = dirY / distance;
+        var offset = 26;
+        var toastWidth = toastEl.offsetWidth || 154;
+        var toastHeight = toastEl.offsetHeight || 40;
+        var margin = 14;
+
+        var left = starX + unitX * offset;
+        var top = starY + unitY * offset - toastHeight / 2;
+
+        if (unitX < 0) {
+          left -= toastWidth;
+        }
+
+        left = Math.max(margin, Math.min(left, screenRect.width - toastWidth - margin));
+        top = Math.max(margin, Math.min(top, screenRect.height - 44 - margin));
+
+        toastEl.style.left = left + "px";
+        toastEl.style.top = top + "px";
+        toastEl.textContent = formatListenerMessage(listenerName, timestamp);
+
+        if (toastTimeout !== null) {
+          clearTimeout(toastTimeout);
+        }
+        toastEl.classList.add("show");
+        // Fade in, hold, then fade out (total ~3.2s)
+        toastTimeout = setTimeout(function () {
+          toastEl.classList.remove("show");
+        }, 3200);
+      }
+
+      function animateListenToStar(star, onFlashComplete) {
+        if (!star || !listenLineEl || !screenEl) {
+          return;
+        }
+
+        star.classList.add("active");
+        var pathData = buildListenPath(star);
+
+        listenLineEl.setAttribute("d", pathData);
+        listenLineEl.classList.add("animating");
+
+        listenLineEl.style.transition = "none";
+        listenLineEl.style.opacity = "0.2";
+        listenLineEl.style.strokeWidth = "2.1";
+        listenLineEl.style.stroke = "rgba(140, 226, 246, 0.34)";
+
+        var pathLength = listenLineEl.getTotalLength();
+        listenLineEl.style.strokeDasharray = String(pathLength);
+        listenLineEl.style.strokeDashoffset = String(pathLength);
+        listenLineEl.getBoundingClientRect();
+
+        listenLineEl.style.transition = "stroke-dashoffset 2650ms cubic-bezier(0.17, 0.84, 0.23, 1), opacity 2650ms ease, stroke 2650ms ease";
+        listenLineEl.style.strokeDashoffset = "0";
+        listenLineEl.style.opacity = "0.56";
+        listenLineEl.style.stroke = "rgba(188, 244, 255, 0.76)";
+
+        if (flashTimeout !== null) {
+          clearTimeout(flashTimeout);
+        }
+        flashTimeout = setTimeout(function () {
+          playListenImpactCue();
+          listenLineEl.classList.add("flash");
+          star.classList.add("flash");
+          setTimeout(function () {
+            listenLineEl.classList.remove("flash");
+            listenLineEl.classList.remove("animating");
+            star.classList.remove("flash");
+            listenLineEl.style.transition = "opacity 500ms ease";
+            listenLineEl.style.opacity = "0";
+            if (typeof onFlashComplete === "function") {
+              onFlashComplete();
+            }
+          }, 480);
+        }, 2360);
+
+        star.classList.add("listened");
+        if (listenTimeout !== null) {
+          clearTimeout(listenTimeout);
+        }
+        listenTimeout = setTimeout(function () {
+          star.classList.remove("listened");
+        }, 1700);
+      }
+
+      function renderButton() {
+        var spread = 35 + glowLevel * 95;
+        var alpha = 0.28 + glowLevel * 0.42;
+        var scale = 1 + glowLevel * 0.06;
+        var auraScale = 1.02 + glowLevel * 0.46;
+        var auraOpacity = (isRecording ? 0.62 : 0.56) + glowLevel * 0.24;
+
+        recordBtn.style.transform = "scale(" + scale + ")";
+        recordBtn.style.boxShadow = "0 0 " + spread + "px rgba(77, 255, 232, " + alpha + ")";
+        recordBtn.style.filter = isRecording ? "saturate(1.05)" : "saturate(0.92)";
+        recordBtnLabel.textContent = isRecording ? "Stöðva" : "Byrja";
+        recordBtn.setAttribute("aria-label", isRecording ? "Stöðva upptöku" : "Byrja upptöku");
+
+        auraReactiveEl.style.transform = "translate(-50%, -50%) scale(" + auraScale + ")";
+        auraReactiveEl.style.opacity = auraOpacity;
+      }
+
+      function stopSettleLoop() {
+        if (settleTimer !== null) {
+          clearInterval(settleTimer);
+          settleTimer = null;
+        }
+      }
+
+      function startSettleLoop() {
+        stopSettleLoop();
+        settleTimer = setInterval(function () {
+          glowLevel = glowLevel * 0.9;
+          if (glowLevel < 0.01) {
+            glowLevel = 0;
+          }
+          renderButton();
+        }, 16);
+      }
+
+      function cleanupAudio() {
+        if (rafId !== null) {
+          cancelAnimationFrame(rafId);
+          rafId = null;
+        }
+
+        if (mediaRecorder && mediaRecorder.state !== "inactive") {
+          try {
+            mediaRecorder.stop();
+          } catch (e) {
+            // no-op
+          }
+        }
+
+        activeSnippetRecorders.forEach(function (recorder) {
+          if (recorder && recorder.state !== "inactive") {
+            try {
+              recorder.stop();
+            } catch (e) {
+              // no-op
+            }
+          }
+        });
+        activeSnippetRecorders = [];
+        clearSnippetTimers();
+
+        if (stream) {
+          stream.getTracks().forEach(function (track) { track.stop(); });
+          stream = null;
+        }
+
+        if (audioContext) {
+          audioContext.close();
+          audioContext = null;
+        }
+
+        analyser = null;
+        mediaRecorder = null;
+        smoothedInput = 0;
+      }
+
+      function monitorVoice() {
+        if (!analyser) {
+          return;
+        }
+
+        var pcm = new Uint8Array(analyser.frequencyBinCount);
+
+        function tick() {
+          if (!analyser) {
+            return;
+          }
+
+          analyser.getByteTimeDomainData(pcm);
+
+          var sum = 0;
+          for (var i = 0; i < pcm.length; i += 1) {
+            var normalized = (pcm[i] - 128) / 128;
+            sum += normalized * normalized;
+          }
+
+          var rms = Math.sqrt(sum / pcm.length);
+          var mapped = Math.min(Math.max((rms - 0.01) * 6, 0), 1);
+
+          smoothedInput = smoothedInput * 0.9 + mapped * 0.1;
+          glowLevel = glowLevel * 0.88 + smoothedInput * 0.12;
+          renderButton();
+
+          if (isRecording) {
+            rafId = requestAnimationFrame(tick);
+          }
+        }
+
+        rafId = requestAnimationFrame(tick);
+      }
+
+      function startRecording() {
+        return navigator.mediaDevices.getUserMedia({ audio: true }).then(function (micStream) {
+          stream = micStream;
+          recordingStartedAt = Date.now();
+          pendingSavePayload = null;
+          saveInFlight = false;
+          saveSessionBtn.hidden = true;
+          saveSessionStatus.textContent = "";
+          snippetClips = {
+            min1: { chunks: [], mimeType: "" },
+            min5: { chunks: [], mimeType: "" },
+            min9: { chunks: [], mimeType: "" },
+            min13: { chunks: [], mimeType: "" }
+          };
+          clearSnippetTimers();
+          activeSnippetRecorders = [];
+
+          audioContext = new (window.AudioContext || window.webkitAudioContext)();
+          analyser = audioContext.createAnalyser();
+          analyser.fftSize = 1024;
+          analyser.smoothingTimeConstant = 0.85;
+
+          var source = audioContext.createMediaStreamSource(stream);
+          source.connect(analyser);
+
+          mediaRecorder = new MediaRecorder(stream);
+          mediaRecorder.start(1000);
+          scheduleSnippetCaptures();
+
+          isRecording = true;
+          playMicCue("on");
+          updateHelperVisibility();
+          stopSettleLoop();
+          renderButton();
+          monitorVoice();
+        });
+      }
+
+      function stopRecording() {
+        var elapsedSeconds = recordingStartedAt ? Math.floor((Date.now() - recordingStartedAt) / 1000) : 0;
+        playMicCue("off");
+        isRecording = false;
+        clearSnippetTimers();
+        cleanupAudio();
+        startSettleLoop();
+        renderButton();
+        pendingSavePayload = {
+          snippetClips: snippetClips,
+          elapsedSeconds: elapsedSeconds,
+          startedAt: recordingStartedAt || Date.now(),
+          childName: childName
+        };
+        saveSessionBtn.hidden = false;
+        saveSessionStatus.textContent = "Upptöku lokið. Ýttu á 'Vista'.";
+        updateHelperVisibility();
+      }
+
+      saveSessionBtn.addEventListener("click", function () {
+        if (saveInFlight || !pendingSavePayload || typeof window.saveChildV2Session !== "function") {
+          return;
+        }
+
+        triggerHaptic([10, 24, 10]);
+        triggerVisualTap(saveSessionBtn, "visual-tap");
+
+        saveInFlight = true;
+        saveSessionBtn.disabled = true;
+        saveSessionStatus.textContent = "Vista hljóðbrot...";
+        updateHelperVisibility();
+
+        // Small delay lets final snippet onstop handlers flush chunks.
+        setTimeout(function () {
+          window.saveChildV2Session(pendingSavePayload).then(function (result) {
+            if (result && result.saved) {
+              saveSessionStatus.textContent = "Lota vistuð.";
+              pendingSavePayload = null;
+              saveSessionBtn.hidden = true;
+            } else {
+              saveSessionStatus.textContent = "Engin hljóðbrot til vistunar enn.";
+            }
+          }).catch(function (e) {
+            console.warn("Failed saving child-v2 snippets:", e);
+            saveSessionStatus.textContent = "Villa við vistun. Reyndu aftur.";
+          }).finally(function () {
+            saveInFlight = false;
+            saveSessionBtn.disabled = false;
+            updateHelperVisibility();
+          });
+        }, 300);
+      });
+
+      recordBtn.addEventListener("click", function () {
+        if (isRecording) {
+          triggerHaptic([14, 26, 10]);
+          triggerVisualTap(recordBtn, "visual-stop");
+          stopRecording();
+          return;
+        }
+
+        triggerHaptic(12);
+        triggerVisualTap(recordBtn, "visual-tap");
+
+        startRecording().catch(function () {
+          isRecording = false;
+          cleanupAudio();
+          startSettleLoop();
+          renderButton();
+          updateHelperVisibility();
+        });
+      });
+
+      starEls.forEach(function (star, starIndex) {
+        star.addEventListener("click", function () {
+          if (!star.classList.contains("active") && !star.classList.contains("frozen")) {
+            return;
+          }
+          var connection = getFrozenConnectionByStarIndex(starIndex);
+          showListenToastNearStar(star, connection ? connection.listenerName : "");
+        });
+      });
+
+      function triggerListenEvent(listenerName, timestamp) {
+        var starIndex = pickRandomStarIndex();
+        var star = starEls[starIndex] || starEls[0] || null;
+        if (!star) {
+          if (window.__listenDebug) window.__listenDebug.error("animate", "no-stars");
+          return;
+        }
+
+        var committed = false;
+        function commitFreeze() {
+          if (committed) return;
+          committed = true;
+          persistFrozenConnection(starIndex, listenerName);
+          showListenToastNearStar(star, listenerName, timestamp);
+        }
+
+        animateListenToStar(star, function () {
+          commitFreeze();
+        });
+
+        // Safety net: if animation callback is skipped for any reason, still persist freeze state.
+        setTimeout(function () {
+          commitFreeze();
+        }, 3300);
+      }
+
+      function runNextListenEvent() {
+        var now = Date.now();
+
+        // Watchdog: if animation state got stuck, recover automatically.
+        if (listenAnimationRunning && now - listenAnimationStartedAt > 3600) {
+          listenAnimationRunning = false;
+          if (window.__listenDebug) window.__listenDebug.error("queue", "watchdog-reset");
+        }
+
+        if (listenAnimationRunning) {
+          if (window.__listenDebug) window.__listenDebug.queue(listenEventQueue.length, true);
+          return;
+        }
+
+        if (!listenEventQueue.length) {
+          if (window.__listenDebug) window.__listenDebug.queue(0, false);
+          return;
+        }
+
+        listenAnimationRunning = true;
+        listenAnimationStartedAt = now;
+        var next = listenEventQueue.shift();
+        if (window.__listenDebug) window.__listenDebug.queue(listenEventQueue.length, true);
+        try {
+          triggerListenEvent(next.listenerName, next.timestamp);
+        } catch (e) {
+          listenAnimationRunning = false;
+          if (window.__listenDebug) {
+            window.__listenDebug.error("animate", e && e.message ? e.message : "trigger-failed");
+            window.__listenDebug.queue(listenEventQueue.length, false);
+          }
+          runNextListenEvent();
+          return;
+        }
+
+        setTimeout(function () {
+          if (window.__listenDebug) window.__listenDebug.rendered("animate", next.timestamp, listenEventQueue.length);
+          listenAnimationRunning = false;
+          if (window.__listenDebug) window.__listenDebug.queue(listenEventQueue.length, false);
+          runNextListenEvent();
+        }, 3400);
+      }
+
+      // External hook: call window.markListenEvent("Name", timestamp) when a parent listens.
+      window.markListenEvent = function (listenerName, timestamp) {
+        listenEventQueue.push({
+          listenerName: listenerName || "Einhver",
+          timestamp: timestamp || Date.now()
+        });
+        if (window.__listenDebug) window.__listenDebug.enqueued("markListenEvent", timestamp || Date.now(), listenEventQueue.length);
+        runNextListenEvent();
+      };
+
+      window.addEventListener("resize", function () {
+        positionOrbForMobileThirds();
+        renderFrozenConnections();
+      });
+
+      window.addEventListener("beforeunload", function () {
+        cleanupAudio();
+      });
+
+      renderFrozenConnections();
+      positionOrbForMobileThirds();
+
+      starEls.forEach(function (star, starIndex) {
+        star.addEventListener("dblclick", function () {
+          var connection = getFrozenConnectionByStarIndex(starIndex);
+          showListenToastNearStar(star, connection ? connection.listenerName : "");
+        });
+      });
+
+      // Temporary test hook: run this in console to simulate a listen event.
+      window.debugTriggerListen = function (listenerName) {
+        triggerListenEvent(listenerName || "Dad");
+      };
+
+      updateHelperVisibility();
+      startSettleLoop();
+      renderButton();
+    })();
+  </script>
+
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js';
+    import { getFirestore, doc, getDoc, collection, addDoc, serverTimestamp, onSnapshot, query, where } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js';
+    import { getStorage, ref, uploadBytes } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-storage.js';
+
+    const firebaseConfig = {
+      apiKey: 'AIzaSyAgTY3Uxd9_ZxixjqLj-sH8V3OhFAzg6DU',
+      authDomain: 'lesum-22e85.firebaseapp.com',
+      projectId: 'lesum-22e85',
+      storageBucket: 'lesum-22e85.firebasestorage.app',
+      messagingSenderId: '204392598388',
+      appId: '1:204392598388:web:2dbbe3f476cd78d2ffba21'
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const storage = getStorage(app);
+    const useListenEventsStream = true;
+
+    function makeDateKey(d) {
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      const dd = String(d.getDate()).padStart(2, '0');
+      return `${yyyy}-${mm}-${dd}`;
+    }
+
+    window.saveChildV2Session = async function(payload) {
+      const raw = localStorage.getItem('upphatt_child');
+      if (!raw) return { saved: false, reason: 'no-child-session' };
+
+      const childData = JSON.parse(raw);
+      if (!childData?.familyId || !childData?.childKey) {
+        return { saved: false, reason: 'missing-family-or-child' };
+      }
+
+      const snippetClips = payload?.snippetClips || {};
+      const ts = payload?.startedAt || Date.now();
+      const clipDefs = [
+        { key: 'min1', fileName: 'hljod_30s' },
+        { key: 'min5', fileName: 'hljod_2m' },
+        { key: 'min9', fileName: 'hljod_5m' },
+        { key: 'min13', fileName: 'hljod_8m' }
+      ];
+
+      const audioPaths = { min1: null, min5: null, min9: null, min13: null };
+      let uploadCount = 0;
+
+      for (const def of clipDefs) {
+        const snippet = snippetClips[def.key];
+        if (!snippet?.chunks?.length) continue;
+
+        const mimeType = snippet.mimeType || 'audio/webm';
+        const ext = mimeType.includes('mp4') ? 'mp4' : mimeType.includes('ogg') ? 'ogg' : 'webm';
+        const blob = new Blob(snippet.chunks, { type: mimeType });
+        const path = `recordings/${childData.familyId}/${childData.childKey}/${ts}/${def.fileName}.${ext}`;
+        await uploadBytes(ref(storage, path), blob, { contentType: mimeType });
+        audioPaths[def.key] = path;
+        uploadCount += 1;
+      }
+
+      if (uploadCount === 0) {
+        return { saved: false, reason: 'no-snippets' };
+      }
+
+      await addDoc(collection(db, 'sessions'), {
+        familyId: childData.familyId,
+        childKey: childData.childKey,
+        childName: payload?.childName || childData.childName || 'Barn',
+        title: 'Lestur (child-v2 prufa)',
+        pageStart: null,
+        pageEnd: null,
+        pagesRead: null,
+        totalPages: null,
+        imagePath: null,
+        seconds: payload?.elapsedSeconds || 0,
+        timerMode: 'up',
+        hasAudio: true,
+        audioPath_min1: audioPaths.min1,
+        audioPath_min5: audioPaths.min5,
+        audioPath_min9: audioPaths.min9,
+        audioPath_min13: audioPaths.min13,
+        audioPath: audioPaths.min1 || audioPaths.min5 || audioPaths.min9 || audioPaths.min13,
+        timestamp: ts,
+        date: makeDateKey(new Date(ts)),
+        createdAt: serverTimestamp()
+      });
+
+      return { saved: true, uploadCount: uploadCount };
+    };
+
+    function normalizeListenTimestamp(rawTs) {
+      if (!rawTs) return 0;
+
+      if (typeof rawTs === 'number' && Number.isFinite(rawTs)) {
+        return rawTs < 1e12 ? rawTs * 1000 : rawTs;
+      }
+
+      if (typeof rawTs === 'string') {
+        var parsed = Number(rawTs);
+        if (Number.isFinite(parsed) && parsed > 0) {
+          return parsed < 1e12 ? parsed * 1000 : parsed;
+        }
+      }
+
+      if (rawTs instanceof Date) {
+        var dateMs = rawTs.getTime();
+        return Number.isFinite(dateMs) ? dateMs : 0;
+      }
+
+      if (typeof rawTs.toMillis === 'function') {
+        try {
+          var millis = rawTs.toMillis();
+          return Number.isFinite(millis) ? millis : 0;
+        } catch (e) {
+          // no-op
+        }
+      }
+
+      if (typeof rawTs.seconds === 'number') {
+        return rawTs.seconds * 1000;
+      }
+
+      return 0;
+    }
+
+    function handleListenEventData(data, childKey, source) {
+      if (!data) return;
+
+      var now = Date.now();
+      var ts = normalizeListenTimestamp(data.timestamp);
+      var listenerName = data.listenerName || 'Einhver';
+
+      // Only show if within 48 hours
+      if (!ts || now - ts > 48 * 60 * 60 * 1000) return;
+      if (ts > now + 10 * 60 * 1000) {
+        // Ignore clearly future-skewed events from device clock drift.
+        if (window.__listenDebug) window.__listenDebug.error(source || 'unknown', 'future-ts');
+        return;
+      }
+
+      // Only show once per newest listen event for this child.
+      var shownKey = 'upphatt_listen_shown_' + childKey;
+      var shownTs = parseInt(localStorage.getItem(shownKey) || '0', 10);
+      if (!Number.isFinite(shownTs) || shownTs > now + 10 * 60 * 1000) {
+        shownTs = 0;
+        localStorage.setItem(shownKey, '0');
+        if (window.__listenDebug) window.__listenDebug.error(source || 'unknown', 'reset-shown-ts');
+      }
+      if (ts <= shownTs) return;
+
+      localStorage.setItem(shownKey, String(ts));
+
+      if (window.__listenDebug) {
+        window.__listenDebug.accepted(source || 'unknown', ts);
+      }
+
+      if (typeof window.markListenEvent === 'function') {
+        window.markListenEvent(listenerName, ts);
+      }
+    }
+
+    async function checkListenEventOnce() {
+      try {
+        var raw = localStorage.getItem('upphatt_child');
+        if (!raw) return;
+        var childData = JSON.parse(raw);
+        if (!childData || !childData.familyId || !childData.childKey) return;
+
+        var familyId = childData.familyId;
+        var childKey = childData.childKey;
+
+        var snap = await getDoc(doc(db, 'listens', familyId + '_' + childKey));
+        if (!snap.exists()) return;
+        handleListenEventData(snap.data(), childKey, 'legacy-doc-once');
+      } catch (e) {
+        console.warn('Listen check failed:', e);
+      }
+    }
+
+    function startListenEventSubscription() {
+      try {
+        var raw = localStorage.getItem('upphatt_child');
+        if (!raw) return;
+        var childData = JSON.parse(raw);
+        if (!childData || !childData.familyId || !childData.childKey) return;
+
+        var familyId = childData.familyId;
+        var childKey = childData.childKey;
+        onSnapshot(doc(db, 'listens', familyId + '_' + childKey), function (snap) {
+          if (!snap.exists()) return;
+          handleListenEventData(snap.data(), childKey, 'legacy-doc-sub');
+        }, function (e) {
+          console.warn('Listen subscription failed:', e);
+          if (window.__listenDebug) window.__listenDebug.error('legacy-doc-sub', e && e.message ? e.message : 'subscription failed');
+        });
+      } catch (e) {
+        console.warn('Listen subscription setup failed:', e);
+      }
+    }
+
+    function startSessionListenFallbackSubscription() {
+      try {
+        var raw = localStorage.getItem('upphatt_child');
+        if (!raw) return;
+        var childData = JSON.parse(raw);
+        if (!childData || !childData.familyId || !childData.childKey) return;
+
+        var q = query(
+          collection(db, 'sessions'),
+          where('familyId', '==', childData.familyId),
+          where('childKey', '==', childData.childKey)
+        );
+
+        onSnapshot(q, function (snap) {
+          var latestTs = 0;
+          var latestName = 'Einhver';
+
+          snap.forEach(function (d) {
+            var row = d.data();
+            var ts = row ? normalizeListenTimestamp(row.lastListenedAt) : 0;
+            if (ts > latestTs) {
+              latestTs = ts;
+              latestName = row.lastListenerName || 'Einhver';
+            }
+          });
+
+          if (latestTs > 0) {
+            handleListenEventData({ listenerName: latestName, timestamp: latestTs }, childData.childKey, 'sessions-fallback');
+          }
+        }, function (e) {
+          console.warn('Session listen fallback failed:', e);
+          if (window.__listenDebug) window.__listenDebug.error('sessions-fallback', e && e.message ? e.message : 'fallback failed');
+        });
+      } catch (e) {
+        console.warn('Session listen fallback setup failed:', e);
+      }
+    }
+
+    function startListenEventsSubscription() {
+      if (!useListenEventsStream) {
+        return;
+      }
+      try {
+        var raw = localStorage.getItem('upphatt_child');
+        if (!raw) return;
+        var childData = JSON.parse(raw);
+        if (!childData || !childData.familyId || !childData.childKey) return;
+        if (window.__listenDebug) {
+          window.__listenDebug.setChildKey(childData.childKey);
+        }
+
+        var q = query(
+          collection(db, 'listenEvents'),
+          where('familyId', '==', childData.familyId),
+          where('childKey', '==', childData.childKey)
+        );
+
+        onSnapshot(q, function (snap) {
+          var events = [];
+          snap.forEach(function (d) {
+            var row = d.data() || {};
+            var ts = normalizeListenTimestamp(row.timestamp);
+            if (!ts) return;
+            events.push({
+              timestamp: ts,
+              listenerName: row.listenerName || 'Einhver'
+            });
+          });
+
+          events
+            .sort(function (a, b) { return a.timestamp - b.timestamp; })
+            .forEach(function (evt) {
+              handleListenEventData(evt, childData.childKey, 'listenEvents-stream');
+            });
+        }, function (e) {
+          console.warn('Listen events subscription failed:', e);
+          if (window.__listenDebug) window.__listenDebug.error('listenEvents-stream', e && e.message ? e.message : 'events failed');
+        });
+      } catch (e) {
+        console.warn('Listen events subscription setup failed:', e);
+      }
+    }
+
+    if (document.readyState === 'complete') {
+      checkListenEventOnce();
+      startListenEventSubscription();
+      startSessionListenFallbackSubscription();
+      if (useListenEventsStream) startListenEventsSubscription();
+    } else {
+      window.addEventListener('load', function () {
+        checkListenEventOnce();
+        startListenEventSubscription();
+        startSessionListenFallbackSubscription();
+        if (useListenEventsStream) startListenEventsSubscription();
+      });
+    }
+  </script>
+</html>

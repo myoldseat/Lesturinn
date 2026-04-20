@@ -6,7 +6,12 @@ import {
   setDoc, doc, addDoc, serverTimestamp
 } from './firebase-config.js';
 import { S }    from './state.js';
-import { fmtTime, makeDateKey, formatLabel, getMonday, getStreak } from './helpers.js';
+import { fmtTime, formatLabel, getMonday, getStreak } from './helpers.js';
+
+// ── makeDateKey: match Firestore format "2026-4-20" (no zero-padding) ──
+function makeDateKey(d) {
+  return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
+}
 
 const IS_MONTHS = ['janúar','febrúar','mars','apríl','maí','júní',
                    'júlí','ágúst','september','október','nóvember','desember'];
@@ -44,16 +49,58 @@ export function startFamilyListener() {
 // STATE
 // ══════════════════════════════════════════════
 
-let _phSelectedKey = null;
-let _hmView  = 'week';
-let _hmMonth = new Date().getMonth();
-let _hmYear  = new Date().getFullYear();
-
-// Accordion state — hvaða harmonika er opin
-let _openRecIdx = null;
-
-// Blocker — hindrar re-render á recordings meðan hljóð er að spila
+let _phSelectedKey  = null;
+let _hmView         = 'week';
+let _hmMonth        = new Date().getMonth();
+let _hmYear         = new Date().getFullYear();
+let _openRecIdx     = null;
 let _isPlayingAudio = false;
+let _recDays        = 7;    // filter: 7 | 14 | 21 | 30
+let _recFavOnly     = false; // filter: favorites only
+
+// Favorites stored in localStorage — key: docId
+function _getFavs() {
+  try { return JSON.parse(localStorage.getItem('upphatt_favs') || '{}'); }
+  catch { return {}; }
+}
+function _setFav(docId, val) {
+  const favs = _getFavs();
+  if (val) favs[docId] = true; else delete favs[docId];
+  localStorage.setItem('upphatt_favs', JSON.stringify(favs));
+}
+function _isFav(docId) { return !!_getFavs()[docId]; }
+
+export function toggleFav(docId, btnEl) {
+  const now = !_isFav(docId);
+  _setFav(docId, now);
+  if (btnEl) {
+    btnEl.textContent = now ? '★' : '☆';
+    btnEl.classList.toggle('ph-fav-active', now);
+  }
+  // If filtering by favs and just un-starred — re-render
+  if (_recFavOnly && !now) renderRecordings();
+}
+
+export function setRecDays(days) {
+  _recDays = days;
+  _openRecIdx = null;
+  [7,14,21,30].forEach(d => {
+    const btn = document.getElementById('ph-rec-days-' + d);
+    if (btn) btn.classList.toggle('ph-rec-filter-active', d === days);
+  });
+  renderRecordings();
+}
+
+export function toggleRecFavFilter() {
+  _recFavOnly = !_recFavOnly;
+  _openRecIdx = null;
+  const btn = document.getElementById('ph-rec-fav-filter');
+  if (btn) {
+    btn.classList.toggle('ph-fav-active', _recFavOnly);
+    btn.textContent = _recFavOnly ? '★ Uppáhald' : '☆ Uppáhald';
+  }
+  renderRecordings();
+}
 
 // ══════════════════════════════════════════════
 // MAIN RENDER
@@ -101,6 +148,7 @@ function renderChildCards() {
 
 export function selectChild(key) {
   _phSelectedKey = key;
+  _openRecIdx = null;
   renderChildCards();
   renderWeekGrid();
   updateStats();
@@ -108,7 +156,7 @@ export function selectChild(key) {
   renderRecordings();
 }
 
-// ── 7 daga grid ──
+// ── 7 daga grid — byrjar á sunnudegi ──
 const DAY_LABELS = ['S','M','Þ','M','F','F','L'];
 
 function renderWeekGrid() {
@@ -116,17 +164,24 @@ function renderWeekGrid() {
   if (!grid) return;
   const sessions = S.sessions || [];
   const today = new Date(); today.setHours(12,0,0,0);
+  const todayKey = makeDateKey(today);
+
+  // Finna sunnudag þessarar viku (getDay() 0=Sun)
+  const sunday = new Date(today);
+  sunday.setDate(today.getDate() - today.getDay());
+
   const cells = [];
-  for (let i = 6; i >= 0; i--) {
-    const d       = new Date(today); d.setDate(today.getDate() - i);
+  for (let i = 0; i < 7; i++) {
+    const d       = new Date(sunday); d.setDate(sunday.getDate() + i);
     const key     = makeDateKey(d);
-    const isToday = i === 0;
+    const isToday = key === todayKey;
+    const isFuture = d > today;
     const daySessions = sessions.filter(s => {
       const matchChild = !_phSelectedKey || _phSelectedKey === 'all' ? true : s.childKey === _phSelectedKey;
       return s.date === key && matchChild && (s.seconds||0) >= 60;
     });
     const mins     = daySessions.reduce((a,s) => a + Math.floor((s.seconds||0)/60), 0);
-    const dotClass = mins === 0 ? 'ph-wdot-empty' : mins < 15 ? 'ph-wdot-low' : mins < 30 ? 'ph-wdot-mid' : 'ph-wdot-full';
+    const dotClass = isFuture ? 'ph-wdot-empty' : mins === 0 ? 'ph-wdot-empty' : mins < 15 ? 'ph-wdot-low' : mins < 30 ? 'ph-wdot-mid' : 'ph-wdot-full';
     cells.push(`
       <div class="ph-wday-cell">
         <div class="ph-wday-lbl ${isToday ? 'ph-wday-today' : ''}">${DAY_LABELS[d.getDay()]}</div>
@@ -184,28 +239,19 @@ function renderHeatmap() {
 }
 
 function minsToLevel(mins) {
-  if (mins === 0) return 0;
-  if (mins < 10)  return 1;
-  if (mins < 20)  return 2;
-  if (mins < 35)  return 3;
-  return 4;
+  if (mins === 0) return 0; if (mins < 10) return 1;
+  if (mins < 20)  return 2; if (mins < 35) return 3; return 4;
 }
-
-function levelClass(l) {
-  return ['ph-hm-c0','ph-hm-c1','ph-hm-c2','ph-hm-c3','ph-hm-c4'][l];
-}
+function levelClass(l) { return ['ph-hm-c0','ph-hm-c1','ph-hm-c2','ph-hm-c3','ph-hm-c4'][l]; }
 
 function legendHtml() {
-  return `
-    <div class="ph-hm-legend">
-      <span class="ph-hm-leg-lbl">Minna</span>
-      <div class="ph-hm-leg-cell ph-hm-c0"></div>
-      <div class="ph-hm-leg-cell ph-hm-c1"></div>
-      <div class="ph-hm-leg-cell ph-hm-c2"></div>
-      <div class="ph-hm-leg-cell ph-hm-c3"></div>
-      <div class="ph-hm-leg-cell ph-hm-c4"></div>
-      <span class="ph-hm-leg-lbl">Meira</span>
-    </div>`;
+  return `<div class="ph-hm-legend">
+    <span class="ph-hm-leg-lbl">Minna</span>
+    <div class="ph-hm-leg-cell ph-hm-c0"></div><div class="ph-hm-leg-cell ph-hm-c1"></div>
+    <div class="ph-hm-leg-cell ph-hm-c2"></div><div class="ph-hm-leg-cell ph-hm-c3"></div>
+    <div class="ph-hm-leg-cell ph-hm-c4"></div>
+    <span class="ph-hm-leg-lbl">Meira</span>
+  </div>`;
 }
 
 function buildWeekHeatmap(sessions) {
@@ -215,45 +261,34 @@ function buildWeekHeatmap(sessions) {
   sessions.forEach(s => {
     const ts = s.timestamp || (s.createdAt?.seconds ? s.createdAt.seconds * 1000 : null);
     if (!ts || (s.seconds||0) < 60) return;
-    const d   = new Date(ts);
-    const dow = (d.getDay() + 6) % 7;
-    const h   = d.getHours();
+    const d = new Date(ts), dow = (d.getDay() + 6) % 7, h = d.getHours();
     if (h < 13 || h > 22) return;
     const k = `${dow}_${h}`;
     map[k] = (map[k] || 0) + Math.floor((s.seconds||0) / 60);
   });
   const todayDow = (new Date().getDay() + 6) % 7;
   const dayHdrs = DAYS.map((d, i) =>
-    `<div class="ph-hm-day-lbl ${i === todayDow ? 'ph-hm-today-lbl' : ''}">${d}</div>`
-  ).join('');
+    `<div class="ph-hm-day-lbl ${i === todayDow ? 'ph-hm-today-lbl' : ''}">${d}</div>`).join('');
   const rows = HOURS.map(h => {
     const cells = DAYS.map((d, di) => {
       const mins = map[`${di}_${h}`] || 0;
-      const tip  = `${d} ${h}:00 — ${mins > 0 ? mins + ' mín' : 'Ekki lesið'}`;
-      return `<div class="ph-hm-cell ${levelClass(minsToLevel(mins))}" title="${tip}"></div>`;
+      return `<div class="ph-hm-cell ${levelClass(minsToLevel(mins))}" title="${d} ${h}:00 — ${mins > 0 ? mins + ' mín' : 'Ekki lesið'}"></div>`;
     }).join('');
     return `<div class="ph-hm-row"><div class="ph-hm-hour-lbl">${h}:00</div>${cells}</div>`;
   }).join('');
-  return `
-    <div class="ph-hm-wrap">
-      <div class="ph-hm-day-row"><div class="ph-hm-hour-spacer"></div>${dayHdrs}</div>
-      <div class="ph-hm-rows">${rows}</div>
-      ${legendHtml()}
-    </div>`;
+  return `<div class="ph-hm-wrap"><div class="ph-hm-day-row"><div class="ph-hm-hour-spacer"></div>${dayHdrs}</div><div class="ph-hm-rows">${rows}</div>${legendHtml()}</div>`;
 }
 
 function buildMonthHeatmap(sessions) {
   const DAYS = ['Mán','Þri','Mið','Fim','Fös','Lau','Sun'];
-  const MONTHS_FULL = ['Janúar','Febrúar','Mars','Apríl','Maí','Júní',
-                       'Júlí','Ágúst','September','Október','Nóvember','Desember'];
+  const MONTHS_FULL = ['Janúar','Febrúar','Mars','Apríl','Maí','Júní','Júlí','Ágúst','September','Október','Nóvember','Desember'];
   const map = {};
   sessions.forEach(s => {
     if ((s.seconds||0) < 60 || !s.date) return;
     map[s.date] = (map[s.date] || 0) + Math.floor((s.seconds||0) / 60);
   });
   const y = _hmYear, m = _hmMonth;
-  const firstDay = new Date(y, m, 1);
-  const lastDay  = new Date(y, m + 1, 0);
+  const firstDay = new Date(y, m, 1), lastDay = new Date(y, m + 1, 0);
   const startDow = (firstDay.getDay() + 6) % 7;
   const todayKey = makeDateKey(new Date());
   const isNow    = y === new Date().getFullYear() && m === new Date().getMonth();
@@ -262,21 +297,10 @@ function buildMonthHeatmap(sessions) {
   const dayHdrs  = DAYS.map(d => `<div class="ph-hm-mcal-lbl">${d}</div>`).join('');
   let cells = Array(startDow).fill(`<div class="ph-hm-mcal-cell ph-hm-mcal-empty"></div>`).join('');
   for (let day = 1; day <= lastDay.getDate(); day++) {
-    const key  = `${y}-${m+1}-${day}`;
-    const mins = map[key] || 0;
-    const isToday = key === todayKey;
+    const key = `${y}-${m+1}-${day}`, mins = map[key] || 0, isToday = key === todayKey;
     cells += `<div class="ph-hm-mcal-cell ${levelClass(minsToLevel(mins))} ${isToday ? 'ph-hm-today-cell' : ''}" title="${day}. ${IS_MONTHS[m]} — ${mins > 0 ? mins + ' mín' : 'Ekki lesið'}"><span class="ph-hm-mcal-num">${day}</span></div>`;
   }
-  return `
-    <div class="ph-hm-wrap">
-      <div class="ph-hm-mnav">
-        <button class="ph-hm-nav-btn" onclick="${prevFn}">‹</button>
-        <div class="ph-hm-mname">${MONTHS_FULL[m]} ${y}</div>
-        <button class="ph-hm-nav-btn" onclick="${nextFn}" ${isNow ? 'disabled' : ''}>›</button>
-      </div>
-      <div class="ph-hm-mcal-grid">${dayHdrs}${cells}</div>
-      ${legendHtml()}
-    </div>`;
+  return `<div class="ph-hm-wrap"><div class="ph-hm-mnav"><button class="ph-hm-nav-btn" onclick="${prevFn}">‹</button><div class="ph-hm-mname">${MONTHS_FULL[m]} ${y}</div><button class="ph-hm-nav-btn" onclick="${nextFn}" ${isNow ? 'disabled' : ''}>›</button></div><div class="ph-hm-mcal-grid">${dayHdrs}${cells}</div>${legendHtml()}</div>`;
 }
 
 function buildYearHeatmap(sessions) {
@@ -287,12 +311,9 @@ function buildYearHeatmap(sessions) {
   });
   const today = new Date(); today.setHours(12,0,0,0);
   const todayKey = makeDateKey(today);
-  const start = new Date(today);
-  start.setDate(today.getDate() - 363);
-  const startDow = (start.getDay() + 6) % 7;
-  start.setDate(start.getDate() - startDow);
-  const weeks = [];
-  let cur = new Date(start);
+  const start = new Date(today); start.setDate(today.getDate() - 363);
+  const startDow = (start.getDay() + 6) % 7; start.setDate(start.getDate() - startDow);
+  const weeks = []; let cur = new Date(start);
   while (cur <= today) {
     const week = [];
     for (let d = 0; d < 7; d++) {
@@ -316,46 +337,67 @@ function buildYearHeatmap(sessions) {
     }).join('');
     return `<div class="ph-hm-yr-week">${days}</div>`;
   }).join('');
-  return `
-    <div class="ph-hm-wrap">
-      <div class="ph-hm-yr-mlbl-row" style="grid-template-columns:repeat(${weeks.length},1fr)">${mlbls}</div>
-      <div class="ph-hm-yr-grid">
-        <div class="ph-hm-yr-daycol">
-          <div></div><div class="ph-hm-yr-dlbl">Þri</div><div></div>
-          <div class="ph-hm-yr-dlbl">Fim</div><div></div>
-          <div class="ph-hm-yr-dlbl">Lau</div><div></div>
-        </div>
-        <div class="ph-hm-yr-weeks">${cols}</div>
-      </div>
-      ${legendHtml()}
-    </div>`;
+  return `<div class="ph-hm-wrap"><div class="ph-hm-yr-mlbl-row" style="grid-template-columns:repeat(${weeks.length},1fr)">${mlbls}</div><div class="ph-hm-yr-grid"><div class="ph-hm-yr-daycol"><div></div><div class="ph-hm-yr-dlbl">Þri</div><div></div><div class="ph-hm-yr-dlbl">Fim</div><div></div><div class="ph-hm-yr-dlbl">Lau</div><div></div></div><div class="ph-hm-yr-weeks">${cols}</div></div>${legendHtml()}</div>`;
 }
 
 // ══════════════════════════════════════════════
-// RECORDINGS — accordion
+// RECORDINGS
 // ══════════════════════════════════════════════
 
 function renderRecordings() {
-  const list = document.getElementById('ph-recordings-list');
-  const sub  = document.getElementById('ph-rec-subtitle');
+  const list    = document.getElementById('ph-recordings-list');
+  const tileHdr = document.getElementById('ph-rec-tile-header');
   if (!list) return;
-
-  // Ekki re-rendera meðan hljóð er að spila — harmonika heldur sér
   if (_isPlayingAudio) return;
 
   const sessions = S.sessions || [];
-  const filtered = (!_phSelectedKey || _phSelectedKey === 'all'
+  const favs     = _getFavs();
+
+  // 1. Filter by child
+  let filtered = (!_phSelectedKey || _phSelectedKey === 'all'
     ? sessions : sessions.filter(s => s.childKey === _phSelectedKey)
   ).filter(s => s.hasAudio);
 
-  if (sub) {
-    const childName = _phSelectedKey && _phSelectedKey !== 'all'
-      ? (S.parentChildren || []).find(c => c.key === _phSelectedKey)?.name || '' : '';
-    sub.textContent = childName ? `15 sek klippingar úr lotum ${childName}` : '15 sek klippingar úr hverri lotu';
+  // 2. Filter by days window
+  const cutoff = Date.now() - (_recDays * 24 * 60 * 60 * 1000);
+  filtered = filtered.filter(s => {
+    const ts = s.timestamp || (s.createdAt?.seconds ? s.createdAt.seconds * 1000 : null);
+    return ts && ts >= cutoff;
+  });
+
+  // 3. Filter by favorites
+  if (_recFavOnly) filtered = filtered.filter(s => favs[s._docId]);
+
+  const totalClips  = filtered.length;
+  const lastRec     = filtered[0]; // already sorted newest first
+  const lastRecDate = lastRec ? fmtDateIS(lastRec.date) : null;
+
+  // ── Tile header with count + last recording ──
+  if (tileHdr) {
+    tileHdr.innerHTML = `
+      <div class="ph-rec-tile-top">
+        <div class="ph-rec-count-bg">${totalClips} klippingar</div>
+        ${lastRecDate ? `
+          <div class="ph-rec-last">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#1dcdd3" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            Síðasta: ${lastRecDate}
+          </div>` : ''}
+      </div>
+      <div class="ph-rec-controls">
+        <div class="ph-rec-day-filters">
+          ${[7,14,21,30].map(d => `
+            <button id="ph-rec-days-${d}" class="ph-rec-filter-btn ${_recDays === d ? 'ph-rec-filter-active' : ''}"
+              onclick="setRecDays(${d})">${d}d</button>`).join('')}
+        </div>
+        <button id="ph-rec-fav-filter" class="ph-rec-fav-btn ${_recFavOnly ? 'ph-fav-active' : ''}"
+          onclick="toggleRecFavFilter()">
+          ${_recFavOnly ? '★' : '☆'} Uppáhald
+        </button>
+      </div>`;
   }
 
   if (!filtered.length) {
-    list.innerHTML = '<div class="ph-rec-empty">Engar upptökur enn. Klippingar birtast hér eftir lestrarlotur!</div>';
+    list.innerHTML = `<div class="ph-rec-empty">${_recFavOnly ? 'Engar uppáhaldklippingar — smelltu á ★ til að vista.' : `Engar klippingar síðustu ${_recDays} daga.`}</div>`;
     return;
   }
 
@@ -366,10 +408,12 @@ function renderRecordings() {
     { key: 'audioPath_min13', label: 'Mín. 13' }
   ];
 
-  list.innerHTML = filtered.slice(0, 20).map((s, idx) => {
-    const mins  = Math.floor((s.seconds||0) / 60);
-    const label = `${fmtDateIS(s.date)} · ${mins} mín`;
-    const clips = clipDefs.map(({key: pathKey, label: clipLabel}, i) => {
+  list.innerHTML = filtered.slice(0, 30).map((s, idx) => {
+    const mins    = Math.floor((s.seconds||0) / 60);
+    const label   = `${fmtDateIS(s.date)} · ${mins} mín`;
+    const isFav   = !!favs[s._docId];
+    const starId  = `ph-star-${s._docId}`;
+    const clips   = clipDefs.map(({key: pathKey, label: clipLabel}, i) => {
       const path     = s[pathKey] || (i === 0 ? s.audioPath : null);
       const btnId    = `ph-clipbtn-${s._docId}-${i}`;
       const playerId = `ph-clipplay-${s._docId}-${i}`;
@@ -391,13 +435,18 @@ function renderRecordings() {
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg>
             ${label}
           </div>
-          <span class="ph-rec-chevron" id="ph-chev-${idx}">›</span>
+          <div style="display:flex;align-items:center;gap:8px">
+            <button id="${starId}" class="ph-fav-star ${isFav ? 'ph-fav-active' : ''}"
+              onclick="event.stopPropagation();toggleFav('${s._docId}',this)"
+              title="${isFav ? 'Fjarlægja úr uppáhaldi' : 'Bæta í uppáhald'}">${isFav ? '★' : '☆'}</button>
+            <span class="ph-rec-chevron" id="ph-chev-${idx}">›</span>
+          </div>
         </button>
         <div class="ph-rec-clips" id="ph-clips-${idx}" style="display:none">${clips}</div>
       </div>`;
   }).join('');
 
-  // Endursetja harmoniku sem var opin áður en re-render
+  // Restore open accordion
   if (_openRecIdx !== null) {
     const clips = document.getElementById('ph-clips-' + _openRecIdx);
     const chev  = document.getElementById('ph-chev-'  + _openRecIdx);
@@ -425,7 +474,6 @@ export async function phPlayClip(path, playerId, btnId, familyId, childKey, docI
   const btnEl    = document.getElementById(btnId);
   if (!playerEl) return;
 
-  // Ef þegar opið — loka, stoppa, hreinsa
   if (playerEl.style.display !== 'none' && playerEl.innerHTML !== '') {
     const audio = playerEl.querySelector('audio');
     if (audio) audio.pause();
@@ -436,13 +484,11 @@ export async function phPlayClip(path, playerId, btnId, familyId, childKey, docI
     return;
   }
 
-  // Kveikja á takka og blocker
   if (btnEl) btnEl.classList.add('ph-clip-playing');
   playerEl.style.display = '';
   playerEl.innerHTML = '<div class="ph-clip-loading">⏳ Hleður...</div>';
   _isPlayingAudio = true;
 
-  // Safety — losna eftir 90 sek í versta falli
   const safetyTimer = setTimeout(() => {
     _isPlayingAudio = false;
     if (btnEl) btnEl.classList.remove('ph-clip-playing');
@@ -470,13 +516,11 @@ export async function phPlayClip(path, playerId, btnId, familyId, childKey, docI
       };
       audio.addEventListener('ended', onDone);
       audio.addEventListener('pause', onDone);
-      // Kveikja hlustunarskilaboð við fyrstu spilun
       audio.addEventListener('play', () => {
         writeListenEvent(familyId, childKey, playerEl, docId);
       }, { once: true });
       audio.play().catch(() => {});
     }
-
   } catch(e) {
     clearTimeout(safetyTimer);
     playerEl.innerHTML = '<div class="ph-clip-error">❌ Ekki tókst að hlaða</div>';
@@ -498,31 +542,26 @@ async function writeListenEvent(familyId, childKey, playerEl, sessionDocId) {
   if (_listenCooldown[k] && now - _listenCooldown[k] < 5000) return;
   const listenerName = S.parentName || 'Foreldri';
   let wroteAny = false;
-
   try { await setDoc(doc(db,'listens',k), { listenerName, familyId, childKey, timestamp: now }); wroteAny = true; }
   catch(e) { console.error('Listen write 1:', e); }
-
   try { await addDoc(collection(db,'listenEvents'), { familyId, childKey, listenerName, timestamp: now, createdAt: serverTimestamp() }); wroteAny = true; }
   catch(e) { console.error('Listen write 2:', e); }
-
   if (sessionDocId) {
     try { await setDoc(doc(db,'sessions',sessionDocId), { lastListenedAt: now, lastListenerName: listenerName }, { merge: true }); wroteAny = true; }
     catch(e) { console.error('Listen write 3:', e); }
   }
-
   if (wroteAny) {
     _listenCooldown[k] = now;
     let statusEl = playerEl.querySelector('.ph-listen-status');
-    if (!statusEl) {
-      statusEl = document.createElement('div');
-      statusEl.className = 'ph-listen-status';
-      playerEl.appendChild(statusEl);
-    }
+    if (!statusEl) { statusEl = document.createElement('div'); statusEl.className = 'ph-listen-status'; playerEl.appendChild(statusEl); }
     statusEl.textContent = '✓ Hlustunarskilaboð sent';
   }
 }
 
-// ── Tab skipti ──
+// ══════════════════════════════════════════════
+// TAB / MISC
+// ══════════════════════════════════════════════
+
 export function switchTab(tab) {
   ['activity','recordings'].forEach(t => {
     const btn  = document.getElementById('ph-tab-' + t);

@@ -1484,6 +1484,7 @@
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js';
     import { getFirestore, doc, getDoc, collection, addDoc, serverTimestamp, onSnapshot, query, where } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js';
     import { getStorage, ref, uploadBytes } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-storage.js';
+    import { analyzeSnippetBlob } from './js/audio-analysis.js';
 
     const firebaseConfig = {
       apiKey: 'AIzaSyAgTY3Uxd9_ZxixjqLj-sH8V3OhFAzg6DU',
@@ -1525,30 +1526,80 @@
       ];
 
       const audioPaths = { min1: null, min5: null, min9: null, min13: null };
+      const snippetResults = {};
       let uploadCount = 0;
 
       for (const def of clipDefs) {
         const snippet = snippetClips[def.key];
-        if (!snippet?.chunks?.length) continue;
+        if (!snippet?.chunks?.length) {
+          snippetResults[def.key] = { usable: false, reason: 'no_data' };
+          continue;
+        }
 
         const mimeType = snippet.mimeType || 'audio/webm';
-        const ext = mimeType.includes('mp4') ? 'mp4' : mimeType.includes('ogg') ? 'ogg' : 'webm';
         const blob = new Blob(snippet.chunks, { type: mimeType });
+
+        // Run analysis on snippet
+        try {
+          const result = await analyzeSnippetBlob(blob);
+          snippetResults[def.key] = {
+            usable: result.usable,
+            quality: result.quality,
+            reason: result.reason,
+            totalScore: result.totalScore,
+            profile: result.profile,
+            activeRatio: result.activeRatio,
+            praatSyllables: result.praatSyllables,
+            longestBurst: result.longestBurst
+          };
+        } catch (e) {
+          console.warn('Snippet analysis failed for ' + def.key + ':', e);
+          snippetResults[def.key] = { usable: true, quality: 'unknown', reason: null };
+        }
+
+        // Only upload usable snippets
+        if (snippetResults[def.key].usable === false) {
+          audioPaths[def.key] = null;
+          continue;
+        }
+
+        const ext = mimeType.includes('mp4') ? 'mp4' : mimeType.includes('ogg') ? 'ogg' : 'webm';
         const path = `recordings/${childData.familyId}/${childData.childKey}/${ts}/${def.fileName}.${ext}`;
         await uploadBytes(ref(storage, path), blob, { contentType: mimeType });
         audioPaths[def.key] = path;
         uploadCount += 1;
       }
 
-      if (uploadCount === 0) {
+      if (uploadCount === 0 && Object.values(snippetResults).every(r => r.reason === 'no_data')) {
         return { saved: false, reason: 'no-snippets' };
       }
+
+      // Build analysis object
+      const usableSnippets = Object.values(snippetResults).filter(r => r.usable);
+      const usableScores = usableSnippets.map(r => r.totalScore).filter(s => s != null && s > 0);
+      const bestScore = usableScores.length ? Math.max(...usableScores) : 0;
+      const avgScore = usableScores.length
+        ? Number((usableScores.reduce((a, b) => a + b, 0) / usableScores.length).toFixed(1))
+        : 0;
+
+      const analysis = {
+        session: null,
+        snippets: snippetResults,
+        overall: {
+          usableCount: usableSnippets.length,
+          totalSnippets: clipDefs.length,
+          bestScore,
+          avgScore,
+          readingQuality: usableSnippets.length >= 3 ? 'good'
+                        : usableSnippets.length >= 1 ? 'fair' : 'poor'
+        }
+      };
 
       await addDoc(collection(db, 'sessions'), {
         familyId: childData.familyId,
         childKey: childData.childKey,
         childName: payload?.childName || childData.childName || 'Barn',
-        title: 'Lestur (child-v2 prufa)',
+        title: 'Lestur',
         pageStart: null,
         pageEnd: null,
         pagesRead: null,
@@ -1556,12 +1607,13 @@
         imagePath: null,
         seconds: payload?.elapsedSeconds || 0,
         timerMode: 'up',
-        hasAudio: true,
+        hasAudio: uploadCount > 0,
         audioPath_min1: audioPaths.min1,
         audioPath_min5: audioPaths.min5,
         audioPath_min9: audioPaths.min9,
         audioPath_min13: audioPaths.min13,
         audioPath: audioPaths.min1 || audioPaths.min5 || audioPaths.min9 || audioPaths.min13,
+        analysis,
         timestamp: ts,
         date: makeDateKey(new Date(ts)),
         createdAt: serverTimestamp()

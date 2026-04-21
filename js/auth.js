@@ -751,6 +751,13 @@ export async function childLogin() {
   const err  = document.getElementById('child-code-error');
   err.textContent = '';
   if (code.length < 4) { return; }
+  // Admin check
+  if (typeof window.isAdminCode === 'function' && window.isAdminCode(code)) {
+    document.getElementById('child-code-input').disabled = false;
+    document.getElementById('child-code-input').value = '';
+    window.openAdminDashboard();
+    return;
+  }
   try {
     document.getElementById('child-code-input').disabled = true;
     const snap = await getDoc(doc(db, 'codes', code));

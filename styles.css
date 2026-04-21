@@ -219,3 +219,223 @@
 }
 .ph-fav-star:hover { color: #f5c518; transform: scale(1.2); }
 .ph-fav-star.ph-fav-active { color: #f5c518; }
+/* ══════════════════════════════════════════════
+   Settings button in topbar
+   ══════════════════════════════════════════════ */
+.ph-settings-btn {
+  background: var(--ph-accent-dim);
+  border: 1px solid var(--ph-tile-border);
+  border-radius: 8px;
+  width: 34px; height: 34px;
+  color: var(--ph-soft);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: color 0.2s ease, filter 0.2s ease;
+}
+.ph-settings-btn:hover { color: var(--ph-accent); filter: brightness(1.2); }
+.ph-settings-btn svg { stroke: currentColor; }
+
+/* ══════════════════════════════════════════════
+   Settings modal content
+   ══════════════════════════════════════════════ */
+.st-section { margin-bottom: 20px; }
+.st-section-title {
+  font-size: 11px; font-weight: 700; color: var(--ph-soft, #7a8fa0);
+  text-transform: uppercase; letter-spacing: 0.6px;
+  margin-bottom: 10px; padding-bottom: 8px;
+  border-bottom: 1px solid rgba(29,205,211,0.12);
+}
+.st-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.st-row:last-child { border-bottom: none; }
+.st-label { font-size: 13px; color: rgba(148,164,180,0.7); }
+.st-value { font-size: 13px; color: #d9e5ef; font-weight: 600; }
+.st-fam   { color: #1dcdd3; letter-spacing: 1.5px; font-family: Georgia, serif; font-size: 15px; }
+.st-empty { font-size: 13px; color: rgba(148,164,180,0.5); padding: 12px 0; text-align: center; }
+
+.st-kid-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.st-kid-row:last-child { border-bottom: none; }
+.st-kid-info { display: flex; flex-direction: column; gap: 2px; }
+.st-kid-name { font-size: 14px; font-weight: 700; color: #d9e5ef; }
+.st-kid-code { font-size: 12px; color: #1dcdd3; letter-spacing: 1px; }
+.st-delete-btn {
+  background: rgba(255,107,107,0.08);
+  border: 1px solid rgba(255,107,107,0.2);
+  border-radius: 7px; padding: 5px 12px;
+  color: rgba(255,107,107,0.7); font-size: 12px; font-weight: 600;
+  cursor: pointer; transition: all 0.2s ease;
+}
+.st-delete-btn:hover { background: rgba(255,107,107,0.15); color: #ff6b6b; }
+.st-delete-btn-confirm {
+  background: rgba(255,107,107,0.2) !important;
+  border-color: rgba(255,107,107,0.5) !important;
+  color: #ff6b6b !important;
+}
+
+/* ══════════════════════════════════════════════
+   FAM code section in login popup
+   ══════════════════════════════════════════════ */
+.rg-fam-divider {
+  display: flex; align-items: center; gap: 10px;
+  margin: 18px 0 14px; color: rgba(148,164,180,0.4); font-size: 12px;
+}
+.rg-fam-divider::before, .rg-fam-divider::after {
+  content: ''; flex: 1; height: 1px;
+  background: rgba(148,164,180,0.15);
+}
+.rg-fam-section { background: rgba(29,205,211,0.04); border: 1px solid rgba(29,205,211,0.1); border-radius: 12px; padding: 14px; }
+.rg-fam-title { font-size: 13px; font-weight: 700; color: #d9e5ef; margin-bottom: 2px; }
+.rg-fam-sub   { font-size: 12px; color: rgba(148,164,180,0.6); }
+.rg-fam-input { text-transform: uppercase; letter-spacing: 2px; text-align: center; font-family: Georgia, serif; }
+.rg-fam-btn {
+  background: rgba(29,205,211,0.12) !important;
+  color: #1dcdd3 !important;
+  box-shadow: none !important;
+  border: 1px solid rgba(29,205,211,0.3) !important;
+}
+.rg-fam-btn:hover { filter: brightness(1.1); }
+
+/* ── Delete account button ── */
+.st-delete-account-btn {
+  width: 100%;
+  padding: 12px;
+  background: rgba(255,107,107,0.08);
+  border: 1px solid rgba(255,107,107,0.25);
+  border-radius: 10px;
+  color: rgba(255,107,107,0.8);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+}
+.st-delete-account-btn:hover {
+  background: rgba(255,107,107,0.15);
+  border-color: rgba(255,107,107,0.4);
+  color: #ff6b6b;
+}
+.st-delete-account-btn.st-delete-btn-confirm {
+  background: rgba(255,107,107,0.2);
+  border-color: rgba(255,107,107,0.6);
+  color: #ff6b6b;
+  animation: pulse-red 1s ease infinite;
+}
+@keyframes pulse-red {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255,107,107,0.3); }
+  50%       { box-shadow: 0 0 0 6px rgba(255,107,107,0); }
+}
+
+/* ══════════════════════════════════════════════
+   RECORDINGS — tile header, filters, favorites
+   ══════════════════════════════════════════════ */
+
+.ph-rec-tile { position: relative; }
+
+/* Stór bakgrunnstexti — "10 klippingar" */
+.ph-rec-count-bg {
+  font-size: 11px;
+  font-weight: 800;
+  color: rgba(29,205,211,0.12);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  position: absolute;
+  top: 18px; right: 20px;
+  font-size: clamp(28px, 5vw, 42px);
+  font-family: Georgia, serif;
+  font-weight: 900;
+  color: rgba(29,205,211,0.07);
+  letter-spacing: 1px;
+  pointer-events: none;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.ph-rec-tile-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+  position: relative;
+  min-height: 32px;
+}
+
+/* Síðasta klipp með teal play icon */
+.ph-rec-last {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: #1dcdd3;
+  font-weight: 600;
+}
+
+/* Controls row — dagafilter + uppáhald */
+.ph-rec-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+.ph-rec-day-filters {
+  display: flex;
+  gap: 4px;
+}
+
+.ph-rec-filter-btn {
+  background: var(--ph-accent-dim, rgba(29,205,211,0.08));
+  border: 1px solid var(--ph-tile-border, rgba(29,205,211,0.12));
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--ph-soft, #7a8fa0);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.ph-rec-filter-btn:hover { color: #1dcdd3; border-color: rgba(29,205,211,0.3); }
+.ph-rec-filter-active {
+  background: rgba(29,205,211,0.15) !important;
+  border-color: rgba(29,205,211,0.4) !important;
+  color: #1dcdd3 !important;
+}
+
+/* Uppáhald filter takki */
+.ph-rec-fav-btn {
+  background: var(--ph-accent-dim, rgba(29,205,211,0.08));
+  border: 1px solid var(--ph-tile-border, rgba(29,205,211,0.12));
+  border-radius: 6px;
+  padding: 4px 12px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--ph-soft, #7a8fa0);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  margin-left: auto;
+}
+.ph-rec-fav-btn:hover { color: #f5c518; border-color: rgba(245,197,24,0.3); }
+.ph-rec-fav-btn.ph-fav-active {
+  background: rgba(245,197,24,0.1) !important;
+  border-color: rgba(245,197,24,0.4) !important;
+  color: #f5c518 !important;
+}
+
+/* Stjarna á hverjum accordion row */
+.ph-fav-star {
+  background: none;
+  border: none;
+  font-size: 16px;
+  color: rgba(148,164,180,0.4);
+  cursor: pointer;
+  padding: 2px 4px;
+  line-height: 1;
+  transition: color 0.15s ease, transform 0.15s ease;
+}
+.ph-fav-star:hover { color: #f5c518; transform: scale(1.2); }
+.ph-fav-star.ph-fav-active { color: #f5c518; }

@@ -13,6 +13,14 @@ function makeDateKey(d) {
   return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
 }
 
+// Normalize date key — strips leading zeros so "2026-04-16" → "2026-4-16"
+function normDate(d) {
+  if (!d) return '';
+  const p = d.split('-');
+  if (p.length !== 3) return d;
+  return `${p[0]}-${parseInt(p[1])}-${parseInt(p[2])}`;
+}
+
 const IS_MONTHS = ['janúar','febrúar','mars','apríl','maí','júní',
                    'júlí','ágúst','september','október','nóvember','desember'];
 
@@ -132,7 +140,7 @@ function renderChildCards() {
   row.innerHTML = children.map(c => {
     const count      = sessions.filter(s => s.childKey === c.key).length;
     const isSelected = c.key === _phSelectedKey;
-    const readToday  = sessions.some(s => s.childKey === c.key && s.date === today && (s.seconds||0) >= 60);
+    const readToday  = sessions.some(s => s.childKey === c.key && normDate(s.date) === today && (s.seconds||0) >= 60);
     return `
       <div class="ph-child-card ${isSelected ? 'ph-child-selected' : ''}" onclick="selectChild('${c.key}')">
         <div class="ph-child-avatar ${isSelected ? 'ph-child-avatar-active' : ''}">
@@ -178,7 +186,7 @@ function renderWeekGrid() {
     const isFuture = d > today;
     const daySessions = sessions.filter(s => {
       const matchChild = !_phSelectedKey || _phSelectedKey === 'all' ? true : s.childKey === _phSelectedKey;
-      return s.date === key && matchChild && (s.seconds||0) >= 60;
+      return normDate(s.date) === key && matchChild && (s.seconds||0) >= 60;
     });
     const mins     = daySessions.reduce((a,s) => a + Math.floor((s.seconds||0)/60), 0);
     const dotClass = isFuture ? 'ph-wdot-empty' : mins === 0 ? 'ph-wdot-empty' : mins < 15 ? 'ph-wdot-low' : mins < 30 ? 'ph-wdot-mid' : 'ph-wdot-full';
@@ -285,7 +293,8 @@ function buildMonthHeatmap(sessions) {
   const map = {};
   sessions.forEach(s => {
     if ((s.seconds||0) < 60 || !s.date) return;
-    map[s.date] = (map[s.date] || 0) + Math.floor((s.seconds||0) / 60);
+    const k = normDate(s.date);
+    map[k] = (map[k] || 0) + Math.floor((s.seconds||0) / 60);
   });
   const y = _hmYear, m = _hmMonth;
   const firstDay = new Date(y, m, 1), lastDay = new Date(y, m + 1, 0);
@@ -307,7 +316,8 @@ function buildYearHeatmap(sessions) {
   const map = {};
   sessions.forEach(s => {
     if ((s.seconds||0) < 60 || !s.date) return;
-    map[s.date] = (map[s.date] || 0) + Math.floor((s.seconds||0) / 60);
+    const k = normDate(s.date);
+    map[k] = (map[k] || 0) + Math.floor((s.seconds||0) / 60);
   });
   const today = new Date(); today.setHours(12,0,0,0);
   const todayKey = makeDateKey(today);

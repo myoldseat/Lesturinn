@@ -1,4 +1,5 @@
 // ─── Authentication & user processing ───
+// TODO: Bæta við emailVerified check í firebaseLogin, parentLoginFromPopup og onAuthStateChanged
 import {
   auth, db,
   signInWithEmailAndPassword, createUserWithEmailAndPassword,
@@ -17,6 +18,8 @@ let _signupInProgress = false;
 // KÓÐA BÚNINGUR
 // ══════════════════════════════════════════
 
+// FAM####LL — 4 tölur + 2 bókstafir — t.d. FAM4161AB
+// Gefur ~4.7 milljón mögulegar samsetningar
 function makeFamilyCode() {
   const nums  = Math.floor(1000 + Math.random() * 9000);
   const alpha = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
@@ -59,22 +62,24 @@ async function processAuthUser(user) {
   const snap    = await getDoc(doc(db, 'users', user.uid));
   const profile = snap.exists() ? snap.data() : null;
 
-  S.role             = 'parent';
-  S.familyId         = profile?.familyId || user.uid;
-  S.parentName       = (profile?.name || 'Foreldri').split(' ')[0];
-  S.parentEmail      = user.email || '';
-  S.parentChildren   = profile?.children || [];
+  S.role            = 'parent';
+  S.familyId        = profile?.familyId || user.uid;
+  S.parentName      = (profile?.name || 'Foreldri').split(' ')[0];
+  S.parentEmail     = user.email || '';
+  S.parentChildren  = profile?.children || [];
   S.expandedChildren = {};
 
+  // Auto-migration: ef familyCode vantar, búum við til og vistum
   if (!profile?.familyCode) {
     const newCode = makeFamilyCode();
     try {
       await setDoc(doc(db, 'users', user.uid), { familyCode: newCode }, { merge: true });
+      // Vista líka í familycodes collection
       await setDoc(doc(db, 'familycodes', newCode), {
-        familyId:   S.familyId,
-        parentUid:  user.uid,
+        familyId:  S.familyId,
+        parentUid: user.uid,
         parentName: profile?.name || 'Foreldri',
-        createdAt:  serverTimestamp()
+        createdAt: serverTimestamp()
       });
       S.familyCode = newCode;
     } catch(e) { console.warn('Could not save familyCode:', e); S.familyCode = '—'; }
@@ -119,7 +124,7 @@ async function processAuthUser(user) {
 }
 
 // ══════════════════════════════════════════
-// PARENT LOGIN (legacy)
+// PARENT LOGIN (screen — legacy)
 // ══════════════════════════════════════════
 
 export async function firebaseLogin() {
@@ -231,7 +236,8 @@ export async function sendPasswordReset() {
 }
 
 // ══════════════════════════════════════════
-// FAM KÓÐA LOGIN
+// FAM KÓÐA LOGIN — amma, afi, frændi o.fl.
+// Notar familycodes collection — document ID er kóðinn
 // ══════════════════════════════════════════
 
 export async function famCodeLogin() {
@@ -243,6 +249,7 @@ export async function famCodeLogin() {
   if (!code) { errEl.textContent = 'Sláðu inn fjölskyldukóða.'; return; }
   if (btn) { btn.textContent = 'Leita...'; btn.disabled = true; }
   try {
+    // Document lookup á ID — engin query, engin index þarf
     const snap = await getDoc(doc(db, 'familycodes', code));
     if (!snap.exists()) {
       errEl.textContent = 'Kóðinn fannst ekki — athugaðu með fjölskyldumeðlim.';
@@ -250,14 +257,15 @@ export async function famCodeLogin() {
       return;
     }
     const data = snap.data();
-    S.role             = 'guest';
-    S.familyId         = data.familyId;
-    S.parentName       = (data.parentName || 'Fjölskylda').split(' ')[0];
-    S.parentEmail      = '';
-    S.parentChildren   = [];
-    S.familyCode       = code;
+    S.role           = 'guest';
+    S.familyId       = data.familyId;
+    S.parentName     = (data.parentName || 'Fjölskylda').split(' ')[0];
+    S.parentEmail    = '';
+    S.parentChildren = [];
+    S.familyCode     = code;
     S.expandedChildren = {};
 
+    // Sækja börn úr users collection með parentUid
     if (data.parentUid) {
       try {
         const userSnap = await getDoc(doc(db, 'users', data.parentUid));
@@ -344,11 +352,17 @@ export async function firebaseSignupPopup() {
     const familyId   = 'FAM-' + Math.random().toString(36).substr(2,5).toUpperCase();
     const familyCode = makeFamilyCode();
 
+    // Vista notanda
     await setDoc(doc(db, 'users', user.uid), {
       name, email, role: 'parent', familyId, familyCode, children: [], createdAt: serverTimestamp()
     });
+
+    // Vista í familycodes collection — document ID er kóðinn
     await setDoc(doc(db, 'familycodes', familyCode), {
-      familyId, parentUid: user.uid, parentName: name, createdAt: serverTimestamp()
+      familyId,
+      parentUid:  user.uid,
+      parentName: name,
+      createdAt:  serverTimestamp()
     });
 
     await sendEmailVerification(user);
@@ -449,93 +463,61 @@ async function _deleteChild(key) {
 // EYÐA AÐGANGI — soft delete
 // ══════════════════════════════════════════
 
-export async function confirmDeleteAccount() {
+export function confirmDeleteAccount() {
   const btn = document.getElementById('st-delete-account-btn');
   if (!btn) return;
-
-  if (btn.dataset.confirming !== 'true') {
-    btn.textContent = 'Ertu alveg viss? Smelltu aftur til að staðfesta';
+  if (btn.dataset.confirming === 'true') {
+    _softDeleteAccount();
+  } else {
+    btn.textContent = 'Ertu alveg viss? Smelltu aftur';
     btn.dataset.confirming = 'true';
-    btn.style.background   = 'rgba(255,107,107,0.15)';
-    btn.style.borderColor  = 'rgba(255,107,107,0.4)';
+    btn.classList.add('st-delete-btn-confirm');
     setTimeout(() => {
       if (btn.dataset.confirming === 'true') {
-        btn.textContent        = 'Eyða aðgangi og öllum gögnum';
+        btn.textContent = 'Eyða aðgangi og öllum gögnum';
         btn.dataset.confirming = '';
-        btn.style.background   = '';
-        btn.style.borderColor  = '';
+        btn.classList.remove('st-delete-btn-confirm');
       }
     }, 4000);
-    return;
   }
+}
 
-  btn.textContent = 'Eyðir...';
-  btn.disabled    = true;
-
+async function _softDeleteAccount() {
+  const btn = document.getElementById('st-delete-account-btn');
+  if (btn) { btn.textContent = 'Eyðir...'; btn.disabled = true; }
   try {
     const user = auth.currentUser;
-    if (!user) { await logout(); return; }
-    const uid      = user.uid;
-    const familyId = S.familyId;
-    const now      = Date.now();
-
-    // 1. Soft-delete á user profile
-    await setDoc(doc(db, 'users', uid), {
-      deleted:       true,
-      deletedAt:     now,
-      deletedReason: 'user_request'
+    if (!user) return;
+    // Merkja user doc sem eytt
+    await setDoc(doc(db, 'users', user.uid), {
+      deleted: true,
+      deletedAt: serverTimestamp()
     }, { merge: true });
-
-    // 2. Soft-delete á hverju barni
-    if (S.parentChildren?.length) {
-      await Promise.all(S.parentChildren.map(async (c) => {
-        if (c.code) {
-          await setDoc(doc(db, 'codes', c.code), {
-            deleted:   true,
-            deletedAt: now
-          }, { merge: true });
-        }
-      }));
+    // Merkja alla barnakóða sem eytt
+    for (const child of (S.parentChildren || [])) {
+      if (child.code) {
+        try { await setDoc(doc(db, 'codes', child.code), { deleted: true }, { merge: true }); }
+        catch(e) { console.warn('Code delete:', e); }
+      }
     }
-
-    // 3. Soft-delete á familycode
+    // Merkja familycode sem eytt
     if (S.familyCode) {
-      await setDoc(doc(db, 'familycodes', S.familyCode), {
-        deleted:   true,
-        deletedAt: now
-      }, { merge: true });
+      try { await setDoc(doc(db, 'familycodes', S.familyCode), { deleted: true }, { merge: true }); }
+      catch(e) { console.warn('FamCode delete:', e); }
     }
-
-    // 4. Soft-delete á sessions
-    if (familyId) {
-      try {
-        const sessSnap = await getDocs(
-          query(collection(db, 'sessions'), where('familyId', '==', familyId))
-        );
-        await Promise.all(sessSnap.docs.map(d =>
-          setDoc(doc(db, 'sessions', d.id), {
-            deleted:   true,
-            deletedAt: now
-          }, { merge: true })
-        ));
-      } catch(e) { console.warn('Sessions soft-delete villa:', e); }
-    }
-
-    // 5. Útskrá
-    await logout();
-
+    // Skrá út
+    closeSettingsPopup();
+    await signOut(auth);
+    localStorage.clear();
+    location.reload();
   } catch(e) {
     console.error('Delete account villa:', e);
-    btn.textContent        = 'Villa — reyndu aftur';
-    btn.dataset.confirming = '';
-    btn.disabled           = false;
-    btn.style.background   = '';
-    btn.style.borderColor  = '';
+    if (btn) { btn.textContent = 'Villa — reyndu aftur'; btn.disabled = false; btn.dataset.confirming = ''; btn.classList.remove('st-delete-btn-confirm'); }
   }
 }
 
 // ══════════════════════════════════════════
-// YEAR PICKER
+// YEAR PICKER — iOS scroll wheel stíll
 // ══════════════════════════════════════════
 
 const YEARS  = Array.from({length: 11}, (_, i) => 2010 + i);
@@ -554,21 +536,15 @@ function buildYearPicker(containerId, selectedYear) {
   const drum = container.querySelector('.yp-drum');
   const pad  = 2;
   for (let p = 0; p < pad; p++) {
-    const el = document.createElement('div');
-    el.className = 'yp-item yp-padding';
-    drum.appendChild(el);
+    const el = document.createElement('div'); el.className = 'yp-item yp-padding'; drum.appendChild(el);
   }
   YEARS.forEach(y => {
     const el = document.createElement('div');
-    el.className   = 'yp-item';
-    el.textContent = y;
-    el.dataset.year = y;
+    el.className = 'yp-item'; el.textContent = y; el.dataset.year = y;
     drum.appendChild(el);
   });
   for (let p = 0; p < pad; p++) {
-    const el = document.createElement('div');
-    el.className = 'yp-item yp-padding';
-    drum.appendChild(el);
+    const el = document.createElement('div'); el.className = 'yp-item yp-padding'; drum.appendChild(el);
   }
   const initIdx = YEARS.indexOf(selectedYear || 2015);
   drum.scrollTop = initIdx * ITEM_H;
@@ -618,7 +594,7 @@ export function openAddChildPopup() {
   let popup = document.getElementById('add-child-popup');
   if (!popup) {
     popup = document.createElement('div');
-    popup.id        = 'add-child-popup';
+    popup.id = 'add-child-popup';
     popup.className = 'modal-overlay';
     popup.innerHTML = `
       <div class="rg-popup-card" style="max-height:90vh;overflow-y:auto">
@@ -652,17 +628,17 @@ export function openAddChildPopup() {
         </div>
       </div>
       <style>
-        .yp-wrap{position:relative;height:${ITEM_H*5}px;overflow:hidden;border-radius:10px;background:rgba(29,205,211,0.04);border:1px solid rgba(29,205,211,0.16);margin:4px 0 6px}
-        .yp-drum{height:100%;overflow-y:scroll;scrollbar-width:none;-ms-overflow-style:none}
-        .yp-drum::-webkit-scrollbar{display:none}
-        .yp-item{height:${ITEM_H}px;display:flex;align-items:center;justify-content:center;font-family:Georgia,serif;font-size:15px;font-weight:700;color:rgba(29,205,211,0.2);cursor:pointer;transition:color 0.12s ease,font-size 0.12s ease;user-select:none}
-        .yp-item-near{color:rgba(29,205,211,0.45);font-size:16px}
-        .yp-item-selected{color:#1dcdd3;font-size:22px;text-shadow:0 0 14px rgba(29,205,211,0.35)}
-        .yp-item-far{color:rgba(29,205,211,0.12);font-size:13px}
-        .yp-padding{color:transparent !important}
-        .yp-selector{position:absolute;top:50%;left:10%;right:10%;height:${ITEM_H}px;transform:translateY(-50%);border-top:1px solid rgba(29,205,211,0.3);border-bottom:1px solid rgba(29,205,211,0.3);pointer-events:none}
-        .yp-fade-top{position:absolute;top:0;left:0;right:0;height:${ITEM_H*2}px;background:linear-gradient(to bottom,rgba(6,14,26,0.92) 0%,transparent 100%);pointer-events:none;z-index:2}
-        .yp-fade-bottom{position:absolute;bottom:0;left:0;right:0;height:${ITEM_H*2}px;background:linear-gradient(to top,rgba(6,14,26,0.92) 0%,transparent 100%);pointer-events:none;z-index:2}
+        .yp-wrap { position:relative;height:${ITEM_H*5}px;overflow:hidden;border-radius:10px;background:rgba(29,205,211,0.04);border:1px solid rgba(29,205,211,0.16);margin:4px 0 6px; }
+        .yp-drum { height:100%;overflow-y:scroll;scrollbar-width:none;-ms-overflow-style:none; }
+        .yp-drum::-webkit-scrollbar { display:none; }
+        .yp-item { height:${ITEM_H}px;display:flex;align-items:center;justify-content:center;font-family:Georgia,serif;font-size:15px;font-weight:700;color:rgba(29,205,211,0.2);cursor:pointer;transition:color 0.12s ease,font-size 0.12s ease;user-select:none; }
+        .yp-item-near     { color:rgba(29,205,211,0.45);font-size:16px; }
+        .yp-item-selected { color:#1dcdd3;font-size:22px;text-shadow:0 0 14px rgba(29,205,211,0.35); }
+        .yp-item-far      { color:rgba(29,205,211,0.12);font-size:13px; }
+        .yp-padding       { color:transparent !important; }
+        .yp-selector { position:absolute;top:50%;left:10%;right:10%;height:${ITEM_H}px;transform:translateY(-50%);border-top:1px solid rgba(29,205,211,0.3);border-bottom:1px solid rgba(29,205,211,0.3);pointer-events:none; }
+        .yp-fade-top { position:absolute;top:0;left:0;right:0;height:${ITEM_H*2}px;background:linear-gradient(to bottom,rgba(6,14,26,0.92) 0%,transparent 100%);pointer-events:none;z-index:2; }
+        .yp-fade-bottom { position:absolute;bottom:0;left:0;right:0;height:${ITEM_H*2}px;background:linear-gradient(to top,rgba(6,14,26,0.92) 0%,transparent 100%);pointer-events:none;z-index:2; }
       </style>`;
     document.body.appendChild(popup);
     window.closeAddChildPopup = closeAddChildPopup;
@@ -698,13 +674,13 @@ export async function submitAddChild() {
     await setDoc(doc(db, 'codes', code), {
       familyId: S.familyId, childKey, childName: name, birthYear: parseInt(birthYear)
     });
-    const newChild        = { name, key: childKey, code, birthYear: parseInt(birthYear) };
+    const newChild = { name, key: childKey, code, birthYear: parseInt(birthYear) };
     const updatedChildren = [...(S.parentChildren || []), newChild];
     await setDoc(doc(db, 'users', auth.currentUser.uid), {
       children: updatedChildren
     }, { merge: true });
     S.parentChildren = updatedChildren;
-    document.getElementById('ac-code-val').textContent    = code;
+    document.getElementById('ac-code-val').textContent = code;
     document.getElementById('ac-code-display').style.display = '';
     btn.textContent = 'Loka'; btn.disabled = false;
     btn.onclick = closeAddChildPopup;
@@ -726,10 +702,10 @@ export function addChildInput() {
 }
 
 export async function firebaseSignup() {
-  const name     = document.getElementById('reg-name').value.trim();
-  const email    = document.getElementById('reg-email').value.trim();
-  const pw       = document.getElementById('reg-pw').value.trim();
-  const errorEl  = document.getElementById('reg-error');
+  const name    = document.getElementById('reg-name').value.trim();
+  const email   = document.getElementById('reg-email').value.trim();
+  const pw      = document.getElementById('reg-pw').value.trim();
+  const errorEl = document.getElementById('reg-error');
   const childNames = Array.from(document.querySelectorAll('.child-name-input'))
     .map(i => i.value.trim()).filter(v => v !== '');
   if (!name || !email || pw.length < 6 || childNames.length === 0) {
@@ -738,11 +714,11 @@ export async function firebaseSignup() {
   try {
     errorEl.style.color = 'var(--ocean)';
     errorEl.textContent = 'Stofna fjölskyldu... ⏳';
-    _signupInProgress   = true;
-    const userCred      = await createUserWithEmailAndPassword(auth, email, pw);
-    const uid           = userCred.user.uid;
-    const familyId      = 'FAM-' + Math.random().toString(36).substr(2, 5).toUpperCase();
-    const familyCode    = makeFamilyCode();
+    _signupInProgress = true;
+    const userCred   = await createUserWithEmailAndPassword(auth, email, pw);
+    const uid        = userCred.user.uid;
+    const familyId   = 'FAM-' + Math.random().toString(36).substr(2, 5).toUpperCase();
+    const familyCode = makeFamilyCode();
     const childrenArray = [];
     for (const cName of childNames) {
       const loginCode = makeChildCode(cName);
@@ -761,9 +737,9 @@ export async function firebaseSignup() {
     _signupInProgress = false;
     goTo('screen-parent-login');
   } catch (e) {
-    _signupInProgress       = false;
-    errorEl.style.color     = 'var(--coral)';
-    errorEl.textContent     = 'Villa: ' + e.message;
+    _signupInProgress = false;
+    errorEl.style.color = 'var(--coral)';
+    errorEl.textContent = 'Villa: ' + e.message;
     try { await signOut(auth); } catch (_) {}
   }
 }
@@ -771,8 +747,8 @@ export async function firebaseSignup() {
 // ── Child login ──
 export async function childLogin() {
   const rawCode = document.getElementById('child-code-input').value || '';
-  const code    = rawCode.toUpperCase().replace(/[^A-Z0-9]/g, '').trim();
-  const err     = document.getElementById('child-code-error');
+  const code = rawCode.toUpperCase().replace(/[^A-Z0-9]/g, '').trim();
+  const err  = document.getElementById('child-code-error');
   err.textContent = '';
   if (code.length < 4) { return; }
   try {
@@ -783,11 +759,9 @@ export async function childLogin() {
       document.getElementById('child-code-input').disabled = false;
       return;
     }
-    const data     = snap.data();
-    S.role         = 'child';
-    S.familyId     = data.familyId;
-    S.childKey     = data.childKey;
-    S.childName    = data.childName;
+    const data = snap.data();
+    S.role = 'child'; S.familyId = data.familyId;
+    S.childKey = data.childKey; S.childName = data.childName;
     localStorage.setItem('upphatt_child', JSON.stringify({
       familyId: data.familyId, childKey: data.childKey, childName: data.childName, code
     }));
@@ -799,7 +773,7 @@ export async function childLogin() {
   }
 }
 
-// ── Logout ──
+// ── Logout — án confirm dialog ──
 export async function logout() {
   if (S.familyUnsub) { S.familyUnsub(); S.familyUnsub = null; }
   if (S.role === 'child') {
@@ -815,22 +789,19 @@ export async function logout() {
     location.reload();
     return;
   }
+  // Parent
   await signOut(auth);
   localStorage.clear();
   location.reload();
 }
 
-// ── Theme ──
+// ── Theme toggle ──
 export function initParentTheme() {
   const saved = localStorage.getItem('upphatt_parent_theme') || 'dark';
-  const el    = document.getElementById('screen-parent-home');
-  const btn   = document.getElementById('ph-theme-btn');
-  if (saved === 'light') {
-    if (el)  el.classList.add('ph-light');
-    if (btn) btn.textContent = '🌙';
-  } else {
-    if (btn) btn.textContent = '☀️';
-  }
+  const el  = document.getElementById('screen-parent-home');
+  const btn = document.getElementById('ph-theme-btn');
+  if (saved === 'light') { if (el) el.classList.add('ph-light'); if (btn) btn.textContent = '🌙'; }
+  else { if (btn) btn.textContent = '☀️'; }
 }
 
 export function toggleParentTheme() {
@@ -863,11 +834,9 @@ export function initAuth() {
     const saved = localStorage.getItem('upphatt_child');
     if (saved) {
       try {
-        const data  = JSON.parse(saved);
-        S.role      = 'child';
-        S.familyId  = data.familyId;
-        S.childKey  = data.childKey;
-        S.childName = data.childName;
+        const data = JSON.parse(saved);
+        S.role = 'child'; S.familyId = data.familyId;
+        S.childKey = data.childKey; S.childName = data.childName;
         localStorage.setItem('childName', data.childName || 'Lesari');
         window.location.href = 'child-v2.html';
         return;

@@ -5,8 +5,10 @@ export const S = {
   childKey: null,
   childName: null,
   parentName: null,
-  parentChildren: [],   // cleaned up from window._parentChildren
-  expandedChildren: {}, // cleaned up from window._expandedChildren
+  parentEmail: null,
+  familyCode: null,
+  parentChildren: [],
+  expandedChildren: {},
   familyUnsub: null,
   sessions: [],
   timerMode: 'down',
@@ -16,7 +18,22 @@ export const S = {
   pendingSession: null,
   audioStream: null,
   audioSnippets: {},
-  snippetTimers: []
+  snippetTimers: [],
+
+  // ── Analysis additions ──
+  fullRecordingChunks: [],
+  fullRecordingMimeType: '',
+  fullRecorder: null,
+  lowMemoryMode: false,
+  liveMonitorInterval: null,
+  liveAudioCtx: null,
+  liveAnalyser: null,
+  liveStats: {
+    speechSec: 0,
+    silenceSec: 0,
+    longestSilence: 0,
+    _currentSilenceStreak: 0
+  }
 };
 
 export const TARGET = 15 * 60; // 15 minutes in seconds

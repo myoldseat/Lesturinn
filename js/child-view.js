@@ -2,7 +2,8 @@
 import { db, storage, collection, addDoc, query, where, onSnapshot,
          serverTimestamp, ref, uploadBytes, getDownloadURL } from './firebase-config.js';
 import { S, TARGET }   from './state.js';
-import { startAudio, stopAudio } from './audio.js';
+import { startAudio, stopAudio, getLiveStats, getFullRecordingBlob } from './audio.js';
+import { analyzeSnippetBlob, analyzeAudio } from './audio-analysis.js';
 import {
   fmtTime, makeDateKey, formatLabel, renderWeekDots,
   getStreakWithShields, getShields, checkAndGrantShield,
@@ -71,14 +72,12 @@ function loadChildSessions() {
         const pageStart = s.pageStart;
         const totalPages = s.totalPages;
         
-        // Simple progress indicator - only show if book is nearly done
         let progressText = '';
         if (totalPages && pageEnd && (totalPages - pageEnd) <= 20) {
           const pagesRemaining = Math.max(0, totalPages - pageEnd);
           progressText = pagesRemaining > 0 ? `📖 ${pagesRemaining} bls. eftir` : '✅ Bók lokið!';
         }
         
-        // Thumbnail
         const thumbnailHtml = s.imagePath 
           ? `<img src="${s.imagePath}" alt="cover">`
           : `📖`;
@@ -117,8 +116,9 @@ export function startReading() {
   S.elapsedSecs    = 0;
   S.readingStartMs = Date.now();
   S.audioSnippets  = {
-    min1:  { chunks: [], mimeType: '' }, min5:  { chunks: [], mimeType: '' },
-    min9:  { chunks: [], mimeType: '' }, min13: { chunks: [], mimeType: '' }
+    min1:  { chunks: [], mimeType: '' }, min2:  { chunks: [], mimeType: '' },
+    min4:  { chunks: [], mimeType: '' }, min7:  { chunks: [], mimeType: '' },
+    min10: { chunks: [], mimeType: '' }
   };
   S.snippetTimers.forEach(t => clearTimeout(t));
   S.snippetTimers = [];
@@ -175,7 +175,6 @@ export function stopReading() {
     pd.textContent = (start && end && end > start) ? `📖 ${end - start} blaðsíður lesnar!` : '';
   };
 
-  // ── Setup image preview ──
   const photoInput = document.getElementById('book-cover-photo');
   if (photoInput) {
     photoInput.addEventListener('change', function(e) {
@@ -232,53 +231,155 @@ async function compressImage(file) {
   });
 }
 
-// ── Save session (core) ──
+// ══════════════════════════════════════════════════════════
+// SAVE SESSION — with analysis integration
+// ══════════════════════════════════════════════════════════
+
 async function doSaveSession(pageEnd) {
   const err = document.getElementById('save-error');
-  err.textContent = 'Vistar...';
+  err.textContent = 'Greinir hljóð...';
+
   try {
     const now = new Date(), ts = now.getTime();
+
+    // ── 1. Collect live stats (always available) ──
+    const liveStats = getLiveStats();
+
+    // ── 2. Analyze full recording if available ──
+    let sessionAnalysis = null;
+    const fullBlob = getFullRecordingBlob();
+    if (fullBlob) {
+      try {
+        const fullCfg = {
+          snippetDurationSec: 15, minSnippets: 1, maxSnippets: 4,
+          earlyAnchorSec: 45, vadQuantile: 70, minSpeechRatio: 0.4,
+          praatSilenceDb: -25, praatMinDipDb: 2, praatMinPauseSec: 0.3, praatVoicedZcrMax: 0.22
+        };
+        const fullResult = await analyzeAudio(fullBlob, fullCfg);
+        sessionAnalysis = {
+          totalScore: fullResult.sessionSummary.totalScore,
+          profile: fullResult.sessionSummary.profile,
+          activeRatio: fullResult.sessionSummary.activeRatio,
+          fragmentationScore: fullResult.sessionSummary.fragmentationScore,
+          flowScore: fullResult.sessionSummary.flowScore,
+          efficiencyScore: fullResult.sessionSummary.efficiencyScore,
+          controlScore: fullResult.sessionSummary.controlScore,
+          praatSyllables: fullResult.sessionSummary.praatSyllables,
+          praatSpeechRate: fullResult.sessionSummary.praatSpeechRate
+        };
+      } catch (e) {
+        console.warn('Session analysis failed (continuing without):', e);
+      }
+    }
+
+    // ── 3. Analyze each snippet and decide usability ──
+    err.textContent = 'Greinir klippingar...';
+
     const clipDefs = [
-      { label: 'min1',  fileName: 'hljod_1' },
-      { label: 'min5',  fileName: 'hljod_5' },
-      { label: 'min9',  fileName: 'hljod_9' },
-      { label: 'min13', fileName: 'hljod_13' }
+      { label: 'min1',  fileName: 'hljod_30s' },
+      { label: 'min2',  fileName: 'hljod_2m' },
+      { label: 'min4',  fileName: 'hljod_4m' },
+      { label: 'min7',  fileName: 'hljod_7m' },
+      { label: 'min10', fileName: 'hljod_10m' }
     ];
+
+    const snippetResults = {};
     const audioPaths = {};
-    let uploadCount  = 0;
+    let uploadCount = 0;
 
     for (const { label, fileName } of clipDefs) {
       const snippet = S.audioSnippets[label];
-      if (!snippet?.chunks?.length) { audioPaths[label] = null; continue; }
+
+      // No data for this snippet
+      if (!snippet?.chunks?.length) {
+        snippetResults[label] = { usable: false, reason: 'no_data' };
+        audioPaths[label] = null;
+        continue;
+      }
+
+      const mimeType = snippet.mimeType || 'audio/webm';
+      const blob = new Blob(snippet.chunks, { type: mimeType });
+
+      // Run analysis on snippet
       try {
-        const mimeType = snippet.mimeType || 'audio/webm';
-        const ext  = mimeType.includes('mp4') ? 'mp4' : mimeType.includes('ogg') ? 'ogg' : 'webm';
-        const blob = new Blob(snippet.chunks, { type: mimeType });
+        const result = await analyzeSnippetBlob(blob);
+        snippetResults[label] = {
+          usable: result.usable,
+          quality: result.quality,
+          reason: result.reason,
+          totalScore: result.totalScore,
+          profile: result.profile,
+          activeRatio: result.activeRatio,
+          praatSyllables: result.praatSyllables,
+          longestBurst: result.longestBurst
+        };
+      } catch (e) {
+        // Analysis failed — upload anyway (better to have audio than not)
+        console.warn(`Snippet analysis failed for ${label}:`, e);
+        snippetResults[label] = { usable: true, quality: 'unknown', reason: null };
+      }
+
+      // Only upload usable snippets
+      if (snippetResults[label].usable === false) {
+        audioPaths[label] = null;
+        continue;
+      }
+
+      // Upload
+      try {
+        const ext = mimeType.includes('mp4') ? 'mp4' : mimeType.includes('ogg') ? 'ogg' : 'webm';
         const path = `recordings/${S.familyId}/${S.childKey}/${ts}/${fileName}.${ext}`;
         await uploadBytes(ref(storage, path), blob, { contentType: mimeType });
-        audioPaths[label] = path; uploadCount++;
-      } catch (e) { console.error(`Storage villa (${label}):`, e); audioPaths[label] = null; }
+        audioPaths[label] = path;
+        uploadCount++;
+      } catch (e) {
+        console.error(`Storage villa (${label}):`, e);
+        audioPaths[label] = null;
+      }
     }
 
-    if (uploadCount > 0) err.textContent = `🎤 ${uploadCount} hljóðklippum vistað!`;
+    if (uploadCount > 0) err.textContent = `🎤 ${uploadCount} nothæfum klippum vistað!`;
 
-    // ── Handle image upload ──
+    // ── 4. Build analysis object ──
+    const usableSnippets = Object.values(snippetResults).filter(r => r.usable);
+    const usableScores = usableSnippets.map(r => r.totalScore).filter(s => s != null && s > 0);
+    const bestScore = usableScores.length ? Math.max(...usableScores) : 0;
+    const avgScore = usableScores.length
+      ? Number((usableScores.reduce((a, b) => a + b, 0) / usableScores.length).toFixed(1))
+      : 0;
+
+    const analysis = {
+      live: liveStats,
+      session: sessionAnalysis,
+      snippets: snippetResults,
+      overall: {
+        usableCount: usableSnippets.length,
+        totalSnippets: clipDefs.length,
+        bestScore,
+        avgScore,
+        readingQuality: usableSnippets.length >= 3 ? 'good'
+                      : usableSnippets.length >= 1 ? 'fair' : 'poor',
+        lowMemoryMode: S.lowMemoryMode
+      }
+    };
+
+    // ── 5. Handle image upload (unchanged) ──
     let imagePath = null;
     const photoInput = document.getElementById('book-cover-photo');
     if (photoInput?.files?.[0]) {
       try {
         const imageFile = photoInput.files[0];
-        // Compress image using canvas
         const compressedBlob = await compressImage(imageFile);
         const ext = imageFile.type.includes('png') ? 'png' : 'jpg';
         const path = `covers/${S.familyId}/${S.childKey}/${ts}/cover.${ext}`;
         await uploadBytes(ref(storage, path), compressedBlob, { contentType: imageFile.type });
         imagePath = await getDownloadURL(ref(storage, path));
         if (uploadCount === 0) err.textContent = '📷 Bókakápunni hlaðið!';
-        else err.textContent = `🎤 ${uploadCount} hljóðklippum og 📷 bókakápunni hlaðið!`;
+        else err.textContent = `🎤 ${uploadCount} klippum og 📷 bókakápu hlaðið!`;
       } catch (e) { console.error('Image upload villa:', e); imagePath = null; }
     }
 
+    // ── 6. Save to Firestore ──
     await addDoc(collection(db, 'sessions'), {
       familyId: S.familyId, childKey: S.childKey, childName: S.childName,
       title: S.pendingSession?.title || 'Lestur',
@@ -290,17 +391,22 @@ async function doSaveSession(pageEnd) {
       seconds: S.elapsedSecs, timerMode: S.timerMode,
       hasAudio: uploadCount > 0,
       audioPath_min1:  audioPaths.min1  || null,
-      audioPath_min5:  audioPaths.min5  || null,
-      audioPath_min9:  audioPaths.min9  || null,
-      audioPath_min13: audioPaths.min13 || null,
-      audioPath: audioPaths.min1 || audioPaths.min5 || audioPaths.min9 || audioPaths.min13 || null,
+      audioPath_min2:  audioPaths.min2  || null,
+      audioPath_min4:  audioPaths.min4  || null,
+      audioPath_min7:  audioPaths.min7  || null,
+      audioPath_min10: audioPaths.min10 || null,
+      audioPath: audioPaths.min1 || audioPaths.min2 || audioPaths.min4 || audioPaths.min7 || audioPaths.min10 || null,
+      analysis,
       timestamp: ts, date: makeDateKey(now), createdAt: serverTimestamp()
     });
 
     const myCount = (S.sessions || []).filter(s => s.childKey === S.childKey).length + 1;
     checkMilestone(myCount);
     finishReset();
-  } catch (e) { err.textContent = 'Ekki tókst að vista: ' + e.message; console.error(e); }
+  } catch (e) {
+    err.textContent = 'Ekki tókst að vista: ' + e.message;
+    console.error(e);
+  }
 }
 
 export function saveSession() { doSaveSession(parseInt(document.getElementById('page-end').value, 10) || null); }
@@ -308,6 +414,10 @@ export function skipSave()    { doSaveSession(null); }
 
 function finishReset() {
   S.pendingSession = null; S.readingStartMs = null; S.audioSnippets = {};
+  // Clean up full recording blob from memory
+  S.fullRecordingChunks = [];
+  S.fullRecordingMimeType = '';
+
   document.getElementById('finish-card').style.display = 'none';
   document.getElementById('setup-card').style.display  = '';
   ['read-title', 'page-start', 'page-end', 'total-pages', 'book-cover-photo'].forEach(id => {

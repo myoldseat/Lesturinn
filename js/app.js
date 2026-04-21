@@ -20,6 +20,7 @@ import {
   switchHeatmap, switchHeatmapMonth,
   setRecDays, toggleRecFavFilter, toggleFav
 } from './parent-view.js';
+import { isAdminCode, openAdminDashboard, closeAdmin } from './admin-view.js';
 
 // ── Global functions ──
 window.goTo                  = goTo;
@@ -63,6 +64,9 @@ window.switchHeatmapMonth    = switchHeatmapMonth;
 window.setRecDays            = setRecDays;
 window.toggleRecFavFilter    = toggleRecFavFilter;
 window.toggleFav             = toggleFav;
+window.isAdminCode          = isAdminCode;
+window.openAdminDashboard   = openAdminDashboard;
+window.closeAdmin           = closeAdmin;
 
 window.toggleExpand          = toggleExpand;
 window.playClip              = playClip;

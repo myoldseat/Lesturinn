@@ -41,29 +41,26 @@ const ADMIN_RULES = {
 
 function getAdminMetrics(s) {
   const analysis = s.analysis || {};
-  const session = analysis.session || {};
   const snippets = analysis.snippets || {};
 
-  const usableSnippetBursts = [
-    snippets.min1,
-    snippets.min2,
-    snippets.min4,
-    snippets.min7,
-    snippets.min10
-  ]
-    .filter(sn => sn && sn.usable)
-    .map(sn => Number(sn.longestBurst || 0))
-    .filter(v => v > 0);
+  const usable = [snippets.min1, snippets.min2, snippets.min4, snippets.min7, snippets.min10]
+    .filter(sn => sn && sn.usable);
 
-  const longestBurst = usableSnippetBursts.length
-    ? Math.max(...usableSnippetBursts)
-    : 0;
+  if (!usable.length) {
+    return { praatSyllables: 0, fragmentationScore: 0, longestBurst: 0 };
+  }
 
-  return {
-    praatSyllables: Number(session.praatSyllables || 0),
-    fragmentationScore: Number(session.fragmentationScore || 0),
-    longestBurst
-  };
+  const praatSyllables = Math.round(
+    usable.reduce((a, sn) => a + (sn.praatSyllables || 0), 0) / usable.length
+  );
+
+  const fragmentationScore = Number(
+    (usable.reduce((a, sn) => a + (sn.fragmentationScore || 0), 0) / usable.length).toFixed(1)
+  );
+
+  const longestBurst = Math.max(...usable.map(sn => sn.longestBurst || 0));
+
+  return { praatSyllables, fragmentationScore, longestBurst };
 }
 
 function getAdminProfileFromMetrics({ praatSyllables, fragmentationScore, longestBurst }) {

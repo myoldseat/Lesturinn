@@ -839,7 +839,9 @@ export function initAuth() {
     if (S.familyUnsub) { S.familyUnsub(); S.familyUnsub = null; }
     S.sessions = [];
     const saved = localStorage.getItem('upphatt_child');
-    if (saved) {
+   const skipOnce = sessionStorage.getItem('upphatt_skip_child_redirect_once');
+if (skipOnce) { sessionStorage.removeItem('upphatt_skip_child_redirect_once'); localStorage.removeItem('upphatt_child'); }
+if (saved && !skipOnce) {
       try {
         const data = JSON.parse(saved);
         S.role = 'child'; S.familyId = data.familyId;

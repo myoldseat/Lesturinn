@@ -19,23 +19,27 @@ let _adminUnsub = null;
 const ADMIN_RULES = {
   early: {
     maxSyllables: 45,
-    minFragmentation: 70,
+    minFragmentation: 75,
+    minDecodePauses: 8,
     maxLongestBurst: 1.2
   },
   developing: {
     maxSyllables: 65,
-    minFragmentation: 55,
-    maxLongestBurst: 2.0
+    minFragmentation: 60,
+    minDecodePauses: 4,
+    maxLongestBurst: 2.4
   },
   steady: {
     minSyllables: 55,
-    maxFragmentation: 65,
+    maxFragmentation: 75,
+    maxDecodePauses: 5,
     minLongestBurst: 1.6
   },
   flowing: {
     minSyllables: 70,
-    maxFragmentation: 50,
-    minLongestBurst: 2.4
+    maxFragmentation: 70,
+    maxDecodePauses: 4,
+    minLongestBurst: 3.0
   }
 };
 
@@ -72,36 +76,42 @@ function getAdminMetrics(s) {
   return { praatSyllables, fragmentationScore, decodingPauseCount, longestBurst };
 }
 
-function getAdminProfileFromMetrics({ praatSyllables, fragmentationScore, longestBurst }) {
-  if (!praatSyllables && !fragmentationScore && !longestBurst) return 'unknown';
+function getAdminProfileFromMetrics({ praatSyllables, fragmentationScore, decodingPauseCount, longestBurst }) {
+  if (!praatSyllables && !fragmentationScore && !decodingPauseCount && !longestBurst) {
+    return 'unknown';
+  }
 
   if (
     praatSyllables < ADMIN_RULES.early.maxSyllables &&
     fragmentationScore >= ADMIN_RULES.early.minFragmentation &&
+    decodingPauseCount >= ADMIN_RULES.early.minDecodePauses &&
     longestBurst < ADMIN_RULES.early.maxLongestBurst
   ) {
     return 'early';
   }
 
   if (
-    praatSyllables < ADMIN_RULES.developing.maxSyllables &&
-    fragmentationScore >= ADMIN_RULES.developing.minFragmentation &&
-    longestBurst < ADMIN_RULES.developing.maxLongestBurst
-  ) {
-    return 'developing';
-  }
-
-  if (
     praatSyllables >= ADMIN_RULES.flowing.minSyllables &&
-    fragmentationScore < ADMIN_RULES.flowing.maxFragmentation &&
+    fragmentationScore <= ADMIN_RULES.flowing.maxFragmentation &&
+    decodingPauseCount <= ADMIN_RULES.flowing.maxDecodePauses &&
     longestBurst >= ADMIN_RULES.flowing.minLongestBurst
   ) {
     return 'flowing';
   }
 
   if (
+    praatSyllables < ADMIN_RULES.developing.maxSyllables &&
+    fragmentationScore >= ADMIN_RULES.developing.minFragmentation &&
+    decodingPauseCount >= ADMIN_RULES.developing.minDecodePauses &&
+    longestBurst < ADMIN_RULES.developing.maxLongestBurst
+  ) {
+    return 'developing';
+  }
+
+  if (
     praatSyllables >= ADMIN_RULES.steady.minSyllables &&
-    fragmentationScore < ADMIN_RULES.steady.maxFragmentation &&
+    fragmentationScore <= ADMIN_RULES.steady.maxFragmentation &&
+    decodingPauseCount <= ADMIN_RULES.steady.maxDecodePauses &&
     longestBurst >= ADMIN_RULES.steady.minLongestBurst
   ) {
     return 'steady';

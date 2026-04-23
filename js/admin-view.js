@@ -40,11 +40,29 @@ const ADMIN_RULES = {
 };
 
 function getAdminMetrics(s) {
-  const session = s.analysis?.session || {};
+  const analysis = s.analysis || {};
+  const session = analysis.session || {};
+  const snippets = analysis.snippets || {};
+
+  const usableSnippetBursts = [
+    snippets.min1,
+    snippets.min2,
+    snippets.min4,
+    snippets.min7,
+    snippets.min10
+  ]
+    .filter(sn => sn && sn.usable)
+    .map(sn => Number(sn.longestBurst || 0))
+    .filter(v => v > 0);
+
+  const longestBurst = usableSnippetBursts.length
+    ? Math.max(...usableSnippetBursts)
+    : 0;
+
   return {
     praatSyllables: Number(session.praatSyllables || 0),
     fragmentationScore: Number(session.fragmentationScore || 0),
-    longestBurst: Number(session.longestBurst || 0)
+    longestBurst
   };
 }
 
@@ -180,7 +198,10 @@ function renderAdmin() {
     ? (analyzed.reduce((a, s) => a + (s.analysis.overall.usableCount || 0), 0) / analyzed.length).toFixed(1)
     : '—';
   const avgScore = analyzed.filter(s => s.analysis?.overall?.avgScore > 0).length
-    ? (analyzed.reduce((a, s) => a + (s.analysis?.overall?.avgScore || 0), 0) / analyzed.filter(s => s.analysis?.overall?.avgScore > 0).length).toFixed(1)
+    ? (
+        analyzed.reduce((a, s) => a + (s.analysis?.overall?.avgScore || 0), 0) /
+        analyzed.filter(s => s.analysis?.overall?.avgScore > 0).length
+      ).toFixed(1)
     : '—';
 
   // Admin profile distribution — based only on:

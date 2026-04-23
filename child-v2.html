@@ -1543,15 +1543,17 @@
         try {
           const result = await analyzeSnippetBlob(blob);
           snippetResults[def.key] = {
-            usable: result.usable,
-            quality: result.quality,
-            reason: result.reason,
-            totalScore: result.totalScore,
-            profile: result.profile,
-            activeRatio: result.activeRatio,
-            praatSyllables: result.praatSyllables,
-            longestBurst: result.longestBurst
-          };
+          usable: result.usable,
+          quality: result.quality,
+          reason: result.reason,
+          totalScore: result.totalScore,
+          profile: result.profile,
+          activeRatio: result.activeRatio,
+          praatSyllables: result.praatSyllables,
+          longestBurst: result.longestBurst,
+          fragmentationScore: Number(result.fragmentationScore ?? result.summary?.fragmentationScore ?? 0),
+          decodingPauseCount: Number(result.decodingPauseCount ?? result.summary?.decodingPauseCount ?? 0)
+        };
         } catch (e) {
           console.warn('Snippet analysis failed for ' + def.key + ':', e);
           snippetResults[def.key] = { usable: true, quality: 'unknown', reason: null };

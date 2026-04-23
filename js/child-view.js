@@ -304,15 +304,17 @@ async function doSaveSession(pageEnd) {
       try {
         const result = await analyzeSnippetBlob(blob);
         snippetResults[label] = {
-          usable: result.usable,
-          quality: result.quality,
-          reason: result.reason,
-          totalScore: result.totalScore,
-          profile: result.profile,
-          activeRatio: result.activeRatio,
-          praatSyllables: result.praatSyllables,
-          longestBurst: result.longestBurst
-        };
+           usable: result.usable,
+           quality: result.quality,
+           reason: result.reason,
+           totalScore: result.totalScore,
+           profile: result.profile,
+           activeRatio: result.activeRatio,
+           praatSyllables: result.praatSyllables,
+           longestBurst: result.longestBurst,
+           fragmentationScore: result.fragmentationScore,
+           decodingPauseCount: result.summary?.decodingPauseCount || 0
+         };
       } catch (e) {
         // Analysis failed — upload anyway (better to have audio than not)
         console.warn(`Snippet analysis failed for ${label}:`, e);

@@ -13,6 +13,98 @@ let _adminFamilies = {};
 let _adminUnsub = null;
 
 // ══════════════════════════════════════════
+// ADMIN TUNING — only these 3 metrics matter
+// ══════════════════════════════════════════
+
+const ADMIN_RULES = {
+  early: {
+    maxSyllables: 45,
+    minFragmentation: 70,
+    maxLongestBurst: 1.2
+  },
+  developing: {
+    maxSyllables: 65,
+    minFragmentation: 55,
+    maxLongestBurst: 2.0
+  },
+  steady: {
+    minSyllables: 55,
+    maxFragmentation: 65,
+    minLongestBurst: 1.6
+  },
+  flowing: {
+    minSyllables: 70,
+    maxFragmentation: 50,
+    minLongestBurst: 2.4
+  }
+};
+
+function getAdminMetrics(s) {
+  const session = s.analysis?.session || {};
+  return {
+    praatSyllables: Number(session.praatSyllables || 0),
+    fragmentationScore: Number(session.fragmentationScore || 0),
+    longestBurst: Number(session.longestBurst || 0)
+  };
+}
+
+function getAdminProfileFromMetrics({ praatSyllables, fragmentationScore, longestBurst }) {
+  if (!praatSyllables && !fragmentationScore && !longestBurst) return 'unknown';
+
+  if (
+    praatSyllables < ADMIN_RULES.early.maxSyllables &&
+    fragmentationScore >= ADMIN_RULES.early.minFragmentation &&
+    longestBurst < ADMIN_RULES.early.maxLongestBurst
+  ) {
+    return 'early';
+  }
+
+  if (
+    praatSyllables < ADMIN_RULES.developing.maxSyllables &&
+    fragmentationScore >= ADMIN_RULES.developing.minFragmentation &&
+    longestBurst < ADMIN_RULES.developing.maxLongestBurst
+  ) {
+    return 'developing';
+  }
+
+  if (
+    praatSyllables >= ADMIN_RULES.flowing.minSyllables &&
+    fragmentationScore < ADMIN_RULES.flowing.maxFragmentation &&
+    longestBurst >= ADMIN_RULES.flowing.minLongestBurst
+  ) {
+    return 'flowing';
+  }
+
+  if (
+    praatSyllables >= ADMIN_RULES.steady.minSyllables &&
+    fragmentationScore < ADMIN_RULES.steady.maxFragmentation &&
+    longestBurst >= ADMIN_RULES.steady.minLongestBurst
+  ) {
+    return 'steady';
+  }
+
+  return 'mixed';
+}
+
+function getAdminProfileLabel(key) {
+  if (key === 'early') return 'Að fóta sig';
+  if (key === 'developing') return 'Á leiðinni';
+  if (key === 'steady') return 'Orðið stöðugra';
+  if (key === 'flowing') return 'Flæðandi';
+  if (key === 'mixed') return 'Blandað';
+  return 'Engin túlkun';
+}
+
+function getAdminProfileColor(key) {
+  if (key === 'early') return '#f87171';
+  if (key === 'developing') return '#fbbf24';
+  if (key === 'steady') return '#60a5fa';
+  if (key === 'flowing') return '#4ade80';
+  if (key === 'mixed') return '#c084fc';
+  return '#94a3b8';
+}
+
+// ══════════════════════════════════════════
 // AUTH CHECK
 // ══════════════════════════════════════════
 
@@ -91,11 +183,21 @@ function renderAdmin() {
     ? (analyzed.reduce((a, s) => a + (s.analysis?.overall?.avgScore || 0), 0) / analyzed.filter(s => s.analysis?.overall?.avgScore > 0).length).toFixed(1)
     : '—';
 
-  // Profile distribution
-  const profiles = { flowing: 0, steady: 0, stop_start: 0, mixed: 0 };
+  // Admin profile distribution — based only on:
+  // praatSyllables, fragmentationScore, longestBurst
+  const profiles = {
+    early: 0,
+    developing: 0,
+    steady: 0,
+    flowing: 0,
+    mixed: 0,
+    unknown: 0
+  };
+
   analyzed.forEach(s => {
-    const p = s.analysis?.session?.profile || s.analysis?.snippets?.min1?.profile;
-    if (p && profiles[p] !== undefined) profiles[p]++;
+    const metrics = getAdminMetrics(s);
+    const p = getAdminProfileFromMetrics(metrics);
+    if (profiles[p] !== undefined) profiles[p]++;
   });
 
   // Quality distribution
@@ -118,12 +220,14 @@ function renderAdmin() {
 
     ${analyzed.length ? `
     <div class="admin-section">
-      <h3>Lestrarstíll (profile dreifing)</h3>
+      <h3>Lestrarstíll (admin túlkun)</h3>
       <div class="admin-bar-row">
-        <div class="admin-bar-item"><span class="admin-bar-dot" style="background:#4ade80"></span> Flowing: ${profiles.flowing}</div>
-        <div class="admin-bar-item"><span class="admin-bar-dot" style="background:#60a5fa"></span> Steady: ${profiles.steady}</div>
-        <div class="admin-bar-item"><span class="admin-bar-dot" style="background:#fbbf24"></span> Mixed: ${profiles.mixed}</div>
-        <div class="admin-bar-item"><span class="admin-bar-dot" style="background:#f87171"></span> Stop/Start: ${profiles.stop_start}</div>
+        <div class="admin-bar-item"><span class="admin-bar-dot" style="background:#f87171"></span> Að fóta sig: ${profiles.early}</div>
+        <div class="admin-bar-item"><span class="admin-bar-dot" style="background:#fbbf24"></span> Á leiðinni: ${profiles.developing}</div>
+        <div class="admin-bar-item"><span class="admin-bar-dot" style="background:#60a5fa"></span> Orðið stöðugra: ${profiles.steady}</div>
+        <div class="admin-bar-item"><span class="admin-bar-dot" style="background:#4ade80"></span> Flæðandi: ${profiles.flowing}</div>
+        <div class="admin-bar-item"><span class="admin-bar-dot" style="background:#c084fc"></span> Blandað: ${profiles.mixed}</div>
+        <div class="admin-bar-item"><span class="admin-bar-dot" style="background:#94a3b8"></span> Engin túlkun: ${profiles.unknown}</div>
       </div>
     </div>
 
@@ -166,6 +270,8 @@ function renderAdmin() {
       <h3>Nýjustu lotur með greiningu</h3>
       ${analyzed.slice(0, 20).map(s => {
         const a = s.analysis;
+        const metrics = getAdminMetrics(s);
+        const adminProfile = getAdminProfileFromMetrics(metrics);
         return `
           <div class="admin-session-row">
             <div class="admin-session-info">
@@ -177,7 +283,11 @@ function renderAdmin() {
               <span>Skor: ${a.overall?.avgScore || '—'}</span>
               <span>Nothæf: ${a.overall?.usableCount || 0}/${a.overall?.totalSnippets || '?'}</span>
               <span>Gæði: ${a.overall?.readingQuality || '—'}</span>
-              ${a.session ? `<span>Profile: ${a.session.profile}</span>` : ''}
+              <span style="color:${getAdminProfileColor(adminProfile)}">Admin flokkur: ${getAdminProfileLabel(adminProfile)}</span>
+              <span>Syllables: ${metrics.praatSyllables || '—'}</span>
+              <span>Fragmentation: ${metrics.fragmentationScore || '—'}</span>
+              <span>Longest burst: ${metrics.longestBurst || '—'}</span>
+              ${a.session ? `<span>Gamalt profile: ${a.session.profile}</span>` : ''}
             </div>
           </div>`;
       }).join('') || '<p style="color:var(--ph-soft)">Engar greindar lotur enn.</p>'}

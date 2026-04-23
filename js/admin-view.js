@@ -47,7 +47,12 @@ function getAdminMetrics(s) {
     .filter(sn => sn && sn.usable);
 
   if (!usable.length) {
-    return { praatSyllables: 0, fragmentationScore: 0, longestBurst: 0 };
+    return {
+      praatSyllables: 0,
+      fragmentationScore: 0,
+      decodingPauseCount: 0,
+      longestBurst: 0
+    };
   }
 
   const praatSyllables = Math.round(
@@ -58,9 +63,13 @@ function getAdminMetrics(s) {
     (usable.reduce((a, sn) => a + (sn.fragmentationScore || 0), 0) / usable.length).toFixed(1)
   );
 
+  const decodingPauseCount = Number(
+    (usable.reduce((a, sn) => a + (sn.decodingPauseCount || 0), 0) / usable.length).toFixed(1)
+  );
+
   const longestBurst = Math.max(...usable.map(sn => sn.longestBurst || 0));
 
-  return { praatSyllables, fragmentationScore, longestBurst };
+  return { praatSyllables, fragmentationScore, decodingPauseCount, longestBurst };
 }
 
 function getAdminProfileFromMetrics({ praatSyllables, fragmentationScore, longestBurst }) {
@@ -304,6 +313,7 @@ function renderAdmin() {
               <span style="color:${getAdminProfileColor(adminProfile)}">Admin flokkur: ${getAdminProfileLabel(adminProfile)}</span>
               <span>Syllables: ${metrics.praatSyllables || '—'}</span>
               <span>Fragmentation: ${metrics.fragmentationScore || '—'}</span>
+              <span>Decode pauses: ${metrics.decodingPauseCount || '—'}</span>
               <span>Longest burst: ${metrics.longestBurst || '—'}</span>
               ${a.session ? `<span>Gamalt profile: ${a.session.profile}</span>` : ''}
             </div>

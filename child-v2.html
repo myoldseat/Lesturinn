@@ -603,9 +603,10 @@
       var activeSnippetRecorders = [];
       var snippetClips = {
         min1: { chunks: [], mimeType: "" },
+        min2: { chunks: [], mimeType: "" },
         min5: { chunks: [], mimeType: "" },
-        min9: { chunks: [], mimeType: "" },
-        min13: { chunks: [], mimeType: "" }
+        min8: { chunks: [], mimeType: "" },
+        min10: { chunks: [], mimeType: "" }
       };
       var rafId = null;
       var settleTimer = null;
@@ -815,9 +816,10 @@
 
         [
           { label: "min1", atMs: 30 * 1000 },
-          { label: "min5", atMs: 2 * 60 * 1000 },
-          { label: "min9", atMs: 5 * 60 * 1000 },
-          { label: "min13", atMs: 8 * 60 * 1000 }
+          { label: "min2", atMs: 2 * 60 * 1000 },
+          { label: "min5", atMs: 5 * 60 * 1000 },
+          { label: "min8", atMs: 8 * 60 * 1000 },
+          { label: "min10", atMs: 10 * 60 * 1000 }
         ].forEach(function (item) {
           var t = setTimeout(function () {
             captureSnippet(item.label, 15 * 1000);
@@ -1260,9 +1262,10 @@
           saveSessionStatus.textContent = "";
           snippetClips = {
             min1: { chunks: [], mimeType: "" },
+            min2: { chunks: [], mimeType: "" },
             min5: { chunks: [], mimeType: "" },
-            min9: { chunks: [], mimeType: "" },
-            min13: { chunks: [], mimeType: "" }
+            min8: { chunks: [], mimeType: "" },
+            min10: { chunks: [], mimeType: "" }
           };
           clearSnippetTimers();
           activeSnippetRecorders = [];
@@ -1520,12 +1523,13 @@
       const ts = payload?.startedAt || Date.now();
       const clipDefs = [
         { key: 'min1', fileName: 'hljod_30s' },
-        { key: 'min5', fileName: 'hljod_2m' },
-        { key: 'min9', fileName: 'hljod_5m' },
-        { key: 'min13', fileName: 'hljod_8m' }
+        { key: 'min2', fileName: 'hljod_2m' },
+        { key: 'min5', fileName: 'hljod_5m' },
+        { key: 'min8', fileName: 'hljod_8m' },
+        { key: 'min10', fileName: 'hljod_10m' }
       ];
 
-      const audioPaths = { min1: null, min5: null, min9: null, min13: null };
+      const audioPaths = { min1: null, min2: null, min5: null, min8: null, min10: null };
       const snippetResults = {};
       let uploadCount = 0;
 
@@ -1611,10 +1615,11 @@
         timerMode: 'up',
         hasAudio: uploadCount > 0,
         audioPath_min1: audioPaths.min1,
+        audioPath_min2: audioPaths.min2,
         audioPath_min5: audioPaths.min5,
-        audioPath_min9: audioPaths.min9,
-        audioPath_min13: audioPaths.min13,
-        audioPath: audioPaths.min1 || audioPaths.min5 || audioPaths.min9 || audioPaths.min13,
+        audioPath_min8: audioPaths.min8,
+        audioPath_min10: audioPaths.min10,
+        audioPath: audioPaths.min1 || audioPaths.min2 || audioPaths.min5 || audioPaths.min8 || audioPaths.min10,
         analysis,
         timestamp: ts,
         date: makeDateKey(new Date(ts)),

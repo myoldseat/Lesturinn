@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="is">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>UppHátt — Admin</title>
+<link rel="icon" type="image/png" href="icon-teale.png">
+<style>
+/* ══════════════════════════════════════════════
+   Admin Dashboard — standalone
+   ══════════════════════════════════════════════ */
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
+
+/* ── Auth screen — matches app rg-popup style ── */
+.auth-screen {
+  background:
+    radial-gradient(520px 260px at 50% 14%, rgba(18,216,223,0.18) 0%, rgba(18,216,223,0.02) 58%, transparent 100%),
+    #050b14;
+  min-height:100dvh;display:flex;align-items:center;justify-content:center;color:#d9e5ef;
+  padding:16px;
+}
+.auth-card {
+  position:relative;width:min(96vw,420px);
+  background:rgba(6,14,26,0.97);
+  border:1px solid rgba(29,205,211,0.18);border-radius:22px;overflow:hidden;
+  box-shadow:0 32px 80px rgba(0,0,0,0.6),0 0 60px rgba(29,205,211,0.07);
+}
+.auth-glow {
+  position:absolute;top:0;left:10%;right:10%;height:1px;
+  background:linear-gradient(90deg,rgba(29,205,211,0) 0%,rgba(29,205,211,0.55) 50%,rgba(29,205,211,0) 100%);
+  pointer-events:none;
+}
+.auth-header{padding:26px 32px 0;text-align:center}
+.auth-brand{font-size:28px;font-weight:800;letter-spacing:-0.5px;line-height:1;margin-bottom:5px}
+.auth-brand span{color:#1dcdd3}
+.auth-sub{margin:0;font-size:13px;color:rgba(148,164,180,0.8);font-weight:500}
+.auth-body{padding:20px 32px 26px;display:flex;flex-direction:column}
+.auth-welcome{font-size:17px;font-weight:700;color:#d9e5ef;margin-bottom:3px;letter-spacing:-0.3px}
+.auth-desc{font-size:13px;color:rgba(148,164,180,0.75);margin-bottom:20px;line-height:1.4}
+.auth-field{margin-bottom:13px}
+.auth-label{display:block;font-size:11px;font-weight:700;color:#d9e5ef;margin-bottom:6px}
+.auth-input{
+  width:100%;background:rgba(255,255,255,0.05);
+  border:1px solid rgba(122,187,218,0.18);border-radius:9px;
+  padding:9px 13px;font-size:16px;color:#d9e5ef;outline:none;
+  text-transform:uppercase;letter-spacing:3px;text-align:center;font-weight:700;
+  transition:border-color 0.2s,box-shadow 0.2s,background 0.2s;
+}
+.auth-input::placeholder{color:rgba(148,164,180,0.45);letter-spacing:1px;font-size:13px;text-transform:none;font-weight:400}
+.auth-input:focus{border-color:rgba(29,205,211,0.55);background:rgba(29,205,211,0.04);box-shadow:0 0 0 3px rgba(29,205,211,0.12)}
+.auth-btn{
+  width:100%;margin-top:6px;padding:11px;
+  background:linear-gradient(135deg,#1dcdd3 0%,#18bcc2 100%);
+  border:none;border-radius:10px;color:#061018;font-size:15px;font-weight:800;
+  cursor:pointer;letter-spacing:-0.2px;
+  box-shadow:0 0 24px rgba(29,205,211,0.32),0 3px 10px rgba(0,0,0,0.22);
+  transition:filter 0.18s,transform 0.15s;
+}
+.auth-btn:hover{filter:brightness(1.06);transform:translateY(-1px)}
+.auth-btn:active{transform:scale(0.98)}
+.auth-error{font-size:12px;font-weight:700;color:#ff6b6b;min-height:16px;margin-top:8px;text-align:center}
+
+/* ── Dashboard ── */
+.admin-page {
+  background:
+    radial-gradient(circle at 22% 10%, rgba(29,205,211,0.08), transparent 24%),
+    radial-gradient(circle at 90% 18%, rgba(29,205,211,0.04), transparent 20%),
+    linear-gradient(180deg, #050d18, #07101e);
+  color:#d9e5ef;
+  min-height:100dvh;
+  display:none;
+}
+
+.admin-layout {
+  min-height:100dvh;
+  display:grid;
+  grid-template-columns:112px 1fr;
+}
+
+.admin-sidebar {
+  padding:20px 14px;
+  border-right:1px solid rgba(29,205,211,0.14);
+  display:flex;flex-direction:column;gap:18px;
+  background:linear-gradient(180deg,rgba(3,9,16,0.95),rgba(5,13,24,0.98));
+  position:sticky;top:0;height:100dvh;
+}
+.admin-brand{color:#d9e5ef;font-size:18px;font-weight:800;letter-spacing:-0.03em;line-height:1;padding:8px 4px 10px}
+.admin-brand span{color:#1dcdd3}
+.admin-nav{display:grid;gap:10px}
+.admin-nav-item{
+  border:1px solid rgba(29,205,211,0.08);background:rgba(255,255,255,0.02);
+  border-radius:18px;padding:14px 10px;min-height:76px;text-align:center;
+  color:#7a8fa0;font-size:12px;font-weight:700;
+  display:grid;align-content:center;justify-items:center;gap:8px;cursor:pointer;
+}
+.admin-nav-item.active{
+  background:rgba(29,205,211,0.10);color:#1dcdd3;
+  border-color:rgba(29,205,211,0.26);
+  box-shadow:inset 0 0 0 1px rgba(29,205,211,0.12),0 0 30px rgba(29,205,211,0.08);
+}
+.admin-side-bottom{margin-top:auto;display:grid;gap:12px}
+.admin-side-card,.admin-side-user{
+  border:1px solid rgba(29,205,211,0.12);background:rgba(255,255,255,0.02);
+  border-radius:18px;padding:14px;
+}
+.admin-side-card h4,.admin-side-user strong{display:block;margin:0 0 6px;font-size:13px;color:#d9e5ef}
+.admin-side-card p,.admin-side-user span{margin:0;color:#7a8fa0;font-size:12px;line-height:1.45}
+.admin-side-user{text-align:left;cursor:pointer}
+
+.admin-main{padding:26px 28px 34px}
+.admin-shell{width:min(1180px,100%);margin:0 auto}
+
+.admin-hero{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;margin-bottom:22px}
+.admin-eyebrow{color:#1dcdd3;text-transform:uppercase;letter-spacing:0.14em;font-size:12px;font-weight:700;margin-bottom:12px}
+.admin-hero h1{margin:0;font-size:clamp(42px,5vw,60px);line-height:0.98;letter-spacing:-0.04em;font-weight:800;color:#d9e5ef}
+.admin-hero p{margin:12px 0 0;color:#7a8fa0;font-size:15px;line-height:1.5;max-width:700px}
+.admin-hero-right{display:flex;gap:12px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+.admin-top-chip{border:1px solid rgba(29,205,211,0.12);background:rgba(7,16,30,0.78);color:#d9e5ef;border-radius:16px;padding:14px 16px;min-width:176px;font-size:14px;font-weight:600}
+
+.admin-grid-top{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px;margin-bottom:16px}
+.admin-kpi-card,.admin-summary-card,.admin-session-card,.admin-family-card-v2{
+  background:rgba(9,20,36,0.78);border:1px solid rgba(29,205,211,0.12);
+  border-radius:18px;box-shadow:0 18px 42px rgba(0,0,0,0.26);
+}
+.admin-kpi-card{padding:18px;min-height:138px;display:grid;align-content:center;gap:16px}
+.admin-kpi-label{font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:#7a8fa0;font-weight:700}
+.admin-kpi-value{font-size:28px;line-height:1;color:#1dcdd3;font-family:Georgia,serif;font-weight:700}
+.admin-kpi-sub{color:#7a8fa0;font-size:13px;line-height:1.35}
+
+.admin-summary-row{display:grid;grid-template-columns:1.25fr 1fr 1fr;gap:12px;margin-bottom:18px}
+.admin-summary-card{padding:18px}
+.admin-summary-card h3,.admin-section-title{margin:0 0 14px;font-size:17px;font-weight:700;color:#d9e5ef}
+.admin-summary-list,.admin-dist-stack{display:grid;gap:10px}
+.admin-summary-item{
+  display:flex;justify-content:space-between;align-items:center;gap:12px;
+  padding:10px 12px;border-radius:12px;border:1px solid rgba(29,205,211,0.08);
+  background:rgba(255,255,255,0.02);color:#7a8fa0;font-size:13px;
+}
+.admin-summary-item strong{color:#d9e5ef;font-size:15px}
+.admin-dist-item{display:grid;gap:8px}
+.admin-dist-head{display:flex;justify-content:space-between;color:#7a8fa0;font-size:13px;font-weight:600}
+.admin-bar{width:100%;height:10px;border-radius:999px;background:rgba(255,255,255,0.05);overflow:hidden}
+.admin-bar>span{display:block;height:100%;border-radius:inherit}
+
+.admin-section{margin-top:22px}
+.admin-section-head{display:flex;justify-content:space-between;align-items:flex-end;gap:14px;margin-bottom:14px}
+.admin-section-head p{margin:6px 0 0;color:#7a8fa0;font-size:14px}
+.admin-action-link{
+  border:1px solid rgba(29,205,211,0.22);background:rgba(29,205,211,0.08);
+  color:#1dcdd3;padding:12px 18px;border-radius:14px;font-weight:700;font-size:14px;white-space:nowrap;cursor:pointer;
+}
+
+.admin-sessions-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.admin-session-card{padding:16px;display:grid;gap:14px}
+.admin-session-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.admin-session-name{display:flex;align-items:center;gap:10px;font-size:18px;font-weight:700;color:#d9e5ef}
+.admin-avatar{
+  width:34px;height:34px;border-radius:50%;border:1px solid rgba(29,205,211,0.12);
+  background:rgba(255,255,255,0.03);display:grid;place-items:center;color:#d9e5ef;flex-shrink:0;
+}
+.admin-date-pill{padding:8px 10px;border-radius:12px;background:rgba(255,255,255,0.03);border:1px solid rgba(29,205,211,0.08);color:#7a8fa0;font-size:12px;font-weight:700}
+.admin-meta-line{display:flex;flex-wrap:wrap;gap:8px}
+.admin-meta-line span{padding:8px 10px;border-radius:10px;background:rgba(255,255,255,0.03);border:1px solid rgba(29,205,211,0.08);color:#7a8fa0;font-size:13px}
+.admin-quality-good{color:#4ade80 !important}
+.admin-quality-fair{color:#fbbf24 !important}
+.admin-quality-poor{color:#f87171 !important}
+.admin-session-label{color:#7a8fa0;font-size:14px;margin-bottom:6px}
+.admin-profile-text{font-size:18px;font-weight:800}
+.admin-metrics-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.admin-metric{padding:12px;border-radius:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(29,205,211,0.08)}
+.admin-metric-label{font-size:11px;color:#7a8fa0;text-transform:uppercase;letter-spacing:0.08em;font-weight:700;margin-bottom:8px}
+.admin-metric-value{font-size:20px;font-weight:800;line-height:1.05;margin-bottom:4px;color:#d9e5ef}
+.admin-see-more{
+  display:flex;justify-content:center;align-items:center;gap:10px;
+  padding:14px 16px;border-radius:14px;border:1px solid rgba(29,205,211,0.22);
+  background:rgba(29,205,211,0.08);color:#1dcdd3;font-weight:700;font-size:15px;cursor:pointer;
+}
+
+.admin-family-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px}
+.admin-family-card-v2{padding:16px;display:grid;gap:14px}
+.admin-family-code{color:#1dcdd3;font-size:12px;text-transform:uppercase;letter-spacing:0.08em;font-weight:800;margin-bottom:6px}
+.admin-family-name{font-size:18px;font-weight:700;margin-bottom:6px;color:#d9e5ef}
+.admin-family-meta{color:#7a8fa0;font-size:13px;line-height:1.45}
+.admin-family-score{width:100%;height:8px;border-radius:999px;background:rgba(255,255,255,0.05);overflow:hidden}
+.admin-family-score span{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,rgba(29,205,211,0.4),#1dcdd3)}
+.admin-family-bottom{display:flex;justify-content:space-between;gap:12px;align-items:flex-end;color:#7a8fa0;font-size:13px}
+.admin-footer-note{text-align:center;color:#7a8fa0;font-size:14px;margin-top:28px;padding-top:6px}
+.admin-empty{color:#7a8fa0;font-size:14px}
+.admin-loading{color:#d9e5ef;padding:24px;font-size:15px}
+
+/* ── Tab content toggle ── */
+.admin-tab-content{display:none}
+.admin-tab-content.active{display:block}
+
+/* ── Load more ── */
+.admin-load-more{
+  display:flex;justify-content:center;align-items:center;gap:10px;
+  padding:14px 24px;border-radius:14px;border:1px solid rgba(29,205,211,0.22);
+  background:rgba(29,205,211,0.06);color:#1dcdd3;font-weight:700;font-size:14px;
+  cursor:pointer;margin:16px auto 0;
+}
+
+/* ── Responsive ── */
+@media(max-width:1350px){
+  .admin-grid-top{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .admin-family-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .admin-sessions-grid{grid-template-columns:1fr 1fr}
+}
+@media(max-width:1040px){
+  .admin-layout{grid-template-columns:1fr}
+  .admin-sidebar{display:none}
+  .admin-summary-row{grid-template-columns:1fr}
+  .admin-grid-top{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .admin-sessions-grid{grid-template-columns:1fr}
+  .admin-family-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:720px){
+  .admin-main{padding:16px 14px 24px}
+  .admin-hero{display:grid}
+  .admin-hero-right{justify-content:flex-start}
+  .admin-grid-top{grid-template-columns:1fr 1fr}
+  .admin-family-grid{grid-template-columns:1fr}
+  .admin-section-head{display:grid}
+}
+@media(max-width:560px){
+  .admin-grid-top,.admin-metrics-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════
+     AUTH SCREEN
+════════════════════════════════════════ -->
+<div id="auth-screen" class="auth-screen">
+  <div class="auth-card">
+    <div class="auth-glow"></div>
+    <div class="auth-header">
+      <div class="auth-brand"><span>Upp</span>Hátt</div>
+      <div class="auth-sub">Stjórnborð — admin aðgangur</div>
+    </div>
+    <div class="auth-body">
+      <div class="auth-welcome">Admin innskráning</div>
+      <div class="auth-desc">Sláðu inn admin kóðann til að opna stjórnborðið</div>
+      <div class="auth-field">
+        <label class="auth-label" for="admin-code-input">Admin kóði</label>
+        <input id="admin-code-input" class="auth-input" type="text" maxlength="10"
+          autocomplete="off" autocapitalize="characters" placeholder="ADMIN001"
+          oninput="this.value=this.value.toUpperCase()">
+      </div>
+      <button class="auth-btn" onclick="tryLogin()">Opna stjórnborð</button>
+      <div id="auth-error" class="auth-error"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     DASHBOARD
+════════════════════════════════════════ -->
+<div id="admin-page" class="admin-page">
+  <div class="admin-layout">
+    <aside class="admin-sidebar">
+      <div class="admin-brand"><span>Upp</span>Hátt</div>
+      <nav class="admin-nav" id="admin-nav"></nav>
+      <div class="admin-side-bottom">
+        <div class="admin-side-card">
+          <h4>Admin hamur</h4>
+          <p>Gögn eru dulkóðuð og ópersónugreinanleg</p>
+        </div>
+        <button class="admin-side-user" type="button" onclick="doLogout()">
+          <strong>Admin</strong>
+          <span>Útskrá</span>
+        </button>
+      </div>
+    </aside>
+    <main class="admin-main">
+      <div class="admin-shell">
+        <section class="admin-hero">
+          <div>
+            <div class="admin-eyebrow">Upphátt stjórnborð</div>
+            <h1>UppHátt Admin</h1>
+            <p>Yfirlit og innsýn í lestrarþróun úr hljóðupptökum og greiningu.</p>
+          </div>
+          <div class="admin-hero-right">
+            <div class="admin-top-chip" id="admin-date-chip"></div>
+          </div>
+        </section>
+        <div id="admin-content">
+          <div class="admin-loading">Hleð gögnum...</div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js';
+import { getFirestore, collection, getDocs, query, orderBy, limit, startAfter, getCountFromServer }
+  from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js';
+
+const app = initializeApp({
+  apiKey:'AIzaSyAgTY3Uxd9_ZxixjqLj-sH8V3OhFAzg6DU',
+  authDomain:'lesum-22e85.firebaseapp.com',
+  projectId:'lesum-22e85',
+  storageBucket:'lesum-22e85.firebasestorage.app',
+  messagingSenderId:'204392598388',
+  appId:'1:204392598388:web:2dbbe3f476cd78d2ffba21'
+});
+const db = getFirestore(app);
+
+const ADMIN_CODE = 'ADMIN001';
+const PAGE_SIZE = 50;
+
+// ══════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════
+
+let _sessions = [];
+let _families = {};
+let _lastDoc = null;
+let _hasMore = true;
+let _totalCount = 0;
+let _activeTab = 'overview';
+
+// ══════════════════════════════════════════
+// ADMIN RULES — profile classification
+// ══════════════════════════════════════════
+
+const ADMIN_RULES = {
+  early:      { maxSyllables:45, minFragmentation:75, minDecodePauses:8,  maxLongestBurst:1.2 },
+  developing: { maxSyllables:65, minFragmentation:60, minDecodePauses:4,  maxLongestBurst:2.4 },
+  steady:     { minSyllables:55, maxFragmentation:75, maxDecodePauses:5,  minLongestBurst:1.6 },
+  flowing:    { minSyllables:70, maxFragmentation:70, maxDecodePauses:4,  minLongestBurst:3.0 }
+};
+
+function getMetrics(s) {
+  const snippets = s.analysis?.snippets || {};
+  const usable = [
+    snippets.min1, snippets.min2, snippets.min5, snippets.min8, snippets.min10,
+    snippets.min4, snippets.min7, snippets.min9, snippets.min13
+  ].filter(sn => sn && sn.usable);
+  if (!usable.length) return { praatSyllables:0, fragmentationScore:0, decodingPauseCount:0, longestBurst:0 };
+  return {
+    praatSyllables: Math.round(usable.reduce((a,sn) => a+(sn.praatSyllables||0),0)/usable.length),
+    fragmentationScore: Number((usable.reduce((a,sn) => a+(sn.fragmentationScore||0),0)/usable.length).toFixed(1)),
+    decodingPauseCount: Number((usable.reduce((a,sn) => a+(sn.decodingPauseCount||0),0)/usable.length).toFixed(1)),
+    longestBurst: Math.max(...usable.map(sn => sn.longestBurst||0))
+  };
+}
+
+function getProfile(m) {
+  if (!m.praatSyllables && !m.fragmentationScore && !m.decodingPauseCount && !m.longestBurst) return 'unknown';
+  const R = ADMIN_RULES;
+  if (m.praatSyllables < R.early.maxSyllables && m.fragmentationScore >= R.early.minFragmentation &&
+      m.decodingPauseCount >= R.early.minDecodePauses && m.longestBurst < R.early.maxLongestBurst) return 'early';
+  if (m.praatSyllables >= R.flowing.minSyllables && m.fragmentationScore <= R.flowing.maxFragmentation &&
+      m.decodingPauseCount <= R.flowing.maxDecodePauses && m.longestBurst >= R.flowing.minLongestBurst) return 'flowing';
+  if (m.praatSyllables < R.developing.maxSyllables && m.fragmentationScore >= R.developing.minFragmentation &&
+      m.decodingPauseCount >= R.developing.minDecodePauses && m.longestBurst < R.developing.maxLongestBurst) return 'developing';
+  if (m.praatSyllables >= R.steady.minSyllables && m.fragmentationScore <= R.steady.maxFragmentation &&
+      m.decodingPauseCount <= R.steady.maxDecodePauses && m.longestBurst >= R.steady.minLongestBurst) return 'steady';
+  return 'mixed';
+}
+
+const PROFILE_LABELS = { early:'Að fóta sig', developing:'Á leiðinni', steady:'Orðið stöðugra', flowing:'Flæðandi', mixed:'Blandað', unknown:'Engin túlkun' };
+const PROFILE_COLORS = { early:'#f87171', developing:'#fbbf24', steady:'#60a5fa', flowing:'#4ade80', mixed:'#c084fc', unknown:'#94a3b8' };
+function qualityClass(q) { return q === 'good' ? 'admin-quality-good' : q === 'fair' ? 'admin-quality-fair' : q === 'poor' ? 'admin-quality-poor' : ''; }
+function esc(v) { return String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function dateLabel(v) {
+  if (!v) return '—';
+  if (typeof v === 'string') return v;
+  try { return new Date(v).toLocaleDateString('is-IS'); } catch { return String(v); }
+}
+
+// ══════════════════════════════════════════
+// AUTH
+// ══════════════════════════════════════════
+
+window.tryLogin = function() {
+  const code = document.getElementById('admin-code-input').value.trim();
+  const err = document.getElementById('auth-error');
+  if (code !== ADMIN_CODE) { err.textContent = 'Rangur kóði'; return; }
+  err.textContent = '';
+  document.getElementById('auth-screen').style.display = 'none';
+  document.getElementById('admin-page').style.display = '';
+  loadData();
+};
+
+window.doLogout = function() {
+  _sessions = []; _families = {}; _lastDoc = null; _hasMore = true;
+  document.getElementById('admin-page').style.display = 'none';
+  document.getElementById('auth-screen').style.display = '';
+  document.getElementById('admin-code-input').value = '';
+};
+
+document.getElementById('admin-code-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') window.tryLogin();
+});
+
+// ══════════════════════════════════════════
+// NAV
+// ══════════════════════════════════════════
+
+const TABS = [
+  { id:'overview',  icon:'📊', label:'Yfirlit' },
+  { id:'sessions',  icon:'🗂️', label:'Lotur' },
+  { id:'families',  icon:'👥', label:'Fjölskyldur' },
+  { id:'insights',  icon:'📈', label:'Innsýn' }
+];
+
+function renderNav() {
+  document.getElementById('admin-nav').innerHTML = TABS.map(t =>
+    `<div class="admin-nav-item ${t.id===_activeTab?'active':''}" onclick="switchTab('${t.id}')">
+      <div>${t.icon}</div><div>${t.label}</div>
+    </div>`
+  ).join('');
+}
+
+window.switchTab = function(tab) {
+  _activeTab = tab;
+  renderNav();
+  renderContent();
+};
+
+// ══════════════════════════════════════════
+// DATA
+// ══════════════════════════════════════════
+
+async function loadData() {
+  const el = document.getElementById('admin-content');
+  el.innerHTML = '<div class="admin-loading">Hleð gögnum...</div>';
+  document.getElementById('admin-date-chip').textContent = '📅 ' + new Date().toLocaleDateString('is-IS');
+  renderNav();
+
+  try {
+    const countSnap = await getCountFromServer(collection(db, 'sessions'));
+    _totalCount = countSnap.data().count;
+
+    const q = query(collection(db, 'sessions'), orderBy('timestamp', 'desc'), limit(PAGE_SIZE));
+    const snap = await getDocs(q);
+    _sessions = snap.docs.map(d => ({ _docId: d.id, ...d.data() }));
+    _lastDoc = snap.docs[snap.docs.length - 1] || null;
+    _hasMore = snap.docs.length === PAGE_SIZE;
+
+    buildFamilies();
+    renderContent();
+  } catch (e) {
+    console.error('Admin load failed:', e);
+    el.innerHTML = `<div class="admin-loading" style="color:#f87171">Villa: ${esc(e.message)}</div>`;
+  }
+}
+
+window.loadMore = async function() {
+  if (!_hasMore || !_lastDoc) return;
+  try {
+    const q = query(collection(db, 'sessions'), orderBy('timestamp', 'desc'), startAfter(_lastDoc), limit(PAGE_SIZE));
+    const snap = await getDocs(q);
+    const newDocs = snap.docs.map(d => ({ _docId: d.id, ...d.data() }));
+    _sessions = _sessions.concat(newDocs);
+    _lastDoc = snap.docs[snap.docs.length - 1] || null;
+    _hasMore = snap.docs.length === PAGE_SIZE;
+    buildFamilies();
+    renderContent();
+  } catch (e) { console.error('Load more failed:', e); }
+};
+
+function buildFamilies() {
+  _families = {};
+  _sessions.forEach(s => {
+    if (!s.familyId) return;
+    if (!_families[s.familyId]) _families[s.familyId] = { sessions: [], children: new Set() };
+    _families[s.familyId].sessions.push(s);
+    if (s.childName) _families[s.familyId].children.add(s.childName);
+  });
+}
+
+// ══════════════════════════════════════════
+// RENDER
+// ══════════════════════════════════════════
+
+function renderContent() {
+  const el = document.getElementById('admin-content');
+  if (_activeTab === 'overview')  el.innerHTML = renderOverview();
+  if (_activeTab === 'sessions')  el.innerHTML = renderSessions();
+  if (_activeTab === 'families')  el.innerHTML = renderFamilies();
+  if (_activeTab === 'insights')  el.innerHTML = renderInsights();
+}
+
+// ── KPIs ──
+function computeKPIs() {
+  const totalFamilies = Object.keys(_families).length;
+  const totalMins = Math.round(_sessions.reduce((a,s) => a+(s.seconds||0),0)/60);
+  const withAnalysis = _sessions.filter(s => s.analysis?.overall).length;
+  const withAudio = _sessions.filter(s => s.hasAudio).length;
+  const analyzed = _sessions.filter(s => s.analysis?.overall);
+  const avgUsable = analyzed.length
+    ? (analyzed.reduce((a,s) => a+(s.analysis.overall.usableCount||0),0)/analyzed.length).toFixed(1) : '—';
+  const scoreSessions = analyzed.filter(s => (s.analysis?.overall?.avgScore||0) > 0);
+  const avgScore = scoreSessions.length
+    ? (scoreSessions.reduce((a,s) => a+(s.analysis.overall.avgScore||0),0)/scoreSessions.length).toFixed(1) : '—';
+
+  const profiles = { early:0, developing:0, steady:0, flowing:0, mixed:0, unknown:0 };
+  const qualities = { good:0, fair:0, poor:0 };
+  analyzed.forEach(s => {
+    const p = getProfile(getMetrics(s));
+    if (profiles[p] !== undefined) profiles[p]++;
+    const q = s.analysis?.overall?.readingQuality;
+    if (q && qualities[q] !== undefined) qualities[q]++;
+  });
+
+  return { totalFamilies, totalMins, withAnalysis, withAudio, analyzed, avgUsable, avgScore, profiles, qualities };
+}
+
+// ── Overview ──
+function renderOverview() {
+  const k = computeKPIs();
+  const sessionCards = renderSessionCards(k.analyzed.slice(0, 6));
+  const familyCards = renderFamilyCards(Object.entries(_families).slice(0, 6));
+
+  return `
+    <section class="admin-grid-top">
+      ${kpiCard('Fjölskyldur', k.totalFamilies, 'virkir hópar')}
+      ${kpiCard('Lotur', _totalCount, 'heildarfjöldi')}
+      ${kpiCard('Mínútur', k.totalMins, _hasMore ? '~heildarfjöldi' : 'heildarfjöldi')}
+      ${kpiCard('Greindar lotur', k.withAnalysis, 'með greiningu')}
+      ${kpiCard('Meðal nothæfar', k.avgUsable, 'klippur á lotu')}
+      ${kpiCard('Meðalskor', k.avgScore, 'af 100 mögulegum')}
+    </section>
+
+    <section class="admin-summary-row">
+      <article class="admin-summary-card">
+        <h3>Hljóð og greining</h3>
+        <div class="admin-summary-list">
+          ${summaryItem('Lotur með hljóð', k.withAudio + ' / ' + _totalCount)}
+          ${summaryItem('Greindar lotur', k.withAnalysis + ' / ' + _totalCount)}
+          ${summaryItem('Meðal nothæfar klippur', k.avgUsable)}
+          ${summaryItem('Meðalskor', k.avgScore)}
+        </div>
+      </article>
+      <article class="admin-summary-card">
+        <h3>Lestrarstíll</h3>
+        <div class="admin-dist-stack">
+          ${distBar('Að fóta sig', k.profiles.early, '#f87171', k.analyzed.length)}
+          ${distBar('Á leiðinni', k.profiles.developing, '#fbbf24', k.analyzed.length)}
+          ${distBar('Orðið stöðugra', k.profiles.steady, '#60a5fa', k.analyzed.length)}
+          ${distBar('Flæðandi', k.profiles.flowing, '#4ade80', k.analyzed.length)}
+          ${distBar('Blandað', k.profiles.mixed, '#c084fc', k.analyzed.length)}
+        </div>
+      </article>
+      <article class="admin-summary-card">
+        <h3>Lestrargæði</h3>
+        <div class="admin-dist-stack">
+          ${distBar('Good', k.qualities.good, '#4ade80', k.analyzed.length)}
+          ${distBar('Fair', k.qualities.fair, '#fbbf24', k.analyzed.length)}
+          ${distBar('Poor', k.qualities.poor, '#f87171', k.analyzed.length)}
+        </div>
+      </article>
+    </section>
+
+    <section class="admin-section">
+      <div class="admin-section-head">
+        <div>
+          <h2 class="admin-section-title">Nýjustu lotur með greiningu</h2>
+          <p>Yfirlit yfir nýlegar lestrarlotur og lykilmælikvarða.</p>
+        </div>
+        <div class="admin-action-link" onclick="switchTab('sessions')">Sjá allar lotur →</div>
+      </div>
+      <div class="admin-sessions-grid">
+        ${sessionCards || '<p class="admin-empty">Engar greindar lotur enn.</p>'}
+      </div>
+    </section>
+
+    <section class="admin-section">
+      <div class="admin-section-head">
+        <div>
+          <h2 class="admin-section-title">Fjölskyldur / hópar</h2>
+          <p>Ópersónugreinanleg yfirlit.</p>
+        </div>
+        <div class="admin-action-link" onclick="switchTab('families')">Sjá alla hópa →</div>
+      </div>
+      <div class="admin-family-grid">
+        ${familyCards || '<p class="admin-empty">Engar fjölskyldur enn.</p>'}
+      </div>
+      <div class="admin-footer-note">Gögn eru dulkóðuð og ópersónugreinanleg.</div>
+    </section>`;
+}
+
+// ── Sessions tab ──
+function renderSessions() {
+  const analyzed = _sessions.filter(s => s.analysis?.overall);
+  const all = _sessions;
+  return `
+    <section>
+      <div class="admin-section-head">
+        <div>
+          <h2 class="admin-section-title">Allar lotur (${_totalCount})</h2>
+          <p>Sýnir ${_sessions.length} af ${_totalCount} lotum.</p>
+        </div>
+      </div>
+      <div class="admin-sessions-grid">
+        ${renderSessionCards(analyzed.slice(0, 30)) || '<p class="admin-empty">Engar greindar lotur enn.</p>'}
+      </div>
+      ${_hasMore ? '<button class="admin-load-more" onclick="loadMore()">Hlaða fleiri lotum →</button>' : ''}
+    </section>`;
+}
+
+// ── Families tab ──
+function renderFamilies() {
+  const entries = Object.entries(_families);
+  return `
+    <section>
+      <div class="admin-section-head">
+        <div>
+          <h2 class="admin-section-title">Fjölskyldur (${entries.length})</h2>
+        </div>
+      </div>
+      <div class="admin-family-grid">
+        ${renderFamilyCards(entries) || '<p class="admin-empty">Engar fjölskyldur enn.</p>'}
+      </div>
+    </section>`;
+}
+
+// ── Insights tab ──
+function renderInsights() {
+  const k = computeKPIs();
+  const analyzed = k.analyzed;
+  if (!analyzed.length) return '<p class="admin-empty" style="padding:24px">Engin gögn til greiningar enn.</p>';
+
+  const allMetrics = analyzed.map(s => getMetrics(s)).filter(m => m.praatSyllables > 0);
+  const avgSyl = allMetrics.length ? Math.round(allMetrics.reduce((a,m)=>a+m.praatSyllables,0)/allMetrics.length) : 0;
+  const avgFrag = allMetrics.length ? (allMetrics.reduce((a,m)=>a+m.fragmentationScore,0)/allMetrics.length).toFixed(1) : 0;
+  const avgDec = allMetrics.length ? (allMetrics.reduce((a,m)=>a+m.decodingPauseCount,0)/allMetrics.length).toFixed(1) : 0;
+  const avgBurst = allMetrics.length ? (allMetrics.reduce((a,m)=>a+m.longestBurst,0)/allMetrics.length).toFixed(1) : 0;
+
+  const last7 = analyzed.filter(s => (s.timestamp||0) > Date.now() - 7*86400000);
+  const last30 = analyzed.filter(s => (s.timestamp||0) > Date.now() - 30*86400000);
+
+  return `
+    <section class="admin-grid-top" style="grid-template-columns:repeat(4,minmax(0,1fr))">
+      ${kpiCard('Meðal atkvæði', avgSyl, 'praatSyllables')}
+      ${kpiCard('Meðal sundrun', avgFrag, 'fragmentationScore')}
+      ${kpiCard('Meðal afkóðunarbið', avgDec, 'decodingPauseCount')}
+      ${kpiCard('Meðal lengsta flæði', avgBurst + 's', 'longestBurst')}
+    </section>
+
+    <section class="admin-summary-row" style="grid-template-columns:1fr 1fr">
+      <article class="admin-summary-card">
+        <h3>Síðustu 7 dagar</h3>
+        <div class="admin-summary-list">
+          ${summaryItem('Lotur', last7.length)}
+          ${summaryItem('Mínútur', Math.round(last7.reduce((a,s)=>a+(s.seconds||0),0)/60))}
+          ${summaryItem('Fjölskyldur', new Set(last7.map(s=>s.familyId).filter(Boolean)).size)}
+        </div>
+      </article>
+      <article class="admin-summary-card">
+        <h3>Síðustu 30 dagar</h3>
+        <div class="admin-summary-list">
+          ${summaryItem('Lotur', last30.length)}
+          ${summaryItem('Mínútur', Math.round(last30.reduce((a,s)=>a+(s.seconds||0),0)/60))}
+          ${summaryItem('Fjölskyldur', new Set(last30.map(s=>s.familyId).filter(Boolean)).size)}
+        </div>
+      </article>
+    </section>
+
+    <section class="admin-summary-row" style="grid-template-columns:1fr">
+      <article class="admin-summary-card">
+        <h3>Lestrarstíll — dreifing</h3>
+        <div class="admin-dist-stack">
+          ${distBar('Að fóta sig', k.profiles.early, '#f87171', analyzed.length)}
+          ${distBar('Á leiðinni', k.profiles.developing, '#fbbf24', analyzed.length)}
+          ${distBar('Orðið stöðugra', k.profiles.steady, '#60a5fa', analyzed.length)}
+          ${distBar('Flæðandi', k.profiles.flowing, '#4ade80', analyzed.length)}
+          ${distBar('Blandað', k.profiles.mixed, '#c084fc', analyzed.length)}
+        </div>
+      </article>
+    </section>`;
+}
+
+// ══════════════════════════════════════════
+// RENDER HELPERS
+// ══════════════════════════════════════════
+
+function kpiCard(label, value, sub) {
+  return `<article class="admin-kpi-card">
+    <div class="admin-kpi-label">${esc(label)}</div>
+    <div class="admin-kpi-value">${esc(value)}</div>
+    <div class="admin-kpi-sub">${esc(sub)}</div>
+  </article>`;
+}
+
+function summaryItem(label, value) {
+  return `<div class="admin-summary-item"><span>${esc(label)}</span><strong>${esc(value)}</strong></div>`;
+}
+
+function distBar(label, count, color, total) {
+  const pct = total > 0 ? Math.round(count / total * 100) : 0;
+  return `<div class="admin-dist-item">
+    <div class="admin-dist-head"><span>${esc(label)}</span><strong>${count} (${pct}%)</strong></div>
+    <div class="admin-bar"><span style="width:${pct}%;background:${color}"></span></div>
+  </div>`;
+}
+
+function renderSessionCards(sessions) {
+  return sessions.map(s => {
+    const a = s.analysis;
+    const m = getMetrics(s);
+    const prof = getProfile(m);
+    const q = a?.overall?.readingQuality || '—';
+    const score = a?.overall?.avgScore ?? '—';
+    const usable = a?.overall?.usableCount ?? 0;
+    const total = a?.overall?.totalSnippets ?? '?';
+    return `
+      <article class="admin-session-card">
+        <div class="admin-session-top">
+          <div class="admin-session-name">
+            <div class="admin-avatar">👤</div>
+            <div>${esc(s.childName||'?')}</div>
+          </div>
+          <div class="admin-date-pill">${esc(dateLabel(s.date||s.timestamp))}</div>
+        </div>
+        <div class="admin-meta-line">
+          <span>Skor: ${esc(score)}</span>
+          <span>Nothæf: ${esc(usable)} / ${esc(total)}</span>
+          <span class="${qualityClass(q)}">Gæði: ${esc(q)}</span>
+        </div>
+        <div>
+          <div class="admin-session-label">Admin flokkur</div>
+          <div class="admin-profile-text" style="color:${PROFILE_COLORS[prof]}">${esc(PROFILE_LABELS[prof])}</div>
+        </div>
+        <div class="admin-metrics-grid">
+          <div class="admin-metric"><div class="admin-metric-label">Syllables</div><div class="admin-metric-value">${esc(m.praatSyllables||'—')}</div></div>
+          <div class="admin-metric"><div class="admin-metric-label">Fragmentation</div><div class="admin-metric-value">${esc(m.fragmentationScore||'—')}</div></div>
+          <div class="admin-metric"><div class="admin-metric-label">Decode pauses</div><div class="admin-metric-value">${esc(m.decodingPauseCount||'—')}</div></div>
+          <div class="admin-metric"><div class="admin-metric-label">Longest burst</div><div class="admin-metric-value">${esc(m.longestBurst||'—')}</div></div>
+        </div>
+      </article>`;
+  }).join('');
+}
+
+function renderFamilyCards(entries) {
+  return entries.map(([fid, fam], idx) => {
+    const famMins = Math.round(fam.sessions.reduce((a,s)=>a+(s.seconds||0),0)/60);
+    const famAnalyzed = fam.sessions.filter(s => s.analysis?.overall);
+    const famAvgScore = famAnalyzed.length
+      ? (famAnalyzed.reduce((a,s)=>a+(s.analysis?.overall?.avgScore||0),0)/famAnalyzed.length).toFixed(1) : '—';
+    const childCount = fam.children.size;
+    const label = `Hópur ${String.fromCharCode(65+(idx%26))}`;
+    const lastTs = fam.sessions[0]?.timestamp || null;
+    let lastActive = 'engin virkni';
+    if (lastTs) {
+      const days = Math.max(0, Math.floor((Date.now()-lastTs)/86400000));
+      lastActive = days === 0 ? 'virkni í dag' : `${days} daga síðan`;
+    }
+    return `
+      <article class="admin-family-card-v2">
+        <div>
+          <div class="admin-family-code">${esc(fid)}</div>
+          <div class="admin-family-name">${esc(label)}</div>
+          <div class="admin-family-meta">${childCount} ${childCount===1?'barn':'börn'} · ${esc(lastActive)}</div>
+        </div>
+        <div class="admin-family-score"><span style="width:${famAvgScore==='—'?0:Math.max(0,Math.min(100,Number(famAvgScore)))}%"></span></div>
+        <div class="admin-family-bottom">
+          <span>${fam.sessions.length} lotur</span>
+          <span>${famMins} mínútur</span>
+        </div>
+      </article>`;
+  }).join('');
+}
+</script>
+</body>
+</html>

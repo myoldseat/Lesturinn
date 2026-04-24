@@ -412,10 +412,13 @@ function renderRecordings() {
   }
 
   const clipDefs = [
-    { key: 'audioPath_min1',  label: 'Mín. 1' },
-    { key: 'audioPath_min5',  label: 'Mín. 5' },
-    { key: 'audioPath_min9',  label: 'Mín. 9' },
-    { key: 'audioPath_min13', label: 'Mín. 13' }
+    { key: 'audioPath_min1',  label: '30 sek' },
+    { key: 'audioPath_min2',  label: '2 mín' },
+    { key: 'audioPath_min5',  label: '5 mín' },
+    { key: 'audioPath_min8',  label: '8 mín' },
+    { key: 'audioPath_min10', label: '10 mín' },
+    { key: 'audioPath_min9',  label: '9 mín' },
+    { key: 'audioPath_min13', label: '13 mín' }
   ];
 
   list.innerHTML = filtered.slice(0, 30).map((s, idx) => {
@@ -423,11 +426,12 @@ function renderRecordings() {
     const label   = `${fmtDateIS(s.date)} · ${mins} mín`;
     const isFav   = !!favs[s._docId];
     const starId  = `ph-star-${s._docId}`;
-    const clips   = clipDefs.map(({key: pathKey, label: clipLabel}, i) => {
+    const available = clipDefs.filter(({key}) => s[key]);
+    const clips   = (available.length ? available : clipDefs.slice(0, 1)).map(({key: pathKey, label: clipLabel}, i) => {
       const path     = s[pathKey] || (i === 0 ? s.audioPath : null);
       const btnId    = `ph-clipbtn-${s._docId}-${i}`;
       const playerId = `ph-clipplay-${s._docId}-${i}`;
-      if (!path) return `<div class="ph-clip-item"><button class="ph-clip-btn ph-clip-disabled" disabled>${clipLabel}</button></div>`;
+      if (!path) return '';
       return `
         <div class="ph-clip-item">
           <button id="${btnId}" class="ph-clip-btn"

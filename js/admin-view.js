@@ -47,8 +47,10 @@ function getAdminMetrics(s) {
   const analysis = s.analysis || {};
   const snippets = analysis.snippets || {};
 
-  const usable = [snippets.min1, snippets.min2, snippets.min4, snippets.min7, snippets.min10]
-    .filter(sn => sn && sn.usable);
+  const usable = [
+    snippets.min1, snippets.min2, snippets.min5, snippets.min8, snippets.min10,
+    snippets.min4, snippets.min7, snippets.min9, snippets.min13   // eldri lotur
+  ].filter(sn => sn && sn.usable);
 
   if (!usable.length) {
     return {

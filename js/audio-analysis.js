@@ -2,8 +2,14 @@
 // Pure analysis engine — no DOM, no UI, no side effects.
 // Accepts File, Blob, or AudioBuffer.
 //
-// Four metrics: Syllables, Clean reading %, Articulation rate, Speech rate
-// Source of truth: Praat inter-peak intervals
+// Seven metrics:
+//   1. Syllables          (Praat dB-toppar)
+//   2. Clean reading %    (Praat inter-peak bil 0.1–0.7s)
+//   3. Articulation rate  (atkvæði / taltími)
+//   4. Speech rate        (atkvæði / heildartími)
+//   5. F1 variation       (LPC formendagreining)
+//   6. F2 variation       (LPC formendagreining)
+//   7. Formant variation  (samansett sqrt(F1² + F2²))
 //
 // Public API:
 //   analyzeAudio(input, cfg)        → full analysis result
@@ -124,6 +130,148 @@ function buildFrames(samples, sampleRate, frameMs = 20) {
   }
 
   return frames;
+}
+
+// ══════════════════════════════════════════
+// LPC FORMANT ESTIMATION
+// Based on Levinson-Durbin autocorrelation method.
+// Finds F1 and F2 per frame — the two formants that define
+// which vowel is being produced (ref: Ásta Svavarsdóttir et al. 1982).
+// ══════════════════════════════════════════
+
+function estimateFormants(samples, sampleRate, startIdx, frameSize, lpcOrder = 10) {
+  const preEmph = new Float32Array(frameSize);
+  preEmph[0] = samples[startIdx] || 0;
+  for (let i = 1; i < frameSize; i++) {
+    const idx = startIdx + i;
+    preEmph[i] = (samples[idx] || 0) - 0.97 * (samples[idx - 1] || 0);
+  }
+
+  for (let i = 0; i < frameSize; i++) {
+    preEmph[i] *= 0.54 - 0.46 * Math.cos(2 * Math.PI * i / (frameSize - 1));
+  }
+
+  const r = new Float64Array(lpcOrder + 1);
+  for (let lag = 0; lag <= lpcOrder; lag++) {
+    let sum = 0;
+    for (let i = 0; i < frameSize - lag; i++) {
+      sum += preEmph[i] * preEmph[i + lag];
+    }
+    r[lag] = sum;
+  }
+
+  if (r[0] < 1e-12) return null;
+
+  const a = new Float64Array(lpcOrder + 1);
+  const aTemp = new Float64Array(lpcOrder + 1);
+  a[0] = 1;
+  let err = r[0];
+
+  for (let i = 1; i <= lpcOrder; i++) {
+    let lambda = 0;
+    for (let j = 1; j < i; j++) {
+      lambda += a[j] * r[i - j];
+    }
+    lambda = -(r[i] + lambda) / err;
+
+    for (let j = 1; j < i; j++) {
+      aTemp[j] = a[j] + lambda * a[i - j];
+    }
+    aTemp[i] = lambda;
+    for (let j = 1; j <= i; j++) {
+      a[j] = aTemp[j];
+    }
+
+    err *= (1 - lambda * lambda);
+    if (err <= 0) return null;
+  }
+
+  const nFreqBins = 256;
+  const magnitudes = new Float64Array(nFreqBins);
+
+  for (let k = 0; k < nFreqBins; k++) {
+    const freq = (k / nFreqBins) * (sampleRate / 2);
+    const omega = 2 * Math.PI * freq / sampleRate;
+    let realPart = 1;
+    let imagPart = 0;
+    for (let j = 1; j <= lpcOrder; j++) {
+      realPart += a[j] * Math.cos(-j * omega);
+      imagPart += a[j] * Math.sin(-j * omega);
+    }
+    const mag = 1.0 / Math.sqrt(realPart * realPart + imagPart * imagPart);
+    magnitudes[k] = mag;
+  }
+
+  const formants = [];
+  for (let k = 1; k < nFreqBins - 1; k++) {
+    if (magnitudes[k] > magnitudes[k - 1] && magnitudes[k] > magnitudes[k + 1]) {
+      const freqHz = (k / nFreqBins) * (sampleRate / 2);
+      if (freqHz >= 200 && freqHz <= 5500) {
+        formants.push(freqHz);
+      }
+    }
+  }
+
+  formants.sort((a, b) => a - b);
+
+  return {
+    f1: formants[0] || 0,
+    f2: formants[1] || 0
+  };
+}
+
+// ══════════════════════════════════════════
+// BURST FORMANT VARIATION
+// Measures how much F1/F2 change within each burst.
+// Real reading: F1/F2 jump between vowels → high variation (hundreds of Hz)
+// Elongated sound: F1/F2 stay constant → low variation (~30-60 Hz)
+// Ref: Ásta Svavarsdóttir et al. (1982) — within-vowel SD ~30-60 Hz,
+//      between-vowel differences ~200-400 Hz
+// ══════════════════════════════════════════
+
+function computeBurstFormantVariation(samples, sampleRate, bursts, frameMs = 20) {
+  if (!bursts.length) return { meanF1Variation: 0, meanF2Variation: 0, formantVariation: 0 };
+
+  const frameSize = Math.max(1, Math.round(sampleRate * frameMs / 1000));
+  const burstF1Vars = [];
+  const burstF2Vars = [];
+
+  for (const burst of bursts) {
+    const startSample = Math.floor(burst.start * sampleRate);
+    const endSample = Math.floor(burst.end * sampleRate);
+
+    const f1Values = [];
+    const f2Values = [];
+
+    for (let i = startSample; i < endSample; i += frameSize) {
+      const len = Math.min(frameSize, endSample - i);
+      if (len < frameSize * 0.5) continue;
+
+      const result = estimateFormants(samples, sampleRate, i, len);
+      if (result && result.f1 > 0 && result.f2 > 0) {
+        f1Values.push(result.f1);
+        f2Values.push(result.f2);
+      }
+    }
+
+    if (f1Values.length >= 2) {
+      burstF1Vars.push(stddev(f1Values));
+      burstF2Vars.push(stddev(f2Values));
+    }
+  }
+
+  if (!burstF1Vars.length) return { meanF1Variation: 0, meanF2Variation: 0, formantVariation: 0 };
+
+  const meanF1Var = mean(burstF1Vars);
+  const meanF2Var = mean(burstF2Vars);
+
+  const formantVariation = Math.sqrt(meanF1Var * meanF1Var + meanF2Var * meanF2Var);
+
+  return {
+    meanF1Variation: Number(meanF1Var.toFixed(1)),
+    meanF2Variation: Number(meanF2Var.toFixed(1)),
+    formantVariation: Number(formantVariation.toFixed(1))
+  };
 }
 
 // ══════════════════════════════════════════
@@ -292,7 +440,7 @@ function estimatePraatStyleMetrics(frames, speechFlags, cfg) {
 }
 
 // ══════════════════════════════════════════
-// THE FOUR METRICS — all from Praat inter-peak intervals
+// READING METRICS — from Praat inter-peak intervals
 // ══════════════════════════════════════════
 
 function computeReadingMetrics(praatPeaks, totalDuration) {
@@ -314,9 +462,6 @@ function computeReadingMetrics(praatPeaks, totalDuration) {
     intervals.push({ gap, from: peaks[i - 1].t, to: peaks[i].t });
   }
 
-  //  < 0.1s  → ignore (measurement artifact)
-  //  0.1–0.7s → clean reading (includes normal breath pauses)
-  //  > 0.7s  → disruption
   const validIntervals = intervals.filter(x => x.gap >= 0.1);
   const cleanIntervals = validIntervals.filter(x => x.gap <= 0.7);
   const disruptions = validIntervals.filter(x => x.gap > 0.7);
@@ -426,6 +571,57 @@ function pickSnippets(totalDuration, frames, speechFlags, cfg) {
 }
 
 // ══════════════════════════════════════════
+// READING LEVEL GRADING
+// Grunnur: articulation rate á móti aldursviðmiðum
+// Hækkað um eitt ef clean reading % er hátt
+// Lækkað um eitt ef syllables eru of fá
+// Viðmið eru stillanleg per fæðingarár
+// ══════════════════════════════════════════
+
+const AGE_THRESHOLDS = {
+  default: { artRate: [3.5, 4.5, 5.5, 7.0], cleanReadingBonus: 70, syllablesPenalty: 25 },
+  2019: { artRate: [3.0, 4.0, 5.0, 6.0], cleanReadingBonus: 60, syllablesPenalty: 20 },
+  2018: { artRate: [3.5, 4.5, 5.5, 6.5], cleanReadingBonus: 65, syllablesPenalty: 25 },
+  2017: { artRate: [4.0, 5.0, 6.0, 7.0], cleanReadingBonus: 70, syllablesPenalty: 30 },
+  2016: { artRate: [4.5, 5.5, 6.5, 7.5], cleanReadingBonus: 70, syllablesPenalty: 35 },
+  2015: { artRate: [5.0, 6.0, 7.0, 8.0], cleanReadingBonus: 75, syllablesPenalty: 40 },
+};
+
+const GRADE_LABELS = [
+  'Að ná tökum',
+  'Á réttri leið',
+  'Á réttum stað',
+  'Góð tök',
+  'Mjög góð tök'
+];
+
+function gradeReading(summary, birthYear) {
+  const thresholds = AGE_THRESHOLDS[birthYear] || AGE_THRESHOLDS.default;
+
+  let level = 0;
+  for (let i = 0; i < thresholds.artRate.length; i++) {
+    if (summary.articulationRate >= thresholds.artRate[i]) {
+      level = i + 1;
+    }
+  }
+
+  if (summary.cleanReadingPct >= thresholds.cleanReadingBonus) {
+    level = Math.min(level + 1, 4);
+  }
+
+  if (summary.syllables < thresholds.syllablesPenalty) {
+    level = Math.max(level - 1, 0);
+  }
+
+  return {
+    level,
+    label: GRADE_LABELS[level],
+    thresholdsUsed: thresholds,
+    birthYear: birthYear || 'default'
+  };
+}
+
+// ══════════════════════════════════════════
 // MAIN ANALYSIS
 // ══════════════════════════════════════════
 
@@ -452,29 +648,42 @@ export async function analyzeAudio(input, cfg) {
 
   const reading = computeReadingMetrics(praatLike.peaks, totalDuration);
 
+  const formants = computeBurstFormantVariation(samples, audioBuffer.sampleRate, mergedBursts);
+
   const snippets = pickSnippets(totalDuration, frames, speechFlags, cfg);
 
+  const summaryData = {
+    sessionDuration: Number(totalDuration.toFixed(1)),
+    speakingTime: Number(speakingTime.toFixed(1)),
+
+    // Seven metrics
+    syllables: reading.syllables,
+    cleanReadingPct: Number((reading.cleanReadingRatio * 100).toFixed(1)),
+    articulationRate: praatLike.articulationRate,
+    speechRate: praatLike.speechRate,
+    meanF1Variation: formants.meanF1Variation,
+    meanF2Variation: formants.meanF2Variation,
+    formantVariation: formants.formantVariation,
+
+    // Supporting
+    disruptionCount: reading.disruptionCount,
+    phonationTime: praatLike.phonationTime,
+  };
+
+  // Grade
+  const grade = gradeReading(summaryData, cfg.birthYear || null);
+  summaryData.grade = grade.label;
+  summaryData.gradeLevel = grade.level;
+
   return {
-    sessionSummary: {
-      sessionDuration: Number(totalDuration.toFixed(1)),
-      speakingTime: Number(speakingTime.toFixed(1)),
-
-      // The four metrics
-      syllables: reading.syllables,
-      cleanReadingPct: Number((reading.cleanReadingRatio * 100).toFixed(1)),
-      articulationRate: praatLike.articulationRate,
-      speechRate: praatLike.speechRate,
-
-      // Supporting
-      disruptionCount: reading.disruptionCount,
-      phonationTime: praatLike.phonationTime,
-    },
+    sessionSummary: summaryData,
     snippets,
     rawMetrics: {
       config: cfg,
       praatPeaks: praatLike.peaks,
       intervals: reading.intervals,
-      debug: reading.debug
+      debug: reading.debug,
+      gradeDetails: grade
     }
   };
 }
@@ -501,7 +710,6 @@ export function isSnippetUsable(summary) {
     return { usable: false, quality: null, reason: 'no_speech' };
   }
 
-  // Nothæft
   return { usable: true, quality: 'ok', reason: null };
 }
 

@@ -168,9 +168,12 @@ html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sa
 .admin-session-label{color:#7a8fa0;font-size:14px;margin-bottom:6px}
 .admin-profile-text{font-size:18px;font-weight:800}
 .admin-metrics-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-.admin-metric{padding:12px;border-radius:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(29,205,211,0.08)}
+.admin-metric{padding:12px;border-radius:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(29,205,211,0.08);position:relative}
 .admin-metric-label{font-size:11px;color:#7a8fa0;text-transform:uppercase;letter-spacing:0.08em;font-weight:700;margin-bottom:8px}
 .admin-metric-value{font-size:20px;font-weight:800;line-height:1.05;margin-bottom:4px;color:#d9e5ef}
+.admin-metric[title]{cursor:help}
+.admin-tooltip{display:none;position:absolute;bottom:100%;left:50%;transform:translateX(-50%);background:#1a2a3a;color:#c8dae8;padding:10px 14px;border-radius:10px;font-size:12px;line-height:1.5;width:240px;z-index:100;border:1px solid rgba(29,205,211,0.15);box-shadow:0 4px 16px rgba(0,0,0,0.4);pointer-events:none;margin-bottom:8px}
+.admin-metric:hover .admin-tooltip{display:block}
 .admin-see-more{
   display:flex;justify-content:center;align-items:center;gap:10px;
   padding:14px 16px;border-radius:14px;border:1px solid rgba(29,205,211,0.22);
@@ -360,7 +363,9 @@ function getMetrics(s) {
     speechRate: Number((usable.reduce((a, sn) => a + val(sn, 'speechRate'), 0) / usable.length).toFixed(2)),
     formantVariation: Number((usable.reduce((a, sn) => a + val(sn, 'formantVariation'), 0) / usable.length).toFixed(1)),
     meanF1Variation: Number((usable.reduce((a, sn) => a + val(sn, 'meanF1Variation'), 0) / usable.length).toFixed(1)),
-    meanF2Variation: Number((usable.reduce((a, sn) => a + val(sn, 'meanF2Variation'), 0) / usable.length).toFixed(1))
+    meanF2Variation: Number((usable.reduce((a, sn) => a + val(sn, 'meanF2Variation'), 0) / usable.length).toFixed(1)),
+    speakingTime: Number((usable.reduce((a, sn) => a + val(sn, 'speakingTime'), 0) / usable.length).toFixed(1)),
+    disruptionCount: Number((usable.reduce((a, sn) => a + val(sn, 'disruptionCount'), 0) / usable.length).toFixed(1))
   };
 }
 
@@ -648,7 +653,7 @@ function renderInsights() {
   const avgSyl = allMetrics.length ? Math.round(allMetrics.reduce((a,m)=>a+m.syllables,0)/allMetrics.length) : 0;
   const avgClean = allMetrics.length ? (allMetrics.reduce((a,m)=>a+m.cleanReadingPct,0)/allMetrics.length).toFixed(1) : 0;
   const avgArt = allMetrics.length ? (allMetrics.reduce((a,m)=>a+m.articulationRate,0)/allMetrics.length).toFixed(2) : 0;
-  const avgFormant = allMetrics.length ? (allMetrics.reduce((a,m)=>a+m.meanF1Variation,0)/allMetrics.length).toFixed(1) : 0;
+  const avgF1 = allMetrics.length ? (allMetrics.reduce((a,m)=>a+m.meanF1Variation,0)/allMetrics.length).toFixed(1) : 0;
 
   const last7 = analyzed.filter(s => (s.timestamp||0) > Date.now() - 7*86400000);
   const last30 = analyzed.filter(s => (s.timestamp||0) > Date.now() - 30*86400000);
@@ -658,7 +663,7 @@ function renderInsights() {
       ${kpiCard('Meðal atkvæði', avgSyl, 'syllables')}
       ${kpiCard('Meðal hreinn lestur', avgClean + '%', 'cleanReadingPct')}
       ${kpiCard('Meðal talhraði', avgArt, 'articulationRate')}
-      ${kpiCard('Meðal formendabr.', avgFormant, 'F1 variation')}
+      ${kpiCard('Meðal F1 breytil.', avgF1, 'formendabreytileiki')}
     </section>
 
     <section class="admin-summary-row" style="grid-template-columns:1fr 1fr">
@@ -746,10 +751,38 @@ function renderSessionCards(sessions) {
           <div class="admin-profile-text" style="color:${PROFILE_COLORS[prof]}">${esc(PROFILE_LABELS[prof])}</div>
         </div>
         <div class="admin-metrics-grid">
-          <div class="admin-metric"><div class="admin-metric-label">Atkvæði</div><div class="admin-metric-value">${esc(m.syllables||'—')}</div></div>
-          <div class="admin-metric"><div class="admin-metric-label">Hreinn lestur</div><div class="admin-metric-value">${m.cleanReadingPct ? m.cleanReadingPct+'%' : '—'}</div></div>
-          <div class="admin-metric"><div class="admin-metric-label">Talhraði</div><div class="admin-metric-value">${esc(m.articulationRate||'—')}</div></div>
-          <div class="admin-metric"><div class="admin-metric-label">F1 breytil.</div><div class="admin-metric-value">${esc(m.meanF1Variation||'—')}</div></div>
+          <div class="admin-metric">
+            <div class="admin-metric-label">Atkvæði</div>
+            <div class="admin-metric-value">${esc(m.syllables||'—')}</div>
+          </div>
+          <div class="admin-metric">
+            <div class="admin-metric-label">Hreinn lestur</div>
+            <div class="admin-metric-value">${m.cleanReadingPct ? m.cleanReadingPct+'%' : '—'}</div>
+          </div>
+          <div class="admin-metric">
+            <div class="admin-metric-label">Talhraði</div>
+            <div class="admin-metric-value">${esc(m.articulationRate||'—')}</div>
+            <div class="admin-tooltip">Atkvæði á sekúndu þegar verið er að lesa. Hærra = hraðari lestur.</div>
+          </div>
+          <div class="admin-metric">
+            <div class="admin-metric-label">F1 breytil.</div>
+            <div class="admin-metric-value">${esc(m.meanF1Variation||'—')}</div>
+            <div class="admin-tooltip">Fyrsti formandi (F1) mælir kjálkaopnu. Hátt gildi = lesandi skiptir á milli margra sérhljóða (raunveruleg orð). Lágt gildi = eitt hljóð togað eða endurtekið. Byggt á LPC formendagreiningu.</div>
+          </div>
+          <div class="admin-metric">
+            <div class="admin-metric-label">F2 breytil.</div>
+            <div class="admin-metric-value">${esc(m.meanF2Variation||'—')}</div>
+            <div class="admin-tooltip">Annar formandi (F2) mælir tungustöðu. Hátt gildi = fjölbreytt tunguhreyfinng (mismunandi sérhljóð). Lágt gildi = tungan hreyfist lítið. Byggt á LPC formendagreiningu.</div>
+          </div>
+          <div class="admin-metric">
+            <div class="admin-metric-label">Taltími</div>
+            <div class="admin-metric-value">${m.speakingTime ? m.speakingTime+'s' : '—'}</div>
+          </div>
+          <div class="admin-metric">
+            <div class="admin-metric-label">Truflanir</div>
+            <div class="admin-metric-value">${m.disruptionCount != null ? m.disruptionCount : '—'}</div>
+            <div class="admin-tooltip">Fjöldi bila lengri en 0.7 sekúndur milli atkvæða. Getur verið hik, afkóðunarhlé eða togað hljóð.</div>
+          </div>
         </div>
       </article>`;
   }).join('');

@@ -644,24 +644,31 @@ let _sessionDateTo = '';
 function applySessionDateFilter() {
   _sessionDateFrom = document.getElementById('session-date-from')?.value || '';
   _sessionDateTo = document.getElementById('session-date-to')?.value || '';
-  document.getElementById('main').innerHTML = renderSessions();
+  document.getElementById('admin-content').innerHTML = renderSessions();
 }
 
 function clearSessionDateFilter() {
   _sessionDateFrom = '';
   _sessionDateTo = '';
-  document.getElementById('main').innerHTML = renderSessions();
+  document.getElementById('admin-content').innerHTML = renderSessions();
 }
 
 function filterSessionsByDate(sessions) {
   let filtered = sessions;
   if (_sessionDateFrom) {
-    const from = new Date(_sessionDateFrom).getTime();
-    filtered = filtered.filter(s => (s.timestamp || 0) >= from);
+    const from = new Date(_sessionDateFrom);
+    filtered = filtered.filter(s => {
+      const d = s.date ? new Date(s.date) : (s.createdAt?.toDate ? s.createdAt.toDate() : null);
+      return d && d >= from;
+    });
   }
   if (_sessionDateTo) {
-    const to = new Date(_sessionDateTo).getTime() + 86400000; // end of day
-    filtered = filtered.filter(s => (s.timestamp || 0) < to);
+    const to = new Date(_sessionDateTo);
+    to.setDate(to.getDate() + 1); // end of day
+    filtered = filtered.filter(s => {
+      const d = s.date ? new Date(s.date) : (s.createdAt?.toDate ? s.createdAt.toDate() : null);
+      return d && d < to;
+    });
   }
   return filtered;
 }

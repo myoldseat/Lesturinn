@@ -299,7 +299,7 @@ function buildWeekHeatmap(sessions) {
   const rows = HOURS.map(h => {
     const cells = DAYS.map((d, di) => {
       const mins = map[`${di}_${h}`] || 0;
-      return `<div class="ph-hm-cell ${levelClass(minsToLevel(mins))}" title="${d} ${h}:00 — ${mins > 0 ? mins + ' mín' : 'Ekki lesið'}"></div>`;
+      return `<div class="ph-hm-cell ${levelClass(minsToLevel(mins))}" title="${d} ${h}:00 — ${mins > 0 ? mins + ' mín' : 'Ekki lesið'}">${mins > 0 ? mins : ''}</div>`;
     }).join('');
     return `<div class="ph-hm-row"><div class="ph-hm-hour-lbl">${h}:00</div>${cells}</div>`;
   }).join('');

@@ -18,7 +18,7 @@ import {
   toggleExpand, playClip, toggleCodes,
   phPlayClip, switchTab, toggleRec, selectChild, renderDashboard,
   switchHeatmap, switchHeatmapMonth,
-  setRecDays, toggleRecFavFilter, toggleFav
+  switchRecTab, toggleClipFav
 } from './parent-view.js';
 import { isAdminCode, openAdminDashboard, closeAdmin } from './admin-view.js';
 
@@ -61,9 +61,8 @@ window.phPlayClip            = phPlayClip;
 window.renderDashboard       = renderDashboard;
 window.switchHeatmap         = switchHeatmap;
 window.switchHeatmapMonth    = switchHeatmapMonth;
-window.setRecDays            = setRecDays;
-window.toggleRecFavFilter    = toggleRecFavFilter;
-window.toggleFav             = toggleFav;
+window.switchRecTab            = switchRecTab;
+window.toggleClipFav           = toggleClipFav;
 window.isAdminCode          = isAdminCode;
 window.openAdminDashboard   = openAdminDashboard;
 window.closeAdmin           = closeAdmin;

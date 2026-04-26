@@ -355,22 +355,25 @@ function getMetrics(s) {
   };
 
   // Read from summary object if available, fall back to legacy flat fields
-  const val = (sn, key, legacyKey) => {
+  const val = (sn, key, ...legacyKeys) => {
     if (sn.summary && sn.summary[key] != null) return sn.summary[key];
-    if (legacyKey && sn[legacyKey] != null) return sn[legacyKey];
+    for (const lk of legacyKeys) {
+      if (lk && sn[lk] != null) return sn[lk];
+    }
+    if (sn[key] != null) return sn[key];
     return 0;
   };
 
   return {
     syllables: Math.round(usable.reduce((a, sn) => a + val(sn, 'syllables', 'praatSyllables'), 0) / usable.length),
     cleanReadingPct: Number((usable.reduce((a, sn) => a + val(sn, 'cleanReadingPct'), 0) / usable.length).toFixed(1)),
-    articulationRate: Number((usable.reduce((a, sn) => a + val(sn, 'articulationRate'), 0) / usable.length).toFixed(2)),
-    speechRate: Number((usable.reduce((a, sn) => a + val(sn, 'speechRate'), 0) / usable.length).toFixed(2)),
+    articulationRate: Number((usable.reduce((a, sn) => a + val(sn, 'articulationRate', 'praatArticulationRate'), 0) / usable.length).toFixed(2)),
+    speechRate: Number((usable.reduce((a, sn) => a + val(sn, 'speechRate', 'praatSpeechRate'), 0) / usable.length).toFixed(2)),
     formantVariation: Number((usable.reduce((a, sn) => a + val(sn, 'formantVariation'), 0) / usable.length).toFixed(1)),
     meanF1Variation: Number((usable.reduce((a, sn) => a + val(sn, 'meanF1Variation'), 0) / usable.length).toFixed(1)),
     meanF2Variation: Number((usable.reduce((a, sn) => a + val(sn, 'meanF2Variation'), 0) / usable.length).toFixed(1)),
     speakingTime: Number((usable.reduce((a, sn) => a + val(sn, 'speakingTime'), 0) / usable.length).toFixed(1)),
-    disruptionCount: Number((usable.reduce((a, sn) => a + val(sn, 'disruptionCount'), 0) / usable.length).toFixed(1))
+    disruptionCount: Number((usable.reduce((a, sn) => a + val(sn, 'disruptionCount', 'decodingPauseCount'), 0) / usable.length).toFixed(1))
   };
 }
 
@@ -551,7 +554,7 @@ function computeKPIs() {
   const avgScore = scoreSessions.length
     ? (scoreSessions.reduce((a,s) => a+(s.analysis.overall.avgScore||0),0)/scoreSessions.length).toFixed(1) : '—';
 
-  const profiles = { early:0, developing:0, steady:0, flowing:0, mixed:0, unknown:0 };
+  const profiles = { early:0, developing:0, steady:0, flowing:0, top:0, unknown:0 };
   const qualities = { good:0, fair:0, poor:0 };
   analyzed.forEach(s => {
     const p = getProfile(getMetrics(s));
@@ -592,11 +595,11 @@ function renderOverview() {
       <article class="admin-summary-card">
         <h3>Lestrarstíll</h3>
         <div class="admin-dist-stack">
-          ${distBar('Að fóta sig', k.profiles.early, '#f87171', k.analyzed.length)}
-          ${distBar('Á leiðinni', k.profiles.developing, '#fbbf24', k.analyzed.length)}
-          ${distBar('Orðið stöðugra', k.profiles.steady, '#60a5fa', k.analyzed.length)}
-          ${distBar('Flæðandi', k.profiles.flowing, '#4ade80', k.analyzed.length)}
-          ${distBar('Blandað', k.profiles.mixed, '#c084fc', k.analyzed.length)}
+          ${distBar('Að ná tökum', k.profiles.early, '#f87171', k.analyzed.length)}
+          ${distBar('Á réttri leið', k.profiles.developing, '#fbbf24', k.analyzed.length)}
+          ${distBar('Á réttum stað', k.profiles.steady, '#60a5fa', k.analyzed.length)}
+          ${distBar('Góð tök', k.profiles.flowing, '#4ade80', k.analyzed.length)}
+          ${distBar('Mjög góð tök', k.profiles.top, '#34d399', k.analyzed.length)}
         </div>
       </article>
       <article class="admin-summary-card">
@@ -759,11 +762,11 @@ function renderInsights() {
       <article class="admin-summary-card">
         <h3>Lestrarstíll — dreifing</h3>
         <div class="admin-dist-stack">
-          ${distBar('Að fóta sig', k.profiles.early, '#f87171', analyzed.length)}
-          ${distBar('Á leiðinni', k.profiles.developing, '#fbbf24', analyzed.length)}
-          ${distBar('Orðið stöðugra', k.profiles.steady, '#60a5fa', analyzed.length)}
-          ${distBar('Flæðandi', k.profiles.flowing, '#4ade80', analyzed.length)}
-          ${distBar('Blandað', k.profiles.mixed, '#c084fc', analyzed.length)}
+          ${distBar('Að ná tökum', k.profiles.early, '#f87171', analyzed.length)}
+          ${distBar('Á réttri leið', k.profiles.developing, '#fbbf24', analyzed.length)}
+          ${distBar('Á réttum stað', k.profiles.steady, '#60a5fa', analyzed.length)}
+          ${distBar('Góð tök', k.profiles.flowing, '#4ade80', analyzed.length)}
+          ${distBar('Mjög góð tök', k.profiles.top, '#34d399', analyzed.length)}
         </div>
       </article>
     </section>`;

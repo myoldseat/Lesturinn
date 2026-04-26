@@ -331,15 +331,8 @@ let _totalCount = 0;
 let _activeTab = 'overview';
 
 // ══════════════════════════════════════════
-// ADMIN RULES — profile classification
+// ADMIN — metrics extraction (new seven metrics)
 // ══════════════════════════════════════════
-
-const ADMIN_RULES = {
-  early:      { maxSyllables:45, minFragmentation:75, minDecodePauses:8,  maxLongestBurst:1.2 },
-  developing: { maxSyllables:65, minFragmentation:60, minDecodePauses:4,  maxLongestBurst:2.4 },
-  steady:     { minSyllables:55, maxFragmentation:75, maxDecodePauses:5,  minLongestBurst:1.6 },
-  flowing:    { minSyllables:70, maxFragmentation:70, maxDecodePauses:4,  minLongestBurst:3.0 }
-};
 
 function getMetrics(s) {
   const snippets = s.analysis?.snippets || {};
@@ -347,27 +340,38 @@ function getMetrics(s) {
     snippets.min1, snippets.min2, snippets.min5, snippets.min8, snippets.min10,
     snippets.min4, snippets.min7, snippets.min9, snippets.min13
   ].filter(sn => sn && sn.usable);
-  if (!usable.length) return { praatSyllables:0, fragmentationScore:0, decodingPauseCount:0, longestBurst:0 };
+
+  if (!usable.length) return {
+    syllables: 0, cleanReadingPct: 0, articulationRate: 0, speechRate: 0,
+    formantVariation: 0, meanF1Variation: 0, meanF2Variation: 0
+  };
+
+  // Read from summary object if available, fall back to legacy flat fields
+  const val = (sn, key, legacyKey) => {
+    if (sn.summary && sn.summary[key] != null) return sn.summary[key];
+    if (legacyKey && sn[legacyKey] != null) return sn[legacyKey];
+    return 0;
+  };
+
   return {
-    praatSyllables: Math.round(usable.reduce((a,sn) => a+(sn.praatSyllables||0),0)/usable.length),
-    fragmentationScore: Number((usable.reduce((a,sn) => a+(sn.fragmentationScore||0),0)/usable.length).toFixed(1)),
-    decodingPauseCount: Number((usable.reduce((a,sn) => a+(sn.decodingPauseCount||0),0)/usable.length).toFixed(1)),
-    longestBurst: Math.max(...usable.map(sn => sn.longestBurst||0))
+    syllables: Math.round(usable.reduce((a, sn) => a + val(sn, 'syllables', 'praatSyllables'), 0) / usable.length),
+    cleanReadingPct: Number((usable.reduce((a, sn) => a + val(sn, 'cleanReadingPct'), 0) / usable.length).toFixed(1)),
+    articulationRate: Number((usable.reduce((a, sn) => a + val(sn, 'articulationRate'), 0) / usable.length).toFixed(2)),
+    speechRate: Number((usable.reduce((a, sn) => a + val(sn, 'speechRate'), 0) / usable.length).toFixed(2)),
+    formantVariation: Number((usable.reduce((a, sn) => a + val(sn, 'formantVariation'), 0) / usable.length).toFixed(1)),
+    meanF1Variation: Number((usable.reduce((a, sn) => a + val(sn, 'meanF1Variation'), 0) / usable.length).toFixed(1)),
+    meanF2Variation: Number((usable.reduce((a, sn) => a + val(sn, 'meanF2Variation'), 0) / usable.length).toFixed(1))
   };
 }
 
+// Profile classification — based on articulation rate as primary indicator
 function getProfile(m) {
-  if (!m.praatSyllables && !m.fragmentationScore && !m.decodingPauseCount && !m.longestBurst) return 'unknown';
-  const R = ADMIN_RULES;
-  if (m.praatSyllables < R.early.maxSyllables && m.fragmentationScore >= R.early.minFragmentation &&
-      m.decodingPauseCount >= R.early.minDecodePauses && m.longestBurst < R.early.maxLongestBurst) return 'early';
-  if (m.praatSyllables >= R.flowing.minSyllables && m.fragmentationScore <= R.flowing.maxFragmentation &&
-      m.decodingPauseCount <= R.flowing.maxDecodePauses && m.longestBurst >= R.flowing.minLongestBurst) return 'flowing';
-  if (m.praatSyllables < R.developing.maxSyllables && m.fragmentationScore >= R.developing.minFragmentation &&
-      m.decodingPauseCount >= R.developing.minDecodePauses && m.longestBurst < R.developing.maxLongestBurst) return 'developing';
-  if (m.praatSyllables >= R.steady.minSyllables && m.fragmentationScore <= R.steady.maxFragmentation &&
-      m.decodingPauseCount <= R.steady.maxDecodePauses && m.longestBurst >= R.steady.minLongestBurst) return 'steady';
-  return 'mixed';
+  if (!m.syllables && !m.articulationRate) return 'unknown';
+  if (m.articulationRate >= 7.0 && m.cleanReadingPct >= 65) return 'flowing';
+  if (m.articulationRate >= 5.5 && m.cleanReadingPct >= 50) return 'steady';
+  if (m.articulationRate >= 4.0) return 'developing';
+  if (m.articulationRate > 0) return 'early';
+  return 'unknown';
 }
 
 const PROFILE_LABELS = { early:'Að fóta sig', developing:'Á leiðinni', steady:'Orðið stöðugra', flowing:'Flæðandi', mixed:'Blandað', unknown:'Engin túlkun' };
@@ -640,21 +644,21 @@ function renderInsights() {
   const analyzed = k.analyzed;
   if (!analyzed.length) return '<p class="admin-empty" style="padding:24px">Engin gögn til greiningar enn.</p>';
 
-  const allMetrics = analyzed.map(s => getMetrics(s)).filter(m => m.praatSyllables > 0);
-  const avgSyl = allMetrics.length ? Math.round(allMetrics.reduce((a,m)=>a+m.praatSyllables,0)/allMetrics.length) : 0;
-  const avgFrag = allMetrics.length ? (allMetrics.reduce((a,m)=>a+m.fragmentationScore,0)/allMetrics.length).toFixed(1) : 0;
-  const avgDec = allMetrics.length ? (allMetrics.reduce((a,m)=>a+m.decodingPauseCount,0)/allMetrics.length).toFixed(1) : 0;
-  const avgBurst = allMetrics.length ? (allMetrics.reduce((a,m)=>a+m.longestBurst,0)/allMetrics.length).toFixed(1) : 0;
+  const allMetrics = analyzed.map(s => getMetrics(s)).filter(m => m.syllables > 0);
+  const avgSyl = allMetrics.length ? Math.round(allMetrics.reduce((a,m)=>a+m.syllables,0)/allMetrics.length) : 0;
+  const avgClean = allMetrics.length ? (allMetrics.reduce((a,m)=>a+m.cleanReadingPct,0)/allMetrics.length).toFixed(1) : 0;
+  const avgArt = allMetrics.length ? (allMetrics.reduce((a,m)=>a+m.articulationRate,0)/allMetrics.length).toFixed(2) : 0;
+  const avgFormant = allMetrics.length ? (allMetrics.reduce((a,m)=>a+m.meanF1Variation,0)/allMetrics.length).toFixed(1) : 0;
 
   const last7 = analyzed.filter(s => (s.timestamp||0) > Date.now() - 7*86400000);
   const last30 = analyzed.filter(s => (s.timestamp||0) > Date.now() - 30*86400000);
 
   return `
     <section class="admin-grid-top" style="grid-template-columns:repeat(4,minmax(0,1fr))">
-      ${kpiCard('Meðal atkvæði', avgSyl, 'praatSyllables')}
-      ${kpiCard('Meðal sundrun', avgFrag, 'fragmentationScore')}
-      ${kpiCard('Meðal afkóðunarbið', avgDec, 'decodingPauseCount')}
-      ${kpiCard('Meðal lengsta flæði', avgBurst + 's', 'longestBurst')}
+      ${kpiCard('Meðal atkvæði', avgSyl, 'syllables')}
+      ${kpiCard('Meðal hreinn lestur', avgClean + '%', 'cleanReadingPct')}
+      ${kpiCard('Meðal talhraði', avgArt, 'articulationRate')}
+      ${kpiCard('Meðal formendabr.', avgFormant, 'F1 variation')}
     </section>
 
     <section class="admin-summary-row" style="grid-template-columns:1fr 1fr">
@@ -742,10 +746,10 @@ function renderSessionCards(sessions) {
           <div class="admin-profile-text" style="color:${PROFILE_COLORS[prof]}">${esc(PROFILE_LABELS[prof])}</div>
         </div>
         <div class="admin-metrics-grid">
-          <div class="admin-metric"><div class="admin-metric-label">Syllables</div><div class="admin-metric-value">${esc(m.praatSyllables||'—')}</div></div>
-          <div class="admin-metric"><div class="admin-metric-label">Fragmentation</div><div class="admin-metric-value">${esc(m.fragmentationScore||'—')}</div></div>
-          <div class="admin-metric"><div class="admin-metric-label">Decode pauses</div><div class="admin-metric-value">${esc(m.decodingPauseCount||'—')}</div></div>
-          <div class="admin-metric"><div class="admin-metric-label">Longest burst</div><div class="admin-metric-value">${esc(m.longestBurst||'—')}</div></div>
+          <div class="admin-metric"><div class="admin-metric-label">Atkvæði</div><div class="admin-metric-value">${esc(m.syllables||'—')}</div></div>
+          <div class="admin-metric"><div class="admin-metric-label">Hreinn lestur</div><div class="admin-metric-value">${m.cleanReadingPct ? m.cleanReadingPct+'%' : '—'}</div></div>
+          <div class="admin-metric"><div class="admin-metric-label">Talhraði</div><div class="admin-metric-value">${esc(m.articulationRate||'—')}</div></div>
+          <div class="admin-metric"><div class="admin-metric-label">F1 breytil.</div><div class="admin-metric-value">${esc(m.meanF1Variation||'—')}</div></div>
         </div>
       </article>`;
   }).join('');

@@ -174,6 +174,11 @@ html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sa
 .admin-metric[title]{cursor:help}
 .admin-tooltip{display:none;position:absolute;bottom:100%;left:50%;transform:translateX(-50%);background:#1a2a3a;color:#c8dae8;padding:10px 14px;border-radius:10px;font-size:12px;line-height:1.5;width:240px;z-index:100;border:1px solid rgba(29,205,211,0.15);box-shadow:0 4px 16px rgba(0,0,0,0.4);pointer-events:none;margin-bottom:8px}
 .admin-metric:hover .admin-tooltip{display:block}
+.admin-date-filter{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:16px;padding:12px 16px;background:rgba(255,255,255,0.02);border-radius:12px;border:1px solid rgba(29,205,211,0.08)}
+.admin-date-filter label{font-size:13px;color:#7a8fa0;display:flex;align-items:center;gap:6px}
+.admin-date-filter input[type="date"]{background:#0d1b2a;color:#d9e5ef;border:1px solid rgba(29,205,211,0.15);border-radius:8px;padding:6px 10px;font-size:13px}
+.admin-filter-clear{background:rgba(248,113,113,0.15);color:#f87171;border:1px solid rgba(248,113,113,0.2);border-radius:8px;padding:6px 14px;font-size:12px;cursor:pointer;font-weight:600}
+.admin-filter-clear:hover{background:rgba(248,113,113,0.25)}
 .admin-see-more{
   display:flex;justify-content:center;align-items:center;gap:10px;
   padding:14px 16px;border-radius:14px;border:1px solid rgba(29,205,211,0.22);
@@ -369,17 +374,29 @@ function getMetrics(s) {
   };
 }
 
-// Profile classification — based on articulation rate as primary indicator
+// Profile classification — matches gradeReading in audio-analysis.js
+const GRADE_THRESHOLDS_ADMIN = {
+  f1Var:        [150, 300, 450, 600],
+  syllables:    [25,  40,  50,  60],
+  cleanReading: [0,   50,  60,  65]
+};
+
 function getProfile(m) {
-  if (!m.syllables && !m.articulationRate) return 'unknown';
-  if (m.articulationRate >= 7.0 && m.cleanReadingPct >= 65) return 'flowing';
-  if (m.articulationRate >= 5.5 && m.cleanReadingPct >= 50) return 'steady';
-  if (m.articulationRate >= 4.0) return 'developing';
-  if (m.articulationRate > 0) return 'early';
-  return 'unknown';
+  const T = GRADE_THRESHOLDS_ADMIN;
+  const f1 = m.meanF1Variation || 0;
+  const syl = m.syllables || 0;
+  const clean = m.cleanReadingPct || 0;
+
+  if (!syl && !f1) return 'unknown';
+
+  if (f1 >= T.f1Var[3] && syl >= T.syllables[3] && clean >= T.cleanReading[3]) return 'flowing';
+  if (f1 >= T.f1Var[2] && syl >= T.syllables[2] && clean >= T.cleanReading[2]) return 'steady';
+  if (f1 >= T.f1Var[1] && syl >= T.syllables[1] && clean >= T.cleanReading[1]) return 'developing';
+  if (f1 >= T.f1Var[0] || syl >= T.syllables[0]) return 'early';
+  return 'early';
 }
 
-const PROFILE_LABELS = { early:'Að fóta sig', developing:'Á leiðinni', steady:'Orðið stöðugra', flowing:'Flæðandi', mixed:'Blandað', unknown:'Engin túlkun' };
+const PROFILE_LABELS = { early:'Að ná tökum / Á réttri leið', developing:'Á réttum stað', steady:'Góð tök', flowing:'Mjög góð tök', mixed:'Blandað', unknown:'Engin túlkun' };
 const PROFILE_COLORS = { early:'#f87171', developing:'#fbbf24', steady:'#60a5fa', flowing:'#4ade80', mixed:'#c084fc', unknown:'#94a3b8' };
 function qualityClass(q) { return q === 'good' ? 'admin-quality-good' : q === 'fair' ? 'admin-quality-fair' : q === 'poor' ? 'admin-quality-poor' : ''; }
 function esc(v) { return String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
@@ -609,19 +626,53 @@ function renderOverview() {
 }
 
 // ── Sessions tab ──
+let _sessionDateFrom = '';
+let _sessionDateTo = '';
+
+function applySessionDateFilter() {
+  _sessionDateFrom = document.getElementById('session-date-from')?.value || '';
+  _sessionDateTo = document.getElementById('session-date-to')?.value || '';
+  document.getElementById('main').innerHTML = renderSessions();
+}
+
+function clearSessionDateFilter() {
+  _sessionDateFrom = '';
+  _sessionDateTo = '';
+  document.getElementById('main').innerHTML = renderSessions();
+}
+
+function filterSessionsByDate(sessions) {
+  let filtered = sessions;
+  if (_sessionDateFrom) {
+    const from = new Date(_sessionDateFrom).getTime();
+    filtered = filtered.filter(s => (s.timestamp || 0) >= from);
+  }
+  if (_sessionDateTo) {
+    const to = new Date(_sessionDateTo).getTime() + 86400000; // end of day
+    filtered = filtered.filter(s => (s.timestamp || 0) < to);
+  }
+  return filtered;
+}
+
 function renderSessions() {
   const analyzed = _sessions.filter(s => s.analysis?.overall);
-  const all = _sessions;
+  const filtered = filterSessionsByDate(analyzed);
+  const all = filterSessionsByDate(_sessions);
   return `
     <section>
       <div class="admin-section-head">
         <div>
-          <h2 class="admin-section-title">Allar lotur (${_totalCount})</h2>
-          <p>Sýnir ${_sessions.length} af ${_totalCount} lotum.</p>
+          <h2 class="admin-section-title">Allar lotur (${all.length} af ${_totalCount})</h2>
+          <p>Sýnir ${filtered.length} greindar lotur.</p>
         </div>
       </div>
+      <div class="admin-date-filter">
+        <label>Frá: <input type="date" id="session-date-from" value="${_sessionDateFrom}" onchange="applySessionDateFilter()"></label>
+        <label>Til: <input type="date" id="session-date-to" value="${_sessionDateTo}" onchange="applySessionDateFilter()"></label>
+        ${_sessionDateFrom || _sessionDateTo ? '<button onclick="clearSessionDateFilter()" class="admin-filter-clear">Hreinsa filter</button>' : ''}
+      </div>
       <div class="admin-sessions-grid">
-        ${renderSessionCards(analyzed.slice(0, 30)) || '<p class="admin-empty">Engar greindar lotur enn.</p>'}
+        ${renderSessionCards(filtered.slice(0, 50)) || '<p class="admin-empty">Engar greindar lotur á þessu tímabili.</p>'}
       </div>
       ${_hasMore ? '<button class="admin-load-more" onclick="loadMore()">Hlaða fleiri lotum →</button>' : ''}
     </section>`;

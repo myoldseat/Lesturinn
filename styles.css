@@ -603,31 +603,101 @@ audio { width: 100%; border-radius: 8px }
 .ph-cal-dot-today { outline: 2px solid var(--ph-accent); outline-offset: 1px; }
 .ph-calendar-empty { text-align: center; font-size: 13px; color: var(--ph-soft); padding: 20px 0 8px; line-height: 1.5; }
 
-.ph-rec-empty { text-align: center; font-size: 13px; color: var(--ph-soft); padding: 24px 0; line-height: 1.5; }
-.ph-rec-item { border-bottom: 1px solid var(--ph-rec-border); }
-.ph-rec-item:last-child { border-bottom: none; }
-.ph-rec-header { width: 100%; background: none; border: none; padding: 12px 0; display: flex; align-items: center; justify-content: space-between; cursor: pointer; color: var(--ph-text); text-align: left; }
-.ph-rec-label { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: var(--ph-text); }
-.ph-rec-label svg { stroke: var(--ph-accent); flex-shrink: 0; }
-.ph-rec-chevron { font-size: 18px; color: var(--ph-soft); transition: transform 0.2s ease; line-height: 1; }
-.ph-rec-clips { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; padding: 0 0 14px; }
-.ph-clip-item { display: flex; flex-direction: column; gap: 6px; }
-.ph-clip-btn { background: var(--ph-clip-bg); border: 1px solid var(--ph-clip-border); border-radius: 9px; padding: 9px 6px; color: var(--ph-accent); font-size: 11px; font-weight: 700; cursor: pointer; text-align: center; transition: filter 0.15s ease, background 0.15s ease; width: 100%; }
-.ph-clip-btn:hover { filter: brightness(1.15); }
-.ph-clip-playing { background: var(--ph-accent); color: #061018; }
-.ph-clip-disabled { opacity: 0.3; cursor: not-allowed; }
+/* ══════════════════════════════════════════════
+   RECORDINGS — clean surface + teal glow
+   ══════════════════════════════════════════════ */
+
+/* ── Tabs: Nýlegt | ★ Varðveitt ── */
+.ph-rec-tabs { display: flex; gap: 4px; margin-bottom: 10px; }
+.ph-rec-tab {
+  flex: 1; padding: 10px 0; border: none; border-radius: 10px;
+  background: rgba(29,205,211,0.06); color: rgba(255,255,255,0.5);
+  font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s ease;
+}
+.ph-rec-tab-active {
+  background: rgba(29,205,211,0.15); color: #1dcdd3;
+  box-shadow: 0 0 12px rgba(29,205,211,0.15);
+}
+.ph-rec-count { text-align: right; font-size: 12px; color: rgba(255,255,255,0.35); margin-top: 6px; }
+
+/* ── Empty ── */
+.ph-rec-empty { text-align: center; font-size: 13px; color: var(--ph-soft); padding: 32px 16px; line-height: 1.5; }
+
+/* ── Accordion row ── */
+.ph-rec-item { border-radius: 10px; margin-bottom: 4px; overflow: hidden; }
+.ph-rec-header {
+  display: flex; align-items: center; justify-content: space-between;
+  width: 100%; padding: 12px 14px; border: none;
+  background: rgba(29,205,211,0.04); color: var(--ph-text);
+  cursor: pointer; text-align: left; transition: background 0.2s ease;
+}
+.ph-rec-header:hover { background: rgba(29,205,211,0.08); }
+
+.ph-rec-label { display: flex; align-items: center; gap: 10px; }
+.ph-rec-date { font-weight: 600; font-size: 14px; color: rgba(255,255,255,0.9); }
+.ph-rec-time { font-size: 13px; color: rgba(255,255,255,0.45); }
+
+/* Teal dots — one per available clip */
+.ph-clip-dots { display: flex; align-items: center; gap: 4px; margin-left: 4px; }
+.ph-clip-dot {
+  display: inline-block; width: 8px; height: 8px; border-radius: 2px;
+  background: #1dcdd3; box-shadow: 0 0 6px rgba(29,205,211,0.5);
+}
+
+/* Right side */
+.ph-rec-right { display: flex; align-items: center; gap: 8px; }
+.ph-rec-sep { color: rgba(255,255,255,0.15); font-size: 14px; }
+.ph-row-star {
+  font-size: 16px; color: #1dcdd3;
+  text-shadow: 0 0 8px rgba(29,205,211,0.6);
+  align-items: center; justify-content: center;
+}
+.ph-rec-chevron { font-size: 16px; color: rgba(255,255,255,0.3); transition: transform 0.2s ease; line-height: 1; }
+
+/* ── Clips inside accordion ── */
+.ph-rec-clips { display: grid; gap: 6px; padding: 6px 14px 12px; background: rgba(0,0,0,0.15); }
+.ph-clip-item { display: flex; flex-direction: column; }
+.ph-clip-row { display: flex; align-items: center; gap: 8px; }
+.ph-clip-btn {
+  flex: 1; padding: 10px 16px;
+  border: 1px solid rgba(29,205,211,0.25); border-radius: 8px;
+  background: rgba(29,205,211,0.08); color: #1dcdd3;
+  font-size: 13px; font-weight: 600; cursor: pointer; text-align: center;
+  transition: all 0.2s ease; width: 100%;
+}
+.ph-clip-btn:hover { background: rgba(29,205,211,0.15); border-color: rgba(29,205,211,0.4); }
+.ph-clip-playing {
+  background: rgba(29,205,211,0.2); border-color: #1dcdd3;
+  box-shadow: 0 0 12px rgba(29,205,211,0.3);
+}
+.ph-clip-disabled { opacity: 0.25; cursor: not-allowed; }
+
+/* ── Per-clip favorite star — teal glow ── */
+.ph-clip-fav-star {
+  border: none; background: none; font-size: 20px;
+  color: rgba(255,255,255,0.25); cursor: pointer;
+  padding: 4px 6px; border-radius: 6px;
+  transition: all 0.25s ease; align-items: center; justify-content: center;
+}
+.ph-clip-fav-star:hover { color: rgba(29,205,211,0.6); background: rgba(29,205,211,0.08); }
+.ph-clip-fav-active {
+  color: #1dcdd3 !important;
+  text-shadow: 0 0 10px rgba(29,205,211,0.7), 0 0 20px rgba(29,205,211,0.3);
+}
+
+/* ── Audio player ── */
 .ph-clip-player { display: none; }
-.ph-clip-player audio { width: 100%; border-radius: 6px; }
-.ph-clip-loading { font-size: 10px; color: var(--ph-soft); padding: 4px; }
-.ph-clip-error { font-size: 10px; color: #FF6B6B; padding: 4px; }
-.ph-listen-status { font-size: 10px; color: var(--ph-accent); font-weight: 600; margin-top: 4px; }
+.ph-clip-player audio { width: 100%; border-radius: 8px; height: 36px; }
+.ph-clip-loading { font-size: 12px; color: rgba(255,255,255,0.5); padding: 6px 0; }
+.ph-clip-error { font-size: 12px; color: #FF6B6B; padding: 6px 0; }
+.ph-listen-status { font-size: 11px; color: rgba(29,205,211,0.7); margin-top: 4px; }
 
 @media (max-width: 600px) {
   .ph-tile-split { grid-template-columns: 1fr; }
   .ph-tile-left { border-right: none; border-bottom: 1px solid var(--ph-tile-border); }
   .ph-stats-row { grid-template-columns: 1fr 1fr 1fr; }
   .ph-stat-val { font-size: 26px; }
-  .ph-rec-clips { grid-template-columns: repeat(2, 1fr); }
+  .ph-rec-clips { gap: 4px; }
   .ph-body { padding: 12px; }
   .ph-topbar { padding: 10px 14px; }
   .ph-logo-img { height: 28px; }
@@ -809,111 +879,6 @@ audio { width: 100%; border-radius: 8px }
    RECORDINGS — tile header, filters, favorites
    ══════════════════════════════════════════════ */
 
-.ph-rec-tile { position: relative; }
-
-/* Stór bakgrunnstexti — "10 klippingar" */
-.ph-rec-count-bg {
-  font-size: 11px;
-  font-weight: 800;
-  color: rgba(29,205,211,0.12);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  position: absolute;
-  top: 18px; right: 20px;
-  font-size: clamp(28px, 5vw, 42px);
-  font-family: Georgia, serif;
-  font-weight: 900;
-  color: rgba(29,205,211,0.07);
-  letter-spacing: 1px;
-  pointer-events: none;
-  user-select: none;
-  white-space: nowrap;
-}
-
-.ph-rec-tile-top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 14px;
-  position: relative;
-  min-height: 32px;
-}
-
-/* Síðasta klipp með teal play icon */
-.ph-rec-last {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 12px;
-  color: #1dcdd3;
-  font-weight: 600;
-}
-
-/* Controls row — dagafilter + uppáhald */
-.ph-rec-controls {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 14px;
-  flex-wrap: wrap;
-}
-
-.ph-rec-day-filters {
-  display: flex;
-  gap: 4px;
-}
-
-.ph-rec-filter-btn {
-  background: var(--ph-accent-dim, rgba(29,205,211,0.08));
-  border: 1px solid var(--ph-tile-border, rgba(29,205,211,0.12));
-  border-radius: 6px;
-  padding: 4px 10px;
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--ph-soft, #7a8fa0);
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-.ph-rec-filter-btn:hover { color: #1dcdd3; border-color: rgba(29,205,211,0.3); }
-.ph-rec-filter-active {
-  background: rgba(29,205,211,0.15) !important;
-  border-color: rgba(29,205,211,0.4) !important;
-  color: #1dcdd3 !important;
-}
-
-/* Uppáhald filter takki */
-.ph-rec-fav-btn {
-  background: var(--ph-accent-dim, rgba(29,205,211,0.08));
-  border: 1px solid var(--ph-tile-border, rgba(29,205,211,0.12));
-  border-radius: 6px;
-  padding: 4px 12px;
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--ph-soft, #7a8fa0);
-  cursor: pointer;
-  transition: all 0.15s ease;
-  margin-left: auto;
-}
-.ph-rec-fav-btn:hover { color: #f5c518; border-color: rgba(245,197,24,0.3); }
-.ph-rec-fav-btn.ph-fav-active {
-  background: rgba(245,197,24,0.1) !important;
-  border-color: rgba(245,197,24,0.4) !important;
-  color: #f5c518 !important;
-}
-
-/* Stjarna á hverjum accordion row */
-.ph-fav-star {
-  background: none;
-  border: none;
-  font-size: 16px;
-  color: rgba(148,164,180,0.4);
-  cursor: pointer;
-  padding: 2px 4px;
-  line-height: 1;
-  transition: color 0.15s ease, transform 0.15s ease;
-}
-.ph-fav-star:hover { color: #f5c518; transform: scale(1.2); }
-.ph-fav-star.ph-fav-active { color: #f5c518; }
 /* ══════════════════════════════════════════════
    Admin Dashboard
    ══════════════════════════════════════════════ */

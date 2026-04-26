@@ -735,11 +735,21 @@ export async function analyzeSnippetBlob(blob, cfg) {
 
   const result = await analyzeAudio(blob, mergedCfg);
   const usability = isSnippetUsable(result.sessionSummary);
+  const summary = result.sessionSummary;
 
   return {
     usable: usability.usable,
     quality: usability.quality,
     reason: usability.reason,
     summary: result.sessionSummary
-  };
+    totalScore: null,
+    profile: null,
+    activeRatio: summary.sessionDuration > 0
+    ? Number((summary.speakingTime / summary.sessionDuration).toFixed(3))
+    : null,
+    praatSyllables: summary.syllables ?? null,
+    longestBurst: null,
+    fragmentationScore: null,
+    decodingPauseCount: summary.disruptionCount ?? null
+};
 }

@@ -374,30 +374,42 @@ function getMetrics(s) {
   };
 }
 
-// Profile classification — matches gradeReading in audio-analysis.js
+// Profile classification — matches grading logic
+// Grunnur: articulation rate (talhraði)
+// Lækkanir: syllables < 30, cleanReading < 45%, F1 variation < 175
 const GRADE_THRESHOLDS_ADMIN = {
-  f1Var:        [150, 300, 450, 600],
-  syllables:    [25,  40,  50,  60],
-  cleanReading: [0,   50,  60,  65]
+  artRate: [5.0, 6.0, 7.0, 8.0],  // [Á réttri leið, Á réttum stað, Góð tök, Mjög góð tök]
+  syllablesPenalty: 30,
+  cleanReadingPenalty: 45,
+  f1VariationPenalty: 175
 };
 
 function getProfile(m) {
   const T = GRADE_THRESHOLDS_ADMIN;
-  const f1 = m.meanF1Variation || 0;
+  const art = m.articulationRate || 0;
   const syl = m.syllables || 0;
   const clean = m.cleanReadingPct || 0;
+  const f1 = m.meanF1Variation || 0;
 
-  if (!syl && !f1) return 'unknown';
+  if (!syl && !art) return 'unknown';
 
-  if (f1 >= T.f1Var[3] && syl >= T.syllables[3] && clean >= T.cleanReading[3]) return 'flowing';
-  if (f1 >= T.f1Var[2] && syl >= T.syllables[2] && clean >= T.cleanReading[2]) return 'steady';
-  if (f1 >= T.f1Var[1] && syl >= T.syllables[1] && clean >= T.cleanReading[1]) return 'developing';
-  if (f1 >= T.f1Var[0] || syl >= T.syllables[0]) return 'early';
-  return 'early';
+  // Grunnur: articulation rate → stig 0–4
+  let level = 0;
+  for (let i = 0; i < T.artRate.length; i++) {
+    if (art >= T.artRate[i]) level = i + 1;
+  }
+
+  // Lækkanir
+  if (syl < T.syllablesPenalty) level = Math.max(level - 1, 0);
+  if (clean < T.cleanReadingPenalty) level = Math.max(level - 1, 0);
+  if (f1 > 0 && f1 < T.f1VariationPenalty) level = Math.max(level - 1, 0);
+
+  const profiles = ['early', 'developing', 'steady', 'flowing', 'top'];
+  return profiles[level];
 }
 
-const PROFILE_LABELS = { early:'Að ná tökum / Á réttri leið', developing:'Á réttum stað', steady:'Góð tök', flowing:'Mjög góð tök', mixed:'Blandað', unknown:'Engin túlkun' };
-const PROFILE_COLORS = { early:'#f87171', developing:'#fbbf24', steady:'#60a5fa', flowing:'#4ade80', mixed:'#c084fc', unknown:'#94a3b8' };
+const PROFILE_LABELS = { early:'Að ná tökum', developing:'Á réttri leið', steady:'Á réttum stað', flowing:'Góð tök', top:'Mjög góð tök', mixed:'Blandað', unknown:'Engin túlkun' };
+const PROFILE_COLORS = { early:'#f87171', developing:'#fbbf24', steady:'#60a5fa', flowing:'#4ade80', top:'#34d399', mixed:'#c084fc', unknown:'#94a3b8' };
 function qualityClass(q) { return q === 'good' ? 'admin-quality-good' : q === 'fair' ? 'admin-quality-fair' : q === 'poor' ? 'admin-quality-poor' : ''; }
 function esc(v) { return String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function dateLabel(v) {

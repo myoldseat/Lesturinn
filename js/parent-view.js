@@ -3,7 +3,7 @@ import {
   db, storage,
   collection, onSnapshot, query, where,
   ref, getDownloadURL,
-  setDoc, doc, addDoc, serverTimestamp
+  setDoc, doc, addDoc, serverTimestamp, updateDoc
 } from './firebase-config.js';
 import { S }    from './state.js';
 import { fmtTime, formatLabel, getMonday, getStreak } from './helpers.js';
@@ -63,50 +63,69 @@ let _hmMonth        = new Date().getMonth();
 let _hmYear         = new Date().getFullYear();
 let _openRecIdx     = null;
 let _isPlayingAudio = false;
-let _recDays        = 7;    // filter: 7 | 14 | 21 | 30
-let _recFavOnly     = false; // filter: favorites only
+let _recDays        = 14;   // nýlegt: sýna síðustu 14 daga
+let _recTab         = 'recent'; // 'recent' | 'saved'
 
-// Favorites stored in localStorage — key: docId
-function _getFavs() {
-  try { return JSON.parse(localStorage.getItem('upphatt_favs') || '{}'); }
-  catch { return {}; }
-}
-function _setFav(docId, val) {
-  const favs = _getFavs();
-  if (val) favs[docId] = true; else delete favs[docId];
-  localStorage.setItem('upphatt_favs', JSON.stringify(favs));
-}
-function _isFav(docId) { return !!_getFavs()[docId]; }
+// ══════════════════════════════════════════════
+// PER-CLIP FAVORITES — Firestore
+// ══════════════════════════════════════════════
 
-export function toggleFav(docId, btnEl) {
-  const now = !_isFav(docId);
-  _setFav(docId, now);
-  if (btnEl) {
-    btnEl.textContent = now ? '★' : '☆';
-    btnEl.classList.toggle('ph-fav-active', now);
+export async function toggleClipFav(docId, clipKey, starElId) {
+  if (!docId || !clipKey) return;
+  const starEl = document.getElementById(starElId);
+
+  // Lesa núverandi stöðu úr sessions cache
+  const session = S.sessions?.find(s => s._docId === docId);
+  const current = !!(session?.favorites?.[clipKey]);
+  const next    = !current;
+
+  // Uppfæra UI strax (optimistic)
+  if (starEl) {
+    starEl.textContent = next ? '★' : '☆';
+    starEl.classList.toggle('ph-clip-fav-active', next);
+    starEl.title = next ? 'Fjarlægja úr uppáhaldi' : 'Vista klippingu';
   }
-  // If filtering by favs and just un-starred — re-render
-  if (_recFavOnly && !now) renderRecordings();
-}
 
-export function setRecDays(days) {
-  _recDays = days;
-  _openRecIdx = null;
-  [7,14,21,30].forEach(d => {
-    const btn = document.getElementById('ph-rec-days-' + d);
-    if (btn) btn.classList.toggle('ph-rec-filter-active', d === days);
-  });
-  renderRecordings();
-}
-
-export function toggleRecFavFilter() {
-  _recFavOnly = !_recFavOnly;
-  _openRecIdx = null;
-  const btn = document.getElementById('ph-rec-fav-filter');
-  if (btn) {
-    btn.classList.toggle('ph-fav-active', _recFavOnly);
-    btn.textContent = _recFavOnly ? '★ Uppáhald' : '☆ Uppáhald';
+  // Uppfæra local cache
+  if (session) {
+    if (!session.favorites) session.favorites = {};
+    session.favorites[clipKey] = next;
   }
+
+  // Uppfæra header stjörnu
+  _updateRowStar(docId);
+
+  // Skrifa á Firestore
+  try {
+    await updateDoc(doc(db, 'sessions', docId), {
+      [`favorites.${clipKey}`]: next
+    });
+  } catch (e) {
+    console.error('toggleClipFav villa:', e);
+    // Rollback
+    if (starEl) {
+      starEl.textContent = current ? '★' : '☆';
+      starEl.classList.toggle('ph-clip-fav-active', current);
+    }
+    if (session?.favorites) session.favorites[clipKey] = current;
+    _updateRowStar(docId);
+  }
+}
+
+// Uppfæra header stjörnu á row — sýnir ef einhver clip inni er fav
+function _updateRowStar(docId) {
+  const session = S.sessions?.find(s => s._docId === docId);
+  const hasFav  = session?.favorites && Object.values(session.favorites).some(v => v);
+  const el      = document.getElementById(`ph-rowstar-${docId}`);
+  if (el) {
+    el.style.display = hasFav ? 'inline-flex' : 'none';
+    el.classList.toggle('ph-clip-fav-active', hasFav);
+  }
+}
+
+export function switchRecTab(tab) {
+  _recTab = tab;
+  _openRecIdx = null;
   renderRecordings();
 }
 
@@ -361,83 +380,100 @@ function renderRecordings() {
   if (_isPlayingAudio) return;
 
   const sessions = S.sessions || [];
-  const favs     = _getFavs();
 
   // 1. Filter by child
-  let filtered = (!_phSelectedKey || _phSelectedKey === 'all'
+  let withAudio = (!_phSelectedKey || _phSelectedKey === 'all'
     ? sessions : sessions.filter(s => s.childKey === _phSelectedKey)
   ).filter(s => s.hasAudio);
 
-  // 2. Filter by days window
-  const cutoff = Date.now() - (_recDays * 24 * 60 * 60 * 1000);
-  filtered = filtered.filter(s => {
-    const ts = s.timestamp || (s.createdAt?.seconds ? s.createdAt.seconds * 1000 : null);
-    return ts && ts >= cutoff;
-  });
-
-  // 3. Filter by favorites
-  if (_recFavOnly) filtered = filtered.filter(s => favs[s._docId]);
+  // 2. Split into tabs
+  let filtered;
+  if (_recTab === 'saved') {
+    // Varðveitt: allar sessions sem hafa einhverja favorite clip
+    filtered = withAudio.filter(s =>
+      s.favorites && Object.values(s.favorites).some(v => v)
+    );
+  } else {
+    // Nýlegt: síðustu 14 dagar
+    const cutoff = Date.now() - (_recDays * 24 * 60 * 60 * 1000);
+    filtered = withAudio.filter(s => {
+      const ts = s.timestamp || (s.createdAt?.seconds ? s.createdAt.seconds * 1000 : null);
+      return ts && ts >= cutoff;
+    });
+  }
 
   const totalClips  = filtered.length;
-  const lastRec     = filtered[0]; // already sorted newest first
-  const lastRecDate = lastRec ? fmtDateIS(lastRec.date) : null;
 
-  // ── Tile header with count + last recording ──
+  // ── Tile header: tabs ──
   if (tileHdr) {
     tileHdr.innerHTML = `
-      <div class="ph-rec-tile-top">
-        <div class="ph-rec-count-bg">${totalClips} klippingar</div>
-        ${lastRecDate ? `
-          <div class="ph-rec-last">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#1dcdd3" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-            Síðasta: ${lastRecDate}
-          </div>` : ''}
+      <div class="ph-rec-tabs">
+        <button class="ph-rec-tab ${_recTab === 'recent' ? 'ph-rec-tab-active' : ''}"
+          onclick="switchRecTab('recent')">Nýlegt</button>
+        <button class="ph-rec-tab ${_recTab === 'saved' ? 'ph-rec-tab-active' : ''}"
+          onclick="switchRecTab('saved')">★ Varðveitt</button>
       </div>
-      <div class="ph-rec-controls">
-        <div class="ph-rec-day-filters">
-          ${[7,14,21,30].map(d => `
-            <button id="ph-rec-days-${d}" class="ph-rec-filter-btn ${_recDays === d ? 'ph-rec-filter-active' : ''}"
-              onclick="setRecDays(${d})">${d}d</button>`).join('')}
-        </div>
-        <button id="ph-rec-fav-filter" class="ph-rec-fav-btn ${_recFavOnly ? 'ph-fav-active' : ''}"
-          onclick="toggleRecFavFilter()">
-          ${_recFavOnly ? '★' : '☆'} Uppáhald
-        </button>
-      </div>`;
+      <div class="ph-rec-count">${totalClips} ${totalClips === 1 ? 'lota' : 'lotur'}</div>`;
   }
 
   if (!filtered.length) {
-    list.innerHTML = `<div class="ph-rec-empty">${_recFavOnly ? 'Engar uppáhaldklippingar — smelltu á ★ til að vista.' : `Engar klippingar síðustu ${_recDays} daga.`}</div>`;
+    list.innerHTML = `<div class="ph-rec-empty">${
+      _recTab === 'saved'
+        ? 'Engar vistaðar klippingar — hlustaðu á klippingu og smelltu á ★ til að vista.'
+        : 'Engar klippingar.'
+    }</div>`;
     return;
   }
 
   const clipDefs = [
-    { key: 'audioPath_min1',  label: '30 sek' },
-    { key: 'audioPath_min2',  label: '2 mín' },
-    { key: 'audioPath_min5',  label: '5 mín' },
-    { key: 'audioPath_min8',  label: '8 mín' },
-    { key: 'audioPath_min10', label: '10 mín' },
-    { key: 'audioPath_min9',  label: '9 mín' },
-    { key: 'audioPath_min13', label: '13 mín' }
+    { key: 'audioPath_min1',  label: 'Mín. 1' },
+    { key: 'audioPath_min2',  label: 'Mín. 2' },
+    { key: 'audioPath_min5',  label: 'Mín. 5' },
+    { key: 'audioPath_min8',  label: 'Mín. 8' },
+    { key: 'audioPath_min9',  label: 'Mín. 9' },
+    { key: 'audioPath_min10', label: 'Mín. 10' },
+    { key: 'audioPath_min13', label: 'Mín. 13' }
   ];
 
   list.innerHTML = filtered.slice(0, 30).map((s, idx) => {
-    const mins    = Math.floor((s.seconds||0) / 60);
-    const label   = `${fmtDateIS(s.date)} · ${mins} mín`;
-    const isFav   = !!favs[s._docId];
-    const starId  = `ph-star-${s._docId}`;
-    const available = clipDefs.filter(({key}) => s[key]);
-    const clips   = (available.length ? available : clipDefs.slice(0, 1)).map(({key: pathKey, label: clipLabel}, i) => {
-      const path     = s[pathKey] || (i === 0 ? s.audioPath : null);
+    const mins  = Math.floor((s.seconds||0) / 60);
+    const label = `${fmtDateIS(s.date)}`;
+    const timeLabel = `${mins} mín`;
+
+    // Finna available clips
+    const available = clipDefs.filter(({key}) => s[key] || (key === 'audioPath_min1' && s.audioPath));
+    const clipCount = available.length || (s.audioPath ? 1 : 0);
+
+    // Teal ljós — eitt per clip sem er til
+    const dots = Array(clipCount).fill('<span class="ph-clip-dot"></span>').join('');
+
+    // Separator
+    const sep = '<span class="ph-rec-sep">─</span>';
+
+    // Hefur einhver clip verið stjörnumerkt?
+    const hasFav = s.favorites && Object.values(s.favorites).some(v => v);
+
+    // Clip takkar inni í accordion
+    const clips = (available.length ? available : (s.audioPath ? [{ key: 'audioPath_min1', label: 'Mín. 1' }] : [])).map(({key: pathKey, label: clipLabel}, i) => {
+      const path     = s[pathKey] || (pathKey === 'audioPath_min1' ? s.audioPath : null);
+      const clipKey  = pathKey.replace('audioPath_', '') || 'min1';
       const btnId    = `ph-clipbtn-${s._docId}-${i}`;
       const playerId = `ph-clipplay-${s._docId}-${i}`;
+      const clipStarId = `ph-clipstar-${s._docId}-${clipKey}`;
+      const isClipFav  = !!(s.favorites && s.favorites[clipKey]);
       if (!path) return '';
       return `
         <div class="ph-clip-item">
-          <button id="${btnId}" class="ph-clip-btn"
-            onclick="event.stopPropagation();phPlayClip('${path}','${playerId}','${btnId}','${S.familyId}','${s.childKey}','${s._docId}')">
-            ▶ ${clipLabel}
-          </button>
+          <div class="ph-clip-row">
+            <button id="${btnId}" class="ph-clip-btn"
+              onclick="event.stopPropagation();phPlayClip('${path}','${playerId}','${btnId}','${S.familyId}','${s.childKey}','${s._docId}','${clipKey}')">
+              ▶ ${clipLabel}
+            </button>
+            <button id="${clipStarId}" class="ph-clip-fav-star ${isClipFav ? 'ph-clip-fav-active' : ''}"
+              style="display:${isClipFav ? 'inline-flex' : 'none'}"
+              onclick="event.stopPropagation();toggleClipFav('${s._docId}','${clipKey}','${clipStarId}')"
+              title="${isClipFav ? 'Fjarlægja úr uppáhaldi' : 'Vista klippingu'}">${isClipFav ? '★' : '☆'}</button>
+          </div>
           <div id="${playerId}" class="ph-clip-player"></div>
         </div>`;
     }).join('');
@@ -446,13 +482,14 @@ function renderRecordings() {
       <div class="ph-rec-item" id="ph-rec-${idx}">
         <button class="ph-rec-header" onclick="toggleRec(${idx})">
           <div class="ph-rec-label">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg>
-            ${label}
+            <span class="ph-rec-date">${label}</span>
+            <span class="ph-rec-time">${timeLabel}</span>
+            <span class="ph-clip-dots">${dots}</span>
           </div>
-          <div style="display:flex;align-items:center;gap:8px">
-            <button id="${starId}" class="ph-fav-star ${isFav ? 'ph-fav-active' : ''}"
-              onclick="event.stopPropagation();toggleFav('${s._docId}',this)"
-              title="${isFav ? 'Fjarlægja úr uppáhaldi' : 'Bæta í uppáhald'}">${isFav ? '★' : '☆'}</button>
+          <div class="ph-rec-right">
+            ${sep}
+            <span id="ph-rowstar-${s._docId}" class="ph-row-star ${hasFav ? 'ph-clip-fav-active' : ''}"
+              style="display:${hasFav ? 'inline-flex' : 'none'}">★</span>
             <span class="ph-rec-chevron" id="ph-chev-${idx}">›</span>
           </div>
         </button>
@@ -483,7 +520,7 @@ export function toggleRec(idx) {
 // AUDIO PLAYBACK
 // ══════════════════════════════════════════════
 
-export async function phPlayClip(path, playerId, btnId, familyId, childKey, docId) {
+export async function phPlayClip(path, playerId, btnId, familyId, childKey, docId, clipKey) {
   const playerEl = document.getElementById(playerId);
   const btnEl    = document.getElementById(btnId);
   if (!playerEl) return;
@@ -528,7 +565,16 @@ export async function phPlayClip(path, playerId, btnId, familyId, childKey, docI
         if (btnEl) btnEl.classList.remove('ph-clip-playing');
         URL.revokeObjectURL(blobUrl);
       };
-      audio.addEventListener('ended', onDone);
+      const onEnded = () => {
+        onDone();
+        // Sýna ★ takka eftir hlustun — aðeins á ended, ekki pause
+        if (clipKey) {
+          const starId = `ph-clipstar-${docId}-${clipKey}`;
+          const starEl = document.getElementById(starId);
+          if (starEl) starEl.style.display = 'inline-flex';
+        }
+      };
+      audio.addEventListener('ended', onEnded);
       audio.addEventListener('pause', onDone);
       audio.addEventListener('play', () => {
         writeListenEvent(familyId, childKey, playerEl, docId);
@@ -599,6 +645,6 @@ export function toggleCodes() {
   if (btn) btn.textContent = open ? '✕ Loka' : '🔑 Kóðar';
 }
 
-export async function playClip(path, playerId, btnId, familyId, childKey, sessionDocId) {
-  await phPlayClip(path, playerId, btnId, familyId, childKey, sessionDocId);
+export async function playClip(path, playerId, btnId, familyId, childKey, sessionDocId, clipKey) {
+  await phPlayClip(path, playerId, btnId, familyId, childKey, sessionDocId, clipKey);
 }

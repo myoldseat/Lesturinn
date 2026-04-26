@@ -726,12 +726,34 @@ audio { width: 100%; border-radius: 8px }
 
 .ph-hm-day-row { display: grid; grid-template-columns: 44px repeat(7, 1fr); gap: 3px; margin-bottom: 4px; }
 .ph-hm-hour-spacer { width: 44px; }
-.ph-hm-day-lbl { font-size: 10px; font-weight: 700; color: var(--ph-soft); text-align: center; text-transform: uppercase; padding-bottom: 4px; }
+.ph-hm-day-lbl { font-size: 11px; font-weight: 700; color: var(--ph-soft); text-align: center; text-transform: uppercase; padding-bottom: 4px; }
 .ph-hm-rows { display: flex; flex-direction: column; gap: 3px; }
 .ph-hm-row { display: grid; grid-template-columns: 44px repeat(7, 1fr); gap: 3px; align-items: center; }
 .ph-hm-hour-lbl { font-size: 10px; color: var(--ph-soft); font-weight: 600; text-align: right; padding-right: 8px; }
-.ph-hm-cell { height: 22px; border-radius: 5px; cursor: pointer; transition: transform 0.1s ease; }
-.ph-hm-cell:hover { transform: scale(1.12); }
+.ph-hm-cell { height: 30px; border-radius: 5px; cursor: pointer; transition: transform 0.1s ease; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; color: rgba(255,255,255,0.85); text-shadow: 0 0 6px rgba(29,205,211,0.5); }
+.ph-hm-cell:hover { transform: scale(1.08); }
+
+/* Tap-to-reveal tooltip */
+.ph-hm-tooltip {
+  position: absolute;
+  background: rgba(10, 20, 30, 0.92);
+  border: 1px solid rgba(29, 205, 211, 0.4);
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #1dcdd3;
+  text-shadow: 0 0 8px rgba(29, 205, 211, 0.5);
+  white-space: nowrap;
+  z-index: 100;
+  pointer-events: none;
+  box-shadow: 0 0 12px rgba(29, 205, 211, 0.2);
+  animation: ph-tooltip-in 0.15s ease;
+}
+@keyframes ph-tooltip-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
 
 .ph-hm-mnav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
 .ph-hm-mname { font-size: 14px; font-weight: 700; color: var(--ph-text); }
@@ -757,10 +779,10 @@ audio { width: 100%; border-radius: 8px }
 .ph-hm-yr-cell:hover { transform: scale(1.2); }
 
 @media (max-width: 600px) {
-  .ph-hm-day-row { grid-template-columns: 38px repeat(7, 1fr); }
-  .ph-hm-row     { grid-template-columns: 38px repeat(7, 1fr); }
-  .ph-hm-hour-lbl { font-size: 9px; padding-right: 5px; }
-  .ph-hm-cell    { height: 18px; }
+  .ph-hm-day-row { grid-template-columns: 36px repeat(7, 1fr); }
+  .ph-hm-row     { grid-template-columns: 36px repeat(7, 1fr); }
+  .ph-hm-hour-lbl { font-size: 9px; padding-right: 4px; }
+  .ph-hm-cell    { height: 26px; font-size: 9px; }
   .ph-hm-yr-cell { width: 10px; height: 10px; }
 }
 

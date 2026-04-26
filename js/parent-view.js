@@ -263,6 +263,52 @@ function renderHeatmap() {
   if (_hmView === 'week')  el.innerHTML = buildWeekHeatmap(filtered);
   if (_hmView === 'month') el.innerHTML = buildMonthHeatmap(filtered);
   if (_hmView === 'year')  el.innerHTML = buildYearHeatmap(filtered);
+  _initHeatmapTap(el);
+}
+
+// ── Tooltip for heatmap — hover (desktop) + tap (mobile) ──
+let _hmTooltipTimer = null;
+function _removeTooltip(container) {
+  const old = container.querySelector('.ph-hm-tooltip');
+  if (old) old.remove();
+  if (_hmTooltipTimer) { clearTimeout(_hmTooltipTimer); _hmTooltipTimer = null; }
+}
+
+function _showTooltip(cell, container) {
+  const tip = cell.dataset.tip;
+  if (!tip) return;
+  _removeTooltip(container);
+  const el = document.createElement('div');
+  el.className = 'ph-hm-tooltip';
+  el.textContent = tip;
+  cell.style.position = 'relative';
+  el.style.position = 'absolute';
+  el.style.bottom = '110%';
+  el.style.left = '50%';
+  el.style.transform = 'translateX(-50%)';
+  cell.appendChild(el);
+  _hmTooltipTimer = setTimeout(() => el.remove(), 2500);
+}
+
+function _initHeatmapTap(container) {
+  // Tap (mobile + desktop click)
+  container.addEventListener('click', (e) => {
+    const cell = e.target.closest('[data-tip]');
+    if (!cell) return;
+    _showTooltip(cell, container);
+  });
+  // Hover (desktop)
+  container.addEventListener('mouseenter', (e) => {
+    const cell = e.target.closest('[data-tip]');
+    if (!cell) return;
+    _showTooltip(cell, container);
+  }, true);
+  container.addEventListener('mouseleave', (e) => {
+    const cell = e.target.closest('[data-tip]');
+    if (!cell) return;
+    const tip = cell.querySelector('.ph-hm-tooltip');
+    if (tip) tip.remove();
+  }, true);
 }
 
 function minsToLevel(mins) {
@@ -299,7 +345,7 @@ function buildWeekHeatmap(sessions) {
   const rows = HOURS.map(h => {
     const cells = DAYS.map((d, di) => {
       const mins = map[`${di}_${h}`] || 0;
-      return `<div class="ph-hm-cell ${levelClass(minsToLevel(mins))}" title="${d} ${h}:00 — ${mins > 0 ? mins + ' mín' : 'Ekki lesið'}">${mins > 0 ? mins : ''}</div>`;
+      return `<div class="ph-hm-cell ${levelClass(minsToLevel(mins))}" data-tip="${d} ${h}:00 — ${mins > 0 ? mins + ' mín' : 'Ekki lesið'}">${mins > 0 ? mins : ''}</div>`;
     }).join('');
     return `<div class="ph-hm-row"><div class="ph-hm-hour-lbl">${h}:00</div>${cells}</div>`;
   }).join('');
@@ -326,7 +372,7 @@ function buildMonthHeatmap(sessions) {
   let cells = Array(startDow).fill(`<div class="ph-hm-mcal-cell ph-hm-mcal-empty"></div>`).join('');
   for (let day = 1; day <= lastDay.getDate(); day++) {
     const key = `${y}-${m+1}-${day}`, mins = map[key] || 0, isToday = key === todayKey;
-    cells += `<div class="ph-hm-mcal-cell ${levelClass(minsToLevel(mins))} ${isToday ? 'ph-hm-today-cell' : ''}" title="${day}. ${IS_MONTHS[m]} — ${mins > 0 ? mins + ' mín' : 'Ekki lesið'}"><span class="ph-hm-mcal-num">${day}</span></div>`;
+    cells += `<div class="ph-hm-mcal-cell ${levelClass(minsToLevel(mins))} ${isToday ? 'ph-hm-today-cell' : ''}" data-tip="${day}. ${IS_MONTHS[m]} — ${mins > 0 ? mins + ' mín' : 'Ekki lesið'}"><span class="ph-hm-mcal-num">${day}</span></div>`;
   }
   return `<div class="ph-hm-wrap"><div class="ph-hm-mnav"><button class="ph-hm-nav-btn" onclick="${prevFn}">‹</button><div class="ph-hm-mname">${MONTHS_FULL[m]} ${y}</div><button class="ph-hm-nav-btn" onclick="${nextFn}" ${isNow ? 'disabled' : ''}>›</button></div><div class="ph-hm-mcal-grid">${dayHdrs}${cells}</div>${legendHtml()}</div>`;
 }
@@ -362,7 +408,7 @@ function buildYearHeatmap(sessions) {
   const cols = weeks.map(week => {
     const days = week.map(cell => {
       if (cell.future) return `<div class="ph-hm-yr-cell ph-hm-c0"></div>`;
-      return `<div class="ph-hm-yr-cell ${levelClass(minsToLevel(cell.mins))} ${cell.isToday ? 'ph-hm-today-cell' : ''}" title="${fmtDateIS(cell.key)}: ${cell.mins > 0 ? cell.mins + ' mín' : 'Ekki lesið'}"></div>`;
+      return `<div class="ph-hm-yr-cell ${levelClass(minsToLevel(cell.mins))} ${cell.isToday ? 'ph-hm-today-cell' : ''}" data-tip="${fmtDateIS(cell.key)}: ${cell.mins > 0 ? cell.mins + ' mín' : 'Ekki lesið'}"></div>`;
     }).join('');
     return `<div class="ph-hm-yr-week">${days}</div>`;
   }).join('');

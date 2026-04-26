@@ -741,15 +741,17 @@ export async function analyzeSnippetBlob(blob, cfg) {
     usable: usability.usable,
     quality: usability.quality,
     reason: usability.reason,
-    summary: result.sessionSummary
-    totalScore: null,
-    profile: null,
+    summary: summary,
+
+    // Legacy fields — child-v2.html expects these on the result object
+    totalScore: 0,
+    profile: 'mixed',
     activeRatio: summary.sessionDuration > 0
-    ? Number((summary.speakingTime / summary.sessionDuration).toFixed(3))
-    : null,
-    praatSyllables: summary.syllables ?? null,
-    longestBurst: null,
-    fragmentationScore: null,
-    decodingPauseCount: summary.disruptionCount ?? null
-};
+      ? Number((summary.speakingTime / summary.sessionDuration).toFixed(3))
+      : 0,
+    praatSyllables: summary.syllables || 0,
+    longestBurst: 0,
+    fragmentationScore: 0,
+    decodingPauseCount: summary.disruptionCount || 0
+  };
 }

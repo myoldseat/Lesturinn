@@ -1556,7 +1556,8 @@
           praatSyllables: result.praatSyllables,
           longestBurst: result.longestBurst,
           fragmentationScore: Number(result.fragmentationScore ?? result.summary?.fragmentationScore ?? 0),
-          decodingPauseCount: Number(result.decodingPauseCount ?? result.summary?.decodingPauseCount ?? 0)
+          decodingPauseCount: Number(result.decodingPauseCount ?? result.summary?.decodingPauseCount ?? 0),
+          summary: result.summary || null
         };
         } catch (e) {
           console.warn('Snippet analysis failed for ' + def.key + ':', e);

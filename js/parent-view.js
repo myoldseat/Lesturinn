@@ -79,6 +79,9 @@ export async function toggleClipFav(docId, clipKey, starElId) {
   const current = !!(session?.favorites?.[clipKey]);
   const next    = !current;
 
+  // Guest má bæta við favorites en ekki fjarlægja
+  if (S.role === 'guest' && current) return;
+
   // Uppfæra UI strax (optimistic)
   if (starEl) {
     starEl.textContent = next ? '★' : '☆';
@@ -663,7 +666,7 @@ async function writeListenEvent(familyId, childKey, playerEl, sessionDocId) {
   // Guest: nota guestName (t.d. "Amma Sigga"), annars parentName
   let listenerName;
   if (S.role === 'guest' && S.guestName) {
-    const roleLabels = { amma_afi: 'Amma', fraendi: 'Frændi', annad: '' };
+    const roleLabels = { amma: 'Amma', afi: 'Afi', mamma: 'Mamma', pabbi: 'Pabbi', annad: '' };
     const prefix = roleLabels[S.guestRole] || '';
     listenerName = prefix ? `${prefix} ${S.guestName}` : S.guestName;
   } else {

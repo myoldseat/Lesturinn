@@ -306,7 +306,7 @@ export async function famCodeLogin() {
     }
 
     // Búa til sýnileg nöfn eftir hlutverki
-    const roleLabels = { amma_afi: 'Amma/Afi', fraendi: 'Frændi/Frænka', annad: '' };
+    const roleLabels = { amma: 'Amma', afi: 'Afi', mamma: 'Mamma', pabbi: 'Pabbi', annad: '' };
     const displayRole = roleLabels[_selectedGuestRole] || '';
     const displayName = displayRole ? `${displayRole} ${guestName}` : guestName;
 

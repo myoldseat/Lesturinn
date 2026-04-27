@@ -149,13 +149,27 @@ export function renderDashboard() {
 function renderChildCards() {
   const row = document.getElementById('ph-children-row');
   if (!row) return;
-  const children = S.parentChildren || [];
+  let children = S.parentChildren || [];
   const sessions = S.sessions || [];
+
+  // Guest fallback: ef parentChildren er tómt, byggja úr sessions
+  if (!children.length && sessions.length) {
+    const seen = {};
+    sessions.forEach(s => {
+      if (s.childKey && !seen[s.childKey]) {
+        seen[s.childKey] = true;
+        children.push({ key: s.childKey, name: s.childName || s.childKey, code: '' });
+      }
+    });
+    S.parentChildren = children;
+  }
+
   if (!children.length) {
     row.innerHTML = '<div class="ph-no-children">Engin börn skráð enn</div>';
     return;
   }
   const today = makeDateKey(new Date());
+  const isGuest = S.role === 'guest';
   row.innerHTML = children.map(c => {
     const count      = sessions.filter(s => s.childKey === c.key).length;
     const isSelected = c.key === _phSelectedKey;
@@ -166,7 +180,7 @@ function renderChildCards() {
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
         </div>
         <div class="ph-child-name">${c.name}</div>
-        <div class="ph-child-code">${c.code || ''}</div>
+        ${!isGuest && c.code ? `<div class="ph-child-code">${c.code}</div>` : ''}
         <div class="ph-child-sessions">${count} lotur</div>
         ${readToday ? '<div class="ph-child-today">✓ Las í dag</div>' : ''}
       </div>`;

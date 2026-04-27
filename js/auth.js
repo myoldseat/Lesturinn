@@ -150,7 +150,7 @@ export async function firebaseLogin() {
 // ══════════════════════════════════════════
 
 function _loginShowView(view) {
-  ['a','b','c'].forEach(v => {
+  ['a','b','c','d'].forEach(v => {
     const el = document.getElementById('login-view-' + v);
     if (el) el.style.display = v === view ? '' : 'none';
   });
@@ -240,16 +240,36 @@ export async function sendPasswordReset() {
 // Notar familycodes collection — document ID er kóðinn
 // ══════════════════════════════════════════
 
+let _selectedGuestRole = '';
+
+export function showFamJoin() {
+  _selectedGuestRole = '';
+  const nameEl = document.getElementById('fam-guest-name');
+  if (nameEl) nameEl.value = '';
+  document.querySelectorAll('.rg-role-btn').forEach(b => b.classList.remove('rg-role-active'));
+  _loginShowView('d');
+  setTimeout(() => document.getElementById('fam-code-input')?.focus(), 80);
+}
+
+export function selectGuestRole(btn) {
+  document.querySelectorAll('.rg-role-btn').forEach(b => b.classList.remove('rg-role-active'));
+  btn.classList.add('rg-role-active');
+  _selectedGuestRole = btn.dataset.role || '';
+}
+
 export async function famCodeLogin() {
   const input = document.getElementById('fam-code-input');
   const errEl = document.getElementById('fam-code-error');
   const btn   = document.getElementById('fam-code-btn');
   const code  = (input?.value || '').trim().toUpperCase();
+  const guestNameEl = document.getElementById('fam-guest-name');
+  const guestName   = (guestNameEl?.value || '').trim();
   errEl.textContent = '';
   if (!code) { errEl.textContent = 'Sláðu inn fjölskyldukóða.'; return; }
+  if (!guestName) { errEl.textContent = 'Sláðu inn nafnið þitt.'; return; }
+  if (!_selectedGuestRole) { errEl.textContent = 'Veldu hlutverk.'; return; }
   if (btn) { btn.textContent = 'Leita...'; btn.disabled = true; }
   try {
-    // Document lookup á ID — engin query, engin index þarf
     const snap = await getDoc(doc(db, 'familycodes', code));
     if (!snap.exists()) {
       errEl.textContent = 'Kóðinn fannst ekki — athugaðu með fjölskyldumeðlim.';
@@ -259,11 +279,21 @@ export async function famCodeLogin() {
     const data = snap.data();
     S.role           = 'guest';
     S.familyId       = data.familyId;
-    S.parentName     = (data.parentName || 'Fjölskylda').split(' ')[0];
+    S.guestName      = guestName;
+    S.guestRole      = _selectedGuestRole;
+    S.parentName     = guestName;
     S.parentEmail    = '';
     S.parentChildren = [];
     S.familyCode     = code;
     S.expandedChildren = {};
+
+    // Vista guest info í localStorage
+    localStorage.setItem('upphatt_guest', JSON.stringify({
+      familyId: data.familyId,
+      guestName: guestName,
+      guestRole: _selectedGuestRole,
+      familyCode: code
+    }));
 
     // Sækja börn úr users collection með parentUid
     if (data.parentUid) {
@@ -275,13 +305,24 @@ export async function famCodeLogin() {
       } catch(e) { console.warn('Could not fetch children:', e); }
     }
 
-    document.getElementById('parent-pill').textContent = S.parentName;
-    document.getElementById('parent-hero').textContent = `Góðan dag!`;
+    // Búa til sýnileg nöfn eftir hlutverki
+    const roleLabels = { amma_afi: 'Amma/Afi', fraendi: 'Frændi/Frænka', annad: '' };
+    const displayRole = roleLabels[_selectedGuestRole] || '';
+    const displayName = displayRole ? `${displayRole} ${guestName}` : guestName;
+
+    document.getElementById('parent-pill').textContent = guestName;
+    document.getElementById('parent-hero').textContent = `Hæ, ${guestName}!`;
     document.getElementById('codes-list').innerHTML = '';
     const emailEl = document.getElementById('ph-user-email');
-    if (emailEl) emailEl.textContent = `Fjölskylda ${S.parentName}`;
+    if (emailEl) emailEl.textContent = displayName;
+
+    // Fela viðkvæmt fyrir guest
     const fcEl = document.getElementById('ph-family-code');
-    if (fcEl) fcEl.textContent = code;
+    if (fcEl) fcEl.parentElement.style.display = 'none';
+    const addChildBtn = document.getElementById('ph-add-child-btn');
+    if (addChildBtn) addChildBtn.style.display = 'none';
+    const settingsBtn = document.querySelector('.ph-settings-btn');
+    if (settingsBtn) settingsBtn.style.display = 'none';
 
     closeParentLoginPopup();
     initParentTheme();

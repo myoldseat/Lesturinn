@@ -646,7 +646,15 @@ async function writeListenEvent(familyId, childKey, playerEl, sessionDocId) {
   const now = Date.now();
   const k   = familyId + '_' + childKey;
   if (_listenCooldown[k] && now - _listenCooldown[k] < 5000) return;
-  const listenerName = S.parentName || 'Foreldri';
+  // Guest: nota guestName (t.d. "Amma Sigga"), annars parentName
+  let listenerName;
+  if (S.role === 'guest' && S.guestName) {
+    const roleLabels = { amma_afi: 'Amma', fraendi: 'Frændi', annad: '' };
+    const prefix = roleLabels[S.guestRole] || '';
+    listenerName = prefix ? `${prefix} ${S.guestName}` : S.guestName;
+  } else {
+    listenerName = S.parentName || 'Foreldri';
+  }
   let wroteAny = false;
   try { await setDoc(doc(db,'listens',k), { listenerName, familyId, childKey, timestamp: now }); wroteAny = true; }
   catch(e) { console.error('Listen write 1:', e); }

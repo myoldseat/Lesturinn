@@ -9,6 +9,7 @@ import {
   openSignupPopup, closeSignupPopup, backToLoginFromSignup, firebaseSignupPopup,
   toggleParentTheme, openAddChildPopup, closeAddChildPopup, submitAddChild,
   famCodeLogin,
+  showFamJoin, selectGuestRole,
   openSettingsPopup, closeSettingsPopup, confirmDeleteChild, confirmDeleteAccount
 } from './auth.js';
 
@@ -48,6 +49,8 @@ window.closeAddChildPopup    = closeAddChildPopup;
 window.submitAddChild        = submitAddChild;
 
 window.famCodeLogin          = famCodeLogin;
+window.showFamJoin           = showFamJoin;
+window.selectGuestRole       = selectGuestRole;
 
 window.openSettingsPopup     = openSettingsPopup;
 window.closeSettingsPopup    = closeSettingsPopup;

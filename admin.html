@@ -179,6 +179,25 @@ html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sa
 .admin-date-filter input[type="date"]{background:#0d1b2a;color:#d9e5ef;border:1px solid rgba(29,205,211,0.15);border-radius:8px;padding:6px 10px;font-size:13px}
 .admin-filter-clear{background:rgba(248,113,113,0.15);color:#f87171;border:1px solid rgba(248,113,113,0.2);border-radius:8px;padding:6px 14px;font-size:12px;cursor:pointer;font-weight:600}
 .admin-filter-clear:hover{background:rgba(248,113,113,0.25)}
+
+/* ── Admin pattern/date filter ── */
+.admin-pattern-filter{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;
+  margin:0 0 14px;padding:12px 14px;border-radius:16px;
+  background:rgba(255,255,255,0.025);border:1px solid rgba(29,205,211,0.10);
+}
+.admin-pattern-filter-left{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.admin-pattern-filter-label{font-size:12px;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;color:#7a8fa0;margin-right:2px}
+.admin-filter-pill{
+  border:1px solid rgba(29,205,211,0.14);background:rgba(255,255,255,0.025);
+  color:#7a8fa0;border-radius:999px;padding:8px 12px;font-size:12px;font-weight:800;cursor:pointer;
+}
+.admin-filter-pill:hover{border-color:rgba(29,205,211,0.28);color:#d9e5ef}
+.admin-filter-pill.active{background:rgba(29,205,211,0.12);border-color:rgba(29,205,211,0.32);color:#1dcdd3;box-shadow:0 0 18px rgba(29,205,211,0.08)}
+.admin-filter-pill.danger{border-color:rgba(248,113,113,0.20);color:#f87171;background:rgba(248,113,113,0.07)}
+.admin-pattern-filter-status{font-size:12px;font-weight:700;color:#7a8fa0;line-height:1.35}
+.admin-pattern-filter-status strong{color:#d9e5ef}
+
 .admin-see-more{
   display:flex;justify-content:center;align-items:center;gap:10px;
   padding:14px 16px;border-radius:14px;border:1px solid rgba(29,205,211,0.22);
@@ -209,6 +228,84 @@ html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sa
   cursor:pointer;margin:16px auto 0;
 }
 
+
+
+/* ── Admin activity heatmaps ── */
+.admin-heatmap-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:14px;
+  margin-bottom:18px;
+}
+.admin-heatmap-card{
+  background:rgba(9,20,36,0.78);
+  border:1px solid rgba(29,205,211,0.12);
+  border-radius:18px;
+  box-shadow:0 18px 42px rgba(0,0,0,0.26);
+  padding:18px;
+  overflow:hidden;
+}
+.admin-heatmap-card h3{margin:0 0 6px;font-size:17px;font-weight:800;color:#d9e5ef;letter-spacing:-0.02em}
+.admin-heatmap-card p{margin:0 0 14px;color:#7a8fa0;font-size:13px;line-height:1.45}
+.admin-hm-wrap{width:100%;max-width:100%;overflow:hidden}
+.admin-hm-day-row{
+  display:grid;
+  grid-template-columns:44px repeat(7,minmax(0,1fr));
+  gap:6px;
+  align-items:center;
+  margin-bottom:7px;
+}
+.admin-hm-day-lbl{font-size:11px;font-weight:800;color:#7a8fa0;text-align:center;letter-spacing:0.02em}
+.admin-hm-rows{display:grid;gap:6px}
+.admin-hm-row{
+  display:grid;
+  grid-template-columns:44px repeat(7,minmax(0,1fr));
+  gap:6px;
+  align-items:center;
+}
+.admin-hm-hour-lbl{font-size:11px;font-weight:700;color:#4a5f78;text-align:right;padding-right:2px}
+.admin-hm-cell{
+  min-height:28px;
+  border-radius:9px;
+  border:1px solid rgba(255,255,255,0.035);
+  background:rgba(255,255,255,0.035);
+  color:#d9e5ef;
+  display:grid;
+  place-items:center;
+  font-size:11px;
+  font-weight:800;
+  line-height:1;
+  cursor:default;
+  position:relative;
+}
+.admin-hm-c0{background:rgba(255,255,255,0.025);color:rgba(217,229,239,0.18)}
+.admin-hm-c1{background:rgba(29,205,211,0.12);color:rgba(217,229,239,0.74)}
+.admin-hm-c2{background:rgba(29,205,211,0.24);color:#d9e5ef}
+.admin-hm-c3{background:rgba(29,205,211,0.42);color:#061018}
+.admin-hm-c4{background:rgba(29,205,211,0.72);color:#061018}
+.admin-hm-cell:hover{outline:1px solid rgba(29,205,211,0.35);box-shadow:0 0 18px rgba(29,205,211,0.12)}
+.admin-hm-cell:hover::after{
+  content:attr(data-tip);
+  position:absolute;
+  left:50%;
+  bottom:calc(100% + 8px);
+  transform:translateX(-50%);
+  background:#102033;
+  border:1px solid rgba(29,205,211,0.18);
+  color:#d9e5ef;
+  font-size:12px;
+  font-weight:700;
+  padding:8px 10px;
+  border-radius:10px;
+  white-space:nowrap;
+  z-index:10;
+  box-shadow:0 10px 30px rgba(0,0,0,0.35);
+}
+.admin-hm-legend{display:flex;align-items:center;justify-content:flex-end;gap:5px;margin-top:12px;color:#7a8fa0;font-size:11px;font-weight:700}
+.admin-hm-leg-cell{width:16px;height:10px;border-radius:4px;border:1px solid rgba(255,255,255,0.04)}
+.admin-hm-foot{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-top:12px;padding-top:12px;border-top:1px solid rgba(29,205,211,0.08);color:#7a8fa0;font-size:12px;line-height:1.35}
+.admin-hm-foot strong{color:#d9e5ef}
+
 /* ── Responsive ── */
 @media(max-width:1350px){
   .admin-grid-top{grid-template-columns:repeat(3,minmax(0,1fr))}
@@ -216,6 +313,7 @@ html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sa
   .admin-sessions-grid{grid-template-columns:1fr 1fr}
 }
 @media(max-width:1040px){
+  .admin-heatmap-grid{grid-template-columns:1fr}
   .admin-layout{grid-template-columns:1fr}
   .admin-sidebar{display:none}
   .admin-summary-row{grid-template-columns:1fr}
@@ -224,6 +322,9 @@ html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sa
   .admin-family-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
 @media(max-width:720px){
+  .admin-hm-day-row,.admin-hm-row{grid-template-columns:34px repeat(7,minmax(0,1fr));gap:4px}
+  .admin-hm-cell{min-height:22px;border-radius:7px;font-size:10px}
+  .admin-hm-hour-lbl,.admin-hm-day-lbl{font-size:10px}
   .admin-main{padding:16px 14px 24px}
   .admin-hero{display:grid}
   .admin-hero-right{justify-content:flex-start}
@@ -326,12 +427,18 @@ function initFirebase() {
 
 const ADMIN_CODE = 'ADMIN001';
 const PAGE_SIZE = 50;
+const ANALYTICS_EVENT_LIMIT = 1000;
 
 // ══════════════════════════════════════════
 // STATE
 // ══════════════════════════════════════════
 
 let _sessions = [];
+let _heatmapSessions = [];
+let _listenEvents = [];
+let _adminDateMode = localStorage.getItem('upphatt_admin_date_mode') || 'all';
+let _adminDateFrom = localStorage.getItem('upphatt_admin_date_from') || '';
+let _adminDateTo = localStorage.getItem('upphatt_admin_date_to') || '';
 let _families = {};
 let _lastDoc = null;
 let _hasMore = true;
@@ -436,7 +543,7 @@ window.tryLogin = function() {
 };
 
 window.doLogout = function() {
-  _sessions = []; _families = {}; _lastDoc = null; _hasMore = true;
+  _sessions = []; _heatmapSessions = []; _listenEvents = []; _families = {}; _lastDoc = null; _hasMore = true;
   document.getElementById('admin-page').style.display = 'none';
   document.getElementById('auth-screen').style.display = 'flex';
   document.getElementById('admin-code-input').value = '';
@@ -478,7 +585,7 @@ window.switchTab = function(tab) {
 async function loadData() {
   const el = document.getElementById('admin-content');
   el.innerHTML = '<div class="admin-loading">Hleð gögnum...</div>';
-  document.getElementById('admin-date-chip').textContent = '📅 ' + new Date().toLocaleDateString('is-IS');
+  updateAdminDateChip();
   renderNav();
 
   try {
@@ -492,6 +599,28 @@ async function loadData() {
     _totalCount = _sessions.length;
     _lastDoc = snap.docs[snap.docs.length - 1] || null;
     _hasMore = snap.docs.length === PAGE_SIZE;
+
+    try {
+      const analyticsSnap = await firestore.collection('sessions')
+        .orderBy('timestamp', 'desc')
+        .limit(ANALYTICS_EVENT_LIMIT)
+        .get();
+      _heatmapSessions = analyticsSnap.docs.map(d => ({ _docId: d.id, ...d.data() }));
+    } catch (analyticsErr) {
+      console.warn('Heatmap sessions load failed:', analyticsErr);
+      _heatmapSessions = _sessions.slice();
+    }
+
+    try {
+      const listenSnap = await firestore.collection('listenEvents')
+        .orderBy('timestamp', 'desc')
+        .limit(ANALYTICS_EVENT_LIMIT)
+        .get();
+      _listenEvents = listenSnap.docs.map(d => ({ _docId: d.id, ...d.data() }));
+    } catch (listenErr) {
+      console.warn('ListenEvents load failed:', listenErr);
+      _listenEvents = [];
+    }
 
     buildFamilies();
     renderContent();
@@ -529,6 +658,144 @@ function buildFamilies() {
   });
 }
 
+
+// ══════════════════════════════════════════
+// ADMIN DATE FILTER — used by heatmap analytics
+// ══════════════════════════════════════════
+
+function adminLocalDateISO(date) {
+  const d = new Date(date);
+  d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+  return d.toISOString().slice(0, 10);
+}
+
+function adminTodayISO() {
+  return adminLocalDateISO(new Date());
+}
+
+function adminShiftDaysISO(days) {
+  const d = new Date();
+  d.setDate(d.getDate() + days);
+  return adminLocalDateISO(d);
+}
+
+function adminDateFromISO(value) {
+  if (!value) return null;
+  const d = new Date(value + 'T00:00:00');
+  return Number.isNaN(d.getTime()) ? null : d.getTime();
+}
+
+function adminDateToExclusiveISO(value) {
+  if (!value) return null;
+  const d = new Date(value + 'T00:00:00');
+  if (Number.isNaN(d.getTime())) return null;
+  d.setDate(d.getDate() + 1);
+  return d.getTime();
+}
+
+function saveAdminDateFilter() {
+  localStorage.setItem('upphatt_admin_date_mode', _adminDateMode || 'all');
+  localStorage.setItem('upphatt_admin_date_from', _adminDateFrom || '');
+  localStorage.setItem('upphatt_admin_date_to', _adminDateTo || '');
+}
+
+function adminDateFilterLabel() {
+  if (_adminDateMode === 'today') return 'Í dag';
+  if (_adminDateMode === 'last7') return 'Síðustu 7 dagar';
+  if (_adminDateMode === 'hard') return 'Frá og með deginum í dag';
+  return 'Allt tímabil';
+}
+
+function updateAdminDateChip() {
+  const el = document.getElementById('admin-date-chip');
+  if (!el) return;
+  const base = new Date().toLocaleDateString('is-IS');
+  const filter = adminDateFilterLabel();
+  el.textContent = '📅 ' + base + ' · ' + filter;
+}
+
+function setAdminDateFilter(mode) {
+  const today = adminTodayISO();
+  _adminDateMode = mode || 'all';
+  if (mode === 'today') {
+    _adminDateFrom = today;
+    _adminDateTo = today;
+  } else if (mode === 'last7') {
+    _adminDateFrom = adminShiftDaysISO(-6);
+    _adminDateTo = today;
+  } else if (mode === 'hard') {
+    // "Hard refresh" mode: from today onward, persistent until Reset.
+    _adminDateFrom = today;
+    _adminDateTo = '';
+  } else {
+    _adminDateMode = 'all';
+    _adminDateFrom = '';
+    _adminDateTo = '';
+  }
+  saveAdminDateFilter();
+  updateAdminDateChip();
+  renderContent();
+}
+window.setAdminDateFilter = setAdminDateFilter;
+
+function filterByAdminDateRange(items, getTime) {
+  const from = adminDateFromISO(_adminDateFrom);
+  const to = adminDateToExclusiveISO(_adminDateTo);
+  if (!from && !to) return items || [];
+  return (items || []).filter(item => {
+    const ts = getTime(item);
+    if (!ts) return false;
+    if (from && ts < from) return false;
+    if (to && ts >= to) return false;
+    return true;
+  });
+}
+
+
+function getAdminSessionTime(s) {
+  return toMillis(s.timestamp) || toMillis(s.createdAt) || (s.date ? adminDateFromISO(String(s.date).replace(/-(\d)(?=-)/g, '-0$1').replace(/-(\d)$/g, '-0$1')) : null);
+}
+
+function getAdminListenTime(ev) {
+  return toMillis(ev.timestamp) || toMillis(ev.createdAt) || toMillis(ev.completedAt) || toMillis(ev.listenedAt);
+}
+
+function getAdminFilteredSessions(source) {
+  const base = source || ((_heatmapSessions && _heatmapSessions.length) ? _heatmapSessions : _sessions);
+  return filterByAdminDateRange(base, getAdminSessionTime);
+}
+
+function getAdminFilteredListens(source) {
+  return filterByAdminDateRange(source || _listenEvents, getAdminListenTime);
+}
+
+function buildFamiliesFromSessions(sessions) {
+  const families = {};
+  (sessions || []).forEach(s => {
+    if (!s.familyId) return;
+    if (!families[s.familyId]) families[s.familyId] = { sessions: [], children: new Set() };
+    families[s.familyId].sessions.push(s);
+    if (s.childName) families[s.familyId].children.add(s.childName);
+  });
+  return families;
+}
+
+function adminPatternFilterHtml() {
+  const active = _adminDateMode || 'all';
+  const status = adminDateFilterLabel();
+  return `<div class="admin-pattern-filter">
+    <div class="admin-pattern-filter-left">
+      <span class="admin-pattern-filter-label">Tímabil</span>
+      <button class="admin-filter-pill ${active==='all'?'active':''}" onclick="setAdminDateFilter('all')">Allt</button>
+      <button class="admin-filter-pill ${active==='today'?'active':''}" onclick="setAdminDateFilter('today')">Í dag</button>
+      <button class="admin-filter-pill ${active==='last7'?'active':''}" onclick="setAdminDateFilter('last7')">Síðustu 7</button>
+      <button class="admin-filter-pill ${active==='hard'?'active':''}" onclick="setAdminDateFilter('hard')">Hard refresh</button>
+      <button class="admin-filter-pill danger" onclick="setAdminDateFilter('reset')">Reset</button>
+    </div>
+    <div class="admin-pattern-filter-status">Sýnir: <strong>${esc(status)}</strong></div>
+  </div>`;
+}
+
 // ══════════════════════════════════════════
 // RENDER
 // ══════════════════════════════════════════
@@ -542,12 +809,15 @@ function renderContent() {
 }
 
 // ── KPIs ──
-function computeKPIs() {
-  const totalFamilies = Object.keys(_families).length;
-  const totalMins = Math.round(_sessions.reduce((a,s) => a+(s.seconds||0),0)/60);
-  const withAnalysis = _sessions.filter(s => s.analysis?.overall).length;
-  const withAudio = _sessions.filter(s => s.hasAudio).length;
-  const analyzed = _sessions.filter(s => s.analysis?.overall);
+function computeKPIs(sourceSessions) {
+  const baseSessions = sourceSessions || getAdminFilteredSessions();
+  const families = buildFamiliesFromSessions(baseSessions);
+  const totalFamilies = Object.keys(families).length;
+  const totalSessions = baseSessions.length;
+  const totalMins = Math.round(baseSessions.reduce((a,s) => a+(s.seconds||0),0)/60);
+  const withAnalysis = baseSessions.filter(s => s.analysis?.overall).length;
+  const withAudio = baseSessions.filter(s => s.hasAudio).length;
+  const analyzed = baseSessions.filter(s => s.analysis?.overall);
   const avgUsable = analyzed.length
     ? (analyzed.reduce((a,s) => a+(s.analysis.overall.usableCount||0),0)/analyzed.length).toFixed(1) : '—';
   const scoreSessions = analyzed.filter(s => (s.analysis?.overall?.avgScore||0) > 0);
@@ -563,20 +833,20 @@ function computeKPIs() {
     if (q && qualities[q] !== undefined) qualities[q]++;
   });
 
-  return { totalFamilies, totalMins, withAnalysis, withAudio, analyzed, avgUsable, avgScore, profiles, qualities };
+  return { totalFamilies, totalSessions, totalMins, withAnalysis, withAudio, analyzed, avgUsable, avgScore, profiles, qualities, families, baseSessions };
 }
-
 // ── Overview ──
 function renderOverview() {
-  const k = computeKPIs();
+  const filteredSessions = getAdminFilteredSessions();
+  const k = computeKPIs(filteredSessions);
   const sessionCards = renderSessionCards(k.analyzed.slice(0, 6));
-  const familyCards = renderFamilyCards(Object.entries(_families).slice(0, 6));
-
+  const familyCards = renderFamilyCards(Object.entries(k.families).slice(0, 6));
   return `
+    ${adminPatternFilterHtml()}
     <section class="admin-grid-top">
       ${kpiCard('Fjölskyldur', k.totalFamilies, 'virkir hópar')}
-      ${kpiCard('Lotur', _totalCount, 'heildarfjöldi')}
-      ${kpiCard('Mínútur', k.totalMins, _hasMore ? '~heildarfjöldi' : 'heildarfjöldi')}
+      ${kpiCard('Lotur', k.totalSessions, adminDateFilterLabel())}
+      ${kpiCard('Mínútur', k.totalMins, adminDateFilterLabel())}
       ${kpiCard('Greindar lotur', k.withAnalysis, 'með greiningu')}
       ${kpiCard('Meðal nothæfar', k.avgUsable, 'klippur á lotu')}
       ${kpiCard('Meðalskor', k.avgScore, 'af 100 mögulegum')}
@@ -586,8 +856,8 @@ function renderOverview() {
       <article class="admin-summary-card">
         <h3>Hljóð og greining</h3>
         <div class="admin-summary-list">
-          ${summaryItem('Lotur með hljóð', k.withAudio + ' / ' + _totalCount)}
-          ${summaryItem('Greindar lotur', k.withAnalysis + ' / ' + _totalCount)}
+          ${summaryItem('Lotur með hljóð', k.withAudio + ' / ' + k.totalSessions)}
+          ${summaryItem('Greindar lotur', k.withAnalysis + ' / ' + k.totalSessions)}
           ${summaryItem('Meðal nothæfar klippur', k.avgUsable)}
           ${summaryItem('Meðalskor', k.avgScore)}
         </div>
@@ -616,12 +886,12 @@ function renderOverview() {
       <div class="admin-section-head">
         <div>
           <h2 class="admin-section-title">Nýjustu lotur með greiningu</h2>
-          <p>Yfirlit yfir nýlegar lestrarlotur og lykilmælikvarða.</p>
+          <p>Sýnir lotur innan valins tímabils.</p>
         </div>
         <div class="admin-action-link" onclick="switchTab('sessions')">Sjá allar lotur →</div>
       </div>
       <div class="admin-sessions-grid">
-        ${sessionCards || '<p class="admin-empty">Engar greindar lotur enn.</p>'}
+        ${sessionCards || '<p class="admin-empty">Engar greindar lotur á þessu tímabili.</p>'}
       </div>
     </section>
 
@@ -629,17 +899,16 @@ function renderOverview() {
       <div class="admin-section-head">
         <div>
           <h2 class="admin-section-title">Fjölskyldur / hópar</h2>
-          <p>Ópersónugreinanleg yfirlit.</p>
+          <p>Ópersónugreinanlegt yfirlit innan valins tímabils.</p>
         </div>
         <div class="admin-action-link" onclick="switchTab('families')">Sjá alla hópa →</div>
       </div>
       <div class="admin-family-grid">
-        ${familyCards || '<p class="admin-empty">Engar fjölskyldur enn.</p>'}
+        ${familyCards || '<p class="admin-empty">Engar fjölskyldur á þessu tímabili.</p>'}
       </div>
       <div class="admin-footer-note">Gögn eru dulkóðuð og ópersónugreinanleg.</div>
     </section>`;
 }
-
 // ── Sessions tab ──
 let _sessionDateFrom = '';
 let _sessionDateTo = '';
@@ -677,10 +946,12 @@ function filterSessionsByDate(sessions) {
 }
 
 function renderSessions() {
-  const analyzed = _sessions.filter(s => s.analysis?.overall);
+  const baseSessions = getAdminFilteredSessions(_sessions);
+  const analyzed = baseSessions.filter(s => s.analysis?.overall);
   const filtered = filterSessionsByDate(analyzed);
-  const all = filterSessionsByDate(_sessions);
+  const all = filterSessionsByDate(baseSessions);
   return `
+    ${adminPatternFilterHtml()}
     <section>
       <div class="admin-section-head">
         <div>
@@ -702,25 +973,31 @@ function renderSessions() {
 
 // ── Families tab ──
 function renderFamilies() {
-  const entries = Object.entries(_families);
+  const filteredSessions = getAdminFilteredSessions();
+  const families = buildFamiliesFromSessions(filteredSessions);
+  const entries = Object.entries(families);
   return `
+    ${adminPatternFilterHtml()}
     <section>
       <div class="admin-section-head">
         <div>
           <h2 class="admin-section-title">Fjölskyldur (${entries.length})</h2>
+          <p>Sýnir fjölskyldur með virkni innan valins tímabils.</p>
         </div>
       </div>
       <div class="admin-family-grid">
-        ${renderFamilyCards(entries) || '<p class="admin-empty">Engar fjölskyldur enn.</p>'}
+        ${renderFamilyCards(entries) || '<p class="admin-empty">Engar fjölskyldur á þessu tímabili.</p>'}
       </div>
     </section>`;
 }
-
 // ── Insights tab ──
 function renderInsights() {
   const k = computeKPIs();
   const analyzed = k.analyzed;
-  if (!analyzed.length) return '<p class="admin-empty" style="padding:24px">Engin gögn til greiningar enn.</p>';
+  const heatmapSessions = getAdminFilteredSessions();
+  const listenEvents = getAdminFilteredListens();
+  const hasActivity = (heatmapSessions && heatmapSessions.length) || (listenEvents && listenEvents.length);
+  if (!analyzed.length && !hasActivity) return '<p class="admin-empty" style="padding:24px">Engin gögn til greiningar enn.</p>';
 
   const allMetrics = analyzed.map(s => getMetrics(s)).filter(m => m.syllables > 0);
   const avgSyl = allMetrics.length ? Math.round(allMetrics.reduce((a,m)=>a+m.syllables,0)/allMetrics.length) : 0;
@@ -732,6 +1009,12 @@ function renderInsights() {
   const last30 = analyzed.filter(s => (s.timestamp||0) > Date.now() - 30*86400000);
 
   return `
+    ${adminPatternFilterHtml()}
+    <section class="admin-heatmap-grid">
+      ${buildAdminReadingHeatmap(heatmapSessions)}
+      ${buildAdminListeningHeatmap(listenEvents)}
+    </section>
+
     <section class="admin-grid-top" style="grid-template-columns:repeat(4,minmax(0,1fr))">
       ${kpiCard('Meðal atkvæði', avgSyl, 'syllables')}
       ${kpiCard('Meðal hreinn lestur', avgClean + '%', 'cleanReadingPct')}
@@ -770,6 +1053,138 @@ function renderInsights() {
         </div>
       </article>
     </section>`;
+}
+
+// ── Admin heatmaps: reading minutes + listening starts ──
+const ADMIN_HM_HOURS = [13,14,15,16,17,18,19,20,21,22];
+const ADMIN_HM_DAYS = ['Mán','Þri','Mið','Fim','Fös','Lau','Sun'];
+
+function toMillis(v) {
+  if (!v) return null;
+  if (typeof v === 'number') return v;
+  if (v instanceof Date) return v.getTime();
+  if (typeof v === 'string') {
+    const n = Number(v);
+    if (!Number.isNaN(n) && n > 0) return n;
+    const d = Date.parse(v);
+    return Number.isNaN(d) ? null : d;
+  }
+  if (typeof v === 'object') {
+    if (typeof v.toMillis === 'function') return v.toMillis();
+    if (typeof v.seconds === 'number') return v.seconds * 1000;
+  }
+  return null;
+}
+
+function adminHmLevel(value, type) {
+  if (!value) return 0;
+  if (type === 'minutes') {
+    if (value < 10) return 1;
+    if (value < 25) return 2;
+    if (value < 50) return 3;
+    return 4;
+  }
+  if (value < 2) return 1;
+  if (value < 4) return 2;
+  if (value < 8) return 3;
+  return 4;
+}
+function adminHmClass(level) { return ['admin-hm-c0','admin-hm-c1','admin-hm-c2','admin-hm-c3','admin-hm-c4'][level] || 'admin-hm-c0'; }
+
+function buildAdminReadingHeatmap(sessions) {
+  const map = {};
+  let total = 0;
+  let counted = 0;
+  (sessions || []).forEach(s => {
+    const seconds = Number(s.seconds || 0);
+    if (seconds < 60) return;
+    const ts = toMillis(s.timestamp) || toMillis(s.createdAt);
+    if (!ts) return;
+    const d = new Date(ts);
+    const dow = (d.getDay() + 6) % 7;
+    const h = d.getHours();
+    if (!ADMIN_HM_HOURS.includes(h)) return;
+    const mins = Math.max(1, Math.round(seconds / 60));
+    const k = `${dow}_${h}`;
+    map[k] = (map[k] || 0) + mins;
+    total += mins;
+    counted++;
+  });
+  return buildAdminHeatmapCard({
+    title: 'Lestrartímar',
+    desc: 'Hvenær barn les — heildarmínútur eftir vikudegi og klukkustund.',
+    unit: 'mín',
+    emptyLabel: 'Ekki lesið',
+    map,
+    type: 'minutes',
+    footLeft: `${total} lesnar mínútur`,
+    footRight: `${counted} lotur í korti`
+  });
+}
+
+function buildAdminListeningHeatmap(events) {
+  const map = {};
+  let total = 0;
+  const families = new Set();
+  (events || []).forEach(ev => {
+    const ts = toMillis(ev.timestamp) || toMillis(ev.createdAt);
+    if (!ts) return;
+    const d = new Date(ts);
+    const dow = (d.getDay() + 6) % 7;
+    const h = d.getHours();
+    if (!ADMIN_HM_HOURS.includes(h)) return;
+    const k = `${dow}_${h}`;
+    map[k] = (map[k] || 0) + 1;
+    total++;
+    if (ev.familyId) families.add(ev.familyId);
+  });
+  return buildAdminHeatmapCard({
+    title: 'Hlustunartímar',
+    desc: 'Hvenær fjölskylda hlustar — fjöldi hlustana eftir vikudegi og klukkustund.',
+    unit: 'hlustun',
+    emptyLabel: 'Engin hlustun',
+    map,
+    type: 'count',
+    footLeft: `${total} hlustanir`,
+    footRight: `${families.size} fjölskyldur`
+  });
+}
+
+function buildAdminHeatmapCard({ title, desc, unit, emptyLabel, map, type, footLeft, footRight }) {
+  const dayHdrs = ADMIN_HM_DAYS.map(d => `<div class="admin-hm-day-lbl">${d}</div>`).join('');
+  const rows = ADMIN_HM_HOURS.map(h => {
+    const cells = ADMIN_HM_DAYS.map((d, di) => {
+      const value = map[`${di}_${h}`] || 0;
+      const level = adminHmLevel(value, type);
+      const label = value > 0
+        ? `${d} ${h}:00 — ${value} ${unit}${value !== 1 && unit === 'hlustun' ? 'ir' : ''}`
+        : `${d} ${h}:00 — ${emptyLabel}`;
+      return `<div class="admin-hm-cell ${adminHmClass(level)}" data-tip="${esc(label)}">${value > 0 ? esc(value) : ''}</div>`;
+    }).join('');
+    return `<div class="admin-hm-row"><div class="admin-hm-hour-lbl">${h}:00</div>${cells}</div>`;
+  }).join('');
+  return `<article class="admin-heatmap-card">
+    <h3>${esc(title)}</h3>
+    <p>${esc(desc)}</p>
+    <div class="admin-hm-wrap">
+      <div class="admin-hm-day-row"><div></div>${dayHdrs}</div>
+      <div class="admin-hm-rows">${rows}</div>
+      ${adminHmLegend()}
+      <div class="admin-hm-foot"><span><strong>${esc(footLeft)}</strong></span><span>${esc(footRight)}</span></div>
+    </div>
+  </article>`;
+}
+
+function adminHmLegend() {
+  return `<div class="admin-hm-legend">
+    <span>Minna</span>
+    <span class="admin-hm-leg-cell admin-hm-c0"></span>
+    <span class="admin-hm-leg-cell admin-hm-c1"></span>
+    <span class="admin-hm-leg-cell admin-hm-c2"></span>
+    <span class="admin-hm-leg-cell admin-hm-c3"></span>
+    <span class="admin-hm-leg-cell admin-hm-c4"></span>
+    <span>Meira</span>
+  </div>`;
 }
 
 // ══════════════════════════════════════════

@@ -164,7 +164,7 @@
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
             Börn þín
           </div>
-          <button class="ph-add-btn" onclick="openAddChildPopup()">+ Bæta við barni</button>
+          <button id="ph-add-child-btn" class="ph-add-btn" onclick="openAddChildPopup()">+ Bæta við barni</button>
         </div>
         <div class="ph-children-row" id="ph-children-row"><div class="ph-loading">Hleður...</div></div>
       </div>
@@ -294,8 +294,10 @@
       <div class="rg-field">
         <label class="rg-label">Ég er...</label>
         <div class="rg-role-select" id="fam-role-select">
-          <button class="rg-role-btn" data-role="amma_afi" onclick="selectGuestRole(this)">Amma / Afi</button>
-          <button class="rg-role-btn" data-role="fraendi" onclick="selectGuestRole(this)">Frændi / Frænka</button>
+          <button class="rg-role-btn" data-role="amma" onclick="selectGuestRole(this)">Amma</button>
+          <button class="rg-role-btn" data-role="afi" onclick="selectGuestRole(this)">Afi</button>
+          <button class="rg-role-btn" data-role="mamma" onclick="selectGuestRole(this)">Mamma</button>
+          <button class="rg-role-btn" data-role="pabbi" onclick="selectGuestRole(this)">Pabbi</button>
           <button class="rg-role-btn" data-role="annad" onclick="selectGuestRole(this)">Annað</button>
         </div>
       </div>

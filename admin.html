@@ -237,7 +237,7 @@ html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sa
 
 .admin-family-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px}
 .admin-family-card-v2{padding:16px;display:grid;gap:14px}
-.admin-family-code{color:#1dcdd3;font-size:12px;text-transform:uppercase;letter-spacing:0.08em;font-weight:800;margin-bottom:6px}
+.admin-family-code{color:#1dcdd3;font-size:12px;text-transform:uppercase;letter-spacing:0.08em;font-weight:800;margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .admin-family-name{font-size:18px;font-weight:700;margin-bottom:6px;color:#d9e5ef}
 .admin-family-meta{color:#7a8fa0;font-size:13px;line-height:1.45}
 .admin-family-score{width:100%;height:8px;border-radius:999px;background:rgba(255,255,255,0.05);overflow:hidden}
@@ -1216,8 +1216,11 @@ function renderRetentionSection() {
   const started = r.startedCount;
   const startedPct = reg ? Math.round((started / reg) * 100) : 0;
 
-  const freqTotal = Math.max(reg, 1);
-  const streakTotal = Math.max(reg, 1);
+  // Distribution cards use their own bucket totals as denominator.
+  // They should always add up to 100%, unlike KPI cards that show
+  // % of registered / % of started.
+  const freqTotal = Math.max(Object.values(r.freqBuckets || {}).reduce((a, v) => a + Number(v || 0), 0), 1);
+  const streakTotal = Math.max(Object.values(r.streakBuckets || {}).reduce((a, v) => a + Number(v || 0), 0), 1);
 
   return `<section class="admin-section">
     <div class="admin-section-head">
@@ -1534,7 +1537,12 @@ function renderInsights() {
   const delay = computeListenDelayStats(heatmapSessions);
   const hasActivity = (heatmapSessions && heatmapSessions.length) || (listenEvents && listenEvents.length);
   const retentionPreview = computeRetentionStats();
-  if (!analyzed.length && !hasActivity && !retentionPreview.registeredCount) return '<p class="admin-empty" style="padding:24px">Engin gögn til greiningar enn.</p>';
+  if (!analyzed.length && !hasActivity && !retentionPreview.registeredCount) return `
+    ${adminPatternFilterHtml()}
+    <section class="admin-summary-card" style="padding:22px">
+      <h3>Engin gögn passa við filterinn</h3>
+      <p class="admin-empty" style="margin-top:8px">Veldu annað tímabil eða annað fæðingarár. Filterinn er áfram sýnilegur svo þú getir breytt valinu hér.</p>
+    </section>`;
 
   const allMetrics = analyzed.map(s => getMetrics(s)).filter(m => m.syllables > 0);
   const avgSyl = allMetrics.length ? Math.round(allMetrics.reduce((a,m)=>a+m.syllables,0)/allMetrics.length) : 0;
@@ -1619,6 +1627,29 @@ function toMillis(v) {
     if (typeof v.seconds === 'number') return v.seconds * 1000;
   }
   return null;
+}
+
+
+function shortAnonFamilyId(raw, idx) {
+  // Privacy-safe display code only. Never expose full familyId/familyCode in UI.
+  // Stable per underlying id, short enough for cards, not useful as an actual access code.
+  const value = String(raw || 'family-' + idx);
+  let hash = 2166136261;
+  for (let i = 0; i < value.length; i++) {
+    hash ^= value.charCodeAt(i);
+    hash = Math.imul(hash, 16777619);
+  }
+  const code = Math.abs(hash >>> 0).toString(36).toUpperCase().slice(0, 5).padStart(5, '0');
+  return `KÓÐI ${code}`;
+}
+
+function formatLastActiveFromSession(session) {
+  const ts = sessionTimestampMs(session);
+  if (!ts) return 'engin virkni';
+  const days = Math.max(0, Math.floor((Date.now() - ts) / 86400000));
+  if (days === 0) return 'virkni í dag';
+  if (days === 1) return '1 dagur síðan';
+  return `${days} dagar síðan`;
 }
 
 function adminHmLevel(value, type) {
@@ -1749,10 +1780,13 @@ function summaryItem(label, value) {
 }
 
 function distBar(label, count, color, total) {
-  const pct = total > 0 ? Math.round(count / total * 100) : 0;
+  const safeCount = Number(count || 0);
+  const safeTotal = Number(total || 0);
+  const pct = safeTotal > 0 ? Math.round(safeCount / safeTotal * 100) : 0;
+  const childWord = safeCount === 1 ? 'barn' : 'börn';
   return `<div class="admin-dist-item">
-    <div class="admin-dist-head"><span>${esc(label)}</span><strong>${count} (${pct}%)</strong></div>
-    <div class="admin-bar"><span style="width:${pct}%;background:${color}"></span></div>
+    <div class="admin-dist-head"><span>${esc(label)}</span><strong>${esc(safeCount)} ${childWord} · ${esc(pct)}%</strong></div>
+    <div class="admin-bar"><span style="width:${Math.max(0, Math.min(100, pct))}%;background:${color}"></span></div>
   </div>`;
 }
 
@@ -1829,16 +1863,12 @@ function renderFamilyCards(entries) {
       ? (famAnalyzed.reduce((a,s)=>a+(s.analysis?.overall?.avgScore||0),0)/famAnalyzed.length).toFixed(1) : '—';
     const childCount = fam.children.size;
     const label = `Hópur ${String.fromCharCode(65+(idx%26))}`;
-    const lastTs = fam.sessions[0]?.timestamp || null;
-    let lastActive = 'engin virkni';
-    if (lastTs) {
-      const days = Math.max(0, Math.floor((Date.now()-lastTs)/86400000));
-      lastActive = days === 0 ? 'virkni í dag' : `${days} daga síðan`;
-    }
+    const safeCode = shortAnonFamilyId(fid, idx);
+    const lastActive = formatLastActiveFromSession(fam.sessions[0]);
     return `
       <article class="admin-family-card-v2">
         <div>
-          <div class="admin-family-code">${esc(fid)}</div>
+          <div class="admin-family-code">${esc(safeCode)}</div>
           <div class="admin-family-name">${esc(label)}</div>
           <div class="admin-family-meta">${childCount} ${childCount===1?'barn':'börn'} · ${esc(lastActive)}</div>
         </div>

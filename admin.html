@@ -337,6 +337,65 @@ html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sa
 .admin-hm-foot{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-top:12px;padding-top:12px;border-top:1px solid rgba(29,205,211,0.08);color:#7a8fa0;font-size:12px;line-height:1.35}
 .admin-hm-foot strong{color:#d9e5ef}
 
+
+
+/* ── Retention og hegðun ── */
+.admin-retention-note{
+  margin:0 0 14px;
+  padding:12px 14px;
+  border:1px solid rgba(29,205,211,0.10);
+  background:rgba(255,255,255,0.025);
+  border-radius:14px;
+  color:#7a8fa0;
+  font-size:13px;
+  line-height:1.45;
+}
+.admin-retention-note strong{color:#d9e5ef}
+.admin-retention-grid{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:12px;
+  margin-bottom:18px;
+}
+.admin-retention-card{
+  background:rgba(9,20,36,0.78);
+  border:1px solid rgba(29,205,211,0.12);
+  border-radius:18px;
+  box-shadow:0 18px 42px rgba(0,0,0,0.26);
+  padding:16px;
+  display:grid;
+  gap:10px;
+  min-height:142px;
+}
+.admin-retention-label{font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:#7a8fa0;font-weight:800}
+.admin-retention-value{font-size:30px;line-height:1;color:#1dcdd3;font-family:Georgia,serif;font-weight:800}
+.admin-retention-sub{display:grid;gap:5px;color:#7a8fa0;font-size:12px;line-height:1.3}
+.admin-retention-sub strong{color:#d9e5ef}
+.admin-retention-compare{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:12px;
+  margin-bottom:18px;
+}
+.admin-compare-card{
+  background:rgba(9,20,36,0.78);
+  border:1px solid rgba(29,205,211,0.12);
+  border-radius:18px;
+  box-shadow:0 18px 42px rgba(0,0,0,0.26);
+  padding:18px;
+}
+.admin-compare-card h3{margin:0 0 6px;font-size:17px;font-weight:800;color:#d9e5ef;letter-spacing:-0.02em}
+.admin-compare-card p{margin:0 0 14px;color:#7a8fa0;font-size:13px;line-height:1.45}
+.admin-compare-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.admin-compare-box{border:1px solid rgba(29,205,211,0.08);background:rgba(255,255,255,0.02);border-radius:14px;padding:12px}
+.admin-compare-title{font-size:13px;font-weight:800;color:#d9e5ef;margin-bottom:8px}
+.admin-compare-line{display:flex;justify-content:space-between;gap:10px;color:#7a8fa0;font-size:12px;line-height:1.35;padding:4px 0;border-top:1px solid rgba(255,255,255,0.035)}
+.admin-compare-line:first-of-type{border-top:0}
+.admin-compare-line strong{color:#d9e5ef}
+@media(max-width:1350px){.admin-retention-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:1040px){.admin-retention-compare{grid-template-columns:1fr}}
+@media(max-width:560px){.admin-retention-grid,.admin-compare-grid{grid-template-columns:1fr}}
+
 /* ── Responsive ── */
 @media(max-width:1350px){
   .admin-grid-top{grid-template-columns:repeat(3,minmax(0,1fr))}
@@ -919,6 +978,317 @@ function computeListenDelayStats(sourceSessions) {
   };
 }
 
+
+function hasValidSnippet(s) {
+  if (!s) return false;
+  if (s.hasAudio === true) return true;
+  if (s.audioPath || s.audioPath_min1 || s.audioPath_min2 || s.audioPath_min5 || s.audioPath_min8 || s.audioPath_min10) return true;
+  const overall = s.analysis && s.analysis.overall;
+  if (overall && Number(overall.usableCount || 0) > 0) return true;
+  const snippets = (s.analysis && s.analysis.snippets) || {};
+  return Object.values(snippets).some(sn => sn && (sn.usable === true || sn.path || sn.audioPath));
+}
+
+function getAdminChildIdFromParts(familyId, childKey) {
+  return `${familyId || ''}__${childKey || ''}`;
+}
+
+function getAdminSessionChildId(s) {
+  return getAdminChildIdFromParts(s && s.familyId, s && (s.childKey || s.childId || s.key));
+}
+
+function getRegisteredChildrenForAdmin() {
+  const out = [];
+  (_users || []).forEach(u => {
+    const familyId = u.familyId || u.familyCode || '';
+    const children = Array.isArray(u.children) ? u.children : [];
+    children.forEach(child => {
+      if (!familyId || !child || !child.key) return;
+      const item = {
+        familyId,
+        childKey: child.key,
+        childName: child.name || child.childName || 'Barn',
+        childBirthYear: child.birthYear || child.childBirthYear || child.yearOfBirth || child.bornYear || null
+      };
+      if (!matchesAdminBirthYear(item)) return;
+      out.push({
+        id: getAdminChildIdFromParts(familyId, child.key),
+        ...item
+      });
+    });
+  });
+  return out;
+}
+
+function adminDateKeyFromMillis(ms) {
+  if (!ms) return '';
+  const d = new Date(ms);
+  d.setHours(12,0,0,0);
+  return adminLocalDateISO(d);
+}
+
+function adminDateKeyFromSession(s) {
+  const ts = getAdminSessionTime(s);
+  if (ts) return adminDateKeyFromMillis(ts);
+  if (s && s.date) {
+    const parts = String(s.date).split('-').map(Number);
+    if (parts.length === 3 && parts.every(Boolean)) return `${parts[0]}-${String(parts[1]).padStart(2,'0')}-${String(parts[2]).padStart(2,'0')}`;
+  }
+  return '';
+}
+
+function pctText(count, denom) {
+  if (!denom) return '—';
+  return Math.round((count / denom) * 100) + '%';
+}
+
+function dualPctHtml(count, registeredCount, startedCount) {
+  return `<span><strong>${pctText(count, registeredCount)}</strong> af skráðum</span><span><strong>${pctText(count, startedCount)}</strong> af byrjuðum</span>`;
+}
+
+function retentionCard(label, count, registeredCount, startedCount, note) {
+  return `<article class="admin-retention-card">
+    <div class="admin-retention-label">${esc(label)}</div>
+    <div class="admin-retention-value">${esc(count)}</div>
+    <div class="admin-retention-sub">
+      ${dualPctHtml(count, registeredCount, startedCount)}
+      ${note ? `<span>${esc(note)}</span>` : ''}
+    </div>
+  </article>`;
+}
+
+function getChildReadingDaysMap(validSessions) {
+  const map = new Map();
+  (validSessions || []).forEach(s => {
+    const childId = getAdminSessionChildId(s);
+    const day = adminDateKeyFromSession(s);
+    if (!childId || childId === '__' || !day) return;
+    if (!map.has(childId)) map.set(childId, new Set());
+    map.get(childId).add(day);
+  });
+  return map;
+}
+
+function countDaysInWindow(daySet, startMs, endMsExclusive) {
+  let n = 0;
+  (daySet || new Set()).forEach(day => {
+    const ms = adminDateFromISO(day);
+    if (ms != null && ms >= startMs && ms < endMsExclusive) n++;
+  });
+  return n;
+}
+
+function currentStreakFromDays(daySet) {
+  if (!daySet || !daySet.size) return 0;
+  let streak = 0;
+  const d = new Date();
+  d.setHours(12,0,0,0);
+  while (true) {
+    const key = adminLocalDateISO(d);
+    if (!daySet.has(key)) break;
+    streak++;
+    d.setDate(d.getDate() - 1);
+  }
+  return streak;
+}
+
+function bucketCount(obj, key) { obj[key] = (obj[key] || 0) + 1; }
+
+function computeRetentionStats() {
+  const registered = getRegisteredChildrenForAdmin();
+  const registeredIds = new Set(registered.map(c => c.id));
+  const sessions = getAdminFilteredSessions();
+  const validSessions = sessions.filter(hasValidSnippet);
+  const daysByChild = getChildReadingDaysMap(validSessions);
+  const todayStart = adminDateFromISO(adminTodayISO());
+  const tomorrow = new Date(todayStart); tomorrow.setDate(tomorrow.getDate() + 1);
+  const tomorrowMs = tomorrow.getTime();
+  const last7Start = adminDateFromISO(adminShiftDaysISO(-6));
+  const last14Start = adminDateFromISO(adminShiftDaysISO(-13));
+
+  const startedIds = new Set([...daysByChild.keys()].filter(id => !registeredIds.size || registeredIds.has(id)));
+  const registeredCount = registeredIds.size;
+  const startedCount = startedIds.size;
+  const unstartedCount = Math.max(0, registeredCount - startedCount);
+
+  let activeToday = 0, active7 = 0, returned = 0, rareReturn = 0, rhythm3 = 0, strong5 = 0, dropped14 = 0;
+  const freqBuckets = {'0/7':0,'1/7':0,'2/7':0,'3–4/7':0,'5–6/7':0,'7/7':0};
+  const streakBuckets = {'0 dagar':0,'1 dagur':0,'2 dagar':0,'3–4 dagar':0,'5–6 dagar':0,'7+ dagar':0};
+
+  startedIds.forEach(id => {
+    const daySet = daysByChild.get(id) || new Set();
+    const totalDays = daySet.size;
+    const dToday = countDaysInWindow(daySet, todayStart, tomorrowMs);
+    const d7 = countDaysInWindow(daySet, last7Start, tomorrowMs);
+    const d14 = countDaysInWindow(daySet, last14Start, tomorrowMs);
+    const streak = currentStreakFromDays(daySet);
+
+    if (dToday > 0) activeToday++;
+    if (d7 > 0) active7++;
+    if (totalDays >= 2) returned++;
+    if (totalDays >= 2 && d7 < 3 && d14 > 0) rareReturn++;
+    if (d7 >= 3) rhythm3++;
+    if (d7 >= 5) strong5++;
+    if (d14 === 0) dropped14++;
+
+    if (d7 === 0) bucketCount(freqBuckets, '0/7');
+    else if (d7 === 1) bucketCount(freqBuckets, '1/7');
+    else if (d7 === 2) bucketCount(freqBuckets, '2/7');
+    else if (d7 <= 4) bucketCount(freqBuckets, '3–4/7');
+    else if (d7 <= 6) bucketCount(freqBuckets, '5–6/7');
+    else bucketCount(freqBuckets, '7/7');
+
+    if (streak === 0) bucketCount(streakBuckets, '0 dagar');
+    else if (streak === 1) bucketCount(streakBuckets, '1 dagur');
+    else if (streak === 2) bucketCount(streakBuckets, '2 dagar');
+    else if (streak <= 4) bucketCount(streakBuckets, '3–4 dagar');
+    else if (streak <= 6) bucketCount(streakBuckets, '5–6 dagar');
+    else bucketCount(streakBuckets, '7+ dagar');
+  });
+
+  // Add registered-but-not-started to the 0 buckets for denominator clarity.
+  freqBuckets['0/7'] += unstartedCount;
+  streakBuckets['0 dagar'] += unstartedCount;
+
+  return { registered, registeredCount, startedCount, unstartedCount, validSessions, daysByChild, startedIds,
+    activeToday, active7, returned, rareReturn, rhythm3, strong5, dropped14, freqBuckets, streakBuckets };
+}
+
+function computeListeningBehaviorStats(retention) {
+  const sessions = getAdminFilteredSessions().filter(hasValidSnippet);
+  const startedIds = retention.startedIds || new Set();
+  const registeredCount = retention.registeredCount || 0;
+  const startedCount = retention.startedCount || 0;
+
+  const withListen = new Set();
+  const within24 = new Set();
+  const after24 = new Set();
+  const audioSessions = sessions.filter(s => s.hasAudio || hasValidSnippet(s));
+  let listenedSessions = 0;
+  let unheardSessions = 0;
+
+  audioSessions.forEach(s => {
+    const childId = getAdminSessionChildId(s);
+    const start = getAdminSessionTime(s);
+    const listen = toMillis(s.lastListenedAt);
+    if (listen && start && listen >= start) {
+      listenedSessions++;
+      withListen.add(childId);
+      if (listen - start <= 24*60*60*1000) within24.add(childId);
+      else after24.add(childId);
+    } else {
+      unheardSessions++;
+    }
+  });
+
+  const withoutListen = new Set([...startedIds].filter(id => !withListen.has(id)));
+  const never = withoutListen;
+
+  function groupStats(ids) {
+    const idSet = new Set([...ids].filter(id => startedIds.has(id)));
+    let returned = 0, rhythm3 = 0, dropped14 = 0;
+    const todayStart = adminDateFromISO(adminTodayISO());
+    const tomorrow = new Date(todayStart); tomorrow.setDate(tomorrow.getDate() + 1);
+    const tomorrowMs = tomorrow.getTime();
+    const last7Start = adminDateFromISO(adminShiftDaysISO(-6));
+    const last14Start = adminDateFromISO(adminShiftDaysISO(-13));
+    idSet.forEach(id => {
+      const daySet = retention.daysByChild.get(id) || new Set();
+      const d7 = countDaysInWindow(daySet, last7Start, tomorrowMs);
+      const d14 = countDaysInWindow(daySet, last14Start, tomorrowMs);
+      if (daySet.size >= 2) returned++;
+      if (d7 >= 3) rhythm3++;
+      if (d14 === 0) dropped14++;
+    });
+    return { n:idSet.size, returned, rhythm3, dropped14 };
+  }
+
+  return { withListen, withoutListen, within24, after24, never, audioSessions: audioSessions.length,
+    listenedSessions, unheardSessions, registeredCount, startedCount,
+    withListenStats: groupStats(withListen), withoutListenStats: groupStats(withoutListen),
+    within24Stats: groupStats(within24), after24Stats: groupStats(after24), neverStats: groupStats(never) };
+}
+
+function renderRetentionSection() {
+  const r = computeRetentionStats();
+  const l = computeListeningBehaviorStats(r);
+  const reg = r.registeredCount;
+  const started = r.startedCount;
+  const startedPct = reg ? Math.round((started / reg) * 100) : 0;
+
+  const freqTotal = Math.max(reg, 1);
+  const streakTotal = Math.max(reg, 1);
+
+  return `<section class="admin-section">
+    <div class="admin-section-head">
+      <div>
+        <h2 class="admin-section-title">Retention og hegðun</h2>
+        <p>Hlutlaust mat byggt á gildum lestrarlotum: lota með gildu hljóðbroti/snippet.</p>
+      </div>
+    </div>
+    <p class="admin-retention-note"><strong>Prósentur eru sýndar á tvo vegu:</strong> af skráðum börnum og af börnum sem hafa byrjað. Þetta er gert til að forðast fegrun.</p>
+    <div class="admin-retention-grid">
+      <article class="admin-retention-card"><div class="admin-retention-label">Skráð börn</div><div class="admin-retention-value">${esc(reg)}</div><div class="admin-retention-sub"><span>Heild eftir fæðingarársfilter</span></div></article>
+      <article class="admin-retention-card"><div class="admin-retention-label">Byrjuð börn</div><div class="admin-retention-value">${esc(started)}</div><div class="admin-retention-sub"><span><strong>${esc(startedPct)}%</strong> af skráðum</span><span>Með a.m.k. eina gilda lotu</span></div></article>
+      ${retentionCard('Óbyrjuð', r.unstartedCount, reg, started, 'skráð, engin gild lota')}
+      ${retentionCard('Virk í dag', r.activeToday, reg, started, 'gild lota í dag')}
+      ${retentionCard('Virk síðustu 7', r.active7, reg, started, 'a.m.k. ein gild lota')}
+      ${retentionCard('Komu aftur', r.returned, reg, started, '2+ lestrardagar alls')}
+      ${retentionCard('Sjaldan en koma aftur', r.rareReturn, reg, started, '2+ dagar alls, ekki 3+ í viku')}
+      ${retentionCard('3+ dagar / 7', r.rhythm3, reg, started, 'mögulegur taktur')}
+      ${retentionCard('5+ dagar / 7', r.strong5, reg, started, 'sterkur taktur')}
+      ${retentionCard('Dottið út', r.dropped14, reg, started, 'byrjuðu, ekkert síðustu 14 daga')}
+    </div>
+  </section>
+
+  <section class="admin-summary-row" style="grid-template-columns:1fr 1fr">
+    <article class="admin-summary-card">
+      <h3>Lestrardagar síðustu 7 daga</h3>
+      <div class="admin-dist-stack">
+        ${Object.entries(r.freqBuckets).map(([label,count]) => distBar(label, count, '#1dcdd3', freqTotal)).join('')}
+      </div>
+    </article>
+    <article class="admin-summary-card">
+      <h3>Núverandi streak</h3>
+      <div class="admin-dist-stack">
+        ${Object.entries(r.streakBuckets).map(([label,count]) => distBar(label, count, '#60a5fa', streakTotal)).join('')}
+      </div>
+    </article>
+  </section>
+
+  <section class="admin-retention-compare">
+    <article class="admin-compare-card">
+      <h3>Hlustun og viðurkenning</h3>
+      <p>Ber saman lestrarhegðun barna sem hafa fengið hlustun og þeirra sem hafa ekki fengið hlustun.</p>
+      <div class="admin-compare-grid">
+        ${renderCompareBox('Með hlustun', l.withListenStats, started)}
+        ${renderCompareBox('Án hlustunar', l.withoutListenStats, started)}
+      </div>
+    </article>
+    <article class="admin-compare-card">
+      <h3>Tími að fyrstu hlustun</h3>
+      <p>Tengsl milli hraðrar hlustunar og endurkomu. Þetta sýnir tengsl, ekki orsök.</p>
+      <div class="admin-compare-grid">
+        ${renderCompareBox('Innan 24 klst', l.within24Stats, started)}
+        ${renderCompareBox('Eftir 24 klst', l.after24Stats, started)}
+        ${renderCompareBox('Aldrei hlustað', l.neverStats, started)}
+      </div>
+    </article>
+  </section>`;
+}
+
+function renderCompareBox(title, stats, denom) {
+  const n = stats.n || 0;
+  const pct = x => n ? Math.round((x / n) * 100) + '%' : '—';
+  return `<div class="admin-compare-box">
+    <div class="admin-compare-title">${esc(title)} · ${esc(n)} börn</div>
+    <div class="admin-compare-line"><span>Hlutfall af byrjuðum</span><strong>${esc(pctText(n, denom))}</strong></div>
+    <div class="admin-compare-line"><span>Komu aftur</span><strong>${esc(stats.returned)} · ${esc(pct(stats.returned))}</strong></div>
+    <div class="admin-compare-line"><span>3+ dagar / 7</span><strong>${esc(stats.rhythm3)} · ${esc(pct(stats.rhythm3))}</strong></div>
+    <div class="admin-compare-line"><span>Dottið út</span><strong>${esc(stats.dropped14)} · ${esc(pct(stats.dropped14))}</strong></div>
+  </div>`;
+}
+
 function buildFamiliesFromSessions(sessions) {
   const families = {};
   (sessions || []).forEach(s => {
@@ -1163,7 +1533,8 @@ function renderInsights() {
   const listenEvents = getAdminFilteredListens();
   const delay = computeListenDelayStats(heatmapSessions);
   const hasActivity = (heatmapSessions && heatmapSessions.length) || (listenEvents && listenEvents.length);
-  if (!analyzed.length && !hasActivity) return '<p class="admin-empty" style="padding:24px">Engin gögn til greiningar enn.</p>';
+  const retentionPreview = computeRetentionStats();
+  if (!analyzed.length && !hasActivity && !retentionPreview.registeredCount) return '<p class="admin-empty" style="padding:24px">Engin gögn til greiningar enn.</p>';
 
   const allMetrics = analyzed.map(s => getMetrics(s)).filter(m => m.syllables > 0);
   const avgSyl = allMetrics.length ? Math.round(allMetrics.reduce((a,m)=>a+m.syllables,0)/allMetrics.length) : 0;
@@ -1176,6 +1547,7 @@ function renderInsights() {
 
   return `
     ${adminPatternFilterHtml()}
+    ${renderRetentionSection()}
     <section class="admin-grid-top" style="grid-template-columns:repeat(4,minmax(0,1fr))">
       ${kpiCard('Meðal bið eftir hlustun', delay.avgLabel, delay.count ? delay.count + ' lotur mældar' : 'engin tengd hlustun')}
       ${kpiCard('Hlustaðar hljóðlotur', delay.sessionsWithAudio ? delay.pct + '%' : '—', delay.sessionsWithListen + ' / ' + delay.sessionsWithAudio)}

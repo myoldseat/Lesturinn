@@ -233,7 +233,7 @@
       <p class="rg-popup-subtitle">Foreldri innskráning</p>
     </div>
 
-    <!-- View A: Login + FAM -->
+    <!-- View A: Login -->
     <div id="login-view-a" class="rg-popup-body">
       <div class="rg-popup-welcome">Velkomin/n aftur</div>
       <div class="rg-popup-desc">Skráðu þig inn til að fylgjast með lestri barns þíns</div>
@@ -251,21 +251,7 @@
       <div id="popup-login-error" class="rg-popup-error"></div>
       <button class="rg-popup-btn" onclick="parentLoginFromPopup()">Skrá inn</button>
       <p class="rg-popup-signup">Ertu ekki með reikning? <span onclick="openSignupPopup()" class="rg-popup-signup-link">Nýskrá hér</span></p>
-
-      <!-- Fjölskyldulykill -->
-      <div class="rg-fam-divider"><span>eða</span></div>
-      <div class="rg-fam-section">
-        <div class="rg-fam-title">Ert þú amma, afi, frændi eða frænka?</div>
-        <div class="rg-fam-sub">Sláðu inn fjölskyldulykilinn til að tengjast</div>
-        <div class="rg-field" style="margin-top:10px">
-          <label class="rg-label" for="fam-code-input">Fjölskyldulykill</label>
-          <input id="fam-code-input" class="rg-input rg-fam-input" type="text"
-            placeholder="FAM1234AB" autocomplete="off"
-            oninput="this.value=this.value.toUpperCase()">
-        </div>
-        <div id="fam-code-error" class="rg-popup-error"></div>
-        <button id="fam-code-btn" class="rg-popup-btn rg-fam-btn" onclick="famCodeLogin()">Tengjast fjölskyldu</button>
-      </div>
+      <p class="rg-popup-signup">Ert þú fjölskylda? <span onclick="showFamJoin()" class="rg-popup-signup-link">Tengjast hér</span></p>
     </div>
 
     <!-- View B: Gleymt lykilorð -->
@@ -289,6 +275,33 @@
         <div class="rg-popup-desc" style="text-align:center;margin-top:6px">Athugaðu tölvupóstinn og fylgdu leiðbeiningunum</div>
       </div>
       <button class="rg-popup-btn" onclick="backToLogin()">← Til baka í innskráningu</button>
+    </div>
+
+    <!-- View D: Fjölskylda tengjast -->
+    <div id="login-view-d" class="rg-popup-body" style="display:none">
+      <div class="rg-popup-welcome">Tengjast fjölskyldu</div>
+      <div class="rg-popup-desc">Sláðu inn fjölskyldukóðann sem þú fékkst og segðu okkur hver þú ert</div>
+      <div class="rg-field">
+        <label class="rg-label" for="fam-code-input">Fjölskyldulykill</label>
+        <input id="fam-code-input" class="rg-input rg-fam-input" type="text"
+          placeholder="FAM1234AB" autocomplete="off"
+          oninput="this.value=this.value.toUpperCase()">
+      </div>
+      <div class="rg-field">
+        <label class="rg-label" for="fam-guest-name">Hvað heitir þú?</label>
+        <input id="fam-guest-name" class="rg-input" type="text" placeholder="t.d. Sigga" autocomplete="name">
+      </div>
+      <div class="rg-field">
+        <label class="rg-label">Ég er...</label>
+        <div class="rg-role-select" id="fam-role-select">
+          <button class="rg-role-btn" data-role="amma_afi" onclick="selectGuestRole(this)">Amma / Afi</button>
+          <button class="rg-role-btn" data-role="fraendi" onclick="selectGuestRole(this)">Frændi / Frænka</button>
+          <button class="rg-role-btn" data-role="annad" onclick="selectGuestRole(this)">Annað</button>
+        </div>
+      </div>
+      <div id="fam-code-error" class="rg-popup-error"></div>
+      <button id="fam-code-btn" class="rg-popup-btn" onclick="famCodeLogin()">Tengjast fjölskyldu</button>
+      <p class="rg-popup-signup"><span onclick="backToLogin()" class="rg-popup-signup-link">← Til baka</span></p>
     </div>
   </div>
 </div>

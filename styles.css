@@ -845,27 +845,28 @@ audio { width: 100%; border-radius: 8px }
 }
 
 /* ══════════════════════════════════════════════
-   FAM code section in login popup
+   FAM code / family join in login popup
    ══════════════════════════════════════════════ */
-.rg-fam-divider {
-  display: flex; align-items: center; gap: 10px;
-  margin: 18px 0 14px; color: rgba(148,164,180,0.4); font-size: 12px;
-}
-.rg-fam-divider::before, .rg-fam-divider::after {
-  content: ''; flex: 1; height: 1px;
-  background: rgba(148,164,180,0.15);
-}
-.rg-fam-section { background: rgba(29,205,211,0.04); border: 1px solid rgba(29,205,211,0.1); border-radius: 12px; padding: 14px; }
-.rg-fam-title { font-size: 13px; font-weight: 700; color: #d9e5ef; margin-bottom: 2px; }
-.rg-fam-sub   { font-size: 12px; color: rgba(148,164,180,0.6); }
 .rg-fam-input { text-transform: uppercase; letter-spacing: 2px; text-align: center; font-family: Georgia, serif; }
-.rg-fam-btn {
-  background: rgba(29,205,211,0.12) !important;
-  color: #1dcdd3 !important;
-  box-shadow: none !important;
-  border: 1px solid rgba(29,205,211,0.3) !important;
+
+/* Role select buttons */
+.rg-role-select {
+  display: flex; gap: 6px; margin-top: 4px;
 }
-.rg-fam-btn:hover { filter: brightness(1.1); }
+.rg-role-btn {
+  flex: 1; padding: 10px 6px;
+  border: 1px solid rgba(29,205,211,0.2); border-radius: 10px;
+  background: rgba(29,205,211,0.04); color: rgba(255,255,255,0.5);
+  font-size: 12px; font-weight: 600; cursor: pointer;
+  transition: all 0.2s ease; text-align: center;
+}
+.rg-role-btn:hover { border-color: rgba(29,205,211,0.4); color: rgba(255,255,255,0.7); }
+.rg-role-active {
+  background: rgba(29,205,211,0.15) !important;
+  border-color: rgba(29,205,211,0.5) !important;
+  color: #1dcdd3 !important;
+  box-shadow: 0 0 10px rgba(29,205,211,0.15);
+}
 
 /* ── Delete account button ── */
 .st-delete-account-btn {

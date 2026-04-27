@@ -1629,6 +1629,15 @@ function toMillis(v) {
   return null;
 }
 
+function sessionTimestampMs(session) {
+  if (!session) return null;
+  return toMillis(session.timestamp)
+      || toMillis(session.createdAt)
+      || toMillis(session.startedAt)
+      || toMillis(session.savedAt)
+      || (session.date ? toMillis(String(session.date)) : null);
+}
+
 
 function shortAnonFamilyId(raw, idx) {
   // Privacy-safe display code only. Never expose full familyId/familyCode in UI.

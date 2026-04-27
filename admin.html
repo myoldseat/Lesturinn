@@ -118,7 +118,7 @@ html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sa
 .admin-hero-right{display:flex;gap:12px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
 .admin-top-chip{border:1px solid rgba(29,205,211,0.12);background:rgba(7,16,30,0.78);color:#d9e5ef;border-radius:16px;padding:14px 16px;min-width:176px;font-size:14px;font-weight:600}
 
-.admin-grid-top{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px;margin-bottom:16px}
+.admin-grid-top{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:16px}
 .admin-kpi-card,.admin-summary-card,.admin-session-card,.admin-family-card-v2{
   background:rgba(9,20,36,0.78);border:1px solid rgba(29,205,211,0.12);
   border-radius:18px;box-shadow:0 18px 42px rgba(0,0,0,0.26);
@@ -195,6 +195,37 @@ html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sa
 .admin-filter-pill:hover{border-color:rgba(29,205,211,0.28);color:#d9e5ef}
 .admin-filter-pill.active{background:rgba(29,205,211,0.12);border-color:rgba(29,205,211,0.32);color:#1dcdd3;box-shadow:0 0 18px rgba(29,205,211,0.08)}
 .admin-filter-pill.danger{border-color:rgba(248,113,113,0.20);color:#f87171;background:rgba(248,113,113,0.07)}
+
+.admin-filter-select-wrap{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.admin-filter-select{
+  appearance:none;-webkit-appearance:none;
+  min-width:138px;
+  border:1px solid rgba(29,205,211,0.18);
+  background:
+    linear-gradient(135deg,rgba(29,205,211,0.08),rgba(255,255,255,0.025)),
+    #091426;
+  color:#d9e5ef;
+  border-radius:999px;
+  padding:8px 34px 8px 13px;
+  font-size:12px;
+  font-weight:800;
+  cursor:pointer;
+  outline:none;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,0.025);
+}
+.admin-filter-select:focus{border-color:rgba(29,205,211,0.55);box-shadow:0 0 0 3px rgba(29,205,211,0.10),0 0 22px rgba(29,205,211,0.10)}
+.admin-filter-select-wrap{position:relative}
+.admin-filter-select-wrap::after{
+  content:'⌄';
+  position:absolute;
+  right:13px;
+  top:50%;
+  transform:translateY(-54%);
+  color:#1dcdd3;
+  font-size:14px;
+  pointer-events:none;
+}
+.admin-filter-select option{background:#091426;color:#d9e5ef}
 .admin-pattern-filter-status{font-size:12px;font-weight:700;color:#7a8fa0;line-height:1.35}
 .admin-pattern-filter-status strong{color:#d9e5ef}
 
@@ -436,6 +467,10 @@ const ANALYTICS_EVENT_LIMIT = 1000;
 let _sessions = [];
 let _heatmapSessions = [];
 let _listenEvents = [];
+let _users = [];
+let _childBirthYearLookup = {};
+let _birthYearOptions = Array.from({length: 11}, (_, i) => String(2010 + i));
+let _adminBirthYear = localStorage.getItem('upphatt_admin_birth_year') || 'all';
 let _adminDateMode = localStorage.getItem('upphatt_admin_date_mode') || 'all';
 let _adminDateFrom = localStorage.getItem('upphatt_admin_date_from') || '';
 let _adminDateTo = localStorage.getItem('upphatt_admin_date_to') || '';
@@ -543,7 +578,7 @@ window.tryLogin = function() {
 };
 
 window.doLogout = function() {
-  _sessions = []; _heatmapSessions = []; _listenEvents = []; _families = {}; _lastDoc = null; _hasMore = true;
+  _sessions = []; _heatmapSessions = []; _listenEvents = []; _users = []; _childBirthYearLookup = {}; _birthYearOptions = []; _families = {}; _lastDoc = null; _hasMore = true;
   document.getElementById('admin-page').style.display = 'none';
   document.getElementById('auth-screen').style.display = 'flex';
   document.getElementById('admin-code-input').value = '';
@@ -622,6 +657,16 @@ async function loadData() {
       _listenEvents = [];
     }
 
+    try {
+      const usersSnap = await firestore.collection('users').get();
+      _users = usersSnap.docs.map(d => ({ _docId: d.id, ...d.data() }));
+      buildChildBirthYearLookup();
+    } catch (usersErr) {
+      console.warn('Users load failed:', usersErr);
+      _users = [];
+      buildChildBirthYearLookup();
+    }
+
     buildFamilies();
     renderContent();
   } catch (e) {
@@ -660,6 +705,67 @@ function buildFamilies() {
 
 
 // ══════════════════════════════════════════
+
+function childLookupKey(familyId, childKey) {
+  return `${familyId || ''}__${childKey || ''}`;
+}
+
+function buildChildBirthYearLookup() {
+  _childBirthYearLookup = {};
+  const years = new Set();
+  (_users || []).forEach(u => {
+    const familyId = u.familyId || u.familyCode || '';
+    const children = Array.isArray(u.children) ? u.children : [];
+    children.forEach(child => {
+      if (!familyId || !child || !child.key) return;
+      const birthYear = child.birthYear || child.childBirthYear || child.yearOfBirth || child.bornYear;
+      if (!birthYear) return;
+      const y = String(birthYear);
+      _childBirthYearLookup[childLookupKey(familyId, child.key)] = y;
+      years.add(y);
+    });
+  });
+  // Keep a fixed cohort range visible even before pilot data exists.
+  const fixedYears = Array.from({length: 11}, (_, i) => String(2010 + i));
+  const discoveredYears = Array.from(years).sort((a,b) => Number(a) - Number(b));
+  _birthYearOptions = Array.from(new Set([...fixedYears, ...discoveredYears]))
+    .sort((a,b) => Number(a) - Number(b));
+}
+
+function getAdminItemBirthYear(item) {
+  if (!item) return 'unknown';
+  const direct = item.childBirthYear || item.birthYear || item.yearOfBirth || item.bornYear;
+  if (direct) return String(direct);
+  const childKey = item.childKey || item.childId || item.key || (item.child && item.child.key) || '';
+  const familyId = item.familyId || item.family || '';
+  return _childBirthYearLookup[childLookupKey(familyId, childKey)] || 'unknown';
+}
+
+function adminBirthYearFilterLabel() {
+  if (_adminBirthYear === 'all') return 'Öll fæðingarár';
+  if (_adminBirthYear === 'unknown') return 'Óþekkt fæðingarár';
+  return 'Fæðingarár ' + _adminBirthYear;
+}
+
+function matchesAdminBirthYear(item) {
+  if (!_adminBirthYear || _adminBirthYear === 'all') return true;
+  const year = getAdminItemBirthYear(item);
+  if (_adminBirthYear === 'unknown') return year === 'unknown';
+  return String(year) === String(_adminBirthYear);
+}
+
+function filterByAdminBirthYear(items) {
+  return (items || []).filter(matchesAdminBirthYear);
+}
+
+function setAdminBirthYearFilter(year) {
+  _adminBirthYear = year || 'all';
+  localStorage.setItem('upphatt_admin_birth_year', _adminBirthYear);
+  updateAdminDateChip();
+  renderContent();
+}
+window.setAdminBirthYearFilter = setAdminBirthYearFilter;
+
 // ADMIN DATE FILTER — used by heatmap analytics
 // ══════════════════════════════════════════
 
@@ -711,7 +817,8 @@ function updateAdminDateChip() {
   if (!el) return;
   const base = new Date().toLocaleDateString('is-IS');
   const filter = adminDateFilterLabel();
-  el.textContent = '📅 ' + base + ' · ' + filter;
+  const birth = adminBirthYearFilterLabel();
+  el.textContent = '📅 ' + base + ' · ' + filter + ' · ' + birth;
 }
 
 function setAdminDateFilter(mode) {
@@ -762,11 +869,54 @@ function getAdminListenTime(ev) {
 
 function getAdminFilteredSessions(source) {
   const base = source || ((_heatmapSessions && _heatmapSessions.length) ? _heatmapSessions : _sessions);
-  return filterByAdminDateRange(base, getAdminSessionTime);
+  return filterByAdminBirthYear(filterByAdminDateRange(base, getAdminSessionTime));
 }
 
 function getAdminFilteredListens(source) {
-  return filterByAdminDateRange(source || _listenEvents, getAdminListenTime);
+  return filterByAdminBirthYear(filterByAdminDateRange(source || _listenEvents, getAdminListenTime));
+}
+
+function formatAdminDelay(ms) {
+  if (!Number.isFinite(ms) || ms < 0) return '—';
+  const mins = Math.round(ms / 60000);
+  if (mins < 60) return mins + ' mín';
+  const h = Math.floor(mins / 60);
+  const m = mins % 60;
+  if (h < 24) return m ? `${h} klst ${m} mín` : `${h} klst`;
+  const d = Math.floor(h / 24);
+  const rh = h % 24;
+  return rh ? `${d} d ${rh} klst` : `${d} d`;
+}
+
+function computeListenDelayStats(sourceSessions) {
+  const sessions = sourceSessions || getAdminFilteredSessions();
+  const delays = [];
+  let sessionsWithAudio = 0;
+  let sessionsWithListen = 0;
+
+  (sessions || []).forEach(s => {
+    if (s.hasAudio) sessionsWithAudio++;
+    const start = getAdminSessionTime(s);
+    if (!start) return;
+
+    // Best source: parent-view writes lastListenedAt directly onto the session doc.
+    const listenAt = toMillis(s.lastListenedAt);
+    if (!listenAt || listenAt < start) return;
+
+    sessionsWithListen++;
+    delays.push(listenAt - start);
+  });
+
+  const avgMs = delays.length ? delays.reduce((a,b)=>a+b,0) / delays.length : null;
+  return {
+    avgMs,
+    avgLabel: avgMs == null ? '—' : formatAdminDelay(avgMs),
+    count: delays.length,
+    sessionsWithAudio,
+    sessionsWithListen,
+    unheardAudio: Math.max(0, sessionsWithAudio - sessionsWithListen),
+    pct: sessionsWithAudio ? Math.round((sessionsWithListen / sessionsWithAudio) * 100) : 0
+  };
 }
 
 function buildFamiliesFromSessions(sessions) {
@@ -783,6 +933,12 @@ function buildFamiliesFromSessions(sessions) {
 function adminPatternFilterHtml() {
   const active = _adminDateMode || 'all';
   const status = adminDateFilterLabel();
+  const yearActive = _adminBirthYear || 'all';
+  const yearOptions = [
+    `<option value="all" ${yearActive==='all'?'selected':''}>Allt</option>`,
+    ...(_birthYearOptions || []).map(y => `<option value="${esc(y)}" ${yearActive===String(y)?'selected':''}>${esc(y)}</option>`),
+    `<option value="unknown" ${yearActive==='unknown'?'selected':''}>Óþekkt</option>`
+  ].join('');
   return `<div class="admin-pattern-filter">
     <div class="admin-pattern-filter-left">
       <span class="admin-pattern-filter-label">Tímabil</span>
@@ -792,7 +948,13 @@ function adminPatternFilterHtml() {
       <button class="admin-filter-pill ${active==='hard'?'active':''}" onclick="setAdminDateFilter('hard')">Hard refresh</button>
       <button class="admin-filter-pill danger" onclick="setAdminDateFilter('reset')">Reset</button>
     </div>
-    <div class="admin-pattern-filter-status">Sýnir: <strong>${esc(status)}</strong></div>
+    <div class="admin-filter-select-wrap">
+      <span class="admin-pattern-filter-label">Fæðingarár</span>
+      <select class="admin-filter-select" onchange="setAdminBirthYearFilter(this.value)" aria-label="Fæðingarár">
+        ${yearOptions}
+      </select>
+    </div>
+    <div class="admin-pattern-filter-status">Sýnir: <strong>${esc(status)}</strong> · <strong>${esc(adminBirthYearFilterLabel())}</strong></div>
   </div>`;
 }
 
@@ -839,6 +1001,7 @@ function computeKPIs(sourceSessions) {
 function renderOverview() {
   const filteredSessions = getAdminFilteredSessions();
   const k = computeKPIs(filteredSessions);
+  const delay = computeListenDelayStats(filteredSessions);
   const sessionCards = renderSessionCards(k.analyzed.slice(0, 6));
   const familyCards = renderFamilyCards(Object.entries(k.families).slice(0, 6));
   return `
@@ -848,7 +1011,8 @@ function renderOverview() {
       ${kpiCard('Lotur', k.totalSessions, adminDateFilterLabel())}
       ${kpiCard('Mínútur', k.totalMins, adminDateFilterLabel())}
       ${kpiCard('Greindar lotur', k.withAnalysis, 'með greiningu')}
-      ${kpiCard('Meðal nothæfar', k.avgUsable, 'klippur á lotu')}
+      ${kpiCard('Meðal bið', delay.avgLabel, delay.count ? delay.count + ' lotur með hlustun' : 'engin tengd hlustun')}
+      ${kpiCard('Hlustaðar lotur', delay.sessionsWithAudio ? delay.pct + '%' : '—', delay.sessionsWithListen + ' / ' + delay.sessionsWithAudio + ' lotur með hljóð')}
       ${kpiCard('Meðalskor', k.avgScore, 'af 100 mögulegum')}
     </section>
 
@@ -858,7 +1022,8 @@ function renderOverview() {
         <div class="admin-summary-list">
           ${summaryItem('Lotur með hljóð', k.withAudio + ' / ' + k.totalSessions)}
           ${summaryItem('Greindar lotur', k.withAnalysis + ' / ' + k.totalSessions)}
-          ${summaryItem('Meðal nothæfar klippur', k.avgUsable)}
+          ${summaryItem('Meðal bið eftir hlustun', delay.avgLabel)}
+          ${summaryItem('Óhlustaðar hljóðlotur', delay.unheardAudio)}
           ${summaryItem('Meðalskor', k.avgScore)}
         </div>
       </article>
@@ -996,6 +1161,7 @@ function renderInsights() {
   const analyzed = k.analyzed;
   const heatmapSessions = getAdminFilteredSessions();
   const listenEvents = getAdminFilteredListens();
+  const delay = computeListenDelayStats(heatmapSessions);
   const hasActivity = (heatmapSessions && heatmapSessions.length) || (listenEvents && listenEvents.length);
   if (!analyzed.length && !hasActivity) return '<p class="admin-empty" style="padding:24px">Engin gögn til greiningar enn.</p>';
 
@@ -1010,6 +1176,13 @@ function renderInsights() {
 
   return `
     ${adminPatternFilterHtml()}
+    <section class="admin-grid-top" style="grid-template-columns:repeat(4,minmax(0,1fr))">
+      ${kpiCard('Meðal bið eftir hlustun', delay.avgLabel, delay.count ? delay.count + ' lotur mældar' : 'engin tengd hlustun')}
+      ${kpiCard('Hlustaðar hljóðlotur', delay.sessionsWithAudio ? delay.pct + '%' : '—', delay.sessionsWithListen + ' / ' + delay.sessionsWithAudio)}
+      ${kpiCard('Óhlustaðar hljóðlotur', delay.unheardAudio, 'innan valins tímabils')}
+      ${kpiCard('Hlustanir', listenEvents.length, 'listenEvents')}
+    </section>
+
     <section class="admin-heatmap-grid">
       ${buildAdminReadingHeatmap(heatmapSessions)}
       ${buildAdminListeningHeatmap(listenEvents)}

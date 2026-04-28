@@ -693,11 +693,9 @@ export async function analyzeAudio(input, cfg) {
 // ══════════════════════════════════════════
 
 export function isSnippetUsable(summary) {
-  const silenceTime = summary.sessionDuration - summary.speakingTime;
-
-  // Regla 1: Of mikil þögn — meira en 1/3 af snippeti
-  if (silenceTime > summary.sessionDuration / 3) {
-    return { usable: false, quality: null, reason: 'too_much_silence' };
+  // Regla 1: Ekkert tal greinist
+  if (summary.speakingTime < 0.5) {
+    return { usable: false, quality: null, reason: 'no_speech' };
   }
 
   // Regla 2: Of fá atkvæði
@@ -705,9 +703,14 @@ export function isSnippetUsable(summary) {
     return { usable: false, quality: null, reason: 'too_few_syllables' };
   }
 
-  // Regla 3: Ekkert tal greinist
-  if (summary.speakingTime < 0.5) {
-    return { usable: false, quality: null, reason: 'no_speech' };
+  // Þögn má merkja gæði, en má ekki stoppa upload í pilot.
+  const silenceTime = summary.sessionDuration - summary.speakingTime;
+  const silenceRatio = summary.sessionDuration > 0
+    ? silenceTime / summary.sessionDuration
+    : 1;
+
+  if (silenceRatio > 0.6) {
+    return { usable: true, quality: 'low', reason: 'much_silence' };
   }
 
   return { usable: true, quality: 'ok', reason: null };

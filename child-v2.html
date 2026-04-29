@@ -1366,11 +1366,7 @@
         </div>
         <input id="child-page-from" type="hidden" value="">
         <input id="child-page-to" type="hidden" value="">
-
-        <div class="child-action-preview">
-          <div class="child-action-preview-title">Forskoðun</div>
-          <p id="child-reading-preview" class="child-action-preview-text">Drekastormur · bls. 21–29</p>
-        </div>
+        <p id="child-reading-preview" class="child-action-preview-text" hidden></p>
 
         <button id="child-reading-save" class="child-modal-btn" type="button">Vista</button>
         <div id="child-reading-result" class="child-modal-result">Vistað fyrir næsta lestur.</div>
@@ -2033,8 +2029,6 @@
 
         if (activeBook && !previousSelectedId) {
           setSelectedBookById(activeBook.id);
-          if (activeBook.pageFrom && childPageFrom && !childPageFrom.value) childPageFrom.value = activeBook.pageFrom;
-          if (activeBook.pageTo && childPageTo && !childPageTo.value) childPageTo.value = activeBook.pageTo;
         }
 
         updateChildReadingPreview();

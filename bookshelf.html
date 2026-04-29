@@ -407,12 +407,118 @@ button,
   margin-bottom: 110px !important;
 }
 
+
+/* FINAL: bookshelf uses top-left Lesa link; no bottom nav */
+.app {
+  padding-bottom: calc(44px + var(--safe)) !important;
+}
+.top {
+  grid-template-columns: 72px 1fr 92px !important;
+}
+.top-read-link {
+  width: 66px;
+  height: 38px;
+  border-radius: 999px;
+  border: 1px solid rgba(29,205,211,.22);
+  background: rgba(7,18,33,.96);
+  color: rgba(217,229,239,.90);
+  font-size: 12px;
+  font-weight: 850;
+  letter-spacing: .1px;
+  display: grid;
+  place-items: center;
+  text-decoration: none;
+  padding: 0;
+  cursor: pointer;
+  box-shadow:
+    0 0 0 1px rgba(29,205,211,.04),
+    0 0 12px rgba(29,205,211,.10);
+  -webkit-tap-highlight-color: transparent;
+}
+.top-read-link:visited {
+  color: rgba(217,229,239,.90);
+}
+.top-read-link:hover,
+.top-read-link:focus-visible {
+  outline: none;
+  border-color: rgba(29,205,211,.58);
+  background: rgba(10,28,48,.98);
+  color: #dffbff;
+  box-shadow:
+    0 0 0 1px rgba(29,205,211,.10),
+    0 0 18px rgba(29,205,211,.24),
+    0 0 34px rgba(29,205,211,.12);
+}
+@media(max-width:390px){
+  .top{grid-template-columns:68px 1fr 88px !important}
+  .top-read-link{width:62px;font-size:11.5px}
+}
+
+
+/* FINAL: long-press delete book modal */
+.delete-warning {
+  text-align: center;
+}
+
+.delete-warning-icon {
+  width: 58px;
+  height: 58px;
+  margin: 0 auto 13px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(255,107,107,.36);
+  background: rgba(255,107,107,.08);
+  color: #ff8a8a;
+  font-size: 25px;
+  font-weight: 900;
+  box-shadow:
+    0 0 0 1px rgba(255,107,107,.06),
+    0 0 24px rgba(255,107,107,.16);
+}
+
+.delete-warning h2 {
+  margin-top: 0;
+}
+
+.delete-warning-copy {
+  margin: 8px 0 16px;
+  color: rgba(217,229,239,.80);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.delete-book-name {
+  display: block;
+  margin: 10px 0 0;
+  color: #d9e5ef;
+  font-weight: 850;
+}
+
+.dialog-btn.delete-confirm {
+  background: rgba(255,107,107,.10) !important;
+  border: 1px solid rgba(255,107,107,.35) !important;
+  color: #ff8a8a !important;
+  box-shadow:
+    0 0 0 1px rgba(255,107,107,.05),
+    0 0 18px rgba(255,107,107,.14) !important;
+}
+
+.dialog-btn.delete-confirm:hover,
+.dialog-btn.delete-confirm:focus-visible {
+  background: rgba(255,107,107,.16) !important;
+  border-color: rgba(255,107,107,.55) !important;
+  box-shadow:
+    0 0 0 1px rgba(255,107,107,.10),
+    0 0 24px rgba(255,107,107,.22) !important;
+}
+
 </style>
 </head>
 <body>
 <main class="app">
 <header class="top">
-  <button class="logout-btn" id="bookshelfLogout" type="button" aria-label="Útskrá">Útskrá</button>
+  <a class="top-read-link" href="child-v2.html" aria-label="Lesa">Lesa</a>
   <div class="header-title"><h1>Bókahilla</h1><p>Bækurnar þínar</p></div>
   <div class="header-actions"><button class="add-book" id="openAdd" aria-label="Bæta við bók">+</button><button class="child-initials" id="openProfile" aria-label="Kolbeinn Kvasir">KK</button></div>
 </header>
@@ -429,9 +535,6 @@ button,
   <div class="rail" id="shelfRail"></div>
 </section>
 </main>
-
-<nav class="bottom"><a class="nav" href="child-v2.html"><span>▥</span><span>Lesa</span></a><a class="nav active" href="#"><span>▥</span><span>Bókahilla</span></a><a class="nav" href="#"><span>⚙</span><span>Stillingar</span></a></nav>
-
 <div class="overlay" id="addModal">
   <section class="dialog">
     <button class="close" id="closeAdd">×</button>
@@ -546,6 +649,7 @@ function render(){
   renderRail("shelfRail", books.filter(b=>b.status==="shelf" || !b.lastReadAt).sort((a,b)=>b.createdAt-a.createdAt));
   renderLastRead();
   document.querySelectorAll("[data-open-book]").forEach(el=>el.addEventListener("click",()=>openJourney(el.dataset.openBook)));
+  attachBookLongPressHandlers();
 }
 function renderRail(id, list){
   const rail = document.getElementById(id);
@@ -666,7 +770,79 @@ document.getElementById("saveBook").addEventListener("click",()=>{
 });
 document.getElementById("clearBooks").addEventListener("click",()=>{
   if(confirm("Hreinsa allar local bækur og byrja aftur?")){
-    localStorage.removeItem(STORAGE_KEY); load(); render(); closeOverlay("addModal");
+    localStorage.removeItem(STORAGE_KEY); 
+let pendingDeleteBookId = null;
+let longPressTimer = null;
+let longPressTriggered = false;
+
+function openDeleteBookModal(bookId){
+  const book = books.find(b => b.id === bookId);
+  if(!book) return;
+  pendingDeleteBookId = bookId;
+  const nameEl = document.getElementById("deleteBookName");
+  if(nameEl) nameEl.textContent = book.title || "Bók";
+  openOverlay("deleteBookModal");
+}
+
+function closeDeleteBookModal(){
+  pendingDeleteBookId = null;
+  closeOverlay("deleteBookModal");
+}
+
+function attachBookLongPressHandlers(){
+  document.querySelectorAll("[data-open-book]").forEach(el => {
+    if(el.dataset.longPressBound === "1") return;
+    el.dataset.longPressBound = "1";
+
+    el.addEventListener("contextmenu", (e) => {
+      e.preventDefault();
+    });
+
+    el.addEventListener("pointerdown", () => {
+      longPressTriggered = false;
+      clearTimeout(longPressTimer);
+      longPressTimer = setTimeout(() => {
+        longPressTriggered = true;
+        openDeleteBookModal(el.dataset.openBook);
+      }, 650);
+    });
+
+    ["pointerup","pointercancel","pointerleave"].forEach(eventName => {
+      el.addEventListener(eventName, () => {
+        clearTimeout(longPressTimer);
+      });
+    });
+
+    el.addEventListener("click", (e) => {
+      if(longPressTriggered){
+        e.preventDefault();
+        e.stopPropagation();
+        longPressTriggered = false;
+      }
+    }, true);
+  });
+}
+
+document.getElementById("closeDeleteBook")?.addEventListener("click", closeDeleteBookModal);
+document.getElementById("cancelDeleteBook")?.addEventListener("click", closeDeleteBookModal);
+
+document.getElementById("confirmDeleteBook")?.addEventListener("click", () => {
+  if(!pendingDeleteBookId) return;
+  const before = books.length;
+  books = books.filter(book => book.id !== pendingDeleteBookId);
+
+  if(books.length !== before){
+    if(!save()){
+      alert("Tókst ekki að vista breytinguna í local geymslu.");
+      return;
+    }
+    render();
+  }
+
+  closeDeleteBookModal();
+});
+
+load(); render(); closeOverlay("addModal");
   }
 });
 document.getElementById("shareLastReading").addEventListener("click",()=>{
@@ -677,15 +853,22 @@ document.addEventListener("keydown",e=>{if(e.key==="Escape")document.querySelect
 
 load(); render();
 
-document.getElementById("bookshelfLogout")?.addEventListener("click",()=>{
-  try {
-    localStorage.removeItem("upphatt_child");
-    localStorage.removeItem("childName");
-    sessionStorage.setItem("upphatt_skip_child_redirect_once","1");
-  } catch(e) {}
-  window.location.href = "index.html";
-});
-
 </script>
+
+<div class="overlay" id="deleteBookModal">
+  <section class="dialog delete-warning">
+    <button class="close" id="closeDeleteBook" aria-label="Loka">×</button>
+    <div class="delete-warning-icon">!</div>
+    <h2>Eyða bók?</h2>
+    <p class="delete-warning-copy">
+      Þetta eyðir öllu — bæði bókinni og lestrarferðalaginu.
+      <span class="delete-book-name" id="deleteBookName">Bók</span>
+    </p>
+    <p class="delete-warning-copy">Ertu alveg viss?</p>
+    <button class="dialog-btn delete-confirm" id="confirmDeleteBook">Eyða öllu</button>
+    <button class="dialog-btn secondary" id="cancelDeleteBook">Hætta við</button>
+  </section>
+</div>
+
 </body>
 </html>

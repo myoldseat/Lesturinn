@@ -1193,6 +1193,107 @@
   line-height: 1.35;
 }
 
+
+/* FINAL: book picker with page input inside selected tile */
+.child-book-option {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  column-gap: 12px !important;
+  align-items: center !important;
+  min-height: 74px !important;
+  padding: 13px 13px !important;
+}
+
+.child-book-option-main {
+  min-width: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 7px !important;
+}
+
+.child-book-option-title {
+  display: block !important;
+  width: 100% !important;
+  color: #d9e5ef !important;
+  line-height: 1.14 !important;
+  white-space: normal !important;
+}
+
+.child-book-option-meta {
+  display: block !important;
+  width: 100% !important;
+  margin-top: 0 !important;
+  color: rgba(148,164,180,.78) !important;
+  font-size: 12px !important;
+  font-weight: 800 !important;
+  letter-spacing: .15px !important;
+  line-height: 1.15 !important;
+}
+
+.child-book-option.selected .child-book-option-meta {
+  color: #1dcdd3 !important;
+}
+
+.child-book-page-control {
+  display: none !important;
+  min-width: 92px !important;
+  text-align: right !important;
+}
+
+.child-book-option.selected .child-book-page-control {
+  display: block !important;
+}
+
+.child-book-page-label {
+  display: block !important;
+  margin-bottom: 5px !important;
+  color: rgba(217,229,239,.72) !important;
+  font-size: 10px !important;
+  font-weight: 850 !important;
+  letter-spacing: .25px !important;
+  text-transform: uppercase !important;
+}
+
+.child-book-page-input {
+  width: 78px !important;
+  height: 40px !important;
+  border-radius: 11px !important;
+  border: 1px solid rgba(29,205,211,.36) !important;
+  background: rgba(7,18,33,.96) !important;
+  color: #d9e5ef !important;
+  padding: 8px 10px !important;
+  font: inherit !important;
+  font-size: 17px !important;
+  font-weight: 800 !important;
+  text-align: center !important;
+  outline: none !important;
+  box-shadow:
+    0 0 0 1px rgba(29,205,211,.05),
+    0 0 14px rgba(29,205,211,.14) !important;
+}
+
+.child-book-page-input:focus {
+  border-color: rgba(29,205,211,.72) !important;
+  background: rgba(9,25,43,.98) !important;
+  box-shadow:
+    0 0 0 3px rgba(29,205,211,.14),
+    0 0 18px rgba(29,205,211,.32),
+    0 0 36px rgba(29,205,211,.18) !important;
+}
+
+@media (max-width: 390px) {
+  .child-book-option {
+    grid-template-columns: minmax(0, 1fr) 84px !important;
+    column-gap: 10px !important;
+  }
+  .child-book-page-control {
+    min-width: 84px !important;
+  }
+  .child-book-page-input {
+    width: 74px !important;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -1252,7 +1353,7 @@
       <section class="child-action-modal" role="dialog" aria-modal="true" aria-labelledby="child-reading-modal-title">
         <button id="child-reading-modal-close" class="child-action-close" type="button" aria-label="Loka">×</button>
         <h2 id="child-reading-modal-title">Veldu bók</h2>
-        <p class="child-action-sub">Veldu bók og hvar þú byrjar að lesa.</p>
+        <p class="child-action-sub">Veldu bók og blaðsíðu þar sem þú byrjar.</p>
 
         <div class="child-field">
           <label>Bók</label>
@@ -1263,14 +1364,8 @@
             <button class="child-book-option" type="button" data-book-id="uglubarn" data-book-title="Uglubarn" aria-selected="false">Uglubarn</button>
           </div>
         </div>
-
-        <div class="child-row">
-          <div class="child-field">
-            <label for="child-page-from">Byrja á bls.</label>
-            <input id="child-page-from" class="child-input" inputmode="numeric" placeholder="21">
-          </div>
-          <input id="child-page-to" type="hidden" value="">
-        </div>
+        <input id="child-page-from" type="hidden" value="">
+        <input id="child-page-to" type="hidden" value="">
 
         <div class="child-action-preview">
           <div class="child-action-preview-title">Forskoðun</div>
@@ -1847,6 +1942,12 @@
           var isSelected = btn.getAttribute("data-book-id") === bookId;
           btn.classList.toggle("selected", isSelected);
           btn.setAttribute("aria-selected", isSelected ? "true" : "false");
+
+          if (isSelected) {
+            var inlineInput = btn.querySelector(".child-book-page-input");
+            if (inlineInput && childPageFrom) childPageFrom.value = inlineInput.value.trim();
+            if (childPageTo) childPageTo.value = "";
+          }
         });
       }
 
@@ -1907,6 +2008,7 @@
               ? "Lokið"
               : "Á hillunni";
 
+          var suggestedStart = book.pageTo ? String(Number(book.pageTo) + 1) : (book.pageFrom ? String(book.pageFrom) : "");
           return '' +
             '<button class="child-book-option' + (isSelected ? ' selected' : '') + '" ' +
             'type="button" ' +
@@ -1915,8 +2017,14 @@
             'data-page-from="' + String(book.pageFrom).replace(/"/g, "&quot;") + '" ' +
             'data-page-to="' + String(book.pageTo).replace(/"/g, "&quot;") + '" ' +
             'aria-selected="' + (isSelected ? "true" : "false") + '">' +
-              '<span class="child-book-option-title">' + book.title + '</span>' +
-              '<span class="child-book-option-meta">' + meta + (book.progressPercent ? " · " + book.progressPercent + "%" : "") + '</span>' +
+              '<span class="child-book-option-main">' +
+                '<span class="child-book-option-title">' + book.title + '</span>' +
+                '<span class="child-book-option-meta">' + meta + (book.progressPercent ? " · " + book.progressPercent + "%" : "") + '</span>' +
+              '</span>' +
+              '<span class="child-book-page-control">' +
+                '<span class="child-book-page-label">Bls.</span>' +
+                '<input class="child-book-page-input" inputmode="numeric" value="' + suggestedStart.replace(/"/g, "&quot;") + '" aria-label="Byrja á blaðsíðu">' +
+              '</span>' +
             '</button>';
         }).join("");
 
@@ -1936,17 +2044,28 @@
         childBookOptions.forEach(function (btn) {
           if (btn.dataset.bound === "1") return;
           btn.dataset.bound = "1";
+
+          var inlineInput = btn.querySelector(".child-book-page-input");
+
           btn.addEventListener("click", function () {
-            setSelectedBookById(btn.getAttribute("data-book-id") || "drekastormur");
-
-            var pageFrom = btn.getAttribute("data-page-from") || "";
-            var pageTo = btn.getAttribute("data-page-to") || "";
-            var suggestedStart = pageTo ? String(Number(pageTo) + 1) : pageFrom;
-            if (suggestedStart && childPageFrom) childPageFrom.value = suggestedStart;
+            setSelectedBookById(btn.getAttribute("data-book-id") || "");
+            if (inlineInput && childPageFrom) childPageFrom.value = inlineInput.value.trim();
             if (childPageTo) childPageTo.value = "";
-
             updateChildReadingPreview();
           });
+
+          if (inlineInput) {
+            inlineInput.addEventListener("click", function (event) {
+              event.stopPropagation();
+              setSelectedBookById(btn.getAttribute("data-book-id") || "");
+            });
+
+            inlineInput.addEventListener("input", function () {
+              setSelectedBookById(btn.getAttribute("data-book-id") || "");
+              if (childPageFrom) childPageFrom.value = inlineInput.value.trim();
+              updateChildReadingPreview();
+            });
+          }
         });
       }
 
@@ -1973,7 +2092,8 @@
         childReadingModal.classList.add("open");
         childReadingModal.setAttribute("aria-hidden", "false");
         setTimeout(function () {
-          var firstTarget = childPageFrom || (childBookOptions[0] || null);
+          var selected = getSelectedBookOption();
+          var firstTarget = selected ? selected.querySelector(".child-book-page-input") : (childBookOptions[0] || null);
           if (firstTarget) firstTarget.focus();
         }, 60);
       }
@@ -2013,6 +2133,18 @@
             alert("Engin bók er merkt “Að lesa” enn.");
             return;
           }
+
+          var selectedOption = getSelectedBookOption();
+          var selectedPageInput = selectedOption ? selectedOption.querySelector(".child-book-page-input") : null;
+          var selectedStartPage = selectedPageInput ? selectedPageInput.value.trim() : "";
+
+          if (!selectedStartPage) {
+            alert("Settu inn blaðsíðu þar sem þú byrjar.");
+            return;
+          }
+
+          if (childPageFrom) childPageFrom.value = selectedStartPage;
+          if (childPageTo) childPageTo.value = "";
 
           var setup = {
             bookId: getSelectedBookId(),

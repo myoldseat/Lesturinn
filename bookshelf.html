@@ -408,54 +408,264 @@ button,
 }
 
 
-/* FINAL: bookshelf uses top-left Lesa link; no bottom nav */
+/* FINAL bookshelf topbar, icons, edit mode, compact title and spotlight */
 .app {
   padding-bottom: calc(44px + var(--safe)) !important;
 }
-.top {
-  grid-template-columns: 72px 1fr 92px !important;
+
+.bookshelf-top.top {
+  grid-template-columns: 92px 1fr 140px !important;
+  gap: 8px !important;
+  margin-bottom: 12px !important;
 }
+
+.header-title h1 {
+  font-size: 21px !important;
+  letter-spacing: -0.45px !important;
+  line-height: 1.05 !important;
+  margin: 0 !important;
+}
+
+.header-title p {
+  display: none !important;
+}
+
+.header-actions {
+  gap: 8px !important;
+}
+
 .top-read-link {
-  width: 66px;
   height: 38px;
   border-radius: 999px;
-  border: 1px solid rgba(29,205,211,.22);
+  border: 1px solid rgba(29,205,211,.24);
   background: rgba(7,18,33,.96);
-  color: rgba(217,229,239,.90);
+  color: rgba(217,229,239,.92);
   font-size: 12px;
   font-weight: 850;
   letter-spacing: .1px;
-  display: grid;
-  place-items: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
   text-decoration: none;
-  padding: 0;
-  cursor: pointer;
+  padding: 0 12px;
   box-shadow:
     0 0 0 1px rgba(29,205,211,.04),
-    0 0 12px rgba(29,205,211,.10);
+    0 0 12px rgba(29,205,211,.12);
   -webkit-tap-highlight-color: transparent;
 }
-.top-read-link:visited {
-  color: rgba(217,229,239,.90);
+
+.top-read-link svg {
+  width: 16px;
+  height: 16px;
+  color: #1dcdd3;
 }
+
+.top-read-link:visited {
+  color: rgba(217,229,239,.92);
+}
+
+.edit-books,
+.add-book,
+.child-initials {
+  width: 38px !important;
+  height: 38px !important;
+  border-radius: 50% !important;
+}
+
+.edit-books,
+.add-book {
+  border: 1px solid rgba(29,205,211,.22) !important;
+  background: rgba(7,18,33,.96) !important;
+  color: #1dcdd3 !important;
+  display: grid !important;
+  place-items: center !important;
+  padding: 0 !important;
+  box-shadow:
+    0 0 0 1px rgba(29,205,211,.04),
+    0 0 12px rgba(29,205,211,.11) !important;
+}
+
+.edit-books svg,
+.add-book svg {
+  width: 18px;
+  height: 18px;
+}
+
+.edit-books.active {
+  border-color: rgba(29,205,211,.72) !important;
+  box-shadow:
+    0 0 0 2px rgba(29,205,211,.13),
+    0 0 24px rgba(29,205,211,.32) !important;
+}
+
 .top-read-link:hover,
-.top-read-link:focus-visible {
+.top-read-link:focus-visible,
+.edit-books:hover,
+.edit-books:focus-visible,
+.add-book:hover,
+.add-book:focus-visible {
   outline: none;
-  border-color: rgba(29,205,211,.58);
-  background: rgba(10,28,48,.98);
-  color: #dffbff;
+  border-color: rgba(29,205,211,.58) !important;
+  background: rgba(10,28,48,.98) !important;
+  color: #dffbff !important;
   box-shadow:
     0 0 0 1px rgba(29,205,211,.10),
     0 0 18px rgba(29,205,211,.24),
-    0 0 34px rgba(29,205,211,.12);
-}
-@media(max-width:390px){
-  .top{grid-template-columns:68px 1fr 88px !important}
-  .top-read-link{width:62px;font-size:11.5px}
+    0 0 34px rgba(29,205,211,.12) !important;
 }
 
+.featured {
+  padding: 15px 16px 14px !important;
+  margin-bottom: 22px !important;
+}
 
-/* FINAL: long-press delete book modal */
+.featured::after {
+  content: "";
+  position: absolute;
+  left: 28px;
+  top: 38px;
+  width: 190px;
+  height: 210px;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at 18% 0%, rgba(29,205,211,.38), rgba(29,205,211,.18) 27%, rgba(29,205,211,.055) 54%, transparent 76%);
+  filter: blur(8px);
+  opacity: .92;
+  mix-blend-mode: screen;
+}
+
+.featured .pill {
+  position: relative;
+  z-index: 3;
+  box-shadow:
+    0 0 0 1px rgba(29,205,211,.12),
+    0 0 18px rgba(29,205,211,.25);
+}
+
+.feature-grid {
+  position: relative;
+  z-index: 2;
+}
+
+.stage {
+  min-height: 166px !important;
+}
+
+.book {
+  width: 112px !important;
+  box-shadow:
+    0 22px 38px rgba(0,0,0,.44),
+    0 0 0 1px rgba(255,255,255,.07),
+    0 0 34px rgba(29,205,211,.22),
+    -20px -18px 44px rgba(29,205,211,.18) !important;
+}
+
+.shelf-light {
+  width: 104px !important;
+  height: 4px !important;
+  box-shadow:
+    0 0 12px #1dcdd3,
+    0 0 28px rgba(29,205,211,.30) !important;
+}
+
+.quote small {
+  display: none !important;
+}
+
+.quote {
+  padding: 11px 12px !important;
+}
+
+.quote p {
+  font-size: 13px !important;
+}
+
+.edit-bar {
+  margin: -2px 0 14px;
+  padding: 10px 12px;
+  border-radius: 16px;
+  border: 1px solid rgba(29,205,211,.22);
+  background: rgba(6,14,26,.86);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  box-shadow: 0 0 24px rgba(29,205,211,.08);
+}
+
+.edit-bar[hidden] {
+  display: none !important;
+}
+
+.edit-bar span {
+  color: rgba(217,229,239,.88);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.edit-bar-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.edit-danger,
+.edit-cancel {
+  height: 32px;
+  border-radius: 999px;
+  padding: 0 12px;
+  font-size: 12px;
+  font-weight: 850;
+  cursor: pointer;
+  border: 1px solid rgba(122,187,218,.18);
+  background: rgba(7,18,33,.96);
+  color: rgba(217,229,239,.84);
+}
+
+.edit-danger {
+  border-color: rgba(255,107,107,.35);
+  color: #ff8a8a;
+}
+
+.edit-danger:disabled {
+  opacity: .42;
+  cursor: not-allowed;
+}
+
+.edit-mode .tile,
+.edit-mode .book {
+  outline: 1px dashed rgba(29,205,211,.28);
+  outline-offset: 4px;
+}
+
+.tile.delete-selected,
+.book.delete-selected {
+  box-shadow:
+    0 18px 30px rgba(0,0,0,.40),
+    0 0 0 3px rgba(29,205,211,.48),
+    0 0 28px rgba(29,205,211,.32) !important;
+}
+
+.tile.delete-selected::after,
+.book.delete-selected::after {
+  content: "✓";
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  z-index: 8;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: #1dcdd3;
+  color: #061018;
+  font-size: 14px;
+  font-weight: 950;
+  border: 1px solid rgba(255,255,255,.35);
+  box-shadow: 0 0 14px rgba(29,205,211,.36);
+}
+
 .delete-warning {
   text-align: center;
 }
@@ -475,10 +685,6 @@ button,
   box-shadow:
     0 0 0 1px rgba(255,107,107,.06),
     0 0 24px rgba(255,107,107,.16);
-}
-
-.delete-warning h2 {
-  margin-top: 0;
 }
 
 .delete-warning-copy {
@@ -504,24 +710,51 @@ button,
     0 0 18px rgba(255,107,107,.14) !important;
 }
 
-.dialog-btn.delete-confirm:hover,
-.dialog-btn.delete-confirm:focus-visible {
-  background: rgba(255,107,107,.16) !important;
-  border-color: rgba(255,107,107,.55) !important;
-  box-shadow:
-    0 0 0 1px rgba(255,107,107,.10),
-    0 0 24px rgba(255,107,107,.22) !important;
+@media(max-width:390px){
+  .bookshelf-top.top {
+    grid-template-columns: 86px 1fr 132px !important;
+  }
+  .header-title h1 {
+    font-size: 19px !important;
+  }
 }
 
 </style>
 </head>
 <body>
 <main class="app">
-<header class="top">
-  <a class="top-read-link" href="child-v2.html" aria-label="Lesa">Lesa</a>
-  <div class="header-title"><h1>Bókahilla</h1><p>Bækurnar þínar</p></div>
-  <div class="header-actions"><button class="add-book" id="openAdd" aria-label="Bæta við bók">+</button><button class="child-initials" id="openProfile" aria-label="Kolbeinn Kvasir">KK</button></div>
+<header class="top bookshelf-top">
+  <a class="top-read-link" href="child-v2.html" aria-label="Lesa">
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M4.5 5.5c1.8-.9 4.1-.9 6.2.1.8.4 1.3 1.2 1.3 2.1v11.1c0 .3-.3.5-.6.4-2.2-1.1-4.6-1.1-6.8-.1-.5.2-1-.1-1-.7V6.5c0-.4.2-.8.6-1Z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M19.5 5.5c-1.8-.9-4.1-.9-6.2.1-.8.4-1.3 1.2-1.3 2.1v11.1c0 .3.3.5.6.4 2.2-1.1 4.6-1.1 6.8-.1.5.2 1-.1 1-.7V6.5c0-.4-.2-.8-.6-1Z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <span>Lesa</span>
+  </a>
+  <div class="header-title"><h1>Bækurnar mínar</h1></div>
+  <div class="header-actions">
+    <button class="edit-books" id="toggleEditBooks" aria-label="Breyta bókum" type="button">
+      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M4 20h4.2L18.8 9.4a2.2 2.2 0 0 0 0-3.1l-1.1-1.1a2.2 2.2 0 0 0-3.1 0L4 15.8V20Z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M13.5 6.5l4 4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+      </svg>
+    </button>
+    <button class="add-book" id="openAdd" aria-label="Bæta við bók" type="button">
+      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </button>
+    <button class="child-initials" id="openProfile" aria-label="Kolbeinn Kvasir" type="button">KK</button>
+  </div>
 </header>
+
+<div class="edit-bar" id="editBar" hidden>
+  <span id="editCount">0 bækur valdar</span>
+  <div class="edit-bar-actions">
+    <button id="deleteSelectedBooks" class="edit-danger" type="button" disabled>Eyða</button>
+    <button id="cancelEditBooks" class="edit-cancel" type="button">Hætta við</button>
+  </div>
+</div>
 
 <section class="card featured" id="featuredCard"></section>
 
@@ -636,27 +869,35 @@ function render(){
     featured.innerHTML = `
       <div class="featured-head"><span class="pill">▥ ${reading.status==="reading"?"Í lestri":"Á hillunni"}</span><button class="chev" data-open-book="${reading.id}">›</button></div>
       <div class="feature-grid">
-        <div class="stage"><button class="book" data-open-book="${reading.id}" style="${c.style}">${c.img}${c.title}${c.mark}</button><span class="shelf-light"></span></div>
+        <div class="stage"><button class="book ${selectedBookIds.has(reading.id) ? 'delete-selected' : ''}" data-open-book="${reading.id}" style="${c.style}">${c.img}${c.title}${c.mark}</button><span class="shelf-light"></span></div>
         <div class="meta">
           <h2>${esc(reading.title)}</h2>
           <div class="meta-row"><span>${reading.currentPageFrom?`bls. ${reading.currentPageFrom}–${reading.currentPageTo}`:"Á hillunni"}</span><strong>${reading.progressPercent||0}% lokið</strong></div>
           <div class="progress"><span style="width:${reading.progressPercent||0}%"></span></div>
-          <div class="quote"><p>“${esc(reading.note||"Bókin er komin á hilluna.")}”</p><small>– Arnar, 10 ára</small></div>
+          <div class="quote"><p>“${esc(latestJourneyNote(reading))}”</p></div>
         </div>
       </div>`;
   }
   renderRail("recentRail", books.filter(b=>b.lastReadAt).sort((a,b)=>b.lastReadAt-a.lastReadAt));
   renderRail("shelfRail", books.filter(b=>b.status==="shelf" || !b.lastReadAt).sort((a,b)=>b.createdAt-a.createdAt));
   renderLastRead();
-  document.querySelectorAll("[data-open-book]").forEach(el=>el.addEventListener("click",()=>openJourney(el.dataset.openBook)));
-  attachBookLongPressHandlers();
+  document.querySelectorAll("[data-open-book]").forEach(el=>el.addEventListener("click",(event)=>{
+    const id = el.dataset.openBook;
+    if(editMode){
+      event.preventDefault();
+      event.stopPropagation();
+      toggleBookSelection(id);
+      return;
+    }
+    openJourney(id);
+  }));
 }
 function renderRail(id, list){
   const rail = document.getElementById(id);
   if(!list.length){ rail.innerHTML = `<div class="empty">Engar bækur hér enn.</div>`; return; }
   rail.innerHTML = list.map(b=>{
     const c = bookCoverHTML(b,false);
-    return `<div class="tile-wrap"><button class="tile" data-open-book="${b.id}" style="${c.style}">${c.img}${c.title}</button><span class="chip ${b.status==="finished"?"done":""}">${chipText(b)}</span></div>`;
+    return `<div class="tile-wrap"><button class="tile ${selectedBookIds.has(b.id) ? 'delete-selected' : ''}" data-open-book="${b.id}" style="${c.style}">${c.img}${c.title}</button><span class="chip ${b.status==="finished"?"done":""}">${chipText(b)}</span></div>`;
   }).join("");
 }
 function renderLastRead(){
@@ -771,75 +1012,89 @@ document.getElementById("saveBook").addEventListener("click",()=>{
 document.getElementById("clearBooks").addEventListener("click",()=>{
   if(confirm("Hreinsa allar local bækur og byrja aftur?")){
     localStorage.removeItem(STORAGE_KEY); 
-let pendingDeleteBookId = null;
-let longPressTimer = null;
-let longPressTriggered = false;
+let editMode = false;
+let selectedBookIds = new Set();
 
-function openDeleteBookModal(bookId){
-  const book = books.find(b => b.id === bookId);
-  if(!book) return;
-  pendingDeleteBookId = bookId;
-  const nameEl = document.getElementById("deleteBookName");
-  if(nameEl) nameEl.textContent = book.title || "Bók";
-  openOverlay("deleteBookModal");
+function latestJourneyNote(book){
+  if(book && Array.isArray(book.journeyEntries) && book.journeyEntries.length){
+    const entry = book.journeyEntries[0];
+    if(entry && entry.note) return entry.note;
+  }
+  return book && book.note ? book.note : "Bókin er komin á hilluna.";
 }
 
-function closeDeleteBookModal(){
-  pendingDeleteBookId = null;
-  closeOverlay("deleteBookModal");
+function updateEditUI(){
+  const editBar = document.getElementById("editBar");
+  const editCount = document.getElementById("editCount");
+  const deleteBtn = document.getElementById("deleteSelectedBooks");
+  const toggleBtn = document.getElementById("toggleEditBooks");
+
+  document.body.classList.toggle("edit-mode", editMode);
+  if(editBar) editBar.hidden = !editMode;
+  if(toggleBtn) toggleBtn.classList.toggle("active", editMode);
+
+  const count = selectedBookIds.size;
+  if(editCount) editCount.textContent = count === 1 ? "1 bók valin" : `${count} bækur valdar`;
+  if(deleteBtn) deleteBtn.disabled = count === 0;
 }
 
-function attachBookLongPressHandlers(){
-  document.querySelectorAll("[data-open-book]").forEach(el => {
-    if(el.dataset.longPressBound === "1") return;
-    el.dataset.longPressBound = "1";
-
-    el.addEventListener("contextmenu", (e) => {
-      e.preventDefault();
-    });
-
-    el.addEventListener("pointerdown", () => {
-      longPressTriggered = false;
-      clearTimeout(longPressTimer);
-      longPressTimer = setTimeout(() => {
-        longPressTriggered = true;
-        openDeleteBookModal(el.dataset.openBook);
-      }, 650);
-    });
-
-    ["pointerup","pointercancel","pointerleave"].forEach(eventName => {
-      el.addEventListener(eventName, () => {
-        clearTimeout(longPressTimer);
-      });
-    });
-
-    el.addEventListener("click", (e) => {
-      if(longPressTriggered){
-        e.preventDefault();
-        e.stopPropagation();
-        longPressTriggered = false;
-      }
-    }, true);
-  });
+function setEditMode(next){
+  editMode = Boolean(next);
+  if(!editMode) selectedBookIds.clear();
+  updateEditUI();
+  render();
 }
 
-document.getElementById("closeDeleteBook")?.addEventListener("click", closeDeleteBookModal);
-document.getElementById("cancelDeleteBook")?.addEventListener("click", closeDeleteBookModal);
+function toggleBookSelection(bookId){
+  if(selectedBookIds.has(bookId)) selectedBookIds.delete(bookId);
+  else selectedBookIds.add(bookId);
+  updateEditUI();
+  render();
+}
 
-document.getElementById("confirmDeleteBook")?.addEventListener("click", () => {
-  if(!pendingDeleteBookId) return;
-  const before = books.length;
-  books = books.filter(book => book.id !== pendingDeleteBookId);
+function openDeleteSelectedModal(){
+  if(!selectedBookIds.size) return;
+  const names = books
+    .filter(book => selectedBookIds.has(book.id))
+    .map(book => book.title)
+    .slice(0,3);
 
-  if(books.length !== before){
-    if(!save()){
-      alert("Tókst ekki að vista breytinguna í local geymslu.");
-      return;
-    }
-    render();
+  const nameEl = document.getElementById("deleteBooksName");
+  if(nameEl){
+    const extra = selectedBookIds.size > 3 ? ` + ${selectedBookIds.size - 3} í viðbót` : "";
+    nameEl.textContent = names.join(", ") + extra;
+  }
+  openOverlay("deleteBooksModal");
+}
+
+function closeDeleteSelectedModal(){
+  closeOverlay("deleteBooksModal");
+}
+
+document.getElementById("toggleEditBooks")?.addEventListener("click", () => {
+  setEditMode(!editMode);
+});
+
+document.getElementById("cancelEditBooks")?.addEventListener("click", () => {
+  setEditMode(false);
+});
+
+document.getElementById("deleteSelectedBooks")?.addEventListener("click", openDeleteSelectedModal);
+document.getElementById("closeDeleteBooks")?.addEventListener("click", closeDeleteSelectedModal);
+document.getElementById("cancelDeleteBooks")?.addEventListener("click", closeDeleteSelectedModal);
+
+document.getElementById("confirmDeleteBooks")?.addEventListener("click", () => {
+  if(!selectedBookIds.size) return;
+  books = books.filter(book => !selectedBookIds.has(book.id));
+
+  if(!save()){
+    alert("Tókst ekki að vista breytinguna í local geymslu.");
+    return;
   }
 
-  closeDeleteBookModal();
+  selectedBookIds.clear();
+  closeDeleteSelectedModal();
+  setEditMode(false);
 });
 
 load(); render(); closeOverlay("addModal");
@@ -855,18 +1110,18 @@ load(); render();
 
 </script>
 
-<div class="overlay" id="deleteBookModal">
+<div class="overlay" id="deleteBooksModal">
   <section class="dialog delete-warning">
-    <button class="close" id="closeDeleteBook" aria-label="Loka">×</button>
+    <button class="close" id="closeDeleteBooks" aria-label="Loka">×</button>
     <div class="delete-warning-icon">!</div>
-    <h2>Eyða bók?</h2>
+    <h2>Eyða bókum?</h2>
     <p class="delete-warning-copy">
-      Þetta eyðir öllu — bæði bókinni og lestrarferðalaginu.
-      <span class="delete-book-name" id="deleteBookName">Bók</span>
+      Þetta eyðir öllu — bæði bók og lestrarferðalagi.
+      <span class="delete-book-name" id="deleteBooksName">Valdar bækur</span>
     </p>
     <p class="delete-warning-copy">Ertu alveg viss?</p>
-    <button class="dialog-btn delete-confirm" id="confirmDeleteBook">Eyða öllu</button>
-    <button class="dialog-btn secondary" id="cancelDeleteBook">Hætta við</button>
+    <button class="dialog-btn delete-confirm" id="confirmDeleteBooks">Eyða öllu</button>
+    <button class="dialog-btn secondary" id="cancelDeleteBooks">Hætta við</button>
   </section>
 </div>
 

@@ -330,6 +330,16 @@ const PERIOD_LABELS={week:'vikunnar',month:'mánaðarins'};
 const PERIOD_LABELS_SHORT={week:'á viku',month:'á mánuði'};
 
 function goalDocRef(){return doc(db,'goals',FID+'_'+CK)}
+function goalsLocalKey(){return 'upphatt_goals_'+FID+'_'+CK}
+function saveGoalsLocal(){
+  try{localStorage.setItem(goalsLocalKey(),JSON.stringify({goals:currentGoals,achievements}))}catch(e){}
+}
+function loadGoalsLocal(){
+  try{
+    const d=JSON.parse(localStorage.getItem(goalsLocalKey())||'{}');
+    return {goals:Array.isArray(d.goals)?d.goals:[],achievements:Array.isArray(d.achievements)?d.achievements:[]};
+  }catch(e){return {goals:[],achievements:[]}}
+}
 
 function normalizeGoalsFromDoc(d){
   if(!d)return[];
@@ -353,13 +363,22 @@ async function loadGoal(){
       const d=snap.data();
       currentGoals=normalizeGoalsFromDoc(d);
       achievements=Array.isArray(d.achievements)?d.achievements:[];
+      saveGoalsLocal();
     }else{
-      currentGoals=[];achievements=[];
+      const local=loadGoalsLocal();
+      currentGoals=local.goals;
+      achievements=local.achievements;
     }
-  }catch(e){console.warn('Goal load failed:',e);currentGoals=[];achievements=[]}
+  }catch(e){
+    console.warn('Goal load failed:',e);
+    const local=loadGoalsLocal();
+    currentGoals=local.goals;
+    achievements=local.achievements;
+  }
 }
 
 async function persistGoals(){
+  saveGoalsLocal();
   if(previewMode){render();return}
   try{
     await setDoc(goalDocRef(),{goals:currentGoals,achievements,familyId:FID,childKey:CK,childName:CN,updatedAt:serverTimestamp()},{merge:true});
@@ -433,7 +452,11 @@ async function checkAchievements(){
       changed=true;
     }
   });
-  if(changed){achievements=achievements.slice(0,24);if(!previewMode){try{await setDoc(goalDocRef(),{achievements,goals:currentGoals,familyId:FID,childKey:CK,childName:CN,updatedAt:serverTimestamp()},{merge:true})}catch(e){console.warn('Achievement save failed:',e)}}}
+  if(changed){
+    achievements=achievements.slice(0,24);
+    saveGoalsLocal();
+    if(!previewMode){try{await setDoc(goalDocRef(),{achievements,goals:currentGoals,familyId:FID,childKey:CK,childName:CN,updatedAt:serverTimestamp()},{merge:true})}catch(e){console.warn('Achievement save failed:',e)}}
+  }
 }
 
 // ── Celebration system ──

@@ -2,1594 +2,346 @@
 <html lang="is">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>UppHátt — local bókamyndapróf</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
+<title>UppHátt — Bókahillan mín</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,700;0,9..40,800;1,9..40,400&family=DM+Serif+Display&display=swap" rel="stylesheet">
 <style>
-:root{
-  --bg:#050b14;--surface:#060e1a;--line:rgba(29,205,211,.18);--line2:rgba(29,205,211,.34);
-  --text:#d9e5ef;--soft:#94a3b8;--accent:#1dcdd3;--accent2:#18bcc2;--safe:env(safe-area-inset-bottom,0px);
-  --danger:#ff6b6b;--ok:#4ade80;
-}
-*{box-sizing:border-box}
-html,body{margin:0;min-height:100%;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased}
-body{background:radial-gradient(500px 270px at 50% 8%,rgba(29,205,211,.105),transparent 62%),radial-gradient(420px 260px at 12% 28%,rgba(29,205,211,.06),transparent 70%),#050b14}
-button,input,select{font:inherit}button{cursor:pointer}
-.app{width:min(100%,430px);min-height:100svh;margin:0 auto;padding:12px 16px calc(104px + var(--safe));position:relative}
-.top{display:grid;grid-template-columns:42px 1fr 92px;gap:10px;align-items:center;margin-bottom:14px}
-.icon-btn,.add-book,.child-initials{width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.035);border:1px solid rgba(122,187,218,.16);color:rgba(217,229,239,.86);display:grid;place-items:center;padding:0}
-.add-book{border-color:rgba(29,205,211,.22);color:var(--accent);font-size:22px;font-weight:500;line-height:1;background:rgba(29,205,211,.055)}
-.child-initials{border-color:rgba(29,205,211,.44);background:radial-gradient(circle at 50% 35%,rgba(29,205,211,.20),rgba(8,19,31,.96) 68%);color:#dff8fb;font-size:12px;font-weight:800;letter-spacing:.3px;box-shadow:0 0 0 1px rgba(29,205,211,.10),0 0 12px rgba(29,205,211,.24),0 0 24px rgba(29,205,211,.16)}
-.header-title{text-align:center}.header-title h1{margin:0;font-size:29px;line-height:1;font-weight:800;letter-spacing:-.9px;color:#d9e5ef}.header-title p{margin:5px 0 0;color:rgba(148,164,180,.78);font-size:13px}.header-actions{display:flex;justify-content:flex-end;align-items:center;gap:8px}
-
-.card{position:relative;background:rgba(6,14,26,.88);border:1px solid var(--line);border-radius:22px;box-shadow:0 26px 64px rgba(0,0,0,.36),0 0 38px rgba(29,205,211,.075);overflow:hidden}
-.card:before,.dialog:before{content:"";position:absolute;top:0;left:10%;right:10%;height:1px;background:linear-gradient(90deg,rgba(29,205,211,0),rgba(29,205,211,.55),rgba(29,205,211,0))}
-.featured{padding:18px 16px 16px;margin-bottom:24px}
-.featured-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
-.pill{display:inline-flex;align-items:center;gap:7px;padding:7px 12px;border-radius:11px;border:1px solid rgba(29,205,211,.28);background:rgba(29,205,211,.08);color:var(--accent);font-size:13px;font-weight:700}
-.chev{border:0;background:none;color:rgba(217,229,239,.65);font-size:26px;line-height:1;padding:0 3px}
-.feature-grid{display:grid;grid-template-columns:36% 1fr;gap:16px;align-items:center}
-.stage{position:relative;min-height:188px;display:flex;align-items:flex-end;justify-content:center}
-.stage:before{content:"";position:absolute;top:-22px;left:50%;transform:translateX(-50%);width:128px;height:230px;background:radial-gradient(ellipse at top,rgba(29,205,211,.40),rgba(29,205,211,.16) 34%,transparent 74%);filter:blur(9px)}
-.stage:after{content:"";position:absolute;bottom:1px;left:50%;transform:translateX(-50%);width:125px;height:28px;border-radius:50%;background:radial-gradient(ellipse,rgba(29,205,211,.38),rgba(29,205,211,.08) 56%,transparent 78%);box-shadow:0 0 18px rgba(29,205,211,.16)}
-.book,.tile{position:relative;overflow:hidden;border:0;background:linear-gradient(140deg,var(--c1,#2b8f91),var(--c2,#0a2341));box-shadow:0 15px 24px rgba(0,0,0,.32),0 0 0 1px rgba(255,255,255,.045)}
-.book{width:122px;aspect-ratio:2/3;z-index:1;border-radius:12px;transform:perspective(800px) rotateY(-7deg) rotateZ(-1.4deg);box-shadow:0 22px 38px rgba(0,0,0,.44),0 0 0 1px rgba(255,255,255,.06),0 0 28px rgba(29,205,211,.13)}
-.book img,.tile img{width:100%;height:100%;object-fit:cover;display:block}
-.book:before,.tile:before{content:"";position:absolute;left:0;top:0;bottom:0;z-index:4;background:linear-gradient(90deg,rgba(0,0,0,.42),rgba(255,255,255,.10),transparent);border-right:1px solid rgba(255,255,255,.06);pointer-events:none}
-.book:before{width:16px}.tile:before{width:12px}
-.book:after,.tile:after{content:"";position:absolute;inset:9px;border-radius:9px;border:1px solid rgba(255,255,255,.12);background:linear-gradient(120deg,rgba(255,255,255,.14),transparent 35%,transparent);pointer-events:none}
-.tile:after{inset:7px;border-radius:7px}
-.book-title{position:absolute;left:18px;right:10px;top:46px;z-index:2;font-size:15px;font-weight:800;letter-spacing:-.5px;line-height:1.02;color:#eaf3fb;text-shadow:0 2px 10px rgba(0,0,0,.35)}
-.book-author{position:absolute;left:18px;right:10px;top:84px;z-index:2;color:rgba(217,229,239,.75);font-size:10px;font-weight:700}
-.book-mark{position:absolute;right:12px;bottom:34px;font-size:24px;filter:drop-shadow(0 8px 10px rgba(0,0,0,.35));z-index:2}
-.shelf-light{position:absolute;bottom:-3px;width:92px;height:3px;border-radius:999px;background:var(--accent);box-shadow:0 0 10px var(--accent)}
-.meta h2{margin:0 0 10px;font-size:23px;font-weight:800;letter-spacing:-.6px}
-.meta-row{display:flex;justify-content:space-between;gap:10px;margin-bottom:8px;color:rgba(217,229,239,.74);font-size:14px}.meta-row strong{color:var(--accent);font-size:15px}
-.progress{height:6px;border-radius:99px;background:rgba(255,255,255,.06);overflow:hidden;margin-bottom:12px}.progress span{display:block;height:100%;width:58%;border-radius:inherit;background:linear-gradient(90deg,var(--accent),var(--accent2));box-shadow:0 0 14px rgba(29,205,211,.34)}
-.quote{border-radius:14px;border:1px solid rgba(122,187,218,.12);background:rgba(255,255,255,.025);padding:12px 13px}.quote p{margin:0;color:rgba(217,229,239,.88);font-size:14px;font-weight:650;font-style:italic}.quote small{display:block;text-align:right;color:var(--accent);font-size:12px;font-weight:700;margin-top:7px}
-
-.row{margin-bottom:26px}.row-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:11px}.row-title{display:flex;align-items:center;gap:8px;font-size:20px;font-weight:800;letter-spacing:-.45px}.add-mini{width:22px;height:22px;border-radius:50%;border:1px solid rgba(29,205,211,.32);background:rgba(29,205,211,.06);color:var(--accent);display:grid;place-items:center;font-size:18px;line-height:1}.see-all{border:0;background:none;color:var(--accent);font-size:14px;font-weight:700}
-.rail{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;padding:1px 0 18px;scrollbar-width:none;-webkit-overflow-scrolling:touch;position:relative}.rail::-webkit-scrollbar{display:none}.rail:after{content:"";position:absolute;left:0;right:0;bottom:4px;height:7px;background:linear-gradient(180deg,rgba(29,205,211,.24),rgba(29,205,211,.04));border-top:1px solid rgba(29,205,211,.16);box-shadow:0 0 14px rgba(29,205,211,.10)}
-.tile-wrap{flex:0 0 86px;scroll-snap-align:start;text-align:center}.tile{height:129px;border-radius:10px;width:100%}.tile-title{position:absolute;left:12px;right:8px;top:40px;z-index:2;color:#f4fbff;font-size:11px;font-weight:800;letter-spacing:-.25px;line-height:1.05;text-shadow:0 2px 9px rgba(0,0,0,.55)}.tile-author{position:absolute;left:12px;right:8px;top:72px;z-index:2;color:rgba(255,255,255,.72);font-size:8px;font-weight:650;text-shadow:0 2px 8px rgba(0,0,0,.55)}
-.chip{display:inline-flex;align-items:center;justify-content:center;min-width:40px;margin-top:7px;padding:4px 9px;border-radius:999px;background:rgba(29,205,211,.12);border:1px solid rgba(29,205,211,.26);color:var(--accent);font-size:10px;font-weight:750}.chip.done{background:var(--accent);color:#061018}
-.empty{color:rgba(148,164,180,.72);font-size:13px;padding:10px 0 20px}
-
-.bottom{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(12px + var(--safe));width:min(398px,calc(100vw - 32px));height:72px;background:rgba(6,14,26,.94);border:1px solid var(--line);border-radius:20px;box-shadow:0 24px 60px rgba(0,0,0,.42),0 0 34px rgba(29,205,211,.06);display:grid;grid-template-columns:1fr 1fr 1fr;backdrop-filter:blur(10px);overflow:hidden}.nav{display:grid;place-items:center;align-content:center;gap:4px;color:rgba(148,164,180,.8);font-size:12px;font-weight:650;text-decoration:none}.nav.active{color:var(--accent)}.nav.active:after{content:"";width:34px;height:3px;border-radius:99px;background:var(--accent);box-shadow:0 0 10px rgba(29,205,211,.4)}
-
-.overlay{position:fixed;inset:0;background:rgba(0,0,0,.58);backdrop-filter:blur(8px);z-index:80;display:none;place-items:center;padding:18px}.overlay.open{display:grid}.dialog{width:min(94vw,390px);max-height:92svh;overflow:auto;background:rgba(6,14,26,.97);border:1px solid var(--line);border-radius:22px;box-shadow:0 32px 80px rgba(0,0,0,.6),0 0 60px rgba(29,205,211,.07);padding:22px;position:relative}.close{position:absolute;top:12px;right:12px;width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.07);border:1px solid rgba(122,187,218,.16);color:rgba(148,164,180,.8)}.dialog h2{margin:4px 0;text-align:center;font-size:25px;letter-spacing:-.6px}.dialog-sub{text-align:center;margin:0 0 18px;color:rgba(148,164,180,.78);font-size:13px}
-.field{margin-bottom:13px}.field label{display:block;font-size:11px;font-weight:800;color:#d9e5ef;margin-bottom:6px}.field input,.field select{width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(122,187,218,.18);border-radius:9px;padding:10px 13px;font-size:14px;color:#d9e5ef;outline:none}.field input:focus,.field select:focus{border-color:rgba(29,205,211,.55);background:rgba(29,205,211,.04);box-shadow:0 0 0 3px rgba(29,205,211,.12)}
-.file-card{border:1px dashed rgba(29,205,211,.25);border-radius:14px;padding:14px;background:rgba(29,205,211,.04);text-align:center;margin-bottom:13px}.file-card input{display:none}.file-card label{display:block;color:var(--accent);font-weight:800;font-size:14px;cursor:pointer}.hint{font-size:12px;color:rgba(148,164,180,.78);margin-top:5px}
-.preview-row{display:grid;grid-template-columns:112px 1fr;gap:14px;align-items:center;margin:12px 0 14px}.preview-cover{width:112px;aspect-ratio:2/3;border-radius:12px;overflow:hidden;background:rgba(255,255,255,.04);border:1px solid rgba(122,187,218,.14);position:relative}.preview-cover img{width:100%;height:100%;object-fit:cover}.preview-info{font-size:12px;color:rgba(148,164,180,.8);line-height:1.45}.preview-info strong{display:block;color:#d9e5ef;font-size:13px;margin-bottom:4px}
-.dialog-btn{width:100%;padding:11px;border:0;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#061018;font-weight:800;margin-top:8px}.dialog-btn.secondary{background:rgba(255,255,255,.035);border:1px solid rgba(122,187,218,.14);color:rgba(217,229,239,.78);box-shadow:none}.dialog-btn.danger{background:rgba(255,107,107,.10);border:1px solid rgba(255,107,107,.28);color:var(--danger)}
-.entry{border-left:2px dotted rgba(29,205,211,.3);padding-left:16px;margin-left:7px}.event{position:relative;background:rgba(255,255,255,.035);border:1px solid rgba(122,187,218,.12);border-radius:13px;padding:11px 12px;margin-bottom:9px}.event:before{content:"";position:absolute;left:-24px;top:15px;width:10px;height:10px;border-radius:50%;background:var(--accent);box-shadow:0 0 12px var(--accent)}.event-date{font-size:12px;color:var(--accent);font-weight:750;margin-bottom:4px}.event p{margin:0 0 8px;font-size:14px}.reactions{display:flex;flex-wrap:wrap;gap:6px}.react{font-size:11px;color:rgba(217,229,239,.9);background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.08);padding:5px 8px;border-radius:999px}
-.share-result,.add-save-result{display:none;margin-top:10px;padding:10px 12px;border-radius:12px;background:rgba(29,205,211,.08);border:1px solid rgba(29,205,211,.22);color:var(--accent);font-size:13px;font-weight:700;text-align:center}.share-result.show,.add-save-result.show{display:block}
-.add-save-actions{display:none;grid-template-columns:1fr;gap:9px;margin-top:10px}.add-save-actions.show{display:grid}.dialog-btn[disabled]{opacity:.62;cursor:not-allowed;filter:saturate(.7)}
-@media(max-width:390px){.app{padding-left:12px;padding-right:12px}.top{grid-template-columns:40px 1fr 88px}.feature-grid{gap:12px}.book{width:112px}.meta h2{font-size:21px}.quote{display:none}.tile-wrap{flex-basis:82px}.tile{height:123px}}
-
-/* ══════════════════════════════════════════════
-   Unified UppHátt controls: darker, same tone,
-   perimeter glow on focus / hover / press
-   ══════════════════════════════════════════════ */
-:root{
-  --uh-control-bg: rgba(7, 18, 33, 0.96);
-  --uh-control-bg-hover: rgba(10, 28, 48, 0.98);
-  --uh-control-border: rgba(29,205,211,.18);
-  --uh-control-border-hot: rgba(29,205,211,.58);
-  --uh-control-glow: rgba(29,205,211,.28);
-  --uh-control-glow-strong: rgba(29,205,211,.46);
-}
-
-button,
-.icon-btn,
-.add-book,
-.child-initials,
-.chev,
-.see-all,
-.add-mini,
-.dialog-btn,
-.close,
-.file-card,
-.file-card label,
-.nav,
-.tile,
-.book{
-  -webkit-tap-highlight-color: transparent;
-}
-
-.icon-btn,
-.add-book,
-.child-initials,
-.close,
-.add-mini{
-  background: var(--uh-control-bg) !important;
-  border: 1px solid var(--uh-control-border) !important;
-  color: rgba(217,229,239,.86) !important;
-  transition:
-    border-color .18s ease,
-    box-shadow .18s ease,
-    background .18s ease,
-    color .18s ease,
-    transform .12s ease,
-    filter .12s ease !important;
-}
-
-.add-book,
-.add-mini,
-.child-initials{
-  color: var(--accent) !important;
-}
-
-.icon-btn:hover,
-.add-book:hover,
-.child-initials:hover,
-.close:hover,
-.add-mini:hover{
-  background: var(--uh-control-bg-hover) !important;
-  border-color: var(--uh-control-border-hot) !important;
-  color: #dffbff !important;
-  box-shadow:
-    0 0 0 1px rgba(29,205,211,.10),
-    0 0 14px var(--uh-control-glow),
-    0 0 28px rgba(29,205,211,.16) !important;
-}
-
-.icon-btn:active,
-.add-book:active,
-.child-initials:active,
-.close:active,
-.add-mini:active{
-  transform: scale(.96) !important;
-  border-color: rgba(29,205,211,.72) !important;
-  box-shadow:
-    0 0 0 2px rgba(29,205,211,.16),
-    0 0 20px var(--uh-control-glow-strong),
-    0 0 42px rgba(29,205,211,.24) !important;
-}
-
-.icon-btn:focus-visible,
-.add-book:focus-visible,
-.child-initials:focus-visible,
-.close:focus-visible,
-.add-mini:focus-visible,
-.dialog-btn:focus-visible,
-.tile:focus-visible,
-.book:focus-visible,
-.nav:focus-visible{
-  outline: none !important;
-  border-color: rgba(29,205,211,.72) !important;
-  box-shadow:
-    0 0 0 3px rgba(29,205,211,.14),
-    0 0 18px rgba(29,205,211,.34),
-    0 0 38px rgba(29,205,211,.20) !important;
-}
-
-/* Inputs / selects: same dark tone + perimeter glow on click/focus */
-.field input,
-.field select{
-  background: var(--uh-control-bg) !important;
-  border: 1px solid rgba(122,187,218,.18) !important;
-  color: #d9e5ef !important;
-  transition:
-    border-color .18s ease,
-    box-shadow .18s ease,
-    background .18s ease !important;
-}
-
-.field input:hover,
-.field select:hover{
-  border-color: rgba(29,205,211,.34) !important;
-  background: var(--uh-control-bg-hover) !important;
-}
-
-.field input:focus,
-.field select:focus{
-  outline: none !important;
-  border-color: rgba(29,205,211,.70) !important;
-  background: rgba(9, 25, 43, 0.98) !important;
-  box-shadow:
-    0 0 0 3px rgba(29,205,211,.14),
-    0 0 18px rgba(29,205,211,.32),
-    0 0 36px rgba(29,205,211,.18) !important;
-}
-
-.field input::placeholder{
-  color: rgba(148,164,180,.46) !important;
-}
-
-/* Main buttons: dark base, teal perimeter glow, stronger on hover/press */
-.dialog-btn{
-  background: rgba(29,205,211,.10) !important;
-  border: 1px solid rgba(29,205,211,.34) !important;
-  color: #dffbff !important;
-  box-shadow:
-    0 0 0 1px rgba(29,205,211,.05),
-    0 0 18px rgba(29,205,211,.16) !important;
-  transition:
-    border-color .18s ease,
-    box-shadow .18s ease,
-    background .18s ease,
-    transform .12s ease,
-    filter .12s ease !important;
-}
-
-.dialog-btn:hover{
-  background: rgba(29,205,211,.16) !important;
-  border-color: rgba(29,205,211,.58) !important;
-  box-shadow:
-    0 0 0 1px rgba(29,205,211,.10),
-    0 0 22px rgba(29,205,211,.30),
-    0 0 44px rgba(29,205,211,.16) !important;
-}
-
-.dialog-btn:active{
-  transform: scale(.985) !important;
-  background: rgba(29,205,211,.22) !important;
-  border-color: rgba(29,205,211,.72) !important;
-  box-shadow:
-    0 0 0 2px rgba(29,205,211,.14),
-    0 0 30px rgba(29,205,211,.44),
-    0 0 64px rgba(29,205,211,.24) !important;
-}
-
-.dialog-btn.secondary{
-  background: rgba(255,255,255,.025) !important;
-  border-color: rgba(122,187,218,.18) !important;
-  color: rgba(217,229,239,.82) !important;
-  box-shadow: none !important;
-}
-
-.dialog-btn.secondary:hover{
-  border-color: rgba(29,205,211,.42) !important;
-  color: #dffbff !important;
-  box-shadow:
-    0 0 16px rgba(29,205,211,.18) !important;
-}
-
-.dialog-btn.danger{
-  background: rgba(255,107,107,.08) !important;
-  border-color: rgba(255,107,107,.26) !important;
-  color: rgba(255,107,107,.86) !important;
-  box-shadow: none !important;
-}
-
-.dialog-btn.danger:hover{
-  background: rgba(255,107,107,.13) !important;
-  border-color: rgba(255,107,107,.42) !important;
-  box-shadow:
-    0 0 18px rgba(255,107,107,.18) !important;
-}
-
-/* File upload card behaves like an input */
-.file-card{
-  background: var(--uh-control-bg) !important;
-  border: 1px dashed rgba(29,205,211,.24) !important;
-  transition:
-    border-color .18s ease,
-    box-shadow .18s ease,
-    background .18s ease,
-    transform .12s ease !important;
-}
-
-.file-card:hover{
-  background: var(--uh-control-bg-hover) !important;
-  border-color: rgba(29,205,211,.54) !important;
-  box-shadow:
-    0 0 0 1px rgba(29,205,211,.08),
-    0 0 20px rgba(29,205,211,.20) !important;
-}
-
-/* Select arrow color consistency */
-.field select{
-  color-scheme: dark;
-}
-
-/* Modal surface matches popup language */
-.dialog{
-  background: rgba(6,14,26,.985) !important;
-  border-color: rgba(29,205,211,.20) !important;
-}
-
-.overlay{
-  background: rgba(3,8,15,.70) !important;
-  backdrop-filter: blur(9px) !important;
-}
-
-/* Cards / rails keep same app color; no brighter accidental surfaces */
-.card,
-.last-read-card,
-.event,
-.preview-cover{
-  background-color: rgba(6,14,26,.88) !important;
-}
-
-/* Book tap feedback */
-.tile,
-.book{
-  transition:
-    transform .14s ease,
-    box-shadow .18s ease,
-    border-color .18s ease,
-    filter .18s ease !important;
-}
-
-.tile:hover,
-.book:hover{
-  filter: brightness(1.04) !important;
-  box-shadow:
-    0 18px 30px rgba(0,0,0,.36),
-    0 0 0 1px rgba(29,205,211,.18),
-    0 0 22px rgba(29,205,211,.14) !important;
-}
-
-.tile:active,
-.book:active{
-  transform: scale(.97) !important;
-  box-shadow:
-    0 14px 24px rgba(0,0,0,.40),
-    0 0 0 1px rgba(29,205,211,.28),
-    0 0 34px rgba(29,205,211,.24) !important;
-}
-
-/* Bottom nav active/hover follows same perimeter rule */
-.nav{
-  transition:
-    background .18s ease,
-    color .18s ease,
-    box-shadow .18s ease !important;
-}
-
-.nav:hover{
-  background: rgba(29,205,211,.055) !important;
-  color:#dffbff !important;
-}
-
-.nav:active{
-  background: rgba(29,205,211,.10) !important;
-}
-
-
-/* ── Bookshelf top-left logout button ── */
-.top {
-  grid-template-columns: 72px 1fr 92px !important;
-}
-.logout-btn {
-  width: 66px;
-  height: 38px;
-  border-radius: 999px;
-  border: 1px solid rgba(29,205,211,.22);
-  background: rgba(7,18,33,.96);
-  color: rgba(217,229,239,.86);
-  font-size: 12px;
-  font-weight: 800;
-  letter-spacing: .1px;
-  display: grid;
-  place-items: center;
-  padding: 0;
-  cursor: pointer;
-  box-shadow:
-    0 0 0 1px rgba(29,205,211,.04),
-    0 0 12px rgba(29,205,211,.10);
-  -webkit-tap-highlight-color: transparent;
-  transition:
-    border-color .18s ease,
-    box-shadow .18s ease,
-    background .18s ease,
-    color .18s ease,
-    transform .12s ease;
-}
-.logout-btn:hover,
-.logout-btn:focus-visible {
-  outline: none;
-  border-color: rgba(29,205,211,.58);
-  background: rgba(10,28,48,.98);
-  color: #dffbff;
-  box-shadow:
-    0 0 0 1px rgba(29,205,211,.10),
-    0 0 18px rgba(29,205,211,.24),
-    0 0 34px rgba(29,205,211,.12);
-}
-.logout-btn:active {
-  transform: scale(.97);
-  border-color: rgba(29,205,211,.72);
-  box-shadow:
-    0 0 0 2px rgba(29,205,211,.14),
-    0 0 24px rgba(29,205,211,.34);
-}
-@media(max-width:390px){
-  .top{grid-template-columns:68px 1fr 88px !important}
-  .logout-btn{width:62px;font-size:11.5px}
-}
-
-
-/* FINAL mobile spacing fix: keep rows above bottom nav/browser UI */
-.app {
-  padding-bottom: calc(178px + var(--safe)) !important;
-}
-.row:last-of-type {
-  margin-bottom: 110px !important;
-}
-
-
-/* FINAL: bookshelf uses top-left Lesa link; no bottom nav */
-.app {
-  padding-bottom: calc(44px + var(--safe)) !important;
-}
-.top {
-  grid-template-columns: 72px 1fr 92px !important;
-}
-.top-read-link {
-  width: 66px;
-  height: 38px;
-  border-radius: 999px;
-  border: 1px solid rgba(29,205,211,.22);
-  background: rgba(7,18,33,.96);
-  color: rgba(217,229,239,.90);
-  font-size: 12px;
-  font-weight: 850;
-  letter-spacing: .1px;
-  display: grid;
-  place-items: center;
-  text-decoration: none;
-  padding: 0;
-  cursor: pointer;
-  box-shadow:
-    0 0 0 1px rgba(29,205,211,.04),
-    0 0 12px rgba(29,205,211,.10);
-  -webkit-tap-highlight-color: transparent;
-}
-.top-read-link:visited {
-  color: rgba(217,229,239,.90);
-}
-.top-read-link:hover,
-.top-read-link:focus-visible {
-  outline: none;
-  border-color: rgba(29,205,211,.58);
-  background: rgba(10,28,48,.98);
-  color: #dffbff;
-  box-shadow:
-    0 0 0 1px rgba(29,205,211,.10),
-    0 0 18px rgba(29,205,211,.24),
-    0 0 34px rgba(29,205,211,.12);
-}
-@media(max-width:390px){
-  .top{grid-template-columns:68px 1fr 88px !important}
-  .top-read-link{width:62px;font-size:11.5px}
-}
-
-
-/* FINAL: long-press delete book modal */
-.delete-warning {
-  text-align: center;
-}
-
-.delete-warning-icon {
-  width: 58px;
-  height: 58px;
-  margin: 0 auto 13px;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  border: 1px solid rgba(255,107,107,.36);
-  background: rgba(255,107,107,.08);
-  color: #ff8a8a;
-  font-size: 25px;
-  font-weight: 900;
-  box-shadow:
-    0 0 0 1px rgba(255,107,107,.06),
-    0 0 24px rgba(255,107,107,.16);
-}
-
-.delete-warning h2 {
-  margin-top: 0;
-}
-
-.delete-warning-copy {
-  margin: 8px 0 16px;
-  color: rgba(217,229,239,.80);
-  font-size: 14px;
-  line-height: 1.45;
-}
-
-.delete-book-name {
-  display: block;
-  margin: 10px 0 0;
-  color: #d9e5ef;
-  font-weight: 850;
-}
-
-.dialog-btn.delete-confirm {
-  background: rgba(255,107,107,.10) !important;
-  border: 1px solid rgba(255,107,107,.35) !important;
-  color: #ff8a8a !important;
-  box-shadow:
-    0 0 0 1px rgba(255,107,107,.05),
-    0 0 18px rgba(255,107,107,.14) !important;
-}
-
-.dialog-btn.delete-confirm:hover,
-.dialog-btn.delete-confirm:focus-visible {
-  background: rgba(255,107,107,.16) !important;
-  border-color: rgba(255,107,107,.55) !important;
-  box-shadow:
-    0 0 0 1px rgba(255,107,107,.10),
-    0 0 24px rgba(255,107,107,.22) !important;
-}
-
-
-/* FINAL bookshelf polish: one-line title, visible book icon, edit/status actions */
-.app {
-  padding-bottom: calc(44px + var(--safe)) !important;
-}
-.bookshelf-top.top {
-  grid-template-columns: 98px minmax(0, 1fr) 140px !important;
-  gap: 8px !important;
-  margin-bottom: 12px !important;
-}
-.header-title {
-  min-width: 0 !important;
-}
-.header-title h1 {
-  white-space: nowrap !important;
-  font-size: 19px !important;
-  letter-spacing: -0.35px !important;
-  line-height: 1.05 !important;
-  margin: 0 !important;
-}
-.header-title p {
-  display: none !important;
-}
-.header-actions {
-  gap: 8px !important;
-}
-.top-read-link {
-  height: 38px;
-  border-radius: 999px;
-  border: 1px solid rgba(29,205,211,.24);
-  background: rgba(7,18,33,.96);
-  color: rgba(217,229,239,.92);
-  font-size: 12px;
-  font-weight: 850;
-  letter-spacing: .1px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
-  text-decoration: none;
-  padding: 0 12px;
-  box-shadow: 0 0 0 1px rgba(29,205,211,.04), 0 0 12px rgba(29,205,211,.12);
-  -webkit-tap-highlight-color: transparent;
-}
-.top-read-link svg {
-  width: 18px !important;
-  height: 18px !important;
-  min-width: 18px !important;
-  color: #1dcdd3 !important;
-  stroke: currentColor !important;
-  display: block !important;
-}
-.top-read-link:visited {
-  color: rgba(217,229,239,.92);
-}
-.edit-books,
-.add-book,
-.child-initials {
-  width: 38px !important;
-  height: 38px !important;
-  border-radius: 50% !important;
-}
-.edit-books,
-.add-book {
-  border: 1px solid rgba(29,205,211,.22) !important;
-  background: rgba(7,18,33,.96) !important;
-  color: #1dcdd3 !important;
-  display: grid !important;
-  place-items: center !important;
-  padding: 0 !important;
-  box-shadow: 0 0 0 1px rgba(29,205,211,.04), 0 0 12px rgba(29,205,211,.11) !important;
-}
-.edit-books svg,
-.add-book svg {
-  width: 18px;
-  height: 18px;
-}
-.edit-books.active {
-  border-color: rgba(29,205,211,.72) !important;
-  box-shadow: 0 0 0 2px rgba(29,205,211,.13), 0 0 24px rgba(29,205,211,.32) !important;
-}
-.top-read-link:hover,
-.top-read-link:focus-visible,
-.edit-books:hover,
-.edit-books:focus-visible,
-.add-book:hover,
-.add-book:focus-visible {
-  outline: none;
-  border-color: rgba(29,205,211,.58) !important;
-  background: rgba(10,28,48,.98) !important;
-  color: #dffbff !important;
-  box-shadow: 0 0 0 1px rgba(29,205,211,.10), 0 0 18px rgba(29,205,211,.24), 0 0 34px rgba(29,205,211,.12) !important;
-}
-.see-all {
-  display: none !important;
-}
-.featured {
-  padding: 15px 16px 14px !important;
-  margin-bottom: 22px !important;
-}
-.featured::after {
-  content: "";
-  position: absolute;
-  left: 28px;
-  top: 38px;
-  width: 190px;
-  height: 210px;
-  pointer-events: none;
-  background: radial-gradient(ellipse at 18% 0%, rgba(29,205,211,.38), rgba(29,205,211,.18) 27%, rgba(29,205,211,.055) 54%, transparent 76%);
-  filter: blur(8px);
-  opacity: .92;
-  mix-blend-mode: screen;
-}
-.featured .pill {
-  position: relative;
-  z-index: 3;
-  box-shadow: 0 0 0 1px rgba(29,205,211,.12), 0 0 18px rgba(29,205,211,.25);
-}
-.feature-grid {
-  position: relative;
-  z-index: 2;
-}
-.stage {
-  min-height: 166px !important;
-}
-.book {
-  width: 112px !important;
-  box-shadow: 0 22px 38px rgba(0,0,0,.44), 0 0 0 1px rgba(255,255,255,.07), 0 0 34px rgba(29,205,211,.22), -20px -18px 44px rgba(29,205,211,.18) !important;
-}
-.shelf-light {
-  width: 104px !important;
-  height: 4px !important;
-  box-shadow: 0 0 12px #1dcdd3, 0 0 28px rgba(29,205,211,.30) !important;
-}
-.quote small {
-  display: none !important;
-}
-.quote {
-  padding: 11px 12px !important;
-}
-.quote p {
-  font-size: 13px !important;
-}
-.edit-bar {
-  margin: -2px 0 14px;
-  padding: 10px 12px;
-  border-radius: 16px;
-  border: 1px solid rgba(29,205,211,.22);
-  background: rgba(6,14,26,.86);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  flex-wrap: wrap;
-  box-shadow: 0 0 24px rgba(29,205,211,.08);
-}
-.edit-bar[hidden] {
-  display: none !important;
-}
-.edit-bar span {
-  color: rgba(217,229,239,.88);
-  font-size: 13px;
-  font-weight: 800;
-}
-.edit-bar-actions {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: 8px;
-}
-.edit-danger,
-.edit-cancel,
-.edit-move,
-.edit-finish {
-  height: 32px;
-  border-radius: 999px;
-  padding: 0 12px;
-  font-size: 12px;
-  font-weight: 850;
-  cursor: pointer;
-  border: 1px solid rgba(122,187,218,.18);
-  background: rgba(7,18,33,.96);
-  color: rgba(217,229,239,.84);
-}
-.edit-move,
-.edit-finish {
-  border-color: rgba(29,205,211,.28);
-  color: #1dcdd3;
-}
-.edit-danger {
-  border-color: rgba(255,107,107,.35);
-  color: #ff8a8a;
-}
-.edit-danger:disabled,
-.edit-move:disabled,
-.edit-finish:disabled {
-  opacity: .42;
-  cursor: not-allowed;
-}
-.edit-mode .tile,
-.edit-mode .book {
-  outline: 1px dashed rgba(29,205,211,.28);
-  outline-offset: 4px;
-}
-.tile.delete-selected,
-.book.delete-selected {
-  box-shadow: 0 18px 30px rgba(0,0,0,.40), 0 0 0 3px rgba(29,205,211,.48), 0 0 28px rgba(29,205,211,.32) !important;
-}
-.tile.delete-selected::after,
-.book.delete-selected::after {
-  content: "✓";
-  position: absolute;
-  top: 7px;
-  right: 7px;
-  z-index: 8;
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  background: #1dcdd3;
-  color: #061018;
-  font-size: 14px;
-  font-weight: 950;
-  border: 1px solid rgba(255,255,255,.35);
-  box-shadow: 0 0 14px rgba(29,205,211,.36);
-}
-.delete-warning {
-  text-align: center;
-}
-.delete-warning-icon {
-  width: 58px;
-  height: 58px;
-  margin: 0 auto 13px;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  border: 1px solid rgba(255,107,107,.36);
-  background: rgba(255,107,107,.08);
-  color: #ff8a8a;
-  font-size: 25px;
-  font-weight: 900;
-}
-.delete-warning-copy {
-  margin: 8px 0 16px;
-  color: rgba(217,229,239,.80);
-  font-size: 14px;
-  line-height: 1.45;
-}
-.delete-book-name {
-  display: block;
-  margin: 10px 0 0;
-  color: #d9e5ef;
-  font-weight: 850;
-}
-.dialog-btn.delete-confirm {
-  background: rgba(255,107,107,.10) !important;
-  border: 1px solid rgba(255,107,107,.35) !important;
-  color: #ff8a8a !important;
-}
-@media(max-width:390px){
-  .bookshelf-top.top {
-    grid-template-columns: 94px minmax(0, 1fr) 132px !important;
-  }
-  .header-title h1 {
-    font-size: 18px !important;
-  }
-  .top-read-link {
-    padding: 0 10px !important;
-  }
-}
-
-
-
-/* ══════════════════════════════════════════════
-   FINAL: no empty scroll below bookshelf + tablet layout
-   Keeps normal book-list scrolling, removes dead bottom space.
-   ══════════════════════════════════════════════ */
-html,
-body {
-  min-height: 100%;
-  overflow-x: hidden !important;
-  overscroll-behavior-y: none;
-}
-
-body {
-  min-height: 100svh;
-}
-
-.app {
-  min-height: 100svh !important;
-  padding-bottom: calc(28px + var(--safe)) !important;
-}
-
-.row:last-of-type {
-  margin-bottom: 0 !important;
-}
-
-/* The bookshelf no longer has a bottom nav, so do not reserve fake nav space. */
-.bottom {
-  display: none !important;
-}
-
-/* Modal is the only place where scroll-lock behavior is useful. */
-body.modal-open {
-  overflow: hidden !important;
-  touch-action: none;
-}
-
-/* Tablet: do not stretch the phone layout; give the shelf real breathing room. */
-@media (min-width: 700px) {
-  .app {
-    width: min(100%, 760px) !important;
-    padding-left: 28px !important;
-    padding-right: 28px !important;
-    padding-top: 18px !important;
-    padding-bottom: calc(36px + var(--safe)) !important;
-  }
-
-  .bookshelf-top.top {
-    grid-template-columns: 112px minmax(0, 1fr) 156px !important;
-    gap: 14px !important;
-    margin-bottom: 18px !important;
-  }
-
-  .top-read-link {
-    width: auto !important;
-    min-width: 86px !important;
-    height: 42px !important;
-    font-size: 13px !important;
-  }
-
-  .edit-books,
-  .add-book,
-  .child-initials {
-    width: 42px !important;
-    height: 42px !important;
-  }
-
-  .header-title h1 {
-    font-size: 26px !important;
-    letter-spacing: -0.65px !important;
-  }
-
-  .featured {
-    padding: 22px 24px 20px !important;
-    margin-bottom: 30px !important;
-  }
-
-  .feature-grid {
-    grid-template-columns: 220px minmax(0, 1fr) !important;
-    gap: 28px !important;
-  }
-
-  .stage {
-    min-height: 230px !important;
-  }
-
-  .book {
-    width: 150px !important;
-  }
-
-  .meta h2 {
-    font-size: 28px !important;
-  }
-
-  .meta-row {
-    font-size: 15px !important;
-  }
-
-  .quote {
-    display: block !important;
-    padding: 14px 15px !important;
-  }
-
-  .quote p {
-    font-size: 15px !important;
-  }
-
-  .row {
-    margin-bottom: 34px !important;
-  }
-
-  .row-title {
-    font-size: 23px !important;
-  }
-
-  .tile-wrap {
-    flex-basis: 112px !important;
-  }
-
-  .tile {
-    height: 168px !important;
-    border-radius: 13px !important;
-  }
-
-  .tile-title {
-    font-size: 13px !important;
-    top: 52px !important;
-    left: 15px !important;
-    right: 11px !important;
-  }
-
-  .tile-author {
-    font-size: 10px !important;
-    top: 90px !important;
-    left: 15px !important;
-    right: 11px !important;
-  }
-
-  .chip {
-    font-size: 11px !important;
-    padding: 5px 10px !important;
-  }
-
-  .dialog {
-    width: min(92vw, 460px) !important;
-  }
-}
-
-/* Larger tablet / small desktop: keep it app-like, not full desktop-sprawled. */
-@media (min-width: 980px) {
-  .app {
-    width: min(100%, 860px) !important;
-  }
-
-  .tile-wrap {
-    flex-basis: 124px !important;
-  }
-
-  .tile {
-    height: 186px !important;
-  }
-}
-
+:root{--bg:#0a0f18;--surface:rgba(7,16,30,.72);--card:rgba(12,22,38,.85);--line:rgba(29,205,211,.14);--line-hot:rgba(29,205,211,.38);--text:#d9e5ef;--soft:#7a8fa0;--accent:#1dcdd3;--accent2:#18bcc2;--accent-dim:rgba(29,205,211,.08);--accent-glow:rgba(29,205,211,.22);--danger:#ff6b6b;--safe:env(safe-area-inset-bottom,0px);--nav-h:68px;--serif:'DM Serif Display',Georgia,serif;--sans:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif}
+*{box-sizing:border-box;margin:0}
+html,body{min-height:100%;font-family:var(--sans);background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent}
+body{background:radial-gradient(ellipse 600px 340px at 30% 0%,rgba(29,205,211,.07),transparent 60%),radial-gradient(ellipse 400px 280px at 80% 12%,rgba(62,130,173,.05),transparent 55%),var(--bg)}
+button{font:inherit;cursor:pointer;border:0;background:none;color:inherit}a{color:inherit;text-decoration:none}input,select{font:inherit}
+.app{width:min(100%,430px);min-height:100dvh;margin:0 auto;padding:0 16px;padding-bottom:calc(var(--nav-h) + var(--safe) + 88px);position:relative}
+.header{display:flex;align-items:center;justify-content:space-between;padding:18px 0 6px}
+.header-left{display:flex;flex-direction:column;gap:2px}
+.header-brand{font-size:20px;font-weight:800;letter-spacing:-.4px;line-height:1}
+.header-brand-upp{color:var(--accent)}
+.header-brand-hatt{color:var(--text)}
+.header-title{font-family:var(--serif);font-size:26px;font-weight:400;letter-spacing:-.5px;line-height:1.1}
+.header-edit{width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:var(--surface);display:grid;place-items:center;transition:border-color .18s,box-shadow .18s}
+.header-edit:hover,.header-edit:focus-visible{border-color:var(--line-hot);box-shadow:0 0 18px var(--accent-glow);outline:none}
+.header-edit.active{border-color:rgba(29,205,211,.7);box-shadow:0 0 24px rgba(29,205,211,.3)}
+.header-edit svg{width:16px;height:16px;color:var(--soft)}
+.edit-bar{margin:0 0 12px;padding:10px 12px;border-radius:14px;border:1px solid rgba(29,205,211,.22);background:rgba(6,14,26,.88);display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.edit-bar[hidden]{display:none!important}
+.edit-bar span{color:var(--text);font-size:12px;font-weight:800}
+.edit-bar-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:6px}
+.edit-move,.edit-finish,.edit-danger,.edit-cancel{height:30px;border-radius:99px;padding:0 10px;font-size:11px;font-weight:800;border:1px solid var(--line);background:var(--surface);color:var(--soft);transition:border-color .15s,color .15s}
+.edit-danger{border-color:rgba(255,107,107,.25);color:rgba(255,107,107,.7)}
+.edit-move:disabled,.edit-finish:disabled,.edit-danger:disabled{opacity:.4;cursor:not-allowed}
+.featured{margin:14px 0 22px;background:var(--card);border:1px solid var(--line);border-radius:20px;padding:16px;position:relative;overflow:hidden;box-shadow:0 20px 50px rgba(0,0,0,.3),0 0 40px rgba(29,205,211,.04)}
+.featured::before{content:"";position:absolute;top:0;left:12%;right:12%;height:1px;background:linear-gradient(90deg,rgba(29,205,211,0),rgba(29,205,211,.45),rgba(29,205,211,0))}
+.featured-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:9px;border:1px solid rgba(29,205,211,.22);background:rgba(29,205,211,.06);color:var(--accent);font-size:12px;font-weight:800;margin-bottom:12px}
+.featured-grid{display:grid;grid-template-columns:105px 1fr;gap:14px;align-items:start}
+.featured-cover{width:105px;aspect-ratio:2/3;border-radius:12px;overflow:hidden;position:relative;background:linear-gradient(140deg,var(--c1,#2b8f91),var(--c2,#0a2341));box-shadow:0 16px 32px rgba(0,0,0,.35),0 0 24px rgba(29,205,211,.1);transform:perspective(600px) rotateY(-4deg);cursor:pointer}
+.featured-cover img{width:100%;height:100%;object-fit:cover;display:block}
+.featured-cover::after{content:"";position:absolute;left:0;top:0;bottom:0;width:14px;background:linear-gradient(90deg,rgba(0,0,0,.35),rgba(255,255,255,.08),transparent);border-right:1px solid rgba(255,255,255,.06);pointer-events:none}
+.featured-cover-title{position:absolute;left:14px;right:8px;top:36px;z-index:2;font-size:13px;font-weight:800;letter-spacing:-.3px;line-height:1.05;color:#eaf3fb;text-shadow:0 2px 10px rgba(0,0,0,.4)}
+.featured-cover-author{position:absolute;left:14px;right:8px;top:68px;z-index:2;color:rgba(217,229,239,.7);font-size:9px;font-weight:700}
+.featured-meta{display:flex;flex-direction:column;gap:7px;padding-top:2px}
+.featured-title{font-family:var(--serif);font-size:21px;line-height:1.1;letter-spacing:-.3px}
+.featured-author{font-size:13px;color:var(--soft);font-weight:500}
+.featured-stats{display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--soft)}
+.featured-pct{color:var(--accent);font-weight:800;font-size:14px}
+.progress-bar{height:5px;border-radius:99px;background:rgba(255,255,255,.06);overflow:hidden}
+.progress-fill{height:100%;border-radius:inherit;background:linear-gradient(90deg,var(--accent),var(--accent2));box-shadow:0 0 12px rgba(29,205,211,.3);transition:width .4s ease}
+.featured-quote{font-style:italic;font-size:13px;color:rgba(217,229,239,.7);line-height:1.35;padding:9px 11px;border-radius:10px;background:rgba(255,255,255,.025);border:1px solid rgba(122,187,218,.08)}
+.featured-arrow{position:absolute;top:16px;right:16px;width:28px;height:28px;border-radius:50%;border:1px solid var(--line);background:var(--surface);display:grid;place-items:center;color:var(--soft);font-size:16px}
+.section{margin-bottom:26px}
+.section-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px}
+.section-title{font-family:var(--serif);font-size:19px;letter-spacing:-.2px}
+.section-count{font-size:11px;font-weight:700;color:var(--soft);background:var(--accent-dim);padding:3px 9px;border-radius:99px;border:1px solid var(--line)}
+.book-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.book-card{position:relative;border-radius:12px;overflow:hidden;background:var(--card);border:1px solid var(--line);transition:transform .15s,box-shadow .2s;cursor:pointer}
+.book-card:active{transform:scale(.97);box-shadow:0 8px 24px rgba(0,0,0,.4),0 0 20px var(--accent-glow)}
+.book-card.selected{border-color:rgba(29,205,211,.6);box-shadow:0 0 0 2px rgba(29,205,211,.2),0 0 20px rgba(29,205,211,.15)}
+.book-cover{width:100%;aspect-ratio:2/3;position:relative;background:linear-gradient(140deg,var(--c1,#2b8f91),var(--c2,#0a2341));overflow:hidden}
+.book-cover img{width:100%;height:100%;object-fit:cover;display:block}
+.book-cover::after{content:"";position:absolute;left:0;top:0;bottom:0;width:9px;background:linear-gradient(90deg,rgba(0,0,0,.3),rgba(255,255,255,.06),transparent);pointer-events:none}
+.book-cover-title{position:absolute;left:10px;right:6px;top:30px;z-index:2;font-size:10px;font-weight:800;line-height:1.05;color:#eaf3fb;text-shadow:0 2px 8px rgba(0,0,0,.5)}
+.book-cover-author{position:absolute;left:10px;right:6px;top:56px;z-index:2;color:rgba(255,255,255,.65);font-size:8px;font-weight:650}
+.book-info{padding:8px 8px 10px}
+.book-name{font-size:11px;font-weight:800;line-height:1.15;margin-bottom:2px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.book-author{font-size:10px;color:var(--soft);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.book-chip{display:inline-flex;align-items:center;margin-top:5px;padding:2px 8px;border-radius:99px;font-size:9px;font-weight:800;background:var(--accent-dim);border:1px solid var(--line);color:var(--accent)}
+.book-chip.done{background:rgba(29,205,211,.15)}
+.empty-state{text-align:center;padding:28px 16px}
+.empty-icon{width:64px;height:64px;margin:0 auto 14px;border-radius:50%;border:1px dashed var(--line-hot);background:var(--accent-dim);display:grid;place-items:center;font-size:28px;color:var(--accent)}
+.empty-title{font-family:var(--serif);font-size:19px;margin-bottom:6px}
+.empty-sub{font-size:13px;color:var(--soft);line-height:1.4}
+.fab{position:fixed;bottom:calc(var(--nav-h) + var(--safe) + 14px);left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:7px;padding:12px 24px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#061018;font-weight:800;font-size:14px;border-radius:99px;box-shadow:0 8px 28px rgba(29,205,211,.3),0 0 50px rgba(29,205,211,.12);z-index:50;transition:transform .12s}
+.fab:active{transform:translateX(-50%) scale(.96)}
+.fab svg{width:18px;height:18px}
+.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:min(430px,100vw);height:calc(var(--nav-h) + var(--safe));padding-bottom:var(--safe);background:rgba(6,14,26,.96);border-top:1px solid var(--line);backdrop-filter:blur(16px);display:grid;grid-template-columns:1fr 1fr 1fr;z-index:40}
+.nav-tab{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:var(--soft);font-size:11px;font-weight:700;position:relative;text-decoration:none}
+.nav-tab svg{width:22px;height:22px}
+.nav-tab.active{color:var(--accent)}
+.nav-tab.active::after{content:"";position:absolute;bottom:4px;width:28px;height:3px;border-radius:99px;background:var(--accent);box-shadow:0 0 10px rgba(29,205,211,.4)}
+.nav-avatar{width:28px;height:28px;border-radius:50%;border:1.5px solid var(--line-hot);background:radial-gradient(circle at 50% 35%,rgba(29,205,211,.18),rgba(8,19,31,.95) 68%);font-size:11px;font-weight:900;color:#dff8fb;display:grid;place-items:center;box-shadow:0 0 12px rgba(29,205,211,.16)}
+.overlay{position:fixed;inset:0;background:rgba(3,8,15,.7);backdrop-filter:blur(9px);z-index:80;display:none;place-items:center;padding:16px}
+.overlay.open{display:grid}
+.dialog{width:min(94vw,400px);max-height:92dvh;overflow:auto;background:rgba(6,14,26,.985);border:1px solid rgba(29,205,211,.18);border-radius:20px;box-shadow:0 32px 80px rgba(0,0,0,.6);padding:20px;position:relative}
+.dialog::before{content:"";position:absolute;top:0;left:10%;right:10%;height:1px;background:linear-gradient(90deg,rgba(29,205,211,0),rgba(29,205,211,.45),rgba(29,205,211,0))}
+.close{position:absolute;top:12px;right:12px;width:30px;height:30px;border-radius:50%;background:var(--surface);border:1px solid var(--line);color:var(--soft);font-size:18px;display:grid;place-items:center}
+.dialog h2{margin:2px 0 4px;text-align:center;font-family:var(--serif);font-size:22px;font-weight:400}
+.dialog-sub{text-align:center;margin:0 0 16px;color:var(--soft);font-size:12px}
+.field{margin-bottom:12px}.field label{display:block;font-size:10px;font-weight:800;color:var(--text);margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px}
+.field input,.field select{width:100%;background:rgba(7,18,33,.96);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:14px;color:var(--text);outline:none;transition:border-color .18s,box-shadow .18s}
+.field input:focus,.field select:focus{border-color:rgba(29,205,211,.6);box-shadow:0 0 0 3px rgba(29,205,211,.1)}
+.field input::placeholder{color:rgba(148,164,180,.4)}.field select{color-scheme:dark}
+.file-card{border:1px dashed rgba(29,205,211,.22);border-radius:14px;padding:14px;background:rgba(7,18,33,.96);text-align:center;margin-bottom:12px}
+.file-card input{display:none}.file-card label{display:block;color:var(--accent);font-weight:800;font-size:13px;cursor:pointer}
+.hint{font-size:11px;color:var(--soft);margin-top:4px}
+.preview-row{display:grid;grid-template-columns:100px 1fr;gap:12px;align-items:center;margin:10px 0 12px}
+.preview-cover{width:100px;aspect-ratio:2/3;border-radius:10px;overflow:hidden;background:rgba(255,255,255,.04);border:1px solid var(--line)}
+.preview-cover img{width:100%;height:100%;object-fit:cover}
+.preview-info{font-size:11px;color:var(--soft);line-height:1.4}.preview-info strong{display:block;color:var(--text);font-size:12px;margin-bottom:3px}
+.dialog-btn{width:100%;padding:11px;border:0;border-radius:10px;font-weight:800;font-size:14px;margin-top:7px;background:rgba(29,205,211,.1);border:1px solid rgba(29,205,211,.3);color:#dffbff;box-shadow:0 0 18px rgba(29,205,211,.1);transition:background .15s}
+.dialog-btn:active{transform:scale(.985)}
+.dialog-btn.secondary{background:rgba(255,255,255,.025);border-color:var(--line);color:var(--soft);box-shadow:none}
+.dialog-btn.danger{background:rgba(255,107,107,.08);border-color:rgba(255,107,107,.25);color:rgba(255,107,107,.8);box-shadow:none}
+.dialog-btn[disabled]{opacity:.5;cursor:not-allowed}
+.entry{border-left:2px dotted rgba(29,205,211,.25);padding-left:14px;margin-left:6px}
+.event{position:relative;background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:12px;padding:10px 11px;margin-bottom:8px}
+.event::before{content:"";position:absolute;left:-22px;top:14px;width:9px;height:9px;border-radius:50%;background:var(--accent);box-shadow:0 0 10px var(--accent)}
+.event-date{font-size:11px;color:var(--accent);font-weight:800;margin-bottom:3px}
+.event p{margin:0 0 6px;font-size:13px;line-height:1.35}
+.reactions{display:flex;flex-wrap:wrap;gap:5px}
+.react{font-size:10px;color:rgba(217,229,239,.85);background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.07);padding:4px 7px;border-radius:99px}
+.add-save-result,.share-result{display:none;margin-top:8px;padding:10px;border-radius:10px;background:rgba(29,205,211,.08);border:1px solid rgba(29,205,211,.2);color:var(--accent);font-size:12px;font-weight:700;text-align:center}
+.add-save-result.show,.share-result.show{display:block}
+.add-save-actions{display:none;grid-template-columns:1fr;gap:7px;margin-top:8px}.add-save-actions.show{display:grid}
+.delete-warning{text-align:center}
+.delete-warning-icon{width:52px;height:52px;margin:0 auto 12px;border-radius:50%;display:grid;place-items:center;border:1px solid rgba(255,107,107,.3);background:rgba(255,107,107,.06);color:#ff8a8a;font-size:22px;font-weight:900}
+.delete-warning-copy{margin:6px 0 14px;color:rgba(217,229,239,.75);font-size:13px;line-height:1.4}
+.delete-book-name{display:block;margin:8px 0 0;color:var(--text);font-weight:800}
+.delete-confirm{background:rgba(255,107,107,.08)!important;border-color:rgba(255,107,107,.3)!important;color:#ff8a8a!important}
+.child-initials{width:38px;height:38px;border-radius:50%;border:1.5px solid var(--line-hot);background:radial-gradient(circle at 50% 35%,rgba(29,205,211,.18),rgba(8,19,31,.96) 68%);color:#dff8fb;font-size:12px;font-weight:900;display:grid;place-items:center;box-shadow:0 0 12px rgba(29,205,211,.2)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.featured{animation:fadeUp .4s ease both}.section{animation:fadeUp .4s ease both}
+.book-demo-badge{position:absolute;top:6px;right:6px;z-index:3;font-size:8px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;padding:2px 6px;border-radius:6px;background:rgba(255,255,255,.12);color:rgba(255,255,255,.7);backdrop-filter:blur(4px)}
+.demo-hint{text-align:center;padding:6px 0 14px;font-size:11px;color:var(--soft);font-style:italic}
+@media(min-width:700px){.app{width:min(100%,760px);padding:0 28px;padding-bottom:calc(var(--nav-h) + var(--safe) + 100px)}.bottom-nav{width:min(760px,100vw)}.featured-grid{grid-template-columns:130px 1fr;gap:18px}.featured-cover{width:130px}}
 </style>
 </head>
 <body>
 <main class="app">
-<header class="top bookshelf-top">
-  <a class="top-read-link" href="child-v2.html" aria-label="Lesa">
-    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path d="M4.5 5.5v13.2c0 .4.4.7.8.5 2.1-.9 4.4-.8 6.2.4.3.2.7 0 .7-.4V7.1c0-.5-.2-.9-.6-1.1-2-1.1-4.6-1.2-6.8-.2-.2.1-.3.3-.3.5Z" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
-      <path d="M19.5 5.5v13.2c0 .4-.4.7-.8.5-2.1-.9-4.4-.8-6.2.4-.3.2-.7 0-.7-.4V7.1c0-.5.2-.9.6-1.1 2-1.1 4.6-1.2 6.8-.2.2.1.3.3.3.5Z" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>
-    <span>Lesa</span>
-  </a>
-  <div class="header-title"><h1>Bækurnar mínar</h1></div>
-  <div class="header-actions">
-    <button class="edit-books" id="toggleEditBooks" aria-label="Breyta bókum" type="button">
-      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        <path d="M4 20h4.2L18.8 9.4a2.2 2.2 0 0 0 0-3.1l-1.1-1.1a2.2 2.2 0 0 0-3.1 0L4 15.8V20Z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
-        <path d="M13.5 6.5l4 4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
-      </svg>
-    </button>
-    <button class="add-book" id="openAdd" aria-label="Bæta við bók" type="button">
-      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-      </svg>
-    </button>
-    <button class="child-initials" id="openProfile" aria-label="Kolbeinn Kvasir" type="button">KK</button>
-  </div>
-</header>
-
-<div class="edit-bar" id="editBar" hidden>
-  <span id="editCount">0 bækur valdar</span>
-  <div class="edit-bar-actions">
-    <button id="markSelectedReading" class="edit-move" type="button" disabled>Að lesa</button>
-    <button id="moveSelectedToShelf" class="edit-move" type="button" disabled>Á hillu</button>
-    <button id="markSelectedFinished" class="edit-finish" type="button" disabled>Lokið</button>
-    <button id="deleteSelectedBooks" class="edit-danger" type="button" disabled>Eyða</button>
-    <button id="cancelEditBooks" class="edit-cancel" type="button">Hætta við</button>
-  </div>
-</div>
-
-<section class="card featured" id="featuredCard"></section>
-
-<section class="row">
-  <div class="row-head"><div class="row-title">Nýlega lesið <span class="add-mini" id="openAddSmall">+</span></div><button class="see-all">Sjá allt ›</button></div>
-  <div class="rail" id="recentRail"></div>
-</section>
-
-<section class="row">
-  <div class="row-head"><div class="row-title">Á hillunni <span class="add-mini" id="openAddSmall2">+</span></div><button class="see-all">Sjá allt ›</button></div>
-  <div class="rail" id="shelfRail"></div>
-</section>
+<header class="header"><div class="header-left"><div class="header-brand"><span class="header-brand-upp">Upp</span><span class="header-brand-hatt">Hátt</span></div><h1 class="header-title">Bókahillan mín</h1></div><button class="header-edit" id="toggleEditBooks" aria-label="Breyta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4.2L18.8 9.4a2.2 2.2 0 0 0 0-3.1l-1.1-1.1a2.2 2.2 0 0 0-3.1 0L4 15.8V20Z"/><path d="M13.5 6.5l4 4"/></svg></button></header>
+<div class="edit-bar" id="editBar" hidden><span id="editCount">0 valdar</span><div class="edit-bar-actions"><button id="markSelectedReading" class="edit-move" disabled>Að lesa</button><button id="moveSelectedToShelf" class="edit-move" disabled>Á hillu</button><button id="markSelectedFinished" class="edit-finish" disabled>Lokið</button><button id="deleteSelectedBooks" class="edit-danger" disabled>Eyða</button><button id="cancelEditBooks" class="edit-cancel">Hætta við</button></div></div>
+<section id="featuredCard"></section>
+<section class="section" id="readingSection" style="display:none"><div class="section-head"><h2 class="section-title">Að lesa</h2><span class="section-count" id="readingCount">0</span></div><div class="book-grid" id="readingGrid"></div></section>
+<section class="section" id="shelfSection" style="display:none"><div class="section-head"><h2 class="section-title">Á hillunni</h2><span class="section-count" id="shelfCount">0</span></div><div class="book-grid" id="shelfGrid"></div></section>
+<section class="section" id="finishedSection" style="display:none"><div class="section-head"><h2 class="section-title">Lokið</h2><span class="section-count" id="finishedCount">0</span></div><div class="book-grid" id="finishedGrid"></div></section>
 </main>
-<div class="overlay" id="addModal">
-  <section class="dialog">
-    <button class="close" id="closeAdd">×</button>
-    <h2>Bæta við bók</h2>
-    <p class="dialog-sub">Local prufa — létt thumbnail vistast í browsernum</p>
-    <div class="field"><label>Nafn bókar</label><input id="bookTitle" placeholder="t.d. Drekastormur"></div>
-    <div class="field"><label>Höfundur / flokkur</label><input id="bookAuthor" placeholder="valfrjálst"></div>
-    <div class="field"><label>Staða</label><select id="bookStatus"><option value="shelf">Á hillunni</option><option value="reading">Að lesa</option><option value="finished">Lokið</option></select></div>
-    <div class="field"><label>Heildar blaðsíður</label><input id="bookPages" inputmode="numeric" placeholder="t.d. 120"></div>
+<button class="fab" id="openAdd"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 8v8M8 12h8"/></svg>Bæta við bók</button>
+<nav class="bottom-nav">
+<a href="child-v2.html" class="nav-tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 5.5v13.2c0 .4.4.7.8.5 2.1-.9 4.4-.8 6.2.4.3.2.7 0 .7-.4V7.1c0-.5-.2-.9-.6-1.1-2-1.1-4.6-1.2-6.8-.2-.2.1-.3.3-.3.5Z"/><path d="M19.5 5.5v13.2c0 .4-.4.7-.8.5-2.1-.9-4.4-.8-6.2.4-.3.2-.7 0-.7-.4V7.1c0-.5.2-.9.6-1.1 2-1.1 4.6-1.2 6.8-.2.2.1.3.3.3.5Z"/></svg>Lesa</a>
+<button class="nav-tab active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>Hillan</button>
+<button class="nav-tab" id="openProfile"><div class="nav-avatar" id="navAvatar">KK</div>Ég</button>
+</nav>
+<div class="overlay" id="addModal"><section class="dialog"><button class="close" id="closeAdd">×</button><h2>Bæta við bók</h2><p class="dialog-sub">Taktu mynd af bókakápunni</p><div class="field"><label>Nafn bókar</label><input id="bookTitle" placeholder="t.d. Drekastormur"></div><div class="field"><label>Höfundur</label><input id="bookAuthor" placeholder="valfrjálst"></div><div class="field"><label>Staða</label><select id="bookStatus"><option value="shelf">Á hillunni</option><option value="reading">Að lesa</option><option value="finished">Lokið</option></select></div><div class="field"><label>Blaðsíður</label><input id="bookPages" inputmode="numeric" placeholder="t.d. 120"></div><div class="file-card"><label for="coverInput">📷 Taka eða velja mynd</label><input id="coverInput" type="file" accept="image/*"><div class="hint">Myndin er croppuð í 2:3 og þjöppuð.</div></div><div class="preview-row" id="previewRow" style="display:none"><div class="preview-cover"><img id="previewImg" alt=""></div><div class="preview-info"><strong>Preview</strong><span id="previewMeta">Engin mynd.</span></div></div><button class="dialog-btn" id="saveBook">Vista bók</button><div class="add-save-result" id="addSaveResult">Vistuð ✓</div><div class="add-save-actions" id="addSaveActions"><button class="dialog-btn" id="addAnotherBook">+ Önnur bók</button><button class="dialog-btn secondary" id="goToBookshelf">Fara í hillu</button></div><button class="dialog-btn secondary" id="closeAdd2">Loka</button><button class="dialog-btn danger" id="clearBooks">Hreinsa allar bækur</button></section></div>
+<div class="overlay" id="journeyModal"><section class="dialog"><button class="close" id="closeJourney">×</button><h2 id="journeyTitle">Lestrarferðalag</h2><p class="dialog-sub">Ferðin þín í bókinni</p><div class="entry" id="journeyEntries"></div><button class="dialog-btn secondary" id="closeJourney2">Loka</button></section></div>
+<div class="overlay" id="profileModal"><section class="dialog" style="text-align:center"><button class="close" id="closeProfile">×</button><div class="child-initials" id="profileInitials" style="width:64px;height:64px;margin:5px auto 12px;font-size:20px">KK</div><h2 id="profileName">Barn</h2><p class="dialog-sub">Bókahillan mín</p><div class="card" style="padding:14px;text-align:left;margin-bottom:14px" id="lastReadCard"></div><p class="dialog-sub" style="margin-bottom:8px">Deila síðasta lestri?</p><button class="dialog-btn" id="shareLastReading">Deila</button><button class="dialog-btn secondary" id="closeProfile2">Loka</button><div class="share-result" id="shareResult">Tilbúið — tengjum push seinna.</div></section></div>
+<div class="overlay" id="deleteBooksModal"><section class="dialog delete-warning"><button class="close" id="closeDeleteBooks">×</button><div class="delete-warning-icon">!</div><h2>Eyða bókum?</h2><p class="delete-warning-copy">Þetta eyðir öllu.<span class="delete-book-name" id="deleteBooksName"></span></p><p class="delete-warning-copy">Ertu viss?</p><button class="dialog-btn delete-confirm" id="confirmDeleteBooks">Eyða</button><button class="dialog-btn secondary" id="cancelDeleteBooks">Hætta við</button></section></div>
+<script type="module">
+import{initializeApp}from'https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js';
+import{getFirestore,collection,addDoc,doc,deleteDoc,onSnapshot,query,where,serverTimestamp,updateDoc}from'https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js';
+const app=initializeApp({apiKey:'AIzaSyAgTY3Uxd9_ZxixjqLj-sH8V3OhFAzg6DU',authDomain:'lesum-22e85.firebaseapp.com',projectId:'lesum-22e85',storageBucket:'lesum-22e85.firebasestorage.app',messagingSenderId:'204392598388',appId:'1:204392598388:web:2dbbe3f476cd78d2ffba21'});
+const db=getFirestore(app);
 
-    <div class="file-card">
-      <label for="coverInput">Taka eða velja mynd af bókakápu</label>
-      <input id="coverInput" type="file" accept="image/*">
-      <div class="hint">Veldu mynd úr símanum eða taktu nýja. Myndin er croppuð í 2:3, þjöppuð og vistuð local.</div>
-    </div>
+function getChildSession(){try{const r=localStorage.getItem('upphatt_child');if(!r)return null;const d=JSON.parse(r);return d&&d.familyId&&d.childKey&&d.childName?d:null}catch(e){return null}}
+const CS=getChildSession();
+const previewMode=!CS;
+const FID=CS?.familyId||'PREVIEW',CK=CS?.childKey||'preview',CN=CS?.childName||'Lesandi';
+{const ini=CN.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);document.getElementById('navAvatar').textContent=ini;document.getElementById('profileInitials').textContent=ini;document.getElementById('profileName').textContent=CN}
 
-    <div class="preview-row" id="previewRow" style="display:none">
-      <div class="preview-cover"><img id="previewImg" alt=""></div>
-      <div class="preview-info"><strong>Preview</strong><span id="previewMeta">Engin mynd valin.</span></div>
-    </div>
+const IDB='upphatt_covers',IDS='covers';let _idb=null;
+function odb(){return new Promise(r=>{if(_idb){r(_idb);return}const q=indexedDB.open(IDB,1);q.onupgradeneeded=()=>q.result.createObjectStore(IDS);q.onsuccess=()=>{_idb=q.result;r(_idb)};q.onerror=()=>r(null)})}
+async function cacheC(id,d){try{const x=await odb();if(x)x.transaction(IDS,'readwrite').objectStore(IDS).put(d,id)}catch(e){}}
+async function getC(id){try{const x=await odb();if(!x)return null;return new Promise(r=>{const q=x.transaction(IDS,'readonly').objectStore(IDS).get(id);q.onsuccess=()=>r(q.result||null);q.onerror=()=>r(null)})}catch(e){return null}}
+async function delC(id){try{const x=await odb();if(x)x.transaction(IDS,'readwrite').objectStore(IDS).delete(id)}catch(e){}}
 
-    <button class="dialog-btn" id="saveBook" type="button">Vista bók</button>
-    <div class="add-save-result" id="addSaveResult" role="status" aria-live="polite">Bókin var vistuð ✓</div>
-    <div class="add-save-actions" id="addSaveActions">
-      <button class="dialog-btn" id="addAnotherBook" type="button">+ Bæta við annarri bók</button>
-      <button class="dialog-btn secondary" id="goToBookshelf" type="button">Fara í bókahillu</button>
-    </div>
-    <button class="dialog-btn secondary" id="closeAdd2" type="button">Loka</button>
-    <button class="dialog-btn danger" id="clearBooks">Hreinsa local bækur</button>
-  </section>
-</div>
+let books=[],cc={},curCov=null,curCovHQ=null,selBookId=null,editMode=false,selIds=new Set(),saving=false,unsub=null;
+let demoDismissed=false;
+const DEMO_KEY='upphatt_bookshelf_demo_dismissed';
 
-<div class="overlay" id="journeyModal">
-  <section class="dialog">
-    <button class="close" id="closeJourney">×</button>
-    <h2 id="journeyTitle">Lestrarferðalag</h2>
-    <p class="dialog-sub">Ferðin þín í bókinni</p>
-    <div class="entry" id="journeyEntries"></div>
-    <button class="dialog-btn secondary" id="closeJourney2">Loka</button>
-  </section>
-</div>
-
-<div class="overlay" id="profileModal">
-  <section class="dialog" style="text-align:center">
-    <button class="close" id="closeProfile">×</button>
-    <div class="child-initials" style="width:64px;height:64px;margin:5px auto 12px;font-size:20px">KK</div>
-    <h2>Kolbeinn Kvasir</h2>
-    <p class="dialog-sub">Bókahillan mín</p>
-    <div class="card" style="padding:14px;text-align:left;margin-bottom:14px" id="lastReadCard"></div>
-    <p class="dialog-sub" style="margin-bottom:8px">Deila síðasta lestri með fjölskyldu?</p>
-    <button class="dialog-btn" id="shareLastReading">Deila</button>
-    <button class="dialog-btn secondary" id="closeProfile2">Loka</button>
-    <div class="share-result" id="shareResult">Tilbúið — hér tengjum við push seinna.</div>
-  </section>
-</div>
-
-
-<div class="overlay" id="deleteBooksModal">
-  <section class="dialog delete-warning">
-    <button class="close" id="closeDeleteBooks" aria-label="Loka">×</button>
-    <div class="delete-warning-icon">!</div>
-    <h2>Eyða bókum?</h2>
-    <p class="delete-warning-copy">
-      Þetta eyðir öllu — bæði bók og lestrarferðalagi.
-      <span class="delete-book-name" id="deleteBooksName">Valdar bækur</span>
-    </p>
-    <p class="delete-warning-copy">Ertu alveg viss?</p>
-    <button class="dialog-btn delete-confirm" id="confirmDeleteBooks">Eyða öllu</button>
-    <button class="dialog-btn secondary" id="cancelDeleteBooks">Hætta við</button>
-  </section>
-</div>
-
-<script>
-const STORAGE_KEY = "upphatt_bookshelf_local_v1";
-let books = [];
-let currentCover = null;
-let selectedBookId = null;
-let editMode = false;
-let selectedBookIds = new Set();
-
-const defaultBooks = [
-  {id:"demo1",title:"Drekastormur",author:"Rick Riordan",status:"reading",totalPages:120,currentPageFrom:21,currentPageTo:29,progressPercent:58,coverDataUrl:null,c1:"#2b8f91",c2:"#0a2341",note:"Þau fundu hellinn.",createdAt:Date.now()-900000,lastReadAt:Date.now()-400000,journeyEntries:[
-    {date:"28. apríl",pageFrom:21,pageTo:29,note:"Þau fundu hellinn.",reactions:["Amma ❤️","Afi: Hvað var svo í hellinum?"]},
-    {date:"27. apríl",pageFrom:15,pageTo:20,note:"Þau heyrðu undarlegt hljóð í myrkrinu.",reactions:["Mamma ❤️"]},
-    {date:"26. apríl",pageFrom:9,pageTo:14,note:"Drekinn vaknaði.",reactions:["Pabbi ❤️"]}
-  ]},
-  {id:"demo2",title:"Leyndarmál Skógarins",author:"Jón Magnússon",status:"finished",progressPercent:100,coverDataUrl:null,c1:"#23814b",c2:"#0d2b23",createdAt:Date.now()-800000,lastReadAt:Date.now()-500000,journeyEntries:[]},
-  {id:"demo3",title:"Geimferðin Loks",author:"Anna Kristín",status:"shelf",progressPercent:0,coverDataUrl:null,c1:"#7c23df",c2:"#1d1537",createdAt:Date.now()-700000,lastReadAt:null,journeyEntries:[]}
+const demoBooks=[
+  {id:'demo_1',title:'Drekastormur',author:'Rick Riordan',status:'reading',totalPages:120,currentPageFrom:21,currentPageTo:29,progressPercent:58,coverBase64:null,c1:'#2b8f91',c2:'#0a2341',note:'Þau fundu hellinn.',lastReadAt:Date.now()-400000,createdAt:Date.now()-900000,journeyEntries:[
+    {date:'28. apríl',pageFrom:21,pageTo:29,note:'Þau fundu hellinn.',reactions:['Mamma ❤️','Pabbi: Spennandi!']},
+    {date:'27. apríl',pageFrom:15,pageTo:20,note:'Þau heyrðu undarlegt hljóð.',reactions:['Amma ❤️']}
+  ],_demo:true},
+  {id:'demo_2',title:'Leyndarmál Skógarins',author:'Jón Magnússon',status:'shelf',totalPages:95,progressPercent:0,coverBase64:null,c1:'#23814b',c2:'#0d2b23',note:null,lastReadAt:null,createdAt:Date.now()-700000,journeyEntries:[],_demo:true},
+  {id:'demo_3',title:'Geimferðin Loks',author:'Anna Kristín',status:'shelf',totalPages:140,progressPercent:0,coverBase64:null,c1:'#7c23df',c2:'#1d1537',note:null,lastReadAt:null,createdAt:Date.now()-600000,journeyEntries:[],_demo:true}
 ];
 
-function load(){
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    const parsed = raw ? JSON.parse(raw) : null;
-    books = Array.isArray(parsed) ? parsed : defaultBooks;
-    if (!books.length) books = defaultBooks;
-  } catch(e) {
-    console.warn("Bookshelf load failed:", e);
-    books = defaultBooks;
-  }
-}
-function save(){
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(books));
-    return true;
-  } catch (e) {
-    console.warn("Bookshelf localStorage save failed:", e);
-    return false;
-  }
+function isDemoDismissed(){try{return localStorage.getItem(DEMO_KEY)==='1'}catch(e){return false}}
+function dismissDemo(){try{localStorage.setItem(DEMO_KEY,'1')}catch(e){}demoDismissed=true}
+
+function ts(b,f){const v=b[f];if(!v)return 0;if(typeof v==='number')return v;if(v.toMillis)return v.toMillis();if(v.seconds)return v.seconds*1000;return 0}
+
+function startListener(){
+  if(!FID||!CK)return;if(unsub)unsub();
+  demoDismissed=isDemoDismissed();
+  const q=query(collection(db,'books'),where('familyId','==',FID),where('childKey','==',CK));
+  unsub=onSnapshot(q,async snap=>{
+    const real=snap.docs.map(d=>({id:d.id,...d.data()}));
+    if(real.length>0){
+      // Real books exist — dismiss demo forever
+      if(!demoDismissed)dismissDemo();
+      books=real;
+    }else if(!demoDismissed){
+      // No real books yet — show placeholders
+      books=[...demoBooks];
+    }else{
+      books=[];
+    }
+    for(const b of books){if(b._demo||cc[b.id])continue;const c=await getC(b.id);if(c){cc[b.id]=c;continue}if(b.coverBase64){cc[b.id]=b.coverBase64;cacheC(b.id,b.coverBase64)}}
+    render();
+  },e=>console.error('Listener:',e));
 }
 
-function esc(str=""){return String(str).replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]));}
-function chipText(b){ if(b.status==="finished") return "Lokið"; if(b.status==="reading") return (b.progressPercent||0)+"%"; return "Á hillu"; }
-function bookCoverHTML(b, big=false){
-  const img = b.coverDataUrl ? `<img src="${b.coverDataUrl}" alt="">` : "";
-  const title = b.coverDataUrl ? "" : `<span class="${big?'book-title':'tile-title'}">${esc(b.title)}</span><span class="${big?'book-author':'tile-author'}">${esc(b.author||"")}</span>`;
-  const mark = big && !b.coverDataUrl ? `<span class="book-mark">📖</span>` : "";
-  const style = `--c1:${b.c1||"#2b8f91"};--c2:${b.c2||"#0a2341"}`;
-  return {img,title,mark,style};
+async function addBook(d){const ref=await addDoc(collection(db,'books'),d);if(curCovHQ){await cacheC(ref.id,curCovHQ);cc[ref.id]=curCovHQ}else if(d.coverBase64){await cacheC(ref.id,d.coverBase64);cc[ref.id]=d.coverBase64}return ref.id}
+async function updBook(id,u){await updateDoc(doc(db,'books',id),{...u,updatedAt:serverTimestamp()})}
+async function delBook(id){
+  const b=books.find(x=>x.id===id);
+  if(b&&b._demo){
+    // Demo book — just remove from local array
+    books=books.filter(x=>x.id!==id);
+    if(!books.some(x=>x._demo))dismissDemo();
+    render();return;
+  }
+  await deleteDoc(doc(db,'books',id));await delC(id);delete cc[id];
 }
 
-function latestJourneyNote(book){
-  if(book && Array.isArray(book.journeyEntries) && book.journeyEntries.length){
-    const entry = book.journeyEntries[0];
-    if(entry && entry.note) return entry.note;
-  }
-  return book && book.note ? book.note : "Bókin er komin á hilluna.";
-}
+function esc(s=""){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function chipT(b){if(b.status==='finished')return'Lokið ✓';if(b.status==='reading')return(b.progressPercent||0)+'%';return'Á hillu'}
+function chipCls(b){return b.status==='finished'?'done':''}
+function covHTML(b){const u=cc[b.id]||b.coverBase64;if(u)return'<img src="'+u+'" alt="">';return'<span class="book-cover-title">'+esc(b.title)+'</span><span class="book-cover-author">'+esc(b.author||'')+'</span>'}
+function covS(b){return'--c1:'+(b.c1||'#2b8f91')+';--c2:'+(b.c2||'#0a2341')}
+function latestNote(b){if(b?.journeyEntries?.length){const e=b.journeyEntries[0];if(e?.note)return e.note}return b?.note||'Bókin er komin á hilluna.'}
 
 function render(){
-  const reading = [...books].filter(b=>b.status==="reading").sort((a,b)=>(b.lastReadAt||0)-(a.lastReadAt||0))[0] || books[0];
-  const featured = document.getElementById("featuredCard");
-  if(!reading){
-    featured.innerHTML = `<div style="padding:18px"><span class="pill">▥ Bókahilla</span><h2 style="margin:16px 0 8px">Bókahillan er tóm</h2><p style="color:rgba(148,164,180,.78)">Ýttu á + og taktu mynd af fyrstu bókinni.</p></div>`;
-  } else {
-    const c = bookCoverHTML(reading,true);
-    featured.innerHTML = `
-      <div class="featured-head"><span class="pill">▥ ${reading.status==="reading"?"Að lesa":"Á hillunni"}</span><button class="chev" data-open-book="${reading.id}">›</button></div>
-      <div class="feature-grid">
-        <div class="stage"><button class="book ${selectedBookIds.has(reading.id) ? 'delete-selected' : ''}" data-open-book="${reading.id}" style="${c.style}">${c.img}${c.title}${c.mark}</button><span class="shelf-light"></span></div>
-        <div class="meta">
-          <h2>${esc(reading.title)}</h2>
-          <div class="meta-row"><span>${reading.currentPageFrom?`bls. ${reading.currentPageFrom}–${reading.currentPageTo}`:"Á hillunni"}</span><strong>${reading.progressPercent||0}% lokið</strong></div>
-          <div class="progress"><span style="width:${reading.progressPercent||0}%"></span></div>
-          <div class="quote"><p>“${esc(latestJourneyNote(reading))}”</p></div>
-        </div>
-      </div>`;
-  }
-  renderRail("recentRail", books.filter(b=>b.lastReadAt).sort((a,b)=>b.lastReadAt-a.lastReadAt));
-  renderRail("shelfRail", books.filter(b=>b.status==="shelf" || !b.lastReadAt).sort((a,b)=>b.createdAt-a.createdAt));
-  renderLastRead();
-  document.querySelectorAll("[data-open-book]").forEach(el=>el.addEventListener("click",(event)=>{
-    const id = el.dataset.openBook;
-    if(editMode){
-      event.preventDefault();
-      event.stopPropagation();
-      toggleBookSelection(id);
-      return;
-    }
-    openJourney(id);
-  }));
-  attachBookLongPressHandlers();
-}
-function renderRail(id, list){
-  const rail = document.getElementById(id);
-  if(!list.length){ rail.innerHTML = `<div class="empty">Engar bækur hér enn.</div>`; return; }
-  rail.innerHTML = list.map(b=>{
-    const c = bookCoverHTML(b,false);
-    return `<div class="tile-wrap"><button class="tile ${selectedBookIds.has(b.id) ? 'delete-selected' : ''}" data-open-book="${b.id}" style="${c.style}">${c.img}${c.title}</button><span class="chip ${b.status==="finished"?"done":""}">${chipText(b)}</span></div>`;
-  }).join("");
-}
-function renderLastRead(){
-  const b = [...books].filter(b=>b.lastReadAt).sort((a,b)=>b.lastReadAt-a.lastReadAt)[0];
-  const box = document.getElementById("lastReadCard");
-  if(!b){ box.innerHTML = `<div style="color:rgba(148,164,180,.78)">Enginn nýr lestur til að deila enn.</div>`; return; }
-  box.innerHTML = `<div style="color:var(--accent);font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.7px;margin-bottom:8px">Síðasti lestur</div><div style="font-size:17px;font-weight:800;margin-bottom:4px">${esc(b.title)}</div><div style="color:rgba(217,229,239,.62);font-size:13px;margin-bottom:11px">${b.currentPageFrom?`bls. ${b.currentPageFrom}–${b.currentPageTo}`:"Á hillunni"} · ${b.progressPercent||0}% lokið</div><div style="border-left:2px solid rgba(29,205,211,.55);padding-left:10px;font-style:italic">“${esc(b.note||"") }”</div>`;
-}
-
-function openOverlay(id){document.getElementById(id).classList.add("open");document.body.style.overflow="hidden";}
-function closeOverlay(id){document.getElementById(id).classList.remove("open");document.body.style.overflow="";}
-
-function openJourney(id){
-  const b = books.find(x=>x.id===id);
-  if(!b) return;
-  selectedBookId = id;
-  document.getElementById("journeyTitle").textContent = b.title;
-  const entries = b.journeyEntries?.length ? b.journeyEntries : [{date:"Í dag",pageFrom:b.currentPageFrom||"",pageTo:b.currentPageTo||"",note:b.note||"Bókin var sett á hilluna.",reactions:[]}];
-  document.getElementById("journeyEntries").innerHTML = entries.map(e=>`
-    <article class="event"><div class="event-date">${esc(e.date)} ${e.pageFrom?`· bls. ${e.pageFrom}–${e.pageTo}`:""}</div><p>${esc(e.note)}</p><div class="reactions">${(e.reactions||[]).map(r=>`<span class="react">${esc(r)}</span>`).join("")}</div></article>
-  `).join("");
-  openOverlay("journeyModal");
-}
-
-async function compressToDataUrl(file, targetW=180, targetH=270, quality=.66){
-  const img = await new Promise((resolve,reject)=>{
-    const i = new Image();
-    i.onload=()=>resolve(i); i.onerror=reject;
-    i.src = URL.createObjectURL(file);
-  });
-  const sourceRatio = img.width/img.height;
-  const targetRatio = targetW/targetH;
-  let sx=0, sy=0, sw=img.width, sh=img.height;
-  if(sourceRatio > targetRatio){
-    sw = img.height * targetRatio; sx = (img.width - sw)/2;
+  const sorted=[...books].sort((a,b)=>ts(b,'lastReadAt')-ts(a,'lastReadAt'));
+  const reading=sorted.filter(b=>b.status==='reading');
+  const shelf=books.filter(b=>b.status==='shelf');
+  const finished=books.filter(b=>b.status==='finished');
+  const hero=reading[0]||sorted[0];
+  const fc=document.getElementById('featuredCard');
+  if(!hero||!books.length){
+    fc.className='';fc.innerHTML='<div class="empty-state"><div class="empty-icon">📚</div><div class="empty-title">Bókahillan er tóm</div><div class="empty-sub">Ýttu á <strong>Bæta við bók</strong> og taktu mynd af fyrstu bókinni!</div></div>';
   }else{
-    sh = img.width / targetRatio; sy = (img.height - sh)/2;
+    const u=cc[hero.id]||hero.coverBase64;const ci=u?'<img src="'+u+'" alt="">':'<span class="featured-cover-title">'+esc(hero.title)+'</span><span class="featured-cover-author">'+esc(hero.author||'')+'</span>';
+    fc.className='featured';
+    fc.innerHTML='<div class="featured-badge">⚡ '+(hero.status==='reading'?'Að lesa':'Á hillunni')+'</div><button class="featured-arrow" data-open-book="'+hero.id+'">›</button><div class="featured-grid"><div class="featured-cover" style="'+covS(hero)+'" data-open-book="'+hero.id+'">'+ci+'</div><div class="featured-meta"><div class="featured-title">'+esc(hero.title)+'</div><div class="featured-author">'+esc(hero.author||'')+'</div><div class="featured-stats"><span>'+(hero.currentPageFrom?'bls. '+hero.currentPageFrom+'–'+hero.currentPageTo:'Á hillunni')+'</span><span class="featured-pct">'+(hero.progressPercent||0)+'%</span></div><div class="progress-bar"><div class="progress-fill" style="width:'+(hero.progressPercent||0)+'%"></div></div><div class="featured-quote">"'+esc(latestNote(hero))+'"</div></div></div>';
   }
-  const canvas = document.createElement("canvas");
-  canvas.width = targetW; canvas.height = targetH;
-  const ctx = canvas.getContext("2d");
-  ctx.imageSmoothingQuality = "high";
-  ctx.drawImage(img, sx, sy, sw, sh, 0, 0, targetW, targetH);
-  URL.revokeObjectURL(img.src);
-  return canvas.toDataURL("image/webp", quality);
+  rGrid('readingSection','readingGrid','readingCount',reading);
+  rGrid('shelfSection','shelfGrid','shelfCount',shelf);
+  rGrid('finishedSection','finishedGrid','finishedCount',finished);
+  document.querySelectorAll('[data-open-book]').forEach(el=>el.addEventListener('click',e=>{const id=el.dataset.openBook;if(editMode){e.preventDefault();e.stopPropagation();toggleSel(id);return}openJourney(id)}));
+  attachLP();
+}
+function rGrid(sid,gid,cid,list){
+  const s=document.getElementById(sid),g=document.getElementById(gid),c=document.getElementById(cid);
+  if(!list.length){s.style.display='none';return}s.style.display='';c.textContent=list.length;
+  const hasDemo=list.some(b=>b._demo);
+  g.innerHTML=list.map(b=>'<div class="book-card'+(selIds.has(b.id)?' selected':'')+'" data-open-book="'+b.id+'"><div class="book-cover" style="'+covS(b)+'">'+covHTML(b)+(b._demo?'<span class="book-demo-badge">Dæmi</span>':'')+'</div><div class="book-info"><div class="book-name">'+esc(b.title)+'</div><div class="book-author">'+esc(b.author||'')+'</div><span class="book-chip '+chipCls(b)+'">'+chipT(b)+'</span></div></div>').join('')+(hasDemo?'<div class="demo-hint" style="grid-column:1/-1">Þetta eru dæmi — haltu inni til að eyða</div>':'');
+}
+function renderLR(){
+  const b=[...books].filter(b=>ts(b,'lastReadAt')>0).sort((a,b)=>ts(b,'lastReadAt')-ts(a,'lastReadAt'))[0];
+  const box=document.getElementById('lastReadCard');
+  if(!b){box.innerHTML='<div style="color:var(--soft);font-size:13px">Enginn lestur enn.</div>';return}
+  box.innerHTML='<div style="color:var(--accent);font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px">Síðasti lestur</div><div style="font-size:16px;font-weight:800;margin-bottom:3px">'+esc(b.title)+'</div><div style="color:var(--soft);font-size:12px;margin-bottom:8px">'+(b.currentPageFrom?'bls. '+b.currentPageFrom+'–'+b.currentPageTo:'Á hillunni')+' · '+(b.progressPercent||0)+'% lokið</div><div style="border-left:2px solid rgba(29,205,211,.45);padding-left:9px;font-style:italic;font-size:13px;color:rgba(217,229,239,.7)">"'+esc(b.note||'')+'"</div>';
 }
 
-function setAddBookReadyState(){
-  const result = document.getElementById("addSaveResult");
-  const actions = document.getElementById("addSaveActions");
-  const btn = document.getElementById("saveBook");
-
-  isSavingBook = false;
-  if(result) result.classList.remove("show");
-  if(actions) actions.classList.remove("show");
-  if(btn){
-    btn.hidden = false;
-    btn.disabled = false;
-    btn.textContent = "Vista bók";
-  }
+function openOv(id){document.getElementById(id).classList.add('open');document.body.style.overflow='hidden'}
+function closeOv(id){document.getElementById(id).classList.remove('open');document.body.style.overflow=''}
+function openJourney(id){
+  const b=books.find(x=>x.id===id);if(!b)return;selBookId=id;
+  document.getElementById('journeyTitle').textContent=b.title;
+  const ent=b.journeyEntries?.length?b.journeyEntries:[{date:'Í dag',pageFrom:b.currentPageFrom||'',pageTo:b.currentPageTo||'',note:b.note||'Bókin var sett á hilluna.',reactions:[]}];
+  document.getElementById('journeyEntries').innerHTML=ent.map(e=>'<article class="event"><div class="event-date">'+esc(e.date)+(e.pageFrom?' · bls. '+e.pageFrom+'–'+e.pageTo:'')+'</div><p>'+esc(e.note)+'</p><div class="reactions">'+(e.reactions||[]).map(r=>'<span class="react">'+esc(r)+'</span>').join('')+'</div></article>').join('');
+  openOv('journeyModal');
 }
 
-function setAddBookSavedState(){
-  const result = document.getElementById("addSaveResult");
-  const actions = document.getElementById("addSaveActions");
-  const btn = document.getElementById("saveBook");
-
-  isSavingBook = false;
-  if(result){
-    result.textContent = "Bókin var vistuð ✓";
-    result.classList.add("show");
-  }
-  if(actions) actions.classList.add("show");
-  if(btn){
-    btn.disabled = false;
-    btn.textContent = "Vista bók";
-    btn.hidden = true;
-  }
+async function compress(file,tw=180,th=270,q=.50){
+  const img=await new Promise((ok,no)=>{const i=new Image();i.onload=()=>ok(i);i.onerror=no;i.src=URL.createObjectURL(file)});
+  const sr=img.width/img.height,tr=tw/th;let sx=0,sy=0,sw=img.width,sh=img.height;
+  if(sr>tr){sw=img.height*tr;sx=(img.width-sw)/2}else{sh=img.width/tr;sy=(img.height-sh)/2}
+  const c=document.createElement('canvas');c.width=tw;c.height=th;const ctx=c.getContext('2d');ctx.imageSmoothingQuality='high';ctx.drawImage(img,sx,sy,sw,sh,0,0,tw,th);URL.revokeObjectURL(img.src);return c.toDataURL('image/webp',q);
 }
 
-function openAddBookModal(){
-  resetAddBookForm();
-  setAddBookReadyState();
-  openOverlay("addModal");
-  setTimeout(()=>document.getElementById("bookTitle")?.focus(), 60);
-}
-document.getElementById("openAdd").addEventListener("click", openAddBookModal);
-document.getElementById("openAddSmall").addEventListener("click", openAddBookModal);
-document.getElementById("openAddSmall2").addEventListener("click", openAddBookModal);
-document.getElementById("closeAdd").addEventListener("click",()=>{ setAddBookReadyState(); closeOverlay("addModal"); });
-document.getElementById("closeAdd2").addEventListener("click",()=>{ setAddBookReadyState(); closeOverlay("addModal"); });
-document.getElementById("closeJourney").addEventListener("click",()=>closeOverlay("journeyModal"));
-document.getElementById("closeJourney2").addEventListener("click",()=>closeOverlay("journeyModal"));
-document.getElementById("openProfile").addEventListener("click",()=>{document.getElementById("shareResult").classList.remove("show");openOverlay("profileModal")});
-document.getElementById("closeProfile").addEventListener("click",()=>closeOverlay("profileModal"));
-document.getElementById("closeProfile2").addEventListener("click",()=>closeOverlay("profileModal"));
-document.querySelectorAll(".overlay").forEach(o=>o.addEventListener("click",e=>{
-  if(e.target===o){
-    if(o.id === "addModal") setAddBookReadyState();
-    closeOverlay(o.id);
-  }
-}));
+function setReady(){saving=false;const r=document.getElementById('addSaveResult'),a=document.getElementById('addSaveActions'),b=document.getElementById('saveBook');if(r)r.classList.remove('show');if(a)a.classList.remove('show');if(b){b.hidden=false;b.disabled=false;b.textContent='Vista bók'}}
+function setSaved(){saving=false;const r=document.getElementById('addSaveResult'),a=document.getElementById('addSaveActions'),b=document.getElementById('saveBook');if(r){r.textContent='Bókin var vistuð ✓';r.classList.add('show')}if(a)a.classList.add('show');if(b)b.hidden=true}
+function resetF(){curCov=null;curCovHQ=null;['bookTitle','bookAuthor'].forEach(id=>document.getElementById(id).value='');document.getElementById('bookStatus').value='shelf';document.getElementById('bookPages').value='';document.getElementById('coverInput').value='';document.getElementById('previewImg').removeAttribute('src');document.getElementById('previewMeta').textContent='Engin mynd.';document.getElementById('previewRow').style.display='none'}
+function openAddM(){resetF();setReady();openOv('addModal');setTimeout(()=>document.getElementById('bookTitle')?.focus(),60)}
 
+document.getElementById('coverInput').addEventListener('change',async e=>{const f=e.target.files?.[0];if(!f)return;const bk=Math.round(f.size/1024);curCovHQ=await compress(f,180,270,.66);curCov=await compress(f,180,270,.50);const ak=Math.round((curCov.length*.75)/1024);document.getElementById('previewImg').src=curCovHQ;document.getElementById('previewMeta').textContent=bk+'KB → ~'+ak+'KB';document.getElementById('previewRow').style.display='grid'});
 
-document.getElementById("coverInput").addEventListener("change", async (e)=>{
-  const file = e.target.files?.[0];
-  if(!file) return;
-  const beforeKB = Math.round(file.size/1024);
-  currentCover = await compressToDataUrl(file,180,270,.66);
-  const afterKB = Math.round((currentCover.length*0.75)/1024);
-  document.getElementById("previewImg").src = currentCover;
-  document.getElementById("previewMeta").textContent = `Upprunalegt: ${beforeKB} KB · Local thumbnail: ~${afterKB} KB · 180×270 WebP`;
-  document.getElementById("previewRow").style.display = "grid";
-});
-
-let isSavingBook = false;
-
-function resetAddBookForm(){
-  currentCover = null;
-  document.getElementById("bookTitle").value = "";
-  document.getElementById("bookAuthor").value = "";
-  document.getElementById("bookStatus").value = "shelf";
-  document.getElementById("bookPages").value = "";
-  document.getElementById("coverInput").value = "";
-  document.getElementById("previewImg").removeAttribute("src");
-  document.getElementById("previewMeta").textContent = "Engin mynd valin.";
-  document.getElementById("previewRow").style.display = "none";
-}
-
-document.getElementById("saveBook").addEventListener("click",()=>{
-  if(isSavingBook) return;
-
-  const saveBtn = document.getElementById("saveBook");
-  const result = document.getElementById("addSaveResult");
-  const title = document.getElementById("bookTitle").value.trim();
-
-  if(!title){
-    alert("Settu inn nafn bókar.");
-    return;
-  }
-
-  isSavingBook = true;
-  if(saveBtn){
-    saveBtn.disabled = true;
-    saveBtn.textContent = "Vista...";
-  }
-  if(result) result.classList.remove("show");
-
-  const status = document.getElementById("bookStatus").value;
-  const totalPages = Number(document.getElementById("bookPages").value || 0);
-  const now = Date.now();
-
-  const book = {
-    id:"book_"+now+"_"+Math.random().toString(36).slice(2,7),
-    title,
-    author:document.getElementById("bookAuthor").value.trim(),
-    status,
-    totalPages,
-    currentPageFrom: status==="reading" ? 1 : null,
-    currentPageTo: status==="reading" ? Math.min(10,totalPages||10) : null,
-    progressPercent: status==="finished" ? 100 : status==="reading" ? Math.min(10, Math.round((10/(totalPages||100))*100)) : 0,
-    coverDataUrl:currentCover,
-    createdAt:now,
-    updatedAt:now,
-    lastReadAt: status==="reading" ? now : null,
-    journeyEntries: status==="reading" ? [{date:"Í dag",pageFrom:1,pageTo:Math.min(10,totalPages||10),note:"Bókin er byrjuð.",reactions:[]}] : []
-  };
-
-  books.unshift(book);
-
-  if(!save()){
-    books.shift();
-    isSavingBook = false;
-    if(saveBtn){
-      saveBtn.disabled = false;
-      saveBtn.textContent = "Vista bók";
+document.getElementById('saveBook').addEventListener('click',async()=>{
+  if(saving)return;const btn=document.getElementById('saveBook'),res=document.getElementById('addSaveResult'),title=document.getElementById('bookTitle').value.trim();
+  if(!title){alert('Settu inn nafn bókar.');return}saving=true;if(btn){btn.disabled=true;btn.textContent='Vista...'}if(res)res.classList.remove('show');
+  const st=document.getElementById('bookStatus').value,tp=Number(document.getElementById('bookPages').value||0),now=Date.now();
+  const pals=[['#2b8f91','#0a2341'],['#23814b','#0d2b23'],['#7c23df','#1d1537'],['#c4523a','#2a1418'],['#3a7bd5','#0f1f3d'],['#d4a03c','#2b1e0e']];const pk=pals[Math.floor(Math.random()*pals.length)];
+  const d={familyId:FID,childKey:CK,childName:CN,title,author:document.getElementById('bookAuthor').value.trim(),status:st,totalPages:tp,currentPageFrom:st==='reading'?1:null,currentPageTo:st==='reading'?Math.min(10,tp||10):null,progressPercent:st==='finished'?100:st==='reading'?Math.min(10,Math.round((10/(tp||100))*100)):0,coverBase64:curCov||null,c1:curCov?null:pk[0],c2:curCov?null:pk[1],note:st==='reading'?'Bókin er byrjuð.':null,lastReadAt:st==='reading'?now:null,journeyEntries:st==='reading'?[{date:'Í dag',pageFrom:1,pageTo:Math.min(10,tp||10),note:'Bókin er byrjuð.',reactions:[]}]:[],createdAt:now,updatedAt:now};
+  try{
+    if(previewMode){
+      d.id='local_'+now+'_'+Math.random().toString(36).slice(2,6);
+      if(curCovHQ)cc[d.id]=curCovHQ;else if(curCov)cc[d.id]=curCov;
+      books=books.filter(b=>!b._demo);demoDismissed=true;
+      books.unshift(d);render();
+    }else{
+      d.createdAt=serverTimestamp();d.updatedAt=serverTimestamp();
+      await addBook(d);
     }
-    alert("Geymslan í browsernum er orðin full. Prófaðu að hreinsa local bækur eða nota færri myndir í þessari prufu.");
-    return;
-  }
-
-  render();
-  resetAddBookForm();
-  setAddBookSavedState();
-});
-document.getElementById("addAnotherBook").addEventListener("click",()=>{
-  resetAddBookForm();
-  setAddBookReadyState();
-  setTimeout(()=>document.getElementById("bookTitle")?.focus(), 60);
+    resetF();setSaved();
+  }catch(e){console.error(e);saving=false;if(btn){btn.disabled=false;btn.textContent='Vista bók'}if(res){res.textContent='Villa — reyndu aftur.';res.classList.add('show')}}
 });
 
-document.getElementById("goToBookshelf").addEventListener("click",()=>{
-  setAddBookReadyState();
-  closeOverlay("addModal");
-});
+document.getElementById('openAdd').addEventListener('click',openAddM);
+document.getElementById('closeAdd').addEventListener('click',()=>{setReady();closeOv('addModal')});
+document.getElementById('closeAdd2').addEventListener('click',()=>{setReady();closeOv('addModal')});
+document.getElementById('addAnotherBook').addEventListener('click',()=>{resetF();setReady();setTimeout(()=>document.getElementById('bookTitle')?.focus(),60)});
+document.getElementById('goToBookshelf').addEventListener('click',()=>{setReady();closeOv('addModal')});
+document.getElementById('closeJourney').addEventListener('click',()=>closeOv('journeyModal'));
+document.getElementById('closeJourney2').addEventListener('click',()=>closeOv('journeyModal'));
+document.getElementById('openProfile').addEventListener('click',()=>{document.getElementById('shareResult').classList.remove('show');renderLR();openOv('profileModal')});
+document.getElementById('closeProfile').addEventListener('click',()=>closeOv('profileModal'));
+document.getElementById('closeProfile2').addEventListener('click',()=>closeOv('profileModal'));
+document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o){if(o.id==='addModal')setReady();closeOv(o.id)}}));
+document.getElementById('shareLastReading').addEventListener('click',()=>document.getElementById('shareResult').classList.add('show'));
+document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelectorAll('.overlay.open').forEach(o=>closeOv(o.id))});
+document.getElementById('clearBooks').addEventListener('click',async()=>{if(!confirm('Hreinsa allar bækur?'))return;try{for(const b of books)await delBook(b.id);selIds.clear();setEM(false);resetF();closeOv('addModal')}catch(e){alert('Villa.')}});
 
-document.getElementById("clearBooks").addEventListener("click",()=>{
-  if(confirm("Hreinsa allar local bækur og byrja aftur?")){
-    localStorage.removeItem(STORAGE_KEY);
-    books = [...defaultBooks];
-    selectedBookIds.clear();
-    setEditMode(false);
-    save();
-    render();
-    resetAddBookForm();
-    closeOverlay("addModal");
-  }
-});
+function updEUI(){const bar=document.getElementById('editBar'),cnt=document.getElementById('editCount'),tog=document.getElementById('toggleEditBooks');if(bar)bar.hidden=!editMode;if(tog)tog.classList.toggle('active',editMode);const c=selIds.size;if(cnt)cnt.textContent=c===1?'1 valin':c+' valdar';['deleteSelectedBooks','markSelectedReading','moveSelectedToShelf','markSelectedFinished'].forEach(id=>{const b=document.getElementById(id);if(b)b.disabled=c===0})}
+function setEM(v){editMode=Boolean(v);if(!editMode)selIds.clear();updEUI();render()}
+function toggleSel(id){if(selIds.has(id))selIds.delete(id);else selIds.add(id);updEUI();render()}
 
-let pendingDeleteBookId = null;
-let longPressTimer = null;
-let longPressTriggered = false;
+async function markReading(){if(!selIds.size)return;try{for(const id of selIds){const b=books.find(x=>x.id===id);if(!b)continue;const tp=Number(b.totalPages||0),fr=b.currentPageFrom||1,to=b.currentPageTo||Math.min(10,tp||10),pc=tp?Math.min(99,Math.max(1,Math.round((to/tp)*100))):(b.progressPercent||1);await updBook(id,{status:'reading',currentPageFrom:fr,currentPageTo:to,progressPercent:pc,lastReadAt:b.lastReadAt||Date.now()})}}catch(e){alert('Villa.')}selIds.clear();setEM(false)}
+async function moveShelf(){if(!selIds.size)return;try{for(const id of selIds)await updBook(id,{status:'shelf'})}catch(e){alert('Villa.')}selIds.clear();setEM(false)}
+async function markFinished(){if(!selIds.size)return;try{for(const id of selIds){const b=books.find(x=>x.id===id);if(!b)continue;await updBook(id,{status:'finished',progressPercent:100,currentPageTo:Number(b.totalPages||0)||b.currentPageTo||null,lastReadAt:b.lastReadAt||Date.now()})}}catch(e){alert('Villa.')}selIds.clear();setEM(false)}
+function openDelM(){if(!selIds.size)return;const n=books.filter(b=>selIds.has(b.id)).map(b=>b.title).slice(0,3);const el=document.getElementById('deleteBooksName');if(el){const ex=selIds.size>3?' + '+(selIds.size-3)+' í viðbót':'';el.textContent=n.join(', ')+ex}openOv('deleteBooksModal')}
 
-function openDeleteBookModal(bookId){
-  const book = books.find(b => b.id === bookId);
-  if(!book) return;
-  pendingDeleteBookId = bookId;
-  if(editMode){
-    toggleBookSelection(bookId);
-    return;
-  }
-  selectedBookIds = new Set([bookId]);
-  openDeleteSelectedModal();
+let lpT=null,lpF=false;
+function attachLP(){document.querySelectorAll('[data-open-book]').forEach(el=>{if(el.dataset.lp==='1')return;el.dataset.lp='1';el.addEventListener('contextmenu',e=>e.preventDefault());el.addEventListener('pointerdown',()=>{lpF=false;clearTimeout(lpT);lpT=setTimeout(()=>{lpF=true;const id=el.dataset.openBook;if(editMode)toggleSel(id);else{selIds=new Set([id]);openDelM()}},650)});['pointerup','pointercancel','pointerleave'].forEach(ev=>el.addEventListener(ev,()=>clearTimeout(lpT)));el.addEventListener('click',e=>{if(lpF){e.preventDefault();e.stopPropagation();lpF=false}},true)})}
+
+document.getElementById('toggleEditBooks').addEventListener('click',()=>setEM(!editMode));
+document.getElementById('cancelEditBooks').addEventListener('click',()=>setEM(false));
+document.getElementById('markSelectedReading').addEventListener('click',markReading);
+document.getElementById('moveSelectedToShelf').addEventListener('click',moveShelf);
+document.getElementById('markSelectedFinished').addEventListener('click',markFinished);
+document.getElementById('deleteSelectedBooks').addEventListener('click',openDelM);
+document.getElementById('closeDeleteBooks').addEventListener('click',()=>closeOv('deleteBooksModal'));
+document.getElementById('cancelDeleteBooks').addEventListener('click',()=>closeOv('deleteBooksModal'));
+document.getElementById('confirmDeleteBooks').addEventListener('click',async()=>{if(!selIds.size)return;try{for(const id of selIds)await delBook(id)}catch(e){alert('Villa.')}selIds.clear();closeOv('deleteBooksModal');setEM(false)});
+
+if(previewMode){
+  // Preview mode — show demo books, no Firestore
+  books=[...demoBooks];render();
+}else{
+  startListener();
 }
-
-function closeDeleteBookModal(){
-  pendingDeleteBookId = null;
-  closeDeleteSelectedModal();
-}
-
-function attachBookLongPressHandlers(){
-  document.querySelectorAll("[data-open-book]").forEach(el => {
-    if(el.dataset.longPressBound === "1") return;
-    el.dataset.longPressBound = "1";
-
-    el.addEventListener("contextmenu", (e) => {
-      e.preventDefault();
-    });
-
-    el.addEventListener("pointerdown", () => {
-      longPressTriggered = false;
-      clearTimeout(longPressTimer);
-      longPressTimer = setTimeout(() => {
-        longPressTriggered = true;
-        openDeleteBookModal(el.dataset.openBook);
-      }, 650);
-    });
-
-    ["pointerup","pointercancel","pointerleave"].forEach(eventName => {
-      el.addEventListener(eventName, () => {
-        clearTimeout(longPressTimer);
-      });
-    });
-
-    el.addEventListener("click", (e) => {
-      if(longPressTriggered){
-        e.preventDefault();
-        e.stopPropagation();
-        longPressTriggered = false;
-      }
-    }, true);
-  });
-}
-
-document.getElementById("shareLastReading").addEventListener("click",()=>{
-  // TODO: connect this to family push later.
-  document.getElementById("shareResult").classList.add("show");
-});
-document.addEventListener("keydown",e=>{if(e.key==="Escape")document.querySelectorAll(".overlay.open").forEach(o=>closeOverlay(o.id));});
-
-
-function updateEditUI(){
-  const editBar = document.getElementById("editBar");
-  const editCount = document.getElementById("editCount");
-  const deleteBtn = document.getElementById("deleteSelectedBooks");
-  const readingBtn = document.getElementById("markSelectedReading");
-  const moveBtn = document.getElementById("moveSelectedToShelf");
-  const finishBtn = document.getElementById("markSelectedFinished");
-  const toggleBtn = document.getElementById("toggleEditBooks");
-
-  document.body.classList.toggle("edit-mode", editMode);
-  if(editBar) editBar.hidden = !editMode;
-  if(toggleBtn) toggleBtn.classList.toggle("active", editMode);
-
-  const count = selectedBookIds.size;
-  if(editCount) editCount.textContent = count === 1 ? "1 bók valin" : `${count} bækur valdar`;
-  if(deleteBtn) deleteBtn.disabled = count === 0;
-  if(readingBtn) readingBtn.disabled = count === 0;
-  if(moveBtn) moveBtn.disabled = count === 0;
-  if(finishBtn) finishBtn.disabled = count === 0;
-}
-
-function setEditMode(next){
-  editMode = Boolean(next);
-  if(!editMode) selectedBookIds.clear();
-  updateEditUI();
-  render();
-}
-
-function toggleBookSelection(bookId){
-  if(selectedBookIds.has(bookId)) selectedBookIds.delete(bookId);
-  else selectedBookIds.add(bookId);
-  updateEditUI();
-  render();
-}
-
-function markSelectedBooksReading(){
-  if(!selectedBookIds.size) return;
-  const now = Date.now();
-
-  books = books.map(book => {
-    if(!selectedBookIds.has(book.id)) return book;
-    const totalPages = Number(book.totalPages || 0);
-    const from = book.currentPageFrom || 1;
-    const to = book.currentPageTo || Math.min(10, totalPages || 10);
-    const percent = totalPages ? Math.min(99, Math.max(1, Math.round((to / totalPages) * 100))) : (book.progressPercent || 1);
-
-    return {
-      ...book,
-      status:"reading",
-      currentPageFrom: from,
-      currentPageTo: to,
-      progressPercent: percent,
-      lastReadAt: book.lastReadAt || now,
-      updatedAt: now,
-      journeyEntries: Array.isArray(book.journeyEntries) ? book.journeyEntries : []
-    };
-  });
-
-  if(!save()){
-    alert("Tókst ekki að vista breytinguna í local geymslu.");
-    return;
-  }
-
-  selectedBookIds.clear();
-  setEditMode(false);
-}
-
-function moveSelectedBooksToShelf(){
-  if(!selectedBookIds.size) return;
-
-  books = books.map(book => {
-    if(!selectedBookIds.has(book.id)) return book;
-    return {...book, status:"shelf", updatedAt:Date.now()};
-  });
-
-  if(!save()){
-    alert("Tókst ekki að vista breytinguna í local geymslu.");
-    return;
-  }
-
-  selectedBookIds.clear();
-  setEditMode(false);
-}
-
-function markSelectedBooksFinished(){
-  if(!selectedBookIds.size) return;
-
-  books = books.map(book => {
-    if(!selectedBookIds.has(book.id)) return book;
-    const totalPages = Number(book.totalPages || 0);
-    return {
-      ...book,
-      status:"finished",
-      progressPercent:100,
-      currentPageTo: totalPages || book.currentPageTo || null,
-      lastReadAt: book.lastReadAt || Date.now(),
-      updatedAt:Date.now()
-    };
-  });
-
-  if(!save()){
-    alert("Tókst ekki að vista breytinguna í local geymslu.");
-    return;
-  }
-
-  selectedBookIds.clear();
-  setEditMode(false);
-}
-
-function openDeleteSelectedModal(){
-  if(!selectedBookIds.size) return;
-  const names = books.filter(book => selectedBookIds.has(book.id)).map(book => book.title).slice(0,3);
-  const nameEl = document.getElementById("deleteBooksName");
-  if(nameEl){
-    const extra = selectedBookIds.size > 3 ? ` + ${selectedBookIds.size - 3} í viðbót` : "";
-    nameEl.textContent = names.join(", ") + extra;
-  }
-  openOverlay("deleteBooksModal");
-}
-
-function closeDeleteSelectedModal(){
-  closeOverlay("deleteBooksModal");
-}
-
-document.getElementById("toggleEditBooks")?.addEventListener("click", () => setEditMode(!editMode));
-document.getElementById("cancelEditBooks")?.addEventListener("click", () => setEditMode(false));
-document.getElementById("markSelectedReading")?.addEventListener("click", markSelectedBooksReading);
-document.getElementById("moveSelectedToShelf")?.addEventListener("click", moveSelectedBooksToShelf);
-document.getElementById("markSelectedFinished")?.addEventListener("click", markSelectedBooksFinished);
-document.getElementById("deleteSelectedBooks")?.addEventListener("click", openDeleteSelectedModal);
-document.getElementById("closeDeleteBooks")?.addEventListener("click", closeDeleteSelectedModal);
-document.getElementById("cancelDeleteBooks")?.addEventListener("click", closeDeleteSelectedModal);
-
-document.getElementById("confirmDeleteBooks")?.addEventListener("click", () => {
-  if(!selectedBookIds.size) return;
-  books = books.filter(book => !selectedBookIds.has(book.id));
-
-  if(!save()){
-    alert("Tókst ekki að vista breytinguna í local geymslu.");
-    return;
-  }
-
-  selectedBookIds.clear();
-  closeDeleteSelectedModal();
-  setEditMode(false);
-});
-
-load(); render();
-
 </script>
 </body>
 </html>

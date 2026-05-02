@@ -123,15 +123,6 @@ button{font:inherit;cursor:pointer;border:0;background:none;color:inherit}a{colo
 .featured{animation:fadeUp .4s ease both}.section{animation:fadeUp .4s ease both}
 .book-demo-badge{position:absolute;top:6px;right:6px;z-index:3;font-size:8px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;padding:2px 6px;border-radius:6px;background:rgba(255,255,255,.12);color:rgba(255,255,255,.7);backdrop-filter:blur(4px)}
 .demo-hint{text-align:center;padding:6px 0 14px;font-size:11px;color:var(--soft);font-style:italic}
-.search-result-item{display:flex;align-items:center;gap:10px;padding:10px;border:1px solid var(--line);border-radius:10px;margin-bottom:6px;cursor:pointer;background:rgba(255,255,255,.02);transition:border-color .15s,background .15s}
-.search-result-item:hover,.search-result-item.picked{border-color:var(--accent);background:rgba(29,205,211,.06)}
-.search-result-thumb{width:40px;height:60px;border-radius:6px;overflow:hidden;background:rgba(255,255,255,.04);flex-shrink:0}
-.search-result-thumb img{width:100%;height:100%;object-fit:cover}
-.search-result-info{flex:1;min-width:0}
-.search-result-title{font-size:13px;font-weight:800;line-height:1.15;margin-bottom:2px}
-.search-result-author{font-size:11px;color:var(--soft)}
-.search-result-pages{font-size:10px;color:var(--accent);font-weight:700}
-.search-loading{text-align:center;padding:12px;color:var(--accent);font-size:12px;font-weight:700}
 @media(min-width:700px){.app{width:min(100%,760px);padding:0 28px;padding-bottom:calc(var(--nav-h) + var(--safe) + 100px)}.bottom-nav{width:min(760px,100vw)}.featured-grid{grid-template-columns:130px 1fr;gap:18px}.featured-cover{width:130px}}
 </style>
 </head>
@@ -155,32 +146,21 @@ button{font:inherit;cursor:pointer;border:0;background:none;color:inherit}a{colo
 <div class="overlay" id="addModal"><section class="dialog">
 <button class="close" id="closeAdd">×</button>
 
-<!-- STEP 2: Title + Google Books search -->
 <div id="addStep2">
 <h2>Ný bók</h2>
-<p class="dialog-sub">Sláðu inn titil og við finnum restina</p>
-<div class="preview-row" id="previewRow">
+<p class="dialog-sub">Fylltu út og vistaðu í hilluna</p>
+<div class="preview-row" id="previewRow" style="display:none">
 <div class="preview-cover"><img id="previewImg" alt=""></div>
 <div class="preview-info"><strong id="previewMeta"></strong></div>
 </div>
-<div class="field"><label>Nafn bókar *</label>
-<div style="display:flex;gap:8px">
-<input id="bookTitle" placeholder="t.d. Drekastormur" style="flex:1">
-<button id="searchBookBtn" class="dialog-btn" type="button" style="width:auto;margin:0;padding:8px 14px;font-size:13px;white-space:nowrap">🔍 Leita</button>
-</div>
-</div>
-<div id="searchResults" style="display:none;margin-bottom:12px">
-<label style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--text);margin-bottom:6px;display:block">Niðurstöður</label>
-<div id="searchResultsList"></div>
-</div>
-<div class="field"><label>Höfundur</label><input id="bookAuthor" placeholder="fyllst sjálfkrafa"></div>
-<div class="field"><label>Blaðsíðufjöldi *</label><input id="bookPages" inputmode="numeric" placeholder="fyllst sjálfkrafa"></div>
+<div class="field"><label>Nafn bókar *</label><input id="bookTitle" placeholder="t.d. Drekastormur"></div>
+<div class="field"><label>Höfundur</label><input id="bookAuthor" placeholder="valfrjálst"></div>
+<div class="field"><label>Blaðsíðufjöldi *</label><input id="bookPages" inputmode="numeric" placeholder="t.d. 120"></div>
 <div class="field"><label>Staða</label><select id="bookStatus"><option value="shelf">Á hillunni</option><option value="reading">Að lesa</option><option value="finished">Lokið</option></select></div>
 <button class="dialog-btn" id="saveBook">Vista bók</button>
-<button class="dialog-btn secondary" id="backToCamera">📷 Taka aðra mynd</button>
+<button class="dialog-btn secondary" id="backToCamera">📷 Breyta mynd</button>
 </div>
 
-<!-- STEP 3: Saved -->
 <div id="addStep3" style="display:none">
 <div style="text-align:center;padding:20px 0">
 <div style="font-size:36px;margin-bottom:10px">✓</div>
@@ -333,105 +313,20 @@ async function compress(file,tw=180,th=270,q=.50){
 
 function setReady(){saving=false;const b=document.getElementById('saveBook');if(b){b.hidden=false;b.disabled=false;b.textContent='Vista bók'}}
 function showStep(n){['addStep2','addStep3'].forEach((id,i)=>document.getElementById(id).style.display=i===(n-2)?'':'none')}
-function resetF(){curCov=null;curCovHQ=null;['bookTitle','bookAuthor'].forEach(id=>document.getElementById(id).value='');document.getElementById('bookStatus').value='shelf';document.getElementById('bookPages').value='';document.getElementById('coverInput').value='';document.getElementById('previewImg').removeAttribute('src');document.getElementById('previewMeta').textContent='';document.getElementById('searchResults').style.display='none';document.getElementById('searchResultsList').innerHTML='';showStep(2);setReady()}
+function resetF(){curCov=null;curCovHQ=null;['bookTitle','bookAuthor'].forEach(id=>document.getElementById(id).value='');document.getElementById('bookStatus').value='shelf';document.getElementById('bookPages').value='';document.getElementById('coverInput').value='';document.getElementById('previewImg').removeAttribute('src');document.getElementById('previewMeta').textContent='';document.getElementById('previewRow').style.display='none';showStep(2);setReady()}
 function openAddM(){
-  // Trigger native camera/gallery picker directly — no modal yet
+  // Trigger native camera/gallery picker
   document.getElementById('coverInput').click();
-}
-
-// ── Google Books API search ──
-async function searchGoogleBooks(query){
-  if(!query||query.length<2)return[];
-  try{
-    const resp=await fetch('https://www.googleapis.com/books/v1/volumes?q='+encodeURIComponent(query)+'&maxResults=5&langRestrict=is&printType=books');
-    if(!resp.ok){
-      // Try without language restriction
-      const resp2=await fetch('https://www.googleapis.com/books/v1/volumes?q='+encodeURIComponent(query)+'&maxResults=5&printType=books');
-      if(!resp2.ok)return[];
-      const d2=await resp2.json();
-      return(d2.items||[]).map(parseGBookItem);
+  // If user cancels camera, they can still open modal manually
+  // We detect this by checking if file was selected after a delay
+  setTimeout(()=>{
+    if(!document.getElementById('addModal').classList.contains('open')&&!curCov){
+      // Camera was likely cancelled — open modal without image
+      resetF();openOv('addModal');
+      setTimeout(()=>document.getElementById('bookTitle')?.focus(),100);
     }
-    const data=await resp.json();
-    let results=(data.items||[]).map(parseGBookItem);
-    // If no Icelandic results, try without langRestrict
-    if(!results.length){
-      const resp2=await fetch('https://www.googleapis.com/books/v1/volumes?q='+encodeURIComponent(query)+'&maxResults=5&printType=books');
-      if(resp2.ok){const d2=await resp2.json();results=(d2.items||[]).map(parseGBookItem)}
-    }
-    return results;
-  }catch(e){console.warn('Google Books search error:',e);return[]}
+  },800);
 }
-
-function parseGBookItem(item){
-  const v=item.volumeInfo||{};
-  return{
-    title:v.title||'',
-    author:(v.authors||[]).join(', '),
-    pages:v.pageCount||0,
-    thumbnail:v.imageLinks?.thumbnail?.replace('http:','https:')||'',
-    year:v.publishedDate?.slice(0,4)||''
-  };
-}
-
-function renderSearchResults(results){
-  const container=document.getElementById('searchResultsList');
-  const wrap=document.getElementById('searchResults');
-  if(!results.length){
-    wrap.style.display='block';
-    container.innerHTML='<div class="search-loading">Ekkert fannst — reyndu annan titil eða fylltu handvirkt.</div>';
-    return;
-  }
-  wrap.style.display='block';
-  container.innerHTML=results.map((r,i)=>`
-    <div class="search-result-item" data-idx="${i}">
-      <div class="search-result-thumb">${r.thumbnail?'<img src="'+r.thumbnail+'" alt="">':''}</div>
-      <div class="search-result-info">
-        <div class="search-result-title">${esc(r.title)}</div>
-        <div class="search-result-author">${esc(r.author)}${r.year?' · '+r.year:''}</div>
-        ${r.pages?'<div class="search-result-pages">'+r.pages+' bls.</div>':''}
-      </div>
-    </div>`).join('');
-  // Click to pick
-  container.querySelectorAll('.search-result-item').forEach(el=>{
-    el.addEventListener('click',()=>{
-      const idx=Number(el.dataset.idx);
-      const r=results[idx];
-      if(!r)return;
-      document.getElementById('bookTitle').value=r.title;
-      document.getElementById('bookAuthor').value=r.author;
-      if(r.pages)document.getElementById('bookPages').value=r.pages;
-      container.querySelectorAll('.search-result-item').forEach(x=>x.classList.remove('picked'));
-      el.classList.add('picked');
-    });
-  });
-}
-
-// Search button
-document.getElementById('searchBookBtn').addEventListener('click',async()=>{
-  const q=document.getElementById('bookTitle').value.trim();
-  if(!q){alert('Sláðu inn titil til að leita.');return}
-  const btn=document.getElementById('searchBookBtn');
-  const container=document.getElementById('searchResultsList');
-  const wrap=document.getElementById('searchResults');
-  btn.disabled=true;btn.textContent='...';
-  wrap.style.display='block';
-  container.innerHTML='<div class="search-loading">Leita...</div>';
-  const results=await searchGoogleBooks(q);
-  renderSearchResults(results);
-  // Auto-pick first result if good match
-  if(results.length){
-    const r=results[0];
-    document.getElementById('bookAuthor').value=r.author;
-    if(r.pages)document.getElementById('bookPages').value=r.pages;
-    container.querySelector('.search-result-item')?.classList.add('picked');
-  }
-  btn.disabled=false;btn.textContent='🔍 Leita';
-});
-
-// Also search on Enter in title field
-document.getElementById('bookTitle').addEventListener('keydown',e=>{
-  if(e.key==='Enter'){e.preventDefault();document.getElementById('searchBookBtn').click()}
-});
 
 // ── Handle image from camera or gallery ──
 async function handleCoverFile(file){
@@ -442,7 +337,7 @@ async function handleCoverFile(file){
   const ak=Math.round((curCov.length*.75)/1024);
   document.getElementById('previewImg').src=curCovHQ;
   document.getElementById('previewMeta').textContent=bk+'KB → ~'+ak+'KB';
-  // Open modal — user types title and searches
+  document.getElementById('previewRow').style.display='grid';
   showStep(2);setReady();
   openOv('addModal');
   setTimeout(()=>document.getElementById('bookTitle')?.focus(),100);

@@ -10,7 +10,7 @@ import {
 import { S }  from './state.js';
 import { goTo } from './helpers.js';
 import { setupChildHome, cancelReading } from './child-view.js';
-import { startFamilyListener, renderDashboard } from './parent-view.js';
+import { startFamilyListener, startBooksListener, renderDashboard } from './parent-view.js';
 
 let _signupInProgress = false;
 
@@ -116,6 +116,7 @@ async function processAuthUser(user) {
 
   initParentTheme();
   startFamilyListener();
+  startBooksListener();
   goTo('screen-parent-home');
 
   document.getElementById('login-email').disabled    = false;
@@ -150,7 +151,7 @@ export async function firebaseLogin() {
 // ══════════════════════════════════════════
 
 function _loginShowView(view) {
-  ['a','b','c'].forEach(v => {
+  ['a','b','c','d'].forEach(v => {
     const el = document.getElementById('login-view-' + v);
     if (el) el.style.display = v === view ? '' : 'none';
   });
@@ -240,16 +241,36 @@ export async function sendPasswordReset() {
 // Notar familycodes collection — document ID er kóðinn
 // ══════════════════════════════════════════
 
+let _selectedGuestRole = '';
+
+export function showFamJoin() {
+  _selectedGuestRole = '';
+  const nameEl = document.getElementById('fam-guest-name');
+  if (nameEl) nameEl.value = '';
+  document.querySelectorAll('.rg-role-btn').forEach(b => b.classList.remove('rg-role-active'));
+  _loginShowView('d');
+  setTimeout(() => document.getElementById('fam-code-input')?.focus(), 80);
+}
+
+export function selectGuestRole(btn) {
+  document.querySelectorAll('.rg-role-btn').forEach(b => b.classList.remove('rg-role-active'));
+  btn.classList.add('rg-role-active');
+  _selectedGuestRole = btn.dataset.role || '';
+}
+
 export async function famCodeLogin() {
   const input = document.getElementById('fam-code-input');
   const errEl = document.getElementById('fam-code-error');
   const btn   = document.getElementById('fam-code-btn');
   const code  = (input?.value || '').trim().toUpperCase();
+  const guestNameEl = document.getElementById('fam-guest-name');
+  const guestName   = (guestNameEl?.value || '').trim();
   errEl.textContent = '';
   if (!code) { errEl.textContent = 'Sláðu inn fjölskyldukóða.'; return; }
+  if (!guestName) { errEl.textContent = 'Sláðu inn nafnið þitt.'; return; }
+  if (!_selectedGuestRole) { errEl.textContent = 'Veldu hlutverk.'; return; }
   if (btn) { btn.textContent = 'Leita...'; btn.disabled = true; }
   try {
-    // Document lookup á ID — engin query, engin index þarf
     const snap = await getDoc(doc(db, 'familycodes', code));
     if (!snap.exists()) {
       errEl.textContent = 'Kóðinn fannst ekki — athugaðu með fjölskyldumeðlim.';
@@ -259,11 +280,21 @@ export async function famCodeLogin() {
     const data = snap.data();
     S.role           = 'guest';
     S.familyId       = data.familyId;
-    S.parentName     = (data.parentName || 'Fjölskylda').split(' ')[0];
+    S.guestName      = guestName;
+    S.guestRole      = _selectedGuestRole;
+    S.parentName     = guestName;
     S.parentEmail    = '';
     S.parentChildren = [];
     S.familyCode     = code;
     S.expandedChildren = {};
+
+    // Vista guest info í localStorage
+    localStorage.setItem('upphatt_guest', JSON.stringify({
+      familyId: data.familyId,
+      guestName: guestName,
+      guestRole: _selectedGuestRole,
+      familyCode: code
+    }));
 
     // Sækja börn úr users collection með parentUid
     if (data.parentUid) {
@@ -275,17 +306,29 @@ export async function famCodeLogin() {
       } catch(e) { console.warn('Could not fetch children:', e); }
     }
 
-    document.getElementById('parent-pill').textContent = S.parentName;
-    document.getElementById('parent-hero').textContent = `Góðan dag!`;
+    // Búa til sýnileg nöfn eftir hlutverki
+    const roleLabels = { amma: 'Amma', afi: 'Afi', mamma: 'Mamma', pabbi: 'Pabbi', annad: '' };
+    const displayRole = roleLabels[_selectedGuestRole] || '';
+    const displayName = displayRole ? `${displayRole} ${guestName}` : guestName;
+
+    document.getElementById('parent-pill').textContent = guestName;
+    document.getElementById('parent-hero').textContent = `Hæ, ${guestName}!`;
     document.getElementById('codes-list').innerHTML = '';
     const emailEl = document.getElementById('ph-user-email');
-    if (emailEl) emailEl.textContent = `Fjölskylda ${S.parentName}`;
+    if (emailEl) emailEl.textContent = displayName;
+
+    // Fela viðkvæmt fyrir guest
     const fcEl = document.getElementById('ph-family-code');
-    if (fcEl) fcEl.textContent = code;
+    if (fcEl) fcEl.parentElement.style.display = 'none';
+    const addChildBtn = document.getElementById('ph-add-child-btn');
+    if (addChildBtn) addChildBtn.style.display = 'none';
+    const settingsBtn = document.querySelector('.ph-settings-btn');
+    if (settingsBtn) settingsBtn.style.display = 'none';
 
     closeParentLoginPopup();
     initParentTheme();
     startFamilyListener();
+    startBooksListener();
     goTo('screen-parent-home');
   } catch(e) {
     errEl.textContent = 'Villa — reyndu aftur.';
@@ -456,6 +499,63 @@ async function _deleteChild(key) {
     openSettingsPopup();
   } catch(e) {
     console.error('Delete child villa:', e);
+  }
+}
+
+// ══════════════════════════════════════════
+// EYÐA AÐGANGI — soft delete
+// ══════════════════════════════════════════
+
+export function confirmDeleteAccount() {
+  const btn = document.getElementById('st-delete-account-btn');
+  if (!btn) return;
+  if (btn.dataset.confirming === 'true') {
+    _softDeleteAccount();
+  } else {
+    btn.textContent = 'Ertu alveg viss? Smelltu aftur';
+    btn.dataset.confirming = 'true';
+    btn.classList.add('st-delete-btn-confirm');
+    setTimeout(() => {
+      if (btn.dataset.confirming === 'true') {
+        btn.textContent = 'Eyða aðgangi og öllum gögnum';
+        btn.dataset.confirming = '';
+        btn.classList.remove('st-delete-btn-confirm');
+      }
+    }, 4000);
+  }
+}
+
+async function _softDeleteAccount() {
+  const btn = document.getElementById('st-delete-account-btn');
+  if (btn) { btn.textContent = 'Eyðir...'; btn.disabled = true; }
+  try {
+    const user = auth.currentUser;
+    if (!user) return;
+    // Merkja user doc sem eytt
+    await setDoc(doc(db, 'users', user.uid), {
+      deleted: true,
+      deletedAt: serverTimestamp()
+    }, { merge: true });
+    // Merkja alla barnakóða sem eytt
+    for (const child of (S.parentChildren || [])) {
+      if (child.code) {
+        try { await setDoc(doc(db, 'codes', child.code), { deleted: true }, { merge: true }); }
+        catch(e) { console.warn('Code delete:', e); }
+      }
+    }
+    // Merkja familycode sem eytt
+    if (S.familyCode) {
+      try { await setDoc(doc(db, 'familycodes', S.familyCode), { deleted: true }, { merge: true }); }
+      catch(e) { console.warn('FamCode delete:', e); }
+    }
+    // Skrá út
+    closeSettingsPopup();
+    await signOut(auth);
+    localStorage.clear();
+    location.reload();
+  } catch(e) {
+    console.error('Delete account villa:', e);
+    if (btn) { btn.textContent = 'Villa — reyndu aftur'; btn.disabled = false; btn.dataset.confirming = ''; btn.classList.remove('st-delete-btn-confirm'); }
   }
 }
 
@@ -694,6 +794,13 @@ export async function childLogin() {
   const err  = document.getElementById('child-code-error');
   err.textContent = '';
   if (code.length < 4) { return; }
+  // Admin check
+  if (typeof window.isAdminCode === 'function' && window.isAdminCode(code)) {
+    document.getElementById('child-code-input').disabled = false;
+    document.getElementById('child-code-input').value = '';
+    window.openAdminDashboard();
+    return;
+  }
   try {
     document.getElementById('child-code-input').disabled = true;
     const snap = await getDoc(doc(db, 'codes', code));
@@ -775,7 +882,9 @@ export function initAuth() {
     if (S.familyUnsub) { S.familyUnsub(); S.familyUnsub = null; }
     S.sessions = [];
     const saved = localStorage.getItem('upphatt_child');
-    if (saved) {
+   const skipOnce = sessionStorage.getItem('upphatt_skip_child_redirect_once');
+if (skipOnce) { sessionStorage.removeItem('upphatt_skip_child_redirect_once'); localStorage.removeItem('upphatt_child'); }
+if (saved && !skipOnce) {
       try {
         const data = JSON.parse(saved);
         S.role = 'child'; S.familyId = data.familyId;

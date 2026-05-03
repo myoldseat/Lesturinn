@@ -388,7 +388,7 @@ export function openJourneyModal(bookId) {
   const modal = document.getElementById('journey-modal');
   if (!modal) return;
   _renderJourneyModal(bookId);
-  modal.style.display = '';
+  modal.style.display = 'grid';
   document.body.style.overflow = 'hidden';
 }
 
@@ -1023,7 +1023,7 @@ export function openAccountModal() {
   if (themeIcon)  themeIcon.textContent  = isDark ? '☀️' : '🌙';
   if (themeLabel) themeLabel.textContent = isDark ? 'Ljóst' : 'Dökkt';
 
-  modal.style.display = '';
+  modal.style.display = 'grid';
   document.body.style.overflow = 'hidden';
 }
 

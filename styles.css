@@ -573,8 +573,8 @@ audio { width: 100%; border-radius: 8px }
 .ph-wday-num { font-size: 12px; font-weight: 700; color: var(--ph-soft); }
 .ph-wday-num.ph-wday-today { color: var(--ph-accent); }
 
-.ph-stats-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
-.ph-stat-card { background: var(--ph-tile); border: 1px solid var(--ph-tile-border); border-radius: 16px; padding: 14px 12px; text-align: left; overflow: hidden; min-width: 0; }
+.ph-stats-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+.ph-stat-card { background: var(--ph-tile); border: 1px solid var(--ph-tile-border); border-radius: 16px; padding: 10px 8px; text-align: left; overflow: hidden; min-width: 0; }
 .ph-stat-val { font-size: 36px; font-weight: 800; color: var(--ph-accent); line-height: 1; margin-bottom: 6px; font-family: Georgia, serif; }
 .ph-stat-lbl { font-size: 11px; font-weight: 600; color: var(--ph-soft); text-transform: uppercase; letter-spacing: 0.5px; }
 
@@ -1149,15 +1149,14 @@ audio { width: 100%; border-radius: 8px }
    ACCOUNT MODAL
 ════════════════════════════════════════ */
 .acc-card {
-  background: #0c1626;
-  border: 1px solid rgba(29,205,211,0.25);
+  background: var(--ph-tile);
+  border: 1px solid var(--ph-tile-border);
   border-radius: 20px;
   width: min(360px, 92vw);
   padding: 24px 20px 20px;
   position: relative;
   overflow: hidden;
   animation: slideUp 0.22s ease;
-  box-shadow: 0 24px 60px rgba(0,0,0,0.5);
 }
 .acc-header {
   display: flex;
@@ -1293,18 +1292,18 @@ audio { width: 100%; border-radius: 8px }
   transform: translateY(-1px);
 }
 .ph-jn-card-pages {
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 800;
   color: var(--ph-accent);
   text-transform: uppercase;
   letter-spacing: 0.3px;
-  margin-bottom: 6px;
+  margin-bottom: 4px;
 }
 .ph-jn-card-text {
-  font-size: 14px;
+  font-size: 11px;
   font-weight: 600;
   color: var(--ph-text);
-  line-height: 1.45;
+  line-height: 1.35;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -1312,10 +1311,10 @@ audio { width: 100%; border-radius: 8px }
 }
 .ph-jn-card-note {
   background: rgba(29,205,211,0.06);
-  border-left: 3px solid var(--ph-accent);
-  border-radius: 0 8px 8px 0;
-  padding: 10px 12px;
-  margin-bottom: 10px;
+  border-left: 2px solid var(--ph-accent);
+  border-radius: 0 6px 6px 0;
+  padding: 6px 8px;
+  margin-bottom: 6px;
 }
 .ph-jn-meira-row {
   display: flex;
@@ -1323,13 +1322,13 @@ audio { width: 100%; border-radius: 8px }
   justify-content: space-between;
 }
 .ph-jn-meira-pill {
-  font-size: 12px;
+  font-size: 10px;
   font-weight: 700;
   color: var(--ph-accent);
-  background: rgba(29,205,211,0.1);
-  border: 1px solid rgba(29,205,211,0.25);
-  border-radius: 20px;
-  padding: 4px 12px;
+  background: none;
+  border: none;
+  border-radius: 0;
+  padding: 0;
   letter-spacing: 0.2px;
 }
 .ph-jn-total-hint {
@@ -1341,8 +1340,8 @@ audio { width: 100%; border-radius: 8px }
    JOURNEY FULL MODAL
 ════════════════════════════════════════ */
 .jm-card {
-  background: #0c1626;
-  border: 1px solid rgba(29,205,211,0.25);
+  background: var(--ph-tile);
+  border: 1px solid var(--ph-tile-border);
   border-radius: 20px;
   width: min(420px, 94vw);
   max-height: 85vh;
@@ -1351,7 +1350,6 @@ audio { width: 100%; border-radius: 8px }
   overflow: hidden;
   position: relative;
   animation: slideUp 0.22s ease;
-  box-shadow: 0 24px 60px rgba(0,0,0,0.5);
 }
 .jm-header {
   display: flex;
@@ -1446,8 +1444,8 @@ audio { width: 100%; border-radius: 8px }
    BOOKSHELF ICON WRAP
 ════════════════════════════════════════ */
 .ph-bs-icon-wrap {
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   border-radius: 10px;
   background: rgba(29,205,211,0.1);
   border: 1px solid rgba(29,205,211,0.25);
@@ -1459,10 +1457,39 @@ audio { width: 100%; border-radius: 8px }
 }
 .ph-bs-link {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 10px !important;
+  gap: 6px !important;
   text-decoration: none;
   color: inherit;
   padding: 0;
   min-height: 0;
+  text-align: center;
+}
+.ph-bs-link .ph-bs-arrow { display: none; }
+.ph-bs-link .ph-bs-text { text-align: center; }
+
+
+/* ── Modal text visibility fixes ── */
+.acc-card,
+.jm-card {
+  color: #d9e5ef;
+}
+.acc-title,
+.acc-row-label,
+.acc-famcode,
+.jm-book-title,
+.jm-entry-note {
+  color: #ffffff !important;
+}
+.acc-email,
+.acc-famcode-hint,
+.acc-section-label,
+.jm-entry-meta,
+.jm-label {
+  color: #94a4b4 !important;
+}
+.acc-settings-link,
+.acc-theme-toggle {
+  color: #d9e5ef !important;
 }

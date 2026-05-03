@@ -436,8 +436,13 @@ function renderBookshelfLink() {
     ? books : books.filter(b => b.childKey === _phSelectedKey);
   const count = childBooks.length;
 
+  const childKey = _phSelectedKey && _phSelectedKey !== 'all' ? _phSelectedKey : '';
+  const bookshelfUrl = childKey
+    ? `bookshelf.html?family=${encodeURIComponent(S.familyId)}&child=${encodeURIComponent(childKey)}`
+    : 'bookshelf.html';
+
   el.innerHTML = `
-    <a href="bookshelf.html" class="ph-bs-link" title="Opna bókasafn">
+    <a href="${bookshelfUrl}" class="ph-bs-link" title="Opna bókasafn">
       <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--ph-accent)">
         <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5Z"/>
         <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>

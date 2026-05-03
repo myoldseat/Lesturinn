@@ -1493,3 +1493,32 @@ audio { width: 100%; border-radius: 8px }
 .acc-theme-toggle {
   color: #d9e5ef !important;
 }
+
+
+/* ═══════════════════════════════════════
+   MODAL OVERRIDES — force opaque
+════════════════════════════════════════ */
+#account-modal,
+#journey-modal {
+  position: fixed !important;
+  inset: 0 !important;
+  background: rgba(0, 0, 0, 0.75) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+  z-index: 9999 !important;
+  display: none;
+  place-items: center;
+  padding: 16px;
+}
+#account-modal[style*="grid"],
+#journey-modal[style*="grid"] {
+  display: grid !important;
+}
+#account-modal .acc-card,
+#journey-modal .jm-card {
+  background: #0b1420 !important;
+  border: 1.5px solid rgba(29,205,211,0.3) !important;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.7), 0 0 0 1px rgba(29,205,211,0.1) !important;
+  position: relative !important;
+  z-index: 10000 !important;
+}

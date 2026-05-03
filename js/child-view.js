@@ -8,6 +8,39 @@ import {
   getStreakWithShields, getShields, checkAndGrantShield,
   playSound, checkMilestone
 } from './helpers.js';
+// ── Screen Wake Lock ──
+let _wakeLock = null;
+
+async function requestWakeLock() {
+  if (!('wakeLock' in navigator)) return;
+  try {
+    _wakeLock = await navigator.wakeLock.request('screen');
+    _wakeLock.addEventListener('release', () => {
+      // Re-request if still reading when screen turns back on
+      if (document.getElementById('reading-card')?.style.display !== 'none') {
+        requestWakeLock();
+      }
+    });
+  } catch (e) {
+    console.warn('Wake Lock villa:', e.name, e.message);
+  }
+}
+
+function releaseWakeLock() {
+  if (_wakeLock && _wakeLock.released === false) {
+    _wakeLock.release().catch(() => {});
+  }
+  _wakeLock = null;
+}
+
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' &&
+      document.getElementById('reading-card')?.style.display !== 'none') {
+    requestWakeLock();
+  }
+});
+
+
 
 // ── Setup ──
 export function setupChildHome() {
@@ -145,6 +178,7 @@ export function startReading() {
     }
   }, 500);
 
+  requestWakeLock();
   startAudio();
 }
 
@@ -152,6 +186,7 @@ export function startReading() {
 export function stopReading() {
   if (!S.readingStartMs) return;
   clearInterval(S.timerInterval); S.timerInterval = null;
+  releaseWakeLock();
   S.elapsedSecs = Math.floor((Date.now() - S.readingStartMs) / 1000);
   stopAudio();
 
@@ -195,6 +230,7 @@ export function stopReading() {
 // ── Cancel reading ──
 export function cancelReading() {
   clearInterval(S.timerInterval); S.timerInterval = null;
+  releaseWakeLock();
   stopAudio();
   S.readingStartMs = null; S.elapsedSecs = 0;
   S.pendingSession = null; S.audioSnippets = {};

@@ -349,37 +349,104 @@ function renderJourneyCard() {
     return;
   }
 
-  const entries = hero.journeyEntries.slice(0, 3);
-  const listenerName = _getListenerName();
+  // Find the last entry that has a child note
+  const allEntries = hero.journeyEntries;
+  const lastWithNote = [...allEntries].reverse().find(e => e.note && e.note.trim());
+  const totalCount = allEntries.length;
   const bookId = hero.id;
 
-  const entriesHtml = entries.map((e, i) => {
-    const reactions = (e.reactions || []).map(r =>
-      `<span class="ph-jn-react">${_esc(r)}</span>`
-    ).join('');
-    return `
-      <div class="ph-jn-entry">
-        <div class="ph-jn-date">${_esc(e.date || '')}${e.pageFrom ? ` · bls. ${e.pageFrom}–${e.pageTo}` : ''}</div>
-        ${e.note ? `<div class="ph-jn-note">${_esc(e.note)}</div>` : ''}
-        ${reactions ? `<div class="ph-jn-reactions">${reactions}</div>` : ''}
-      </div>`;
-  }).join('');
+  // Page range label for the last entry
+  const pageRange = lastWithNote?.pageFrom
+    ? `bls. ${lastWithNote.pageFrom}–${lastWithNote.pageTo}`
+    : '';
+
+  el.setAttribute('data-book-id', bookId);
+  el.style.cursor = 'pointer';
+  el.onclick = () => openJourneyModal(bookId);
 
   el.innerHTML = `
     <div class="ph-jn-label">Lestrarferðalag</div>
-    <div class="ph-jn-entries">${entriesHtml}</div>
-    <div class="ph-jn-input-row">
-      <input class="ph-jn-input" id="ph-jn-input" placeholder="Skrifa hvatningu..." maxlength="80">
-      <button class="ph-jn-send" id="ph-jn-send" title="Senda">↑</button>
-    </div>
-    <div class="ph-jn-sent" id="ph-jn-sent">Sent ✓</div>`;
+    ${lastWithNote ? `
+      <div class="ph-jn-card-note">
+        ${pageRange ? `<div class="ph-jn-card-pages">Í dag · ${pageRange}</div>` : ''}
+        <div class="ph-jn-card-text">${_esc(lastWithNote.note)}</div>
+      </div>
+      <div class="ph-jn-meira-row">
+        <span class="ph-jn-meira-pill">Meira &rsaquo;</span>
+        <span class="ph-jn-total-hint">${totalCount} ${totalCount === 1 ? 'færsla' : 'færslur'}</span>
+      </div>
+    ` : `
+      <div class="ph-jn-empty-text">Engar færslur enn</div>
+    `}`;
+}
 
-  const input = document.getElementById('ph-jn-input');
-  const sendBtn = document.getElementById('ph-jn-send');
-  if (sendBtn) sendBtn.addEventListener('click', () => _sendJourneyReaction(bookId, listenerName));
-  if (input) input.addEventListener('keydown', e => {
-    if (e.key === 'Enter') _sendJourneyReaction(bookId, listenerName);
-  });
+// ── Journey full-screen modal ──
+let _jmBookId = null;
+
+export function openJourneyModal(bookId) {
+  _jmBookId = bookId;
+  const modal = document.getElementById('journey-modal');
+  if (!modal) return;
+  _renderJourneyModal(bookId);
+  modal.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+
+export function closeJourneyModal(e) {
+  if (e && e.target !== document.getElementById('journey-modal')) return;
+  const modal = document.getElementById('journey-modal');
+  if (modal) modal.style.display = 'none';
+  document.body.style.overflow = '';
+  _jmBookId = null;
+}
+
+function _renderJourneyModal(bookId) {
+  const hero = (S.books || []).find(b => b.id === bookId);
+  if (!hero) return;
+
+  const titleEl = document.getElementById('jm-book-title');
+  if (titleEl) titleEl.textContent = hero.title || '';
+
+  const feed = document.getElementById('jm-feed');
+  if (!feed) return;
+
+  const entries = (hero.journeyEntries || []);
+
+  if (!entries.length) {
+    feed.innerHTML = '<div class="jm-empty">Engar færslur enn.</div>';
+    return;
+  }
+
+  feed.innerHTML = [...entries].reverse().map(e => {
+    const reactions = (e.reactions || []).map(r =>
+      `<div class="jm-reaction">${_esc(r)}</div>`
+    ).join('');
+    const pageRange = e.pageFrom ? `bls. ${e.pageFrom}–${e.pageTo}` : '';
+    return `
+      <div class="jm-entry">
+        <div class="jm-entry-meta">${_esc(e.date || '')}${pageRange ? ` · ${pageRange}` : ''}</div>
+        ${e.note ? `<div class="jm-entry-note">${_esc(e.note)}</div>` : ''}
+        ${reactions ? `<div class="jm-reactions-list">${reactions}</div>` : ''}
+      </div>`;
+  }).join('');
+
+  // Scroll to bottom (newest is first visually, feed is reversed)
+  feed.scrollTop = 0;
+
+  // Wire up compose
+  const input = document.getElementById('jm-input');
+  const sendBtn = document.getElementById('jm-send');
+  const listenerName = _getListenerName();
+  if (sendBtn) {
+    sendBtn.onclick = null;
+    sendBtn.addEventListener('click', () => _sendJourneyReaction(bookId, listenerName, true));
+  }
+  if (input) {
+    input.onkeydown = null;
+    input.addEventListener('keydown', ev => {
+      if (ev.key === 'Enter') _sendJourneyReaction(bookId, listenerName, true);
+    });
+  }
 }
 
 function _getListenerName() {
@@ -391,10 +458,12 @@ function _getListenerName() {
   return S.parentName || 'Foreldri';
 }
 
-async function _sendJourneyReaction(bookId, listenerName) {
+async function _sendJourneyReaction(bookId, listenerName, fromModal = false) {
   if (_jnSending) return;
-  const input = document.getElementById('ph-jn-input');
-  const sentEl = document.getElementById('ph-jn-sent');
+  const inputId = fromModal ? 'jm-input' : 'ph-jn-input';
+  const sentId  = fromModal ? 'jm-sent'  : 'ph-jn-sent';
+  const input = document.getElementById(inputId);
+  const sentEl = document.getElementById(sentId);
   if (!input) return;
   const text = input.value.trim();
   if (!text) return;
@@ -417,6 +486,11 @@ async function _sendJourneyReaction(bookId, listenerName) {
     if (sentEl) {
       sentEl.classList.add('show');
       setTimeout(() => sentEl.classList.remove('show'), 2000);
+    }
+    // Refresh modal feed if sending from modal
+    if (fromModal && _jmBookId) {
+      book.journeyEntries = entries;
+      _renderJourneyModal(_jmBookId);
     }
   } catch (e) {
     console.error('Journey reaction villa:', e);
@@ -443,11 +517,13 @@ function renderBookshelfLink() {
 
   el.innerHTML = `
     <a href="${bookshelfUrl}" class="ph-bs-link" title="Opna bókasafn">
-      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--ph-accent)">
-        <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5Z"/>
-        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
-        <path d="M9 7h6"/>
-      </svg>
+      <div class="ph-bs-icon-wrap">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5Z"/>
+          <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+          <path d="M9 7h6"/>
+        </svg>
+      </div>
       <div class="ph-bs-text">
         <div class="ph-bs-title">Bókasafn</div>
         <div class="ph-bs-count">${count} ${count === 1 ? 'bók' : 'bækur'}</div>
@@ -923,3 +999,43 @@ export function toggleCodes() {
 export async function playClip(path, playerId, btnId, familyId, childKey, sessionDocId, clipKey) {
   await phPlayClip(path, playerId, btnId, familyId, childKey, sessionDocId, clipKey);
 }
+
+// ── Account Modal ──
+export function openAccountModal() {
+  const modal = document.getElementById('account-modal');
+  if (!modal) return;
+
+  // Populate email
+  const emailEl = document.getElementById('acc-email-display');
+  if (emailEl) emailEl.textContent = S.parentEmail || document.getElementById('ph-user-email')?.textContent || '—';
+
+  // Populate family code
+  const codeEl = document.getElementById('acc-famcode');
+  if (codeEl) {
+    const srcCode = document.getElementById('ph-family-code');
+    codeEl.textContent = srcCode?.textContent || S.familyCode || '—';
+  }
+
+  // Sync theme icon
+  const themeIcon  = document.getElementById('acc-theme-icon');
+  const themeLabel = document.getElementById('acc-theme-label');
+  const isDark = document.body.classList.contains('ph-dark') || !document.body.classList.contains('ph-light');
+  if (themeIcon)  themeIcon.textContent  = isDark ? '☀️' : '🌙';
+  if (themeLabel) themeLabel.textContent = isDark ? 'Ljóst' : 'Dökkt';
+
+  modal.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+
+export function closeAccountModal(e) {
+  if (e && e.target !== document.getElementById('account-modal')) return;
+  const modal = document.getElementById('account-modal');
+  if (modal) modal.style.display = 'none';
+  document.body.style.overflow = '';
+}
+
+// Expose to window for inline onclick handlers
+window.openAccountModal  = openAccountModal;
+window.closeAccountModal = closeAccountModal;
+window.openJourneyModal  = openJourneyModal;
+window.closeJourneyModal = closeJourneyModal;

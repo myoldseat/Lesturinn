@@ -257,11 +257,9 @@ function updateStats() {
   const sessions = S.sessions || [];
   const filtered = !_phSelectedKey || _phSelectedKey === 'all'
     ? sessions : sessions.filter(s => s.childKey === _phSelectedKey);
-  const count = filtered.length;
-  const sEl = document.getElementById('ph-stat-sessions');
-  if (sEl) sEl.textContent = count;
 
   renderNowReading(filtered);
+  renderJourneyCard();
   renderBookshelfLink();
 }
 
@@ -274,25 +272,34 @@ function bookTs(b, f) {
   return 0;
 }
 
+function _esc(s) { return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+function _getSelectedChildName() {
+  if (!_phSelectedKey || _phSelectedKey === 'all') return '';
+  const c = (S.parentChildren || []).find(c => c.key === _phSelectedKey);
+  return c ? c.name : '';
+}
+
+function _getReadingBook() {
+  const books = S.books || [];
+  const childBooks = !_phSelectedKey || _phSelectedKey === 'all'
+    ? books : books.filter(b => b.childKey === _phSelectedKey);
+  return childBooks
+    .filter(b => b.status === 'reading')
+    .sort((a, b) => bookTs(b, 'lastReadAt') - bookTs(a, 'lastReadAt'))[0] || null;
+}
+
 // ── "Að lesa" kort ──
 function renderNowReading(filteredSessions) {
   const el = document.getElementById('ph-now-reading');
   if (!el) return;
 
-  const books = S.books || [];
-  const childBooks = !_phSelectedKey || _phSelectedKey === 'all'
-    ? books : books.filter(b => b.childKey === _phSelectedKey);
-
-  const reading = childBooks
-    .filter(b => b.status === 'reading')
-    .sort((a, b) => bookTs(b, 'lastReadAt') - bookTs(a, 'lastReadAt'));
-
-  const hero = reading[0];
+  const hero = _getReadingBook();
 
   if (!hero) {
     el.innerHTML = `
       <div class="ph-nr-empty">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="color:var(--accent);opacity:.5"><path d="M4.5 5.5v13.2c0 .4.4.7.8.5 2.1-.9 4.4-.8 6.2.4.3.2.7 0 .7-.4V7.1c0-.5-.2-.9-.6-1.1-2-1.1-4.6-1.2-6.8-.2-.2.1-.3.3-.3.5Z"/><path d="M19.5 5.5v13.2c0 .4-.4.7-.8.5-2.1-.9-4.4-.8-6.2.4-.3.2-.7 0-.7-.4V7.1c0-.5.2-.9.6-1.1 2-1.1 4.6-1.2 6.8-.2.2.1.3.3.3.5Z"/></svg>
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="color:var(--ph-accent);opacity:.5"><path d="M4.5 5.5v13.2c0 .4.4.7.8.5 2.1-.9 4.4-.8 6.2.4.3.2.7 0 .7-.4V7.1c0-.5-.2-.9-.6-1.1-2-1.1-4.6-1.2-6.8-.2-.2.1-.3.3-.3.5Z"/><path d="M19.5 5.5v13.2c0 .4-.4.7-.8.5-2.1-.9-4.4-.8-6.2.4-.3.2-.7 0-.7-.4V7.1c0-.5.2-.9.6-1.1 2-1.1 4.6-1.2 6.8-.2.2.1.3.3.3.5Z"/></svg>
         <div class="ph-nr-empty-text">Ekkert verið að lesa</div>
       </div>`;
     return;
@@ -303,7 +310,6 @@ function renderNowReading(filteredSessions) {
   const author = hero.author || '';
   const pages = hero.currentPageTo ? `bls. ${hero.currentPageTo} af ${hero.totalPages || '?'}` : '';
 
-  // Avg mín per dag frá sessions
   const daySet = new Set();
   let totalMins = 0;
   filteredSessions.forEach(s => {
@@ -325,7 +331,100 @@ function renderNowReading(filteredSessions) {
     <div class="ph-nr-meta">${pages}${avgMin ? ` · ~${avgMin} mín/dag` : ''}</div>`;
 }
 
-function _esc(s) { return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+// ── Lestrarferðalag kort ──
+let _jnSending = false;
+
+function renderJourneyCard() {
+  const el = document.getElementById('ph-journey-card');
+  if (!el) return;
+
+  const hero = _getReadingBook();
+
+  if (!hero || !hero.journeyEntries?.length) {
+    el.innerHTML = `
+      <div class="ph-jn-empty">
+        <div class="ph-jn-label">Lestrarferðalag</div>
+        <div class="ph-jn-empty-text">${hero ? 'Engar færslur enn' : 'Ekkert verið að lesa'}</div>
+      </div>`;
+    return;
+  }
+
+  const entries = hero.journeyEntries.slice(0, 3);
+  const listenerName = _getListenerName();
+  const bookId = hero.id;
+
+  const entriesHtml = entries.map((e, i) => {
+    const reactions = (e.reactions || []).map(r =>
+      `<span class="ph-jn-react">${_esc(r)}</span>`
+    ).join('');
+    return `
+      <div class="ph-jn-entry">
+        <div class="ph-jn-date">${_esc(e.date || '')}${e.pageFrom ? ` · bls. ${e.pageFrom}–${e.pageTo}` : ''}</div>
+        ${e.note ? `<div class="ph-jn-note">${_esc(e.note)}</div>` : ''}
+        ${reactions ? `<div class="ph-jn-reactions">${reactions}</div>` : ''}
+      </div>`;
+  }).join('');
+
+  el.innerHTML = `
+    <div class="ph-jn-label">Lestrarferðalag</div>
+    <div class="ph-jn-entries">${entriesHtml}</div>
+    <div class="ph-jn-input-row">
+      <input class="ph-jn-input" id="ph-jn-input" placeholder="Skrifa hvatningu..." maxlength="80">
+      <button class="ph-jn-send" id="ph-jn-send" title="Senda">↑</button>
+    </div>
+    <div class="ph-jn-sent" id="ph-jn-sent">Sent ✓</div>`;
+
+  const input = document.getElementById('ph-jn-input');
+  const sendBtn = document.getElementById('ph-jn-send');
+  if (sendBtn) sendBtn.addEventListener('click', () => _sendJourneyReaction(bookId, listenerName));
+  if (input) input.addEventListener('keydown', e => {
+    if (e.key === 'Enter') _sendJourneyReaction(bookId, listenerName);
+  });
+}
+
+function _getListenerName() {
+  if (S.role === 'guest' && S.guestName) {
+    const roleLabels = { amma: 'Amma', afi: 'Afi', mamma: 'Mamma', pabbi: 'Pabbi', annad: '' };
+    const prefix = roleLabels[S.guestRole] || '';
+    return prefix ? `${prefix} ${S.guestName}` : S.guestName;
+  }
+  return S.parentName || 'Foreldri';
+}
+
+async function _sendJourneyReaction(bookId, listenerName) {
+  if (_jnSending) return;
+  const input = document.getElementById('ph-jn-input');
+  const sentEl = document.getElementById('ph-jn-sent');
+  if (!input) return;
+  const text = input.value.trim();
+  if (!text) return;
+
+  _jnSending = true;
+  input.disabled = true;
+
+  try {
+    const book = (S.books || []).find(b => b.id === bookId);
+    if (!book || !book.journeyEntries?.length) return;
+
+    const entries = [...book.journeyEntries];
+    const newest = { ...entries[0] };
+    newest.reactions = [...(newest.reactions || []), `${listenerName} ❤️ ${text}`];
+    entries[0] = newest;
+
+    await updateDoc(doc(db, 'books', bookId), { journeyEntries: entries });
+
+    input.value = '';
+    if (sentEl) {
+      sentEl.classList.add('show');
+      setTimeout(() => sentEl.classList.remove('show'), 2000);
+    }
+  } catch (e) {
+    console.error('Journey reaction villa:', e);
+  } finally {
+    _jnSending = false;
+    if (input) input.disabled = false;
+  }
+}
 
 // ── Bókasafn link ──
 function renderBookshelfLink() {
@@ -336,11 +435,10 @@ function renderBookshelfLink() {
   const childBooks = !_phSelectedKey || _phSelectedKey === 'all'
     ? books : books.filter(b => b.childKey === _phSelectedKey);
   const count = childBooks.length;
-  const childName = _getSelectedChildName();
 
   el.innerHTML = `
     <a href="bookshelf.html" class="ph-bs-link" title="Opna bókasafn">
-      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--accent)">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--ph-accent)">
         <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5Z"/>
         <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
         <path d="M9 7h6"/>
@@ -351,12 +449,6 @@ function renderBookshelfLink() {
       </div>
       <span class="ph-bs-arrow">›</span>
     </a>`;
-}
-
-function _getSelectedChildName() {
-  if (!_phSelectedKey || _phSelectedKey === 'all') return '';
-  const c = (S.parentChildren || []).find(c => c.key === _phSelectedKey);
-  return c ? c.name : '';
 }
 
 // ══════════════════════════════════════════════

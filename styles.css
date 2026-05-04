@@ -1783,46 +1783,39 @@ audio { width: 100%; border-radius: 8px }
 }
 .acc-dd-divider {
   height: 1px;
-  background: rgba(29,205,211,0.12);
+  background: rgba(29,205,211,0.1);
   margin: 6px 0;
-}
-.acc-dd-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 6px 2px;
-  font-size: 13px;
-  font-weight: 600;
-  color: #d9e5ef;
 }
 .acc-dd-theme {
   display: flex;
   align-items: center;
-  gap: 5px;
-  background: rgba(29,205,211,0.08);
-  border: 1px solid rgba(29,205,211,0.2);
-  border-radius: 16px;
-  padding: 4px 10px;
-  font-size: 12px;
+  gap: 6px;
+  width: 100%;
+  padding: 8px 8px;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
   font-weight: 600;
   color: #d9e5ef;
+  background: transparent;
   cursor: pointer;
+  transition: background 0.15s;
+  text-align: left;
 }
-.acc-dd-theme:hover { background: rgba(29,205,211,0.15); }
+.acc-dd-theme:hover { background: rgba(29,205,211,0.08); }
 .acc-dd-famcode-label {
   font-size: 9px;
   font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.8px;
   color: #94a4b4;
   padding: 4px 2px 2px;
 }
 .acc-dd-famcode {
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 800;
   color: #1dcdd3;
   letter-spacing: 3px;
-  font-family: Georgia, serif;
   padding: 2px 2px 0;
 }
 .acc-dd-famhint {
@@ -1839,20 +1832,16 @@ audio { width: 100%; border-radius: 8px }
   padding: 8px 8px;
   border: none;
   border-radius: 8px;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
   cursor: pointer;
   text-align: left;
   background: transparent;
   transition: background 0.15s;
 }
-.acc-dd-link {
-  color: #d9e5ef;
-}
+.acc-dd-link { color: #d9e5ef; }
 .acc-dd-link:hover { background: rgba(29,205,211,0.08); }
-.acc-dd-logout {
-  color: #ff6b6b;
-}
+.acc-dd-logout { color: #ff6b6b; }
 .acc-dd-logout:hover { background: rgba(255,107,107,0.08); }
 
 

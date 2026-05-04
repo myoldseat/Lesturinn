@@ -1915,3 +1915,22 @@ audio { width: 100%; border-radius: 8px }
   border-color: rgba(0,0,0,0.08);
 }
 #screen-parent-home.ph-light .jm-entry-meta { color: #0b9ea4; }
+
+
+/* ── Light theme: Recordings / Upptökur ── */
+#screen-parent-home.ph-light .ph-rec-date { color: #1a2332; }
+#screen-parent-home.ph-light .ph-rec-time { color: #6b7a8d; }
+#screen-parent-home.ph-light .ph-rec-count { color: #8a97a5; }
+#screen-parent-home.ph-light .ph-rec-tab { background: rgba(11,158,164,0.06); color: #6b7a8d; }
+#screen-parent-home.ph-light .ph-rec-tab-active { background: rgba(11,158,164,0.12); color: #0b9ea4; }
+#screen-parent-home.ph-light .ph-rec-header { border-color: rgba(0,0,0,0.06); }
+#screen-parent-home.ph-light .ph-rec-header:hover { background: rgba(11,158,164,0.05); }
+#screen-parent-home.ph-light .ph-rec-sep { color: rgba(0,0,0,0.15); }
+#screen-parent-home.ph-light .ph-rec-chevron { color: rgba(0,0,0,0.3); }
+#screen-parent-home.ph-light .ph-rec-fav { color: rgba(0,0,0,0.2); }
+#screen-parent-home.ph-light .ph-rec-fav.starred { color: #d4a017; }
+#screen-parent-home.ph-light .ph-clip-loading { color: #6b7a8d; }
+#screen-parent-home.ph-light .ph-rec-item { background: rgba(0,0,0,0.02); }
+#screen-parent-home.ph-light .ph-hm-tabs { background: rgba(0,0,0,0.03); border-color: rgba(0,0,0,0.08); }
+#screen-parent-home.ph-light .ph-hm-tab { color: #6b7a8d; }
+#screen-parent-home.ph-light .ph-hm-tab-active { color: #0b9ea4; background: rgba(11,158,164,0.1); }

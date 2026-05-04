@@ -637,7 +637,6 @@ function renderBookshelfLink() {
       <div class="ph-bs-count">${count} ${count === 1 ? 'bók' : 'bækur'}</div>
     </a>`;
 }
-}
 
 // ══════════════════════════════════════════════
 // HEATMAP

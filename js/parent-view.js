@@ -1,8 +1,3 @@
-// ── Theme toggle SVG icons ──
-const _THEME_SVG_SUN = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1dcdd3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>`;
-const _THEME_SVG_MOON = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1dcdd3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`;
-
-
 import {
   db, storage,
   collection, onSnapshot, query, where,
@@ -11,6 +6,26 @@ import {
 } from './firebase-config.js';
 import { S }    from './state.js';
 import { fmtTime, formatLabel, getMonday, getStreak } from './helpers.js';
+
+// ── Theme toggle SVG icons ──
+const _THEME_SVG_SUN = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1dcdd3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>`;
+const _THEME_SVG_MOON = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1dcdd3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`;
+
+// ── Goal type SVG icons ──
+const _GOAL_SVG = {
+  books:   `<svg width="18" height="18" viewBox="0 0 44 44" fill="none" style="display:inline-block;vertical-align:middle;filter:drop-shadow(0 0 3px rgba(29,205,211,0.5))"><rect x="14" y="10" width="18" height="23" rx="3" fill="rgba(29,205,211,0.35)" stroke="#1dcdd3" stroke-width="1.2"/><rect x="11" y="12" width="18" height="23" rx="3" fill="#1dcdd3"/><line x1="16" y1="12" x2="16" y2="35" stroke="#050f1a" stroke-width="1.8" stroke-opacity="0.5"/><line x1="19" y1="18" x2="26" y2="18" stroke="#050f1a" stroke-width="1.3" stroke-opacity="0.45"/><line x1="19" y1="22" x2="26" y2="22" stroke="#050f1a" stroke-width="1.3" stroke-opacity="0.45"/><line x1="19" y1="26" x2="24" y2="26" stroke="#050f1a" stroke-width="1.3" stroke-opacity="0.45"/><path d="M27 10 L27 17 L24.5 15 L22 17 L22 10 Z" fill="rgba(5,15,26,0.6)"/></svg>`,
+  pages:   `<svg width="18" height="18" viewBox="0 0 44 44" fill="none" style="display:inline-block;vertical-align:middle;filter:drop-shadow(0 0 3px rgba(29,205,211,0.5))"><path d="M12 9 L28 9 L32 13 L32 36 L12 36 Z" fill="none" stroke="#1dcdd3" stroke-width="1.8" stroke-linejoin="round"/><path d="M28 9 L28 13 L32 13" fill="none" stroke="#1dcdd3" stroke-width="1.8" stroke-linejoin="round"/><line x1="16" y1="19" x2="28" y2="19" stroke="#1dcdd3" stroke-width="1.6" stroke-linecap="round"/><line x1="16" y1="23.5" x2="28" y2="23.5" stroke="#1dcdd3" stroke-width="1.6" stroke-linecap="round"/><line x1="16" y1="28" x2="23" y2="28" stroke="#1dcdd3" stroke-width="1.6" stroke-linecap="round"/></svg>`,
+  minutes: `<svg width="18" height="18" viewBox="0 0 44 44" fill="none" style="display:inline-block;vertical-align:middle;filter:drop-shadow(0 0 3px rgba(29,205,211,0.5))"><circle cx="22" cy="22" r="13" fill="none" stroke="#1dcdd3" stroke-width="1.8"/><path d="M22 9 A13 13 0 0 1 33.26 28.5" fill="none" stroke="#1dcdd3" stroke-width="3" stroke-linecap="round" opacity="0.35"/><line x1="22" y1="22" x2="22" y2="14" stroke="#1dcdd3" stroke-width="2" stroke-linecap="round"/><line x1="22" y1="22" x2="28" y2="26" stroke="#1dcdd3" stroke-width="1.6" stroke-linecap="round"/><circle cx="22" cy="22" r="2" fill="#1dcdd3"/></svg>`,
+  days:    `<svg width="18" height="18" viewBox="0 0 44 44" fill="none" style="display:inline-block;vertical-align:middle;filter:drop-shadow(0 0 3px rgba(29,205,211,0.5))"><rect x="9" y="13" width="26" height="22" rx="3.5" fill="none" stroke="#1dcdd3" stroke-width="1.8"/><rect x="9" y="13" width="26" height="7.5" rx="3.5" fill="#1dcdd3" opacity="0.9"/><rect x="9" y="17" width="26" height="3.5" fill="#1dcdd3" opacity="0.9"/><line x1="15" y1="10" x2="15" y2="15" stroke="#1dcdd3" stroke-width="2" stroke-linecap="round"/><line x1="29" y1="10" x2="29" y2="15" stroke="#1dcdd3" stroke-width="2" stroke-linecap="round"/><circle cx="15" cy="27" r="2.5" fill="#1dcdd3"/><circle cx="22" cy="27" r="2.5" fill="#1dcdd3"/><circle cx="29" cy="27" r="2.5" fill="#1dcdd3"/><circle cx="15" cy="33.5" r="2.5" fill="#1dcdd3"/><circle cx="22" cy="33.5" r="2.5" fill="none" stroke="#1dcdd3" stroke-width="1.4" opacity="0.4"/><circle cx="29" cy="33.5" r="2.5" fill="none" stroke="#1dcdd3" stroke-width="1.4" opacity="0.4"/></svg>`
+};
+
+// ── Goal type definitions (must match bookshelf) ──
+const GOAL_TYPES = {
+  books:   { icon: _GOAL_SVG.books,   name: 'Bækur',     unit: 'bækur' },
+  pages:   { icon: _GOAL_SVG.pages,   name: 'Blaðsíður', unit: 'bls.'  },
+  minutes: { icon: _GOAL_SVG.minutes, name: 'Mínútur',   unit: 'mín.'  },
+  days:    { icon: _GOAL_SVG.days,    name: 'Dagar',     unit: 'daga'  }
+};
 
 // ── makeDateKey: match Firestore format "2026-4-20" (no zero-padding) ──
 function makeDateKey(d) {

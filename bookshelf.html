@@ -785,7 +785,7 @@ async function handleCoverFile(file){
   identifyBookWithGemini(curCovHQ);
 }
 
-const GEMINI_KEY='AIzaSyAz4RKa7_Zpbg66QRHRSsazRIO9Hj_THhM';
+const GEMINI_KEY='AIzaSyBirj8Nq8D0LgpYOOE_FM8vx0kYVzpqnh4';
 
 async function identifyBookWithGemini(base64DataUrl){
   const titleEl=document.getElementById('bookTitle');
@@ -812,11 +812,11 @@ async function identifyBookWithGemini(base64DataUrl){
       body:JSON.stringify({
         contents:[{
           parts:[
-            {inlineData:{mimeType:mimeType,data:base64Data}},
+            {inline_data:{mime_type:mimeType,data:base64Data}},
             {text:'This is a photo of a book cover, most likely Icelandic. Identify it. Return ONLY a JSON object: {"title":"...","author":"...","totalPages":number}. No markdown, no backticks. If unknown, read visible text from cover.'}
           ]
         }],
-        generationConfig:{temperature:0.1,maxOutputTokens:200}
+        generation_config:{temperature:0.1,max_output_tokens:200}
       })
     });
 

@@ -3,7 +3,7 @@ import {
   db, storage,
   collection, onSnapshot, query, where,
   ref, getDownloadURL,
-  setDoc, doc, addDoc, serverTimestamp, updateDoc
+  setDoc, doc, addDoc, serverTimestamp, updateDoc, getDoc
 } from './firebase-config.js';
 import { S }    from './state.js';
 import { fmtTime, formatLabel, getMonday, getStreak } from './helpers.js';
@@ -525,53 +525,151 @@ async function _sendJourneyReaction(bookId, listenerName, fromModal = false) {
 }
 
 // ── Markmið kort ──
-function renderGoalsCard() {
+// ── Goal type definitions (must match bookshelf) ──
+const GOAL_TYPES = {
+  books:   { icon: '📚', name: 'Bækur',     unit: 'bækur' },
+  pages:   { icon: '📄', name: 'Blaðsíður', unit: 'bls.' },
+  minutes: { icon: '⏱',  name: 'Mínútur',  unit: 'mín.' },
+  days:    { icon: '🔥', name: 'Dagar',     unit: 'daga' }
+};
+
+function _getPeriodStart(period) {
+  const now = new Date();
+  if (period === 'week') {
+    const d = new Date(now); d.setDate(d.getDate() - d.getDay() + 1);
+    d.setHours(0,0,0,0); return d.getTime();
+  }
+  if (period === 'month') {
+    return new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+  }
+  return new Date(now.getFullYear(), 0, 1).getTime();
+}
+
+function _calcGoalProgress(g, books, sessions) {
+  if (!g) return { done: 0, target: 1, pct: 0 };
+  const start = Math.max(_getPeriodStart(g.period || 'week'), g.createdAt || 0);
+  const target = g.target || 1;
+  let done = 0;
+
+  if (g.type === 'books') {
+    done = books.filter(b => b.status === 'done' && bookTs(b, 'lastReadAt') >= start).length;
+  } else if (g.type === 'pages') {
+    done = sessions.filter(s => (s.timestamp || 0) >= start && (s.seconds || 0) >= 60)
+      .reduce((sum, s) => sum + (s.pagesRead || 0), 0);
+  } else if (g.type === 'minutes') {
+    done = Math.floor(sessions.filter(s => (s.timestamp || 0) >= start && (s.seconds || 0) >= 60)
+      .reduce((sum, s) => sum + (s.seconds || 0), 0) / 60);
+  } else if (g.type === 'days') {
+    const daySet = new Set();
+    sessions.filter(s => (s.timestamp || 0) >= start && (s.seconds || 0) >= 60)
+      .forEach(s => daySet.add(s.date || ''));
+    done = daySet.size;
+  }
+  return { done, target, pct: Math.min(100, Math.round((done / target) * 100)) };
+}
+
+async function renderGoalsCard() {
   const el = document.getElementById('ph-goals-card');
   if (!el) return;
 
-  const books = S.books || [];
-  const childBooks = !_phSelectedKey || _phSelectedKey === 'all'
-    ? books : books.filter(b => b.childKey === _phSelectedKey);
+  const childKey = _phSelectedKey && _phSelectedKey !== 'all' ? _phSelectedKey : null;
 
-  // Page progress from active reading book
-  const activeBook = childBooks
-    .filter(b => b.status === 'reading')
-    .sort((a, b) => bookTs(b, 'lastReadAt') - bookTs(a, 'lastReadAt'))[0];
+  // If no specific child selected, show simple book stats
+  if (!childKey) {
+    const books = S.books || [];
+    const doneBooks = books.filter(b => b.status === 'done').length;
+    const totalBooks = books.length;
+    const bookPct = totalBooks > 0 ? Math.round((doneBooks / totalBooks) * 100) : 0;
+    el.innerHTML = `
+      <div class="ph-goals-label">Markmið</div>
+      <div class="ph-goals-rings">
+        <div class="ph-goals-ring-wrap">
+          ${_svgRing(bookPct, 32, 4.5)}
+          <div class="ph-goals-ring-pct">${bookPct}%</div>
+        </div>
+      </div>
+      <div class="ph-goals-labels">
+        <div class="ph-goals-sub">Bækur<br><span>${doneBooks} / ${totalBooks}</span></div>
+      </div>`;
+    return;
+  }
 
-  const currentPage = activeBook?.currentPageTo || 0;
-  const totalPages = activeBook?.totalPages || 0;
-  const pagePct = totalPages > 0 ? Math.round((currentPage / totalPages) * 100) : 0;
+  // Fetch real goals from Firestore
+  let goals = [];
+  try {
+    const goalDoc = await getDoc(doc(db, 'goals', S.familyId + '_' + childKey));
+    if (goalDoc.exists()) {
+      const data = goalDoc.data();
+      if (Array.isArray(data.goals)) goals = data.goals.slice(0, 2);
+      else if (data.type) goals = [{ type: data.type, target: data.target, period: data.period || 'week', createdAt: data.createdAt || 0 }];
+    }
+  } catch (e) {
+    console.warn('Goals fetch villa:', e);
+  }
 
-  // Books progress
-  const doneBooks = childBooks.filter(b => b.status === 'done').length;
-  const totalBooks = childBooks.length;
-  const bookPct = totalBooks > 0 ? Math.round((doneBooks / totalBooks) * 100) : 0;
+  const books = (S.books || []).filter(b => b.childKey === childKey);
+  const sessions = (S.sessions || []).filter(s => s.childKey === childKey);
+
+  if (!goals.length) {
+    // No goals set — show fallback with book progress
+    const activeBook = books.filter(b => b.status === 'reading')
+      .sort((a, b) => bookTs(b, 'lastReadAt') - bookTs(a, 'lastReadAt'))[0];
+    const currentPage = activeBook?.currentPageTo || 0;
+    const totalPages = activeBook?.totalPages || 0;
+    const pagePct = totalPages > 0 ? Math.round((currentPage / totalPages) * 100) : 0;
+    const doneBooks = books.filter(b => b.status === 'done').length;
+    const totalBooks = books.length;
+    const bookPct = totalBooks > 0 ? Math.round((doneBooks / totalBooks) * 100) : 0;
+
+    el.innerHTML = `
+      <div class="ph-goals-label">Markmið</div>
+      <div class="ph-goals-empty-hint">Ekkert markmið sett</div>
+      <div class="ph-goals-rings">
+        <div class="ph-goals-ring-wrap">
+          ${_svgRing(pagePct, 32, 4.5)}
+          <div class="ph-goals-ring-pct">${pagePct}%</div>
+        </div>
+        <div class="ph-goals-ring-wrap">
+          ${_svgRing(bookPct, 32, 4.5)}
+          <div class="ph-goals-ring-pct">${bookPct}%</div>
+        </div>
+      </div>
+      <div class="ph-goals-labels">
+        <div class="ph-goals-sub">Bls.<br><span>${currentPage} / ${totalPages || '?'}</span></div>
+        <div class="ph-goals-sub">Bækur<br><span>${doneBooks} / ${totalBooks}</span></div>
+      </div>`;
+    return;
+  }
+
+  // Render real goals
+  const ringsHtml = goals.map(g => {
+    const p = _calcGoalProgress(g, books, sessions);
+    const info = GOAL_TYPES[g.type] || { icon: '🎯', name: g.type, unit: '' };
+    const isDone = p.pct >= 100;
+    return `
+      <div class="ph-goals-goal">
+        <div class="ph-goals-ring-wrap">
+          ${_svgRing(p.pct, 32, 4.5, isDone)}
+          <div class="ph-goals-ring-pct">${p.pct}%</div>
+        </div>
+        <div class="ph-goals-sub">${info.icon} ${info.name}<br><span>${p.done} / ${p.target} ${info.unit}</span></div>
+      </div>`;
+  }).join('');
 
   el.innerHTML = `
     <div class="ph-goals-label">Markmið</div>
-    <div class="ph-goals-rings">
-      <div class="ph-goals-ring-wrap">
-        ${_svgRing(pagePct, 32, 4.5)}
-        <div class="ph-goals-ring-pct">${pagePct}%</div>
-      </div>
-      <div class="ph-goals-ring-wrap">
-        ${_svgRing(bookPct, 32, 4.5)}
-        <div class="ph-goals-ring-pct">${bookPct}%</div>
-      </div>
-    </div>
-    <div class="ph-goals-labels">
-      <div class="ph-goals-sub">Bls.<br><span>${currentPage} / ${totalPages || '?'} bls.</span></div>
-      <div class="ph-goals-sub">Bækur<br><span>${doneBooks} / ${totalBooks} bækur</span></div>
-    </div>`;
+    <div class="ph-goals-rings">${ringsHtml}</div>`;
 }
 
-function _svgRing(pct, r, stroke) {
+function _svgRing(pct, r, stroke, isDone = false) {
   const size = (r + stroke) * 2;
   const circ = 2 * Math.PI * r;
   const offset = circ - (pct / 100) * circ;
+  const color = isDone ? '#FFB830' : '#1dcdd3';
+  const bgColor = isDone ? 'rgba(255,184,48,0.12)' : 'rgba(29,205,211,0.12)';
   return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" class="ph-goals-svg">
-    <circle cx="${r + stroke}" cy="${r + stroke}" r="${r}" fill="none" stroke="rgba(29,205,211,0.12)" stroke-width="${stroke}"/>
-    <circle cx="${r + stroke}" cy="${r + stroke}" r="${r}" fill="none" stroke="#1dcdd3" stroke-width="${stroke}"
+    <circle cx="${r + stroke}" cy="${r + stroke}" r="${r}" fill="none" stroke="${bgColor}" stroke-width="${stroke}"/>
+    <circle cx="${r + stroke}" cy="${r + stroke}" r="${r}" fill="none" stroke="${color}" stroke-width="${stroke}"
       stroke-dasharray="${circ}" stroke-dashoffset="${offset}"
       stroke-linecap="round" transform="rotate(-90 ${r + stroke} ${r + stroke})"
       style="transition:stroke-dashoffset 0.6s ease"/>
@@ -596,9 +694,9 @@ function renderBookshelfLink() {
 
   // Get up to 3 covers for fan display — any book with a cover
   const covers = childBooks
-    .filter(b => b.imagePath)
+    .filter(b => b.imagePath || b.coverBase64)
     .slice(0, 3)
-    .map(b => b.imagePath);
+    .map(b => b.imagePath || b.coverBase64);
 
   let coversHtml = '';
   if (covers.length >= 3) {

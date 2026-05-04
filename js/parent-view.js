@@ -190,9 +190,20 @@ function renderChildCards() {
   const today = makeDateKey(new Date());
   const isGuest = S.role === 'guest';
   row.innerHTML = children.map(c => {
-    const count      = sessions.filter(s => s.childKey === c.key).length;
     const isSelected = c.key === _phSelectedKey;
     const readToday  = sessions.some(s => s.childKey === c.key && normDate(s.date) === today && (s.seconds||0) >= 60);
+
+    // Síðustu 7 dagar stats
+    const last7 = [];
+    for (let di = 0; di < 7; di++) {
+      const dd = new Date(); dd.setHours(12,0,0,0);
+      dd.setDate(dd.getDate() - di);
+      last7.push(makeDateKey(dd));
+    }
+    const childSessions7 = sessions.filter(s => s.childKey === c.key && last7.includes(normDate(s.date)) && (s.seconds||0) >= 60);
+    const totalMins7 = childSessions7.reduce((a,s) => a + Math.floor((s.seconds||0)/60), 0);
+    const daysRead7 = new Set(childSessions7.map(s => normDate(s.date))).size;
+
     return `
       <div class="ph-child-card ${isSelected ? 'ph-child-selected' : ''}" onclick="selectChild('${c.key}')">
         <div class="ph-child-avatar ${isSelected ? 'ph-child-avatar-active' : ''}">
@@ -200,7 +211,7 @@ function renderChildCards() {
         </div>
         <div class="ph-child-name">${c.name}</div>
         ${!isGuest && c.code ? `<div class="ph-child-code">${c.code}</div>` : ''}
-        <div class="ph-child-sessions">${count} lotur</div>
+        <div class="ph-child-sessions">${totalMins7} mín · ${daysRead7}/7 daga</div>
         ${readToday ? '<div class="ph-child-today">✓ Las í dag</div>' : ''}
       </div>`;
   }).join('');
@@ -216,7 +227,7 @@ export function selectChild(key) {
   renderRecordings();
 }
 
-// ── 7 daga grid — byrjar á sunnudegi ──
+// ── 7 daga grid — síðustu 7 dagar (í dag + 6 dagar aftur) ──
 const DAY_LABELS = ['S','M','Þ','M','F','F','L'];
 
 function renderWeekGrid() {
@@ -226,31 +237,45 @@ function renderWeekGrid() {
   const today = new Date(); today.setHours(12,0,0,0);
   const todayKey = makeDateKey(today);
 
-  // Finna sunnudag þessarar viku (getDay() 0=Sun)
-  const sunday = new Date(today);
-  sunday.setDate(today.getDate() - today.getDay());
-
+  // Síðustu 7 dagar: byrja 6 dögum síðan, enda á í dag
   const cells = [];
-  for (let i = 0; i < 7; i++) {
-    const d       = new Date(sunday); d.setDate(sunday.getDate() + i);
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(today.getDate() - i);
     const key     = makeDateKey(d);
     const isToday = key === todayKey;
-    const isFuture = d > today;
     const daySessions = sessions.filter(s => {
       const matchChild = !_phSelectedKey || _phSelectedKey === 'all' ? true : s.childKey === _phSelectedKey;
       return normDate(s.date) === key && matchChild && (s.seconds||0) >= 60;
     });
     const mins     = daySessions.reduce((a,s) => a + Math.floor((s.seconds||0)/60), 0);
-    const dotClass = isFuture ? 'ph-wdot-empty' : mins === 0 ? 'ph-wdot-empty' : mins < 15 ? 'ph-wdot-low' : mins < 30 ? 'ph-wdot-mid' : 'ph-wdot-full';
+    const hasRead  = mins > 0;
+    const dotClass = mins === 0 ? 'ph-wdot-empty' : mins < 15 ? 'ph-wdot-low' : mins < 30 ? 'ph-wdot-mid' : 'ph-wdot-full';
     cells.push(`
-      <div class="ph-wday-cell">
+      <div class="ph-wday-cell" onclick="showWeekTip(this)" data-mins="${mins}">
         <div class="ph-wday-lbl ${isToday ? 'ph-wday-today' : ''}">${DAY_LABELS[d.getDay()]}</div>
-        <div class="ph-wdot ${dotClass} ${isToday ? 'ph-wdot-today' : ''}" title="${mins > 0 ? mins + ' mín' : 'Ekki lesið'}"></div>
+        <div class="ph-wdot ${dotClass} ${isToday ? 'ph-wdot-today' : ''}">
+          ${hasRead ? '<span class="ph-wdot-check">✓</span>' : ''}
+        </div>
         <div class="ph-wday-num ${isToday ? 'ph-wday-today' : ''}">${d.getDate()}</div>
       </div>`);
   }
   grid.innerHTML = cells.join('');
 }
+
+// Tap tooltip for week grid
+window.showWeekTip = function(el) {
+  // Remove any existing tooltip
+  const old = document.querySelector('.ph-wtip');
+  if (old) old.remove();
+  const mins = parseInt(el.dataset.mins || '0');
+  const tip = document.createElement('div');
+  tip.className = 'ph-wtip';
+  tip.textContent = mins > 0 ? mins + ' mín' : 'Ekki lesið';
+  el.style.position = 'relative';
+  el.appendChild(tip);
+  setTimeout(() => tip.remove(), 2000);
+};
 
 // ── Stats ──
 function updateStats() {
@@ -260,6 +285,7 @@ function updateStats() {
 
   renderNowReading(filtered);
   renderJourneyCard();
+  renderGoalsCard();
   renderBookshelfLink();
 }
 
@@ -498,6 +524,60 @@ async function _sendJourneyReaction(bookId, listenerName, fromModal = false) {
   }
 }
 
+// ── Markmið kort ──
+function renderGoalsCard() {
+  const el = document.getElementById('ph-goals-card');
+  if (!el) return;
+
+  const books = S.books || [];
+  const childBooks = !_phSelectedKey || _phSelectedKey === 'all'
+    ? books : books.filter(b => b.childKey === _phSelectedKey);
+
+  // Page progress from active reading book
+  const activeBook = childBooks
+    .filter(b => b.status === 'reading')
+    .sort((a, b) => bookTs(b, 'lastReadAt') - bookTs(a, 'lastReadAt'))[0];
+
+  const currentPage = activeBook?.currentPageTo || 0;
+  const totalPages = activeBook?.totalPages || 0;
+  const pagePct = totalPages > 0 ? Math.round((currentPage / totalPages) * 100) : 0;
+
+  // Books progress
+  const doneBooks = childBooks.filter(b => b.status === 'done').length;
+  const totalBooks = childBooks.length;
+  const bookPct = totalBooks > 0 ? Math.round((doneBooks / totalBooks) * 100) : 0;
+
+  el.innerHTML = `
+    <div class="ph-goals-label">Markmið</div>
+    <div class="ph-goals-rings">
+      <div class="ph-goals-ring-wrap">
+        ${_svgRing(pagePct, 44, 5)}
+        <div class="ph-goals-ring-pct">${pagePct}%</div>
+      </div>
+      <div class="ph-goals-ring-wrap">
+        ${_svgRing(bookPct, 44, 5)}
+        <div class="ph-goals-ring-pct">${bookPct}%</div>
+      </div>
+    </div>
+    <div class="ph-goals-labels">
+      <div class="ph-goals-sub">Bls.<br><span>${currentPage} / ${totalPages || '?'} bls.</span></div>
+      <div class="ph-goals-sub">Bækur<br><span>${doneBooks} / ${totalBooks} bækur</span></div>
+    </div>`;
+}
+
+function _svgRing(pct, r, stroke) {
+  const size = (r + stroke) * 2;
+  const circ = 2 * Math.PI * r;
+  const offset = circ - (pct / 100) * circ;
+  return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" class="ph-goals-svg">
+    <circle cx="${r + stroke}" cy="${r + stroke}" r="${r}" fill="none" stroke="rgba(29,205,211,0.12)" stroke-width="${stroke}"/>
+    <circle cx="${r + stroke}" cy="${r + stroke}" r="${r}" fill="none" stroke="#1dcdd3" stroke-width="${stroke}"
+      stroke-dasharray="${circ}" stroke-dashoffset="${offset}"
+      stroke-linecap="round" transform="rotate(-90 ${r + stroke} ${r + stroke})"
+      style="transition:stroke-dashoffset 0.6s ease"/>
+  </svg>`;
+}
+
 // ── Bókasafn link ──
 function renderBookshelfLink() {
   const el = document.getElementById('ph-bookshelf-link');
@@ -507,27 +587,56 @@ function renderBookshelfLink() {
   const childBooks = !_phSelectedKey || _phSelectedKey === 'all'
     ? books : books.filter(b => b.childKey === _phSelectedKey);
   const count = childBooks.length;
+  const doneBooks = childBooks.filter(b => b.status === 'done');
 
   const childKey = _phSelectedKey && _phSelectedKey !== 'all' ? _phSelectedKey : '';
   const bookshelfUrl = childKey
     ? `bookshelf.html?family=${encodeURIComponent(S.familyId)}&child=${encodeURIComponent(childKey)}`
     : 'bookshelf.html';
 
-  el.innerHTML = `
-    <a href="${bookshelfUrl}" class="ph-bs-link" title="Opna bókasafn">
+  // Get up to 3 covers for fan display
+  const covers = doneBooks
+    .filter(b => b.imagePath)
+    .slice(0, 3)
+    .map(b => b.imagePath);
+
+  let coversHtml = '';
+  if (covers.length >= 3) {
+    coversHtml = `
+      <div class="ph-bs-fan">
+        <img class="ph-bs-fan-img ph-bs-fan-left" src="${_esc(covers[0])}" alt="">
+        <img class="ph-bs-fan-img ph-bs-fan-center" src="${_esc(covers[1])}" alt="">
+        <img class="ph-bs-fan-img ph-bs-fan-right" src="${_esc(covers[2])}" alt="">
+      </div>`;
+  } else if (covers.length === 2) {
+    coversHtml = `
+      <div class="ph-bs-fan">
+        <img class="ph-bs-fan-img ph-bs-fan-left" src="${_esc(covers[0])}" alt="">
+        <img class="ph-bs-fan-img ph-bs-fan-center" src="${_esc(covers[1])}" alt="">
+      </div>`;
+  } else if (covers.length === 1) {
+    coversHtml = `
+      <div class="ph-bs-fan">
+        <img class="ph-bs-fan-img ph-bs-fan-center" src="${_esc(covers[0])}" alt="">
+      </div>`;
+  } else {
+    coversHtml = `
       <div class="ph-bs-icon-wrap">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
           <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5Z"/>
           <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
           <path d="M9 7h6"/>
         </svg>
-      </div>
-      <div class="ph-bs-text">
-        <div class="ph-bs-title">Bókasafn</div>
-        <div class="ph-bs-count">${count} ${count === 1 ? 'bók' : 'bækur'}</div>
-      </div>
-      <span class="ph-bs-arrow">›</span>
+      </div>`;
+  }
+
+  el.innerHTML = `
+    <a href="${bookshelfUrl}" class="ph-bs-link-card" title="Opna bókasafn">
+      <div class="ph-bs-label">Bókasafn</div>
+      ${coversHtml}
+      <div class="ph-bs-count">${count} ${count === 1 ? 'bók' : 'bækur'}</div>
     </a>`;
+}
 }
 
 // ══════════════════════════════════════════════
@@ -998,10 +1107,18 @@ export async function playClip(path, playerId, btnId, familyId, childKey, sessio
   await phPlayClip(path, playerId, btnId, familyId, childKey, sessionDocId, clipKey);
 }
 
-// ── Account Modal ──
-export function openAccountModal() {
-  const modal = document.getElementById('account-modal');
-  if (!modal) return;
+// ── Account Dropdown ──
+export function toggleAccountDD(e) {
+  if (e) e.stopPropagation();
+  const dd = document.getElementById('account-dd');
+  if (!dd) return;
+
+  const isOpen = dd.style.display !== 'none';
+
+  if (isOpen) {
+    closeAccountDD();
+    return;
+  }
 
   // Populate email
   const emailEl = document.getElementById('acc-email-display');
@@ -1021,17 +1138,31 @@ export function openAccountModal() {
   if (themeIcon)  themeIcon.textContent  = isDark ? '☀️' : '🌙';
   if (themeLabel) themeLabel.textContent = isDark ? 'Ljóst' : 'Dökkt';
 
-  modal.style.display = 'flex';
+  dd.style.display = 'block';
+
+  // Close on click outside
+  setTimeout(() => {
+    document.addEventListener('click', _closeAccountDDOutside, { once: true });
+  }, 10);
 }
 
-export function closeAccountModal(e) {
-  if (e && e.target && e.target !== document.getElementById('account-modal') && !e.target.closest('.rg-popup-close')) return;
-  const modal = document.getElementById('account-modal');
-  if (modal) modal.style.display = 'none';
+function _closeAccountDDOutside(e) {
+  const dd = document.getElementById('account-dd');
+  const wrap = document.querySelector('.ph-account-wrap');
+  if (dd && wrap && !wrap.contains(e.target)) {
+    closeAccountDD();
+  } else if (dd && dd.style.display !== 'none') {
+    document.addEventListener('click', _closeAccountDDOutside, { once: true });
+  }
+}
+
+export function closeAccountDD() {
+  const dd = document.getElementById('account-dd');
+  if (dd) dd.style.display = 'none';
 }
 
 // Expose to window for inline onclick handlers
-window.openAccountModal  = openAccountModal;
-window.closeAccountModal = closeAccountModal;
+window.toggleAccountDD  = toggleAccountDD;
+window.closeAccountDD   = closeAccountDD;
 window.openJourneyModal  = openJourneyModal;
 window.closeJourneyModal = closeJourneyModal;

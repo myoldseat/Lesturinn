@@ -512,7 +512,7 @@ audio { width: 100%; border-radius: 8px }
 
 .ph-topbar {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 12px 20px; background: rgba(0,0,0,0.2);
+  padding: 12px 20px; background: #07101e;
   border-bottom: 1px solid var(--ph-tile-border);
   position: sticky; top: 0; z-index: 20; backdrop-filter: blur(8px);
 }

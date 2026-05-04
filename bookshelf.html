@@ -298,7 +298,7 @@ const app=initializeApp({apiKey:'AIzaSyAgTY3Uxd9_ZxixjqLj-sH8V3OhFAzg6DU',authDo
 const db=getFirestore(app);
 
 function getChildSession(){try{const r=localStorage.getItem('upphatt_child');if(!r)return null;const d=JSON.parse(r);return d&&d.familyId&&d.childKey&&d.childName?d:null}catch(e){return null}}
-function getViewerSession(){try{const p=new URLSearchParams(window.location.search);const fid=p.get('family'),ck=p.get('child');if(fid&&ck)return{familyId:fid,childKey:ck,childName:ck,_viewer:true};return null}catch(e){return null}}
+function getViewerSession(){try{const p=new URLSearchParams(window.location.search);const fid=p.get('family'),ck=p.get('child');const isParent=p.has('parent')||document.referrer.includes('index.html')||document.referrer.endsWith('/');if(fid&&ck)return{familyId:fid,childKey:ck,childName:ck,_viewer:!isParent,_parent:isParent};return null}catch(e){return null}}
 const CS=getChildSession()||getViewerSession();
 const viewerMode=!!CS?._viewer;
 const previewMode=!CS;
@@ -945,7 +945,7 @@ if(previewMode){
 // Detect parent context — show back button
 (function() {
   const params = new URLSearchParams(window.location.search);
-  const fromParent = params.has('family') || document.referrer.includes('index.html') || document.referrer.endsWith('/') || document.referrer.includes('uppprufa');
+  const fromParent = params.has('family');
   
   if (fromParent && params.has('family')) {
     // Add back-to-parent button in header
@@ -955,7 +955,7 @@ if(previewMode){
       backBtn.href = 'index.html';
       backBtn.className = 'bs-parent-back';
       backBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg> Heim';
-      backBtn.style.cssText = 'position:fixed;top:14px;left:14px;z-index:99;display:flex;align-items:center;gap:4px;padding:6px 14px 6px 10px;background:rgba(6,14,26,0.92);border:1px solid rgba(29,205,211,0.25);border-radius:20px;font-size:12px;font-weight:700;color:#1dcdd3;text-decoration:none;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);box-shadow:0 4px 16px rgba(0,0,0,0.4);';
+      backBtn.style.cssText = 'position:fixed;top:14px;left:14px;z-index:99;display:flex;align-items:center;gap:4px;padding:6px 14px 6px 10px;background:#0a0f18;border:1px solid rgba(29,205,211,0.25);border-radius:20px;font-size:13px;font-weight:700;color:#1dcdd3;text-decoration:none;box-shadow:0 4px 16px rgba(0,0,0,0.4);';
       document.body.appendChild(backBtn);
     }
   }

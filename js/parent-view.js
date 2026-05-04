@@ -523,8 +523,7 @@ async function _sendJourneyReaction(bookId, listenerName, fromModal = false) {
 
     const entries = [...book.journeyEntries];
     const newest = { ...entries[0] };
-    const selEmoji = document.getElementById('jm-selected-emoji')?.textContent || '❤️';
-    newest.reactions = [...(newest.reactions || []), `${listenerName} ${selEmoji} ${text}`];
+    newest.reactions = [...(newest.reactions || []), `${listenerName}: ${text}`];
     entries[0] = newest;
 
     await updateDoc(doc(db, 'books', bookId), { journeyEntries: entries });

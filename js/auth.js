@@ -5,6 +5,7 @@ import {
   signInWithEmailAndPassword, createUserWithEmailAndPassword,
   sendEmailVerification, sendPasswordResetEmail,
   onAuthStateChanged, signOut,
+  setPersistence, browserLocalPersistence,
   collection, setDoc, doc, getDoc, getDocs, query, where, serverTimestamp
 } from './firebase-config.js';
 import { S }  from './state.js';
@@ -865,6 +866,9 @@ export function toggleParentTheme() {
 
 // ── Auth state observer ──
 export function initAuth() {
+  // Keep parent logged in until they explicitly log out
+  setPersistence(auth, browserLocalPersistence).catch(e => console.warn('Persistence villa:', e));
+
   onAuthStateChanged(auth, async (user) => {
     if (_signupInProgress) return;
     if (user) {

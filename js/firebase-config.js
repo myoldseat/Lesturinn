@@ -8,7 +8,8 @@ import { getStorage }    from 'https://www.gstatic.com/firebasejs/12.11.0/fireba
 export {
   signInWithEmailAndPassword, createUserWithEmailAndPassword,
   sendEmailVerification, sendPasswordResetEmail,
-  onAuthStateChanged, signOut
+  onAuthStateChanged, signOut,
+  setPersistence, browserLocalPersistence
 } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js';
 
 export {

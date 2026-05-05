@@ -503,6 +503,122 @@ function _getReadingBook() {
     .sort((a, b) => bookTs(b, 'lastReadAt') - bookTs(a, 'lastReadAt'))[0] || null;
 }
 
+
+function _reactionText(r) {
+  if (typeof r === 'string') return r;
+  if (!r) return '';
+  const name = r.name || r.authorName || r.by || r.savedBy || '';
+  const text = r.text || r.comment || r.message || '';
+  return name && text ? `${name}: ${text}` : (text || name || '');
+}
+
+function _reactionAuthor(r) {
+  const txt = _reactionText(r);
+  if (typeof r === 'object' && r) return r.name || r.authorName || r.by || r.savedBy || '';
+  const idx = txt.indexOf(':');
+  return idx > -1 ? txt.slice(0, idx).trim() : '';
+}
+
+function _reactionBody(r) {
+  const txt = _reactionText(r);
+  const idx = txt.indexOf(':');
+  return idx > -1 ? txt.slice(idx + 1).trim() : txt;
+}
+
+function _isParentRole() {
+  return S.role !== 'guest';
+}
+
+function _canDeleteJourneyReaction(r) {
+  if (_isParentRole()) return true;
+  const mine = _getListenerName();
+  const author = _reactionAuthor(r);
+  return !!mine && !!author && author === mine;
+}
+
+function _getLatestJourneyReaction(hero) {
+  const entries = hero?.journeyEntries || [];
+  for (const e of entries) {
+    if (e?.type === 'gold_moment') continue;
+    const reactions = Array.isArray(e?.reactions) ? e.reactions.filter(Boolean) : [];
+    if (reactions.length) return reactions[reactions.length - 1];
+  }
+  return null;
+}
+
+function _renderReactionBubble(r, entryIndex = null, reactionIndex = null) {
+  const author = _reactionAuthor(r);
+  const body = _reactionBody(r);
+  const canDelete = entryIndex !== null && reactionIndex !== null && _canDeleteJourneyReaction(r);
+  return `
+    <div class="jm-reaction-bubble">
+      <div class="jm-reaction-copy">
+        ${author ? `<span class="jm-reaction-author">${_esc(author)}</span>` : ''}
+        <span class="jm-reaction-text">${_esc(body)}</span>
+      </div>
+      ${canDelete ? `<button class="jm-reaction-delete" data-entry-index="${entryIndex}" data-reaction-index="${reactionIndex}" type="button" aria-label="Eyða kommenti">×</button>` : ''}
+    </div>`;
+}
+
+function _ensureJourneyDeleteDialog() {
+  let modal = document.getElementById('jm-delete-confirm');
+  if (modal) return modal;
+  modal = document.createElement('div');
+  modal.id = 'jm-delete-confirm';
+  modal.className = 'jm-confirm-overlay';
+  modal.innerHTML = `
+    <div class="jm-confirm-card" role="dialog" aria-modal="true" aria-labelledby="jm-confirm-title">
+      <button class="jm-confirm-x" data-jm-confirm="cancel" type="button" aria-label="Loka">×</button>
+      <div class="jm-confirm-icon">!</div>
+      <h2 id="jm-confirm-title">Eyða kommenti?</h2>
+      <p>Þetta fjarlægir kommentið úr lestrarferðalaginu.</p>
+      <div class="jm-confirm-actions">
+        <button class="jm-confirm-btn secondary" data-jm-confirm="cancel" type="button">Hætta við</button>
+        <button class="jm-confirm-btn danger" data-jm-confirm="ok" type="button">Eyða</button>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+  return modal;
+}
+
+function _confirmDeleteJourneyReaction() {
+  const modal = _ensureJourneyDeleteDialog();
+  modal.classList.add('open');
+  return new Promise(resolve => {
+    const done = value => {
+      modal.classList.remove('open');
+      modal.querySelectorAll('[data-jm-confirm]').forEach(btn => btn.removeEventListener('click', onClick));
+      modal.removeEventListener('click', onBackdrop);
+      resolve(value);
+    };
+    const onClick = ev => done(ev.currentTarget.dataset.jmConfirm === 'ok');
+    const onBackdrop = ev => { if (ev.target === modal) done(false); };
+    modal.querySelectorAll('[data-jm-confirm]').forEach(btn => btn.addEventListener('click', onClick));
+    modal.addEventListener('click', onBackdrop);
+  });
+}
+
+async function _deleteJourneyReaction(bookId, entryIndex, reactionIndex) {
+  const ok = await _confirmDeleteJourneyReaction();
+  if (!ok) return;
+  try {
+    const book = (S.books || []).find(b => b.id === bookId);
+    if (!book) return;
+    const entries = (book.journeyEntries || []).map(e => ({ ...e, reactions: Array.isArray(e.reactions) ? [...e.reactions] : [] }));
+    const entry = entries[entryIndex];
+    if (!entry || !entry.reactions || !entry.reactions[reactionIndex]) return;
+    const reaction = entry.reactions[reactionIndex];
+    if (!_canDeleteJourneyReaction(reaction)) return;
+    entry.reactions.splice(reactionIndex, 1);
+    await updateDoc(doc(db, 'books', bookId), { journeyEntries: entries, updatedAt: serverTimestamp() });
+    book.journeyEntries = entries;
+    if (_jmBookId === bookId) _renderJourneyModal(bookId);
+    renderJourneyCard();
+  } catch (e) {
+    console.error('Delete journey reaction villa:', e);
+  }
+}
+
 // ── "Að lesa" kort ──
 function renderNowReading(filteredSessions) {
   const el = document.getElementById('ph-now-reading');
@@ -596,6 +712,11 @@ function renderJourneyCard() {
     if (p.length === 3) cardMeta = `${parseInt(p[2])}. ${IS_MONTHS_SHORT[parseInt(p[1]) - 1] || ''}`;
   }
   if (pageRange) cardMeta += (cardMeta ? ' · ' : '') + pageRange;
+
+  const latestReaction = _getLatestJourneyReaction(hero);
+  const latestReactionHtml = latestReaction
+    ? `<div class="ph-jn-last-comment">${_renderReactionBubble(latestReaction)}</div>`
+    : '';
 
   el.setAttribute('data-book-id', bookId);
   el.style.cursor = 'pointer';
@@ -701,9 +822,9 @@ function _renderJourneyModal(bookId) {
     return;
   }
 
-  feed.innerHTML = [...entries].reverse().map(e => {
-    const reactions = (e.reactions || []).map(r =>
-      `<div class="jm-reaction">${_esc(r)}</div>`
+  feed.innerHTML = entries.map((entry, originalIndex) => ({ entry, originalIndex })).reverse().map(({ entry: e, originalIndex }) => {
+    const reactions = (e.reactions || []).map((r, reactionIndex) =>
+      _renderReactionBubble(r, originalIndex, reactionIndex)
     ).join('');
     // Neat short timestamp: "30. apr. · bls. 10–15"
     let meta = '';
@@ -723,6 +844,13 @@ function _renderJourneyModal(bookId) {
 
   // ── Gullmolar (varðveitt upptaka) ──
   _renderGoldMoments(hero, feed);
+
+  feed.querySelectorAll('.jm-reaction-delete').forEach(btn => {
+    btn.addEventListener('click', ev => {
+      ev.stopPropagation();
+      _deleteJourneyReaction(bookId, Number(btn.dataset.entryIndex), Number(btn.dataset.reactionIndex));
+    });
+  });
 
   // Scroll to bottom (newest is first visually, feed is reversed)
   feed.scrollTop = 0;

@@ -2062,3 +2062,177 @@ audio { width: 100%; border-radius: 8px }
   font-style: italic;
 }
 #screen-parent-home.ph-light .ph-goals-empty-hint { color: #8a97a5; }
+
+/* ═══════════════════════════════════════
+   Parent dashboard polish — Að lesa + Bókasafn balance
+   Keeps the 2×2 boxes equal while enlarging/centering book visuals
+════════════════════════════════════════ */
+.ph-stats-grid {
+  align-items: stretch;
+  grid-auto-rows: 240px;
+}
+
+.ph-stats-grid > .ph-stat-card {
+  height: 240px;
+  min-height: 240px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Að lesa — bigger hero cover, same card size */
+#ph-now-reading .ph-nr-label {
+  margin-bottom: 14px;
+}
+
+#ph-now-reading .ph-nr-row {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+#ph-now-reading .ph-nr-cover,
+#ph-now-reading .ph-nr-cover-ph {
+  width: clamp(94px, 36%, 132px);
+  height: clamp(132px, 18vw, 186px);
+  border-radius: 9px;
+  flex: 0 0 auto;
+}
+
+#ph-now-reading .ph-nr-info {
+  min-width: 0;
+  flex: 1;
+}
+
+#ph-now-reading .ph-nr-title {
+  font-size: clamp(16px, 2.45vw, 26px);
+  line-height: 1.06;
+  margin-bottom: 8px;
+  white-space: normal;
+  overflow: hidden;
+  text-overflow: clip;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+#ph-now-reading .ph-nr-meta {
+  font-size: clamp(11px, 1.65vw, 18px);
+  margin-bottom: 10px;
+}
+
+#ph-now-reading .ph-nr-progress {
+  margin-top: 0;
+  gap: 12px;
+}
+
+#ph-now-reading .ph-nr-bar {
+  height: 8px;
+  min-width: 58px;
+}
+
+#ph-now-reading .ph-nr-pct {
+  font-size: clamp(14px, 2.3vw, 24px);
+  min-width: 38px;
+}
+
+/* Bókasafn — centered 3-book fan, same card size */
+.ph-bs-link-card {
+  justify-content: space-between;
+}
+
+.ph-bs-fan {
+  width: 100%;
+  max-width: 260px;
+  height: 162px;
+  margin: -2px auto -2px;
+  left: 0;
+  right: 0;
+}
+
+.ph-bs-fan-img {
+  width: 92px;
+  height: 128px;
+}
+
+.ph-bs-fan-center {
+  width: 110px;
+  height: 154px;
+  transform: translateY(-5px);
+}
+
+.ph-bs-fan-left {
+  transform: rotate(-10deg) translateX(-58px) translateY(8px);
+}
+
+.ph-bs-fan-right {
+  transform: rotate(10deg) translateX(58px) translateY(8px);
+}
+
+.ph-bs-link-card .ph-bs-count {
+  margin-top: 0;
+}
+
+@media (max-width: 520px) {
+  .ph-stats-grid {
+    grid-auto-rows: 220px;
+  }
+
+  .ph-stats-grid > .ph-stat-card {
+    height: 220px;
+    min-height: 220px;
+    padding: 12px;
+  }
+
+  #ph-now-reading .ph-nr-label {
+    margin-bottom: 10px;
+  }
+
+  #ph-now-reading .ph-nr-row {
+    gap: 10px;
+  }
+
+  #ph-now-reading .ph-nr-cover,
+  #ph-now-reading .ph-nr-cover-ph {
+    width: clamp(88px, 34%, 108px);
+    height: clamp(124px, 47vw, 152px);
+  }
+
+  #ph-now-reading .ph-nr-title {
+    font-size: clamp(16px, 4.2vw, 20px);
+  }
+
+  #ph-now-reading .ph-nr-meta {
+    font-size: 11px;
+  }
+
+  #ph-now-reading .ph-nr-pct {
+    font-size: 16px;
+    min-width: 34px;
+  }
+
+  .ph-bs-fan {
+    max-width: 210px;
+    height: 144px;
+  }
+
+  .ph-bs-fan-img {
+    width: 78px;
+    height: 108px;
+  }
+
+  .ph-bs-fan-center {
+    width: 94px;
+    height: 132px;
+  }
+
+  .ph-bs-fan-left {
+    transform: rotate(-10deg) translateX(-50px) translateY(7px);
+  }
+
+  .ph-bs-fan-right {
+    transform: rotate(10deg) translateX(50px) translateY(7px);
+  }
+}

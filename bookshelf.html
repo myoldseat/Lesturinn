@@ -303,6 +303,13 @@ button{font:inherit;cursor:pointer;border:0;background:none;color:inherit}a{colo
   .hero-gold-state{width:26px;height:26px;flex-basis:26px;font-size:10px}
 }
 
+
+/* === Custom audio player fixes === */
+.custom-gold-player{margin-top:7px}
+.custom-gold-progress{height:4px;border-radius:999px;background:rgba(255,255,255,.09);overflow:hidden}
+.custom-gold-fill{display:block;width:0;height:100%;border-radius:inherit;background:linear-gradient(90deg,var(--accent),var(--accent2));box-shadow:0 0 10px rgba(29,205,211,.55);transition:width .12s linear}
+.featured-gold-play.is-playing{background:rgba(29,205,211,.16);border-color:rgba(29,205,211,.52);color:#dffbff;box-shadow:0 0 14px rgba(29,205,211,.14)}
+.hero-gold-card{touch-action:manipulation}
 </style>
 </head>
 <body>
@@ -827,7 +834,7 @@ function _getHeroGoldMoment(hero) {
   const data=_getGoldMomentData(hero);
   if(!data)return '';
   _cacheHeroGoldMoment(data);
-  return '<button class="featured-gold hero-gold-card" id="hero-gm-card" type="button" onclick="event.stopPropagation();window._toggleHeroGold()">'
+  return '<button class="featured-gold hero-gold-card" id="hero-gm-card" data-hero-gold-play="1" type="button">'
     + '<div class="featured-gold-top">'
     + '<svg width="16" height="16" viewBox="0 0 24 24" fill="#1dcdd3" stroke="none"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>'
     + '<div class="featured-gold-info"><span class="featured-gold-label">Varðveitt upptaka</span><span class="featured-gold-saver">' + esc(data.saver) + ' geymdi lesturinn þinn</span></div>'
@@ -909,16 +916,84 @@ async function _toggleHeroGold(){
 window._toggleHeroGold=_toggleHeroGold;
 window._playHeroGold=_toggleHeroGold;
 
+document.addEventListener('click',function(e){
+  const heroGold=e.target.closest('[data-hero-gold-play]');
+  if(!heroGold)return;
+  e.preventDefault();
+  e.stopPropagation();
+  _toggleHeroGold();
+},true);
+
+let journeyGoldAudio=null;
+let journeyGoldTimer=null;
+let journeyGoldBtn=null;
+let journeyGoldPlayer=null;
+let journeyGoldPath=null;
+
+function _resetJourneyGoldUI(){
+  clearInterval(journeyGoldTimer);
+  if(journeyGoldBtn){journeyGoldBtn.disabled=false;journeyGoldBtn.classList.remove('is-playing');journeyGoldBtn.innerHTML='► Hlusta';}
+  if(journeyGoldPlayer){const fill=journeyGoldPlayer.querySelector('.custom-gold-fill');if(fill)fill.style.width='0%';}
+}
+
 async function _playJourneyGold(clipPath,playerId,btnId){
   const player=document.getElementById(playerId);
   const btn=document.getElementById(btnId);
   if(!clipPath||!player)return;
-  if(btn){btn.disabled=true;btn.textContent='Hleð...'}
+
+  if(journeyGoldAudio && journeyGoldPath===clipPath && journeyGoldPlayer===player){
+    if(journeyGoldAudio.paused){
+      await journeyGoldAudio.play().catch(()=>{});
+    }else{
+      journeyGoldAudio.pause();
+    }
+    return;
+  }
+
+  if(journeyGoldAudio){journeyGoldAudio.pause();}
+  _resetJourneyGoldUI();
+  journeyGoldAudio=null;
+  journeyGoldPath=clipPath;
+  journeyGoldBtn=btn;
+  journeyGoldPlayer=player;
+
+  if(btn){btn.disabled=true;btn.textContent='Hleð...';}
+  player.innerHTML='<div class="custom-gold-player"><div class="custom-gold-progress"><span class="custom-gold-fill"></span></div></div>';
+  const fill=player.querySelector('.custom-gold-fill');
+
   const url=await _getCachedAudioUrl(clipPath);
-  if(!url){player.innerHTML='<div style="font-size:11px;color:#ff6b6b;margin-top:4px">Ekki tókst</div>';if(btn){btn.disabled=false;btn.textContent='► Hlusta'}return}
-  player.innerHTML='<audio controls preload="auto" src="'+url+'" style="width:100%;margin-top:6px;border-radius:8px;height:36px"></audio>';
-  const audio=player.querySelector('audio');
-  if(audio){audio.play().catch(function(){});audio.addEventListener('ended',function(){if(btn){btn.disabled=false;btn.textContent='► Hlusta'}})}
+  if(!url){
+    player.innerHTML='<div style="font-size:11px;color:#ff6b6b;margin-top:6px">Ekki tókst að hlaða</div>';
+    if(btn){btn.disabled=false;btn.innerHTML='► Hlusta';}
+    return;
+  }
+
+  journeyGoldAudio=new Audio(url);
+  journeyGoldAudio.preload='auto';
+
+  journeyGoldAudio.addEventListener('play',()=>{
+    if(btn){btn.disabled=false;btn.classList.add('is-playing');btn.innerHTML='❚❚ Spilar';}
+    clearInterval(journeyGoldTimer);
+    journeyGoldTimer=setInterval(()=>{
+      if(!fill||!journeyGoldAudio?.duration)return;
+      fill.style.width=Math.min(100,(journeyGoldAudio.currentTime/journeyGoldAudio.duration)*100)+'%';
+    },120);
+  });
+
+  journeyGoldAudio.addEventListener('pause',()=>{
+    if(btn){btn.classList.remove('is-playing');btn.innerHTML='► Hlusta';}
+    clearInterval(journeyGoldTimer);
+  });
+
+  journeyGoldAudio.addEventListener('ended',()=>{
+    if(fill)fill.style.width='0%';
+    if(journeyGoldAudio)journeyGoldAudio.currentTime=0;
+    _resetJourneyGoldUI();
+  });
+
+  await journeyGoldAudio.play().catch(()=>{
+    if(btn){btn.disabled=false;btn.innerHTML='► Hlusta';}
+  });
 }
 window._playJourneyGold=_playJourneyGold;
 
@@ -985,6 +1060,7 @@ function render(){
   rGrid('finishedSection','finishedGrid','finishedCount',finished);
   // Wire up click handlers
   document.querySelectorAll('[data-open-book]').forEach(el=>el.addEventListener('click',e=>{
+    if(e.target.closest('[data-hero-gold-play]'))return;
     const id=el.dataset.openBook;
     if(editMode){e.preventDefault();e.stopPropagation();toggleSel(id);return}
     // Check if this is a pending celebration book

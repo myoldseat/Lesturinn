@@ -2529,3 +2529,64 @@ audio { width: 100%; border-radius: 8px }
 }
 #screen-parent-home.ph-light .jm-reaction-author { color: #1a2332; }
 #screen-parent-home.ph-light .jm-reaction-text { color: #3a4a5c; }
+
+
+/* === Custom gold audio player — no native browser controls === */
+.custom-gold-player,.jm-gm-player{margin-top:8px}
+.custom-gold-progress,.jm-gm-progress{height:4px;border-radius:999px;background:rgba(255,255,255,.09);overflow:hidden}
+.custom-gold-fill,.jm-gm-progress span{display:block;width:0;height:100%;border-radius:inherit;background:linear-gradient(90deg,#1dcdd3,#18bcc2);box-shadow:0 0 10px rgba(29,205,211,.55);transition:width .12s linear}
+.featured-gold-play.is-playing,.jm-gm-play.is-playing{background:rgba(29,205,211,.16)!important;border-color:rgba(29,205,211,.52)!important;color:#dffbff!important;box-shadow:0 0 14px rgba(29,205,211,.14)}
+.hero-gold-card{touch-action:manipulation}
+
+/* =====================================================
+   MERGED BOOKSHELF HERO/AUDIO REFINEMENTS
+   Source: styles_gold_audio_fixed.css
+   ===================================================== */
+/* === UppHátt bookshelf final tweaks: 2026-05-05 ===
+   1) percentage beside progress bar
+   2) visible top goal progress fill
+   3) preserved recording sits in right book column without play button */
+.book-title-row{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.progress-row{display:flex;align-items:center;gap:8px;margin-top:-1px}
+.progress-row .progress-bar{flex:1;min-width:0}
+.progress-row .featured-pct{flex:0 0 auto;white-space:nowrap;line-height:1}
+.book-hero-card .featured-pct{font-size:13px;color:var(--accent);font-weight:900}
+.goal-mini-line{display:block;height:5px;border-radius:99px;background:rgba(255,255,255,.09);overflow:hidden}
+.goal-mini-fill{display:block;height:100%;width:0;border-radius:inherit;background:linear-gradient(90deg,var(--accent),var(--accent2));box-shadow:0 0 10px rgba(29,205,211,.50)}
+.book-hero-card .featured-gold{margin-top:6px;display:block;padding:9px 10px;border-radius:11px;background:rgba(29,205,211,.055);border:1px solid rgba(29,205,211,.12)}
+.book-hero-card .featured-gold-play{display:none!important}
+.book-hero-card .featured-gold-player{display:none!important}
+
+/* === Journey comment readability + delete comments === */
+#journeyEntries .event{padding:12px 12px;margin-bottom:10px;border-radius:14px;background:rgba(255,255,255,.035);border-color:rgba(29,205,211,.12)}
+#journeyEntries .event-date{font-size:12px;line-height:1.25;margin-bottom:6px}
+#journeyEntries .event-quote{font-size:16px!important;line-height:1.35!important;margin-bottom:10px;color:rgba(238,246,255,.92)!important}
+#journeyEntries .reactions{display:grid;gap:8px;margin-top:8px}
+#journeyEntries .react{width:100%;display:flex;align-items:flex-start;justify-content:space-between;gap:9px;padding:9px 10px;border-radius:13px;font-size:13.5px;line-height:1.35;color:rgba(238,246,255,.88);background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.075)}
+#journeyEntries .react-text{flex:1;min-width:0;overflow-wrap:anywhere}
+#journeyEntries .react-delete{width:24px;height:24px;flex:0 0 24px;border-radius:999px;border:1px solid rgba(255,107,107,.24);background:rgba(255,107,107,.08);color:rgba(255,145,145,.9);display:grid;place-items:center;font-size:15px;font-weight:900;line-height:1;cursor:pointer;opacity:.78}
+#journeyEntries .react-delete:active{transform:scale(.94);opacity:1;background:rgba(255,107,107,.16)}
+@media(max-width:420px){#journeyEntries .react{font-size:13px;padding:8px 9px}#journeyEntries .event-quote{font-size:15px!important}}
+
+
+
+/* === Final hero/audio refinements: pill above cover + custom gold player === */
+.hero-cover-stack{display:grid;gap:8px;align-content:start;justify-items:start;min-width:0}
+.hero-cover-stack .featured-badge{margin:0;justify-self:start}
+.book-hero-card .featured-cover{grid-column:auto;grid-row:auto}
+.book-hero-card .featured-meta{display:flex;flex-direction:column;min-width:0}
+.book-hero-card .featured-badge{margin:0;width:max-content;padding:4px 8px;border-radius:999px;font-size:10px;line-height:1}
+.hero-gold-card{width:100%;text-align:left;cursor:pointer;appearance:none;-webkit-appearance:none;color:inherit;font:inherit}
+.book-hero-card .featured-gold.hero-gold-card{margin-top:8px;display:block;padding:9px 10px;border-radius:11px;background:rgba(29,205,211,.055);border:1px solid rgba(29,205,211,.14);transition:border-color .16s ease,box-shadow .16s ease,background .16s ease,transform .12s ease}
+.book-hero-card .featured-gold.hero-gold-card:active{transform:scale(.985);border-color:rgba(29,205,211,.34);background:rgba(29,205,211,.075)}
+.book-hero-card .featured-gold.hero-gold-card.is-playing{border-color:rgba(29,205,211,.42);box-shadow:0 0 18px rgba(29,205,211,.12)}
+.hero-gold-state{width:28px;height:28px;border-radius:999px;display:grid;place-items:center;flex:0 0 28px;color:#061018;background:linear-gradient(135deg,var(--accent),var(--accent2));font-size:11px;font-weight:900;line-height:1;box-shadow:0 0 16px rgba(29,205,211,.25)}
+.hero-gold-progress{height:3px;margin-top:8px;border-radius:999px;background:rgba(255,255,255,.08);overflow:hidden}
+.hero-gold-progress span{display:block;width:0;height:100%;border-radius:inherit;background:linear-gradient(90deg,var(--accent),var(--accent2));box-shadow:0 0 10px rgba(29,205,211,.45);transition:width .12s linear}
+@media(max-width:420px){
+  .book-hero-main{grid-template-columns:132px minmax(0,1fr);gap:12px;align-items:start}
+  .hero-cover-stack{gap:7px}
+  .hero-cover-stack .featured-badge{font-size:10px;padding:4px 8px}
+  .book-hero-card .featured-gold.hero-gold-card{margin-top:8px;padding:9px}
+  .hero-gold-state{width:26px;height:26px;flex-basis:26px;font-size:10px}
+}

@@ -42,6 +42,8 @@ function normDate(d) {
 
 const IS_MONTHS = ['janúar','febrúar','mars','apríl','maí','júní',
                    'júlí','ágúst','september','október','nóvember','desember'];
+const IS_MONTHS_SHORT = ['jan.','feb.','mars','apr.','maí','júní',
+                         'júlí','ág.','sep.','okt.','nóv.','des.'];
 
 function fmtDateIS(dateStr) {
   if (!dateStr) return '';
@@ -365,15 +367,30 @@ function renderNowReading(filteredSessions) {
   });
   const avgMin = daySet.size > 0 ? Math.round(totalMins / daySet.size) : 0;
 
+  const coverSrc = hero.imagePath || hero.coverBase64 || '';
+  let coverHtml = '';
+  if (coverSrc) {
+    coverHtml = `<img src="${_esc(coverSrc)}" alt="" class="ph-nr-cover">`;
+  } else {
+    const c1 = hero.c1 || '#2b8f91';
+    const c2 = hero.c2 || '#0a2341';
+    coverHtml = `<div class="ph-nr-cover-ph" style="background:linear-gradient(135deg,${c1},${c2})"><span>${_esc((title).charAt(0))}</span></div>`;
+  }
+
   el.innerHTML = `
     <div class="ph-nr-label">Að lesa</div>
-    <div class="ph-nr-title">${_esc(title)}</div>
-    <div class="ph-nr-author">${_esc(author)}</div>
-    <div class="ph-nr-progress">
-      <div class="ph-nr-bar"><div class="ph-nr-fill" style="width:${pct}%"></div></div>
-      <span class="ph-nr-pct">${pct}%</span>
-    </div>
-    <div class="ph-nr-meta">${pages}${avgMin ? ` · ~${avgMin} mín/dag` : ''}</div>`;
+    <div class="ph-nr-row">
+      ${coverHtml}
+      <div class="ph-nr-info">
+        <div class="ph-nr-title">${_esc(title)}</div>
+        <div class="ph-nr-author">${_esc(author)}</div>
+        <div class="ph-nr-progress">
+          <div class="ph-nr-bar"><div class="ph-nr-fill" style="width:${pct}%"></div></div>
+          <span class="ph-nr-pct">${pct}%</span>
+        </div>
+        <div class="ph-nr-meta">${pages}${avgMin ? ` · ~${avgMin} mín/dag` : ''}</div>
+      </div>
+    </div>`;
 }
 
 // ── Lestrarferðalag kort ──
@@ -407,6 +424,12 @@ function renderJourneyCard() {
   const pageRange = lastWithNote?.pageFrom
     ? `bls. ${lastWithNote.pageFrom}–${lastWithNote.pageTo}`
     : '';
+  let cardMeta = '';
+  if (lastWithNote?.date) {
+    const p = lastWithNote.date.split('-');
+    if (p.length === 3) cardMeta = `${parseInt(p[2])}. ${IS_MONTHS_SHORT[parseInt(p[1]) - 1] || ''}`;
+  }
+  if (pageRange) cardMeta += (cardMeta ? ' · ' : '') + pageRange;
 
   el.setAttribute('data-book-id', bookId);
   el.style.cursor = 'pointer';
@@ -416,8 +439,8 @@ function renderJourneyCard() {
     <div class="ph-jn-label">Lestrarferðalag</div>
     ${lastWithNote ? `
       <div class="ph-jn-card-note">
-        ${pageRange ? `<div class="ph-jn-card-pages">Í dag · ${pageRange}</div>` : ''}
-        <div class="ph-jn-card-text">${_esc(lastWithNote.note)}</div>
+        ${cardMeta ? `<div class="ph-jn-card-pages">${cardMeta}</div>` : ''}
+        <div class="ph-jn-card-text">\u201C${_esc(lastWithNote.note)}\u201D</div>
       </div>
       <div class="ph-jn-meira-row">
         <span class="ph-jn-meira-pill">Meira &rsaquo;</span>
@@ -453,6 +476,19 @@ function _renderJourneyModal(bookId) {
   const titleEl = document.getElementById('jm-book-title');
   if (titleEl) titleEl.textContent = hero.title || '';
 
+  // Book cover thumbnail in header
+  const coverEl = document.getElementById('jm-book-cover');
+  if (coverEl) {
+    const coverSrc = hero.imagePath || hero.coverBase64 || '';
+    if (coverSrc) {
+      coverEl.innerHTML = `<img src="${_esc(coverSrc)}" alt="" class="jm-cover-img">`;
+    } else {
+      const c1 = hero.c1 || '#2b8f91';
+      const c2 = hero.c2 || '#0a2341';
+      coverEl.innerHTML = `<div class="jm-cover-placeholder" style="background:linear-gradient(135deg,${c1},${c2})"><span>${_esc((hero.title||'').charAt(0))}</span></div>`;
+    }
+  }
+
   const feed = document.getElementById('jm-feed');
   if (!feed) return;
 
@@ -467,11 +503,18 @@ function _renderJourneyModal(bookId) {
     const reactions = (e.reactions || []).map(r =>
       `<div class="jm-reaction">${_esc(r)}</div>`
     ).join('');
+    // Neat short timestamp: "30. apr. · bls. 10–15"
+    let meta = '';
+    if (e.date) {
+      const p = e.date.split('-');
+      if (p.length === 3) meta = `${parseInt(p[2])}. ${IS_MONTHS_SHORT[parseInt(p[1]) - 1] || ''}`;
+    }
     const pageRange = e.pageFrom ? `bls. ${e.pageFrom}–${e.pageTo}` : '';
+    if (pageRange) meta += (meta ? ' · ' : '') + pageRange;
     return `
       <div class="jm-entry">
-        <div class="jm-entry-meta">${_esc(e.date || '')}${pageRange ? ` · ${pageRange}` : ''}</div>
-        ${e.note ? `<div class="jm-entry-note">${_esc(e.note)}</div>` : ''}
+        ${meta ? `<div class="jm-entry-meta">${_esc(meta)}</div>` : ''}
+        ${e.note ? `<div class="jm-entry-note">\u201C${_esc(e.note)}\u201D</div>` : ''}
         ${reactions ? `<div class="jm-reactions-list">${reactions}</div>` : ''}
       </div>`;
   }).join('');

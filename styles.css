@@ -2323,3 +2323,29 @@ audio { width: 100%; border-radius: 8px }
     transform: rotate(10deg) translateX(46px) translateY(8px) !important;
   }
 }
+/* Parent dashboard — Að lesa: put percentage centered under progress bar */
+#screen-parent-home .ph-nr-progress{
+  display:flex !important;
+  flex-direction:column !important;
+  align-items:center !important;
+  gap:5px !important;
+  margin-top:9px !important;
+  margin-bottom:0 !important;
+  width:100% !important;
+}
+
+#screen-parent-home .ph-nr-bar{
+  width:100% !important;
+  flex:none !important;
+}
+
+#screen-parent-home .ph-nr-pct{
+  display:block !important;
+  min-width:0 !important;
+  width:100% !important;
+  font-size:15px !important;
+  font-weight:900 !important;
+  color:var(--ph-accent) !important;
+  text-align:center !important;
+  line-height:1 !important;
+}

@@ -318,25 +318,6 @@ function _cacheGoldMomentLocal(session, clipKey, clipPath, listenerName, book) {
   } catch (e) { /* local cache only */ }
 }
 
-// Uppfæra header stjörnu
-  _updateRowStar(docId);
-
-  // Skrifa á Firestore
-  try {
-    await updateDoc(doc(db, 'sessions', docId), {
-      [`favorites.${clipKey}`]: next
-    });
-  } catch (e) {
-    console.error('toggleClipFav villa:', e);
-    // Rollback
-    if (starEl) {
-      starEl.textContent = current ? '★' : '☆';
-      starEl.classList.toggle('ph-clip-fav-active', current);
-    }
-    if (session?.favorites) session.favorites[clipKey] = current;
-    _updateRowStar(docId);
-  }
-}
 
 // Uppfæra header stjörnu á row — sýnir ef einhver clip inni er fav
 function _updateRowStar(docId) {

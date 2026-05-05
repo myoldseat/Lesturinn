@@ -1,0 +1,1894 @@
+<!DOCTYPE html>
+<html lang="is">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>UppHátt — Admin</title>
+<link rel="icon" type="image/png" href="icon-teale.png">
+<style>
+/* ══════════════════════════════════════════════
+   Admin Dashboard — standalone
+   ══════════════════════════════════════════════ */
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
+
+/* ── Auth screen — matches app rg-popup style ── */
+.auth-screen {
+  background:
+    radial-gradient(520px 260px at 50% 14%, rgba(18,216,223,0.18) 0%, rgba(18,216,223,0.02) 58%, transparent 100%),
+    #050b14;
+  min-height:100dvh;display:flex;align-items:center;justify-content:center;color:#d9e5ef;
+  padding:16px;
+}
+.auth-card {
+  position:relative;width:min(96vw,420px);
+  background:rgba(6,14,26,0.97);
+  border:1px solid rgba(29,205,211,0.18);border-radius:22px;overflow:hidden;
+  box-shadow:0 32px 80px rgba(0,0,0,0.6),0 0 60px rgba(29,205,211,0.07);
+}
+.auth-glow {
+  position:absolute;top:0;left:10%;right:10%;height:1px;
+  background:linear-gradient(90deg,rgba(29,205,211,0) 0%,rgba(29,205,211,0.55) 50%,rgba(29,205,211,0) 100%);
+  pointer-events:none;
+}
+.auth-header{padding:26px 32px 0;text-align:center}
+.auth-brand{font-size:28px;font-weight:800;letter-spacing:-0.5px;line-height:1;margin-bottom:5px}
+.auth-brand span{color:#1dcdd3}
+.auth-sub{margin:0;font-size:13px;color:rgba(148,164,180,0.8);font-weight:500}
+.auth-body{padding:20px 32px 26px;display:flex;flex-direction:column}
+.auth-welcome{font-size:17px;font-weight:700;color:#d9e5ef;margin-bottom:3px;letter-spacing:-0.3px}
+.auth-desc{font-size:13px;color:rgba(148,164,180,0.75);margin-bottom:20px;line-height:1.4}
+.auth-field{margin-bottom:13px}
+.auth-label{display:block;font-size:11px;font-weight:700;color:#d9e5ef;margin-bottom:6px}
+.auth-input{
+  width:100%;background:rgba(255,255,255,0.05);
+  border:1px solid rgba(122,187,218,0.18);border-radius:9px;
+  padding:9px 13px;font-size:16px;color:#d9e5ef;outline:none;
+  text-transform:uppercase;letter-spacing:3px;text-align:center;font-weight:700;
+  transition:border-color 0.2s,box-shadow 0.2s,background 0.2s;
+}
+.auth-input::placeholder{color:rgba(148,164,180,0.45);letter-spacing:1px;font-size:13px;text-transform:none;font-weight:400}
+.auth-input:focus{border-color:rgba(29,205,211,0.55);background:rgba(29,205,211,0.04);box-shadow:0 0 0 3px rgba(29,205,211,0.12)}
+.auth-btn{
+  width:100%;margin-top:6px;padding:11px;
+  background:linear-gradient(135deg,#1dcdd3 0%,#18bcc2 100%);
+  border:none;border-radius:10px;color:#061018;font-size:15px;font-weight:800;
+  cursor:pointer;letter-spacing:-0.2px;
+  box-shadow:0 0 24px rgba(29,205,211,0.32),0 3px 10px rgba(0,0,0,0.22);
+  transition:filter 0.18s,transform 0.15s;
+}
+.auth-btn:hover{filter:brightness(1.06);transform:translateY(-1px)}
+.auth-btn:active{transform:scale(0.98)}
+.auth-error{font-size:12px;font-weight:700;color:#ff6b6b;min-height:16px;margin-top:8px;text-align:center}
+
+/* ── Dashboard ── */
+.admin-page {
+  background:
+    radial-gradient(circle at 22% 10%, rgba(29,205,211,0.08), transparent 24%),
+    radial-gradient(circle at 90% 18%, rgba(29,205,211,0.04), transparent 20%),
+    linear-gradient(180deg, #050d18, #07101e);
+  color:#d9e5ef;
+  min-height:100dvh;
+  display:none;
+}
+
+.admin-layout {
+  min-height:100dvh;
+  display:grid;
+  grid-template-columns:112px 1fr;
+}
+
+.admin-sidebar {
+  padding:20px 14px;
+  border-right:1px solid rgba(29,205,211,0.14);
+  display:flex;flex-direction:column;gap:18px;
+  background:linear-gradient(180deg,rgba(3,9,16,0.95),rgba(5,13,24,0.98));
+  position:sticky;top:0;height:100dvh;
+}
+.admin-brand{color:#d9e5ef;font-size:18px;font-weight:800;letter-spacing:-0.03em;line-height:1;padding:8px 4px 10px}
+.admin-brand span{color:#1dcdd3}
+.admin-nav{display:grid;gap:10px}
+.admin-nav-item{
+  border:1px solid rgba(29,205,211,0.08);background:rgba(255,255,255,0.02);
+  border-radius:18px;padding:14px 10px;min-height:76px;text-align:center;
+  color:#7a8fa0;font-size:12px;font-weight:700;
+  display:grid;align-content:center;justify-items:center;gap:8px;cursor:pointer;
+}
+.admin-nav-item.active{
+  background:rgba(29,205,211,0.10);color:#1dcdd3;
+  border-color:rgba(29,205,211,0.26);
+  box-shadow:inset 0 0 0 1px rgba(29,205,211,0.12),0 0 30px rgba(29,205,211,0.08);
+}
+.admin-side-bottom{margin-top:auto;display:grid;gap:12px}
+.admin-side-card,.admin-side-user{
+  border:1px solid rgba(29,205,211,0.12);background:rgba(255,255,255,0.02);
+  border-radius:18px;padding:14px;
+}
+.admin-side-card h4,.admin-side-user strong{display:block;margin:0 0 6px;font-size:13px;color:#d9e5ef}
+.admin-side-card p,.admin-side-user span{margin:0;color:#7a8fa0;font-size:12px;line-height:1.45}
+.admin-side-user{text-align:left;cursor:pointer}
+
+.admin-main{padding:26px 28px 34px}
+.admin-shell{width:min(1180px,100%);margin:0 auto}
+
+.admin-hero{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;margin-bottom:22px}
+.admin-eyebrow{color:#1dcdd3;text-transform:uppercase;letter-spacing:0.14em;font-size:12px;font-weight:700;margin-bottom:12px}
+.admin-hero h1{margin:0;font-size:clamp(42px,5vw,60px);line-height:0.98;letter-spacing:-0.04em;font-weight:800;color:#d9e5ef}
+.admin-hero p{margin:12px 0 0;color:#7a8fa0;font-size:15px;line-height:1.5;max-width:700px}
+.admin-hero-right{display:flex;gap:12px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+.admin-top-chip{border:1px solid rgba(29,205,211,0.12);background:rgba(7,16,30,0.78);color:#d9e5ef;border-radius:16px;padding:14px 16px;min-width:176px;font-size:14px;font-weight:600}
+
+.admin-grid-top{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:16px}
+.admin-kpi-card,.admin-summary-card,.admin-session-card,.admin-family-card-v2{
+  background:rgba(9,20,36,0.78);border:1px solid rgba(29,205,211,0.12);
+  border-radius:18px;box-shadow:0 18px 42px rgba(0,0,0,0.26);
+}
+.admin-kpi-card{padding:18px;min-height:138px;display:grid;align-content:center;gap:16px}
+.admin-kpi-label{font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:#7a8fa0;font-weight:700}
+.admin-kpi-value{font-size:28px;line-height:1;color:#1dcdd3;font-family:Georgia,serif;font-weight:700}
+.admin-kpi-sub{color:#7a8fa0;font-size:13px;line-height:1.35}
+
+.admin-summary-row{display:grid;grid-template-columns:1.25fr 1fr 1fr;gap:12px;margin-bottom:18px}
+.admin-summary-card{padding:18px}
+.admin-summary-card h3,.admin-section-title{margin:0 0 14px;font-size:17px;font-weight:700;color:#d9e5ef}
+.admin-summary-list,.admin-dist-stack{display:grid;gap:10px}
+.admin-summary-item{
+  display:flex;justify-content:space-between;align-items:center;gap:12px;
+  padding:10px 12px;border-radius:12px;border:1px solid rgba(29,205,211,0.08);
+  background:rgba(255,255,255,0.02);color:#7a8fa0;font-size:13px;
+}
+.admin-summary-item strong{color:#d9e5ef;font-size:15px}
+.admin-dist-item{display:grid;gap:8px}
+.admin-dist-head{display:flex;justify-content:space-between;color:#7a8fa0;font-size:13px;font-weight:600}
+.admin-bar{width:100%;height:10px;border-radius:999px;background:rgba(255,255,255,0.05);overflow:hidden}
+.admin-bar>span{display:block;height:100%;border-radius:inherit}
+
+.admin-section{margin-top:22px}
+.admin-section-head{display:flex;justify-content:space-between;align-items:flex-end;gap:14px;margin-bottom:14px}
+.admin-section-head p{margin:6px 0 0;color:#7a8fa0;font-size:14px}
+.admin-action-link{
+  border:1px solid rgba(29,205,211,0.22);background:rgba(29,205,211,0.08);
+  color:#1dcdd3;padding:12px 18px;border-radius:14px;font-weight:700;font-size:14px;white-space:nowrap;cursor:pointer;
+}
+
+.admin-sessions-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.admin-session-card{padding:16px;display:grid;gap:14px}
+.admin-session-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.admin-session-name{display:flex;align-items:center;gap:10px;font-size:18px;font-weight:700;color:#d9e5ef}
+.admin-avatar{
+  width:34px;height:34px;border-radius:50%;border:1px solid rgba(29,205,211,0.12);
+  background:rgba(255,255,255,0.03);display:grid;place-items:center;color:#d9e5ef;flex-shrink:0;
+}
+.admin-date-pill{padding:8px 10px;border-radius:12px;background:rgba(255,255,255,0.03);border:1px solid rgba(29,205,211,0.08);color:#7a8fa0;font-size:12px;font-weight:700}
+.admin-meta-line{display:flex;flex-wrap:wrap;gap:8px}
+.admin-meta-line span{padding:8px 10px;border-radius:10px;background:rgba(255,255,255,0.03);border:1px solid rgba(29,205,211,0.08);color:#7a8fa0;font-size:13px}
+.admin-quality-good{color:#4ade80 !important}
+.admin-quality-fair{color:#fbbf24 !important}
+.admin-quality-poor{color:#f87171 !important}
+.admin-session-label{color:#7a8fa0;font-size:14px;margin-bottom:6px}
+.admin-profile-text{font-size:18px;font-weight:800}
+.admin-metrics-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.admin-metric{padding:12px;border-radius:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(29,205,211,0.08);position:relative}
+.admin-metric-label{font-size:11px;color:#7a8fa0;text-transform:uppercase;letter-spacing:0.08em;font-weight:700;margin-bottom:8px}
+.admin-metric-value{font-size:20px;font-weight:800;line-height:1.05;margin-bottom:4px;color:#d9e5ef}
+.admin-metric[title]{cursor:help}
+.admin-tooltip{display:none;position:absolute;bottom:100%;left:50%;transform:translateX(-50%);background:#1a2a3a;color:#c8dae8;padding:10px 14px;border-radius:10px;font-size:12px;line-height:1.5;width:240px;z-index:100;border:1px solid rgba(29,205,211,0.15);box-shadow:0 4px 16px rgba(0,0,0,0.4);pointer-events:none;margin-bottom:8px}
+.admin-metric:hover .admin-tooltip{display:block}
+.admin-date-filter{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:16px;padding:12px 16px;background:rgba(255,255,255,0.02);border-radius:12px;border:1px solid rgba(29,205,211,0.08)}
+.admin-date-filter label{font-size:13px;color:#7a8fa0;display:flex;align-items:center;gap:6px}
+.admin-date-filter input[type="date"]{background:#0d1b2a;color:#d9e5ef;border:1px solid rgba(29,205,211,0.15);border-radius:8px;padding:6px 10px;font-size:13px}
+.admin-filter-clear{background:rgba(248,113,113,0.15);color:#f87171;border:1px solid rgba(248,113,113,0.2);border-radius:8px;padding:6px 14px;font-size:12px;cursor:pointer;font-weight:600}
+.admin-filter-clear:hover{background:rgba(248,113,113,0.25)}
+
+/* ── Admin pattern/date filter ── */
+.admin-pattern-filter{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;
+  margin:0 0 14px;padding:12px 14px;border-radius:16px;
+  background:rgba(255,255,255,0.025);border:1px solid rgba(29,205,211,0.10);
+}
+.admin-pattern-filter-left{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.admin-pattern-filter-label{font-size:12px;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;color:#7a8fa0;margin-right:2px}
+.admin-filter-pill{
+  border:1px solid rgba(29,205,211,0.14);background:rgba(255,255,255,0.025);
+  color:#7a8fa0;border-radius:999px;padding:8px 12px;font-size:12px;font-weight:800;cursor:pointer;
+}
+.admin-filter-pill:hover{border-color:rgba(29,205,211,0.28);color:#d9e5ef}
+.admin-filter-pill.active{background:rgba(29,205,211,0.12);border-color:rgba(29,205,211,0.32);color:#1dcdd3;box-shadow:0 0 18px rgba(29,205,211,0.08)}
+.admin-filter-pill.danger{border-color:rgba(248,113,113,0.20);color:#f87171;background:rgba(248,113,113,0.07)}
+
+.admin-filter-select-wrap{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.admin-filter-select{
+  appearance:none;-webkit-appearance:none;
+  min-width:138px;
+  border:1px solid rgba(29,205,211,0.18);
+  background:
+    linear-gradient(135deg,rgba(29,205,211,0.08),rgba(255,255,255,0.025)),
+    #091426;
+  color:#d9e5ef;
+  border-radius:999px;
+  padding:8px 34px 8px 13px;
+  font-size:12px;
+  font-weight:800;
+  cursor:pointer;
+  outline:none;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,0.025);
+}
+.admin-filter-select:focus{border-color:rgba(29,205,211,0.55);box-shadow:0 0 0 3px rgba(29,205,211,0.10),0 0 22px rgba(29,205,211,0.10)}
+.admin-filter-select-wrap{position:relative}
+.admin-filter-select-wrap::after{
+  content:'⌄';
+  position:absolute;
+  right:13px;
+  top:50%;
+  transform:translateY(-54%);
+  color:#1dcdd3;
+  font-size:14px;
+  pointer-events:none;
+}
+.admin-filter-select option{background:#091426;color:#d9e5ef}
+.admin-pattern-filter-status{font-size:12px;font-weight:700;color:#7a8fa0;line-height:1.35}
+.admin-pattern-filter-status strong{color:#d9e5ef}
+
+.admin-see-more{
+  display:flex;justify-content:center;align-items:center;gap:10px;
+  padding:14px 16px;border-radius:14px;border:1px solid rgba(29,205,211,0.22);
+  background:rgba(29,205,211,0.08);color:#1dcdd3;font-weight:700;font-size:15px;cursor:pointer;
+}
+
+.admin-family-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px}
+.admin-family-card-v2{padding:16px;display:grid;gap:14px}
+.admin-family-code{color:#1dcdd3;font-size:12px;text-transform:uppercase;letter-spacing:0.08em;font-weight:800;margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.admin-family-name{font-size:18px;font-weight:700;margin-bottom:6px;color:#d9e5ef}
+.admin-family-meta{color:#7a8fa0;font-size:13px;line-height:1.45}
+.admin-family-score{width:100%;height:8px;border-radius:999px;background:rgba(255,255,255,0.05);overflow:hidden}
+.admin-family-score span{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,rgba(29,205,211,0.4),#1dcdd3)}
+.admin-family-bottom{display:flex;justify-content:space-between;gap:12px;align-items:flex-end;color:#7a8fa0;font-size:13px}
+.admin-footer-note{text-align:center;color:#7a8fa0;font-size:14px;margin-top:28px;padding-top:6px}
+.admin-empty{color:#7a8fa0;font-size:14px}
+.admin-loading{color:#d9e5ef;padding:24px;font-size:15px}
+
+/* ── Tab content toggle ── */
+.admin-tab-content{display:none}
+.admin-tab-content.active{display:block}
+
+/* ── Load more ── */
+.admin-load-more{
+  display:flex;justify-content:center;align-items:center;gap:10px;
+  padding:14px 24px;border-radius:14px;border:1px solid rgba(29,205,211,0.22);
+  background:rgba(29,205,211,0.06);color:#1dcdd3;font-weight:700;font-size:14px;
+  cursor:pointer;margin:16px auto 0;
+}
+
+
+
+/* ── Admin activity heatmaps ── */
+.admin-heatmap-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:14px;
+  margin-bottom:18px;
+}
+.admin-heatmap-card{
+  background:rgba(9,20,36,0.78);
+  border:1px solid rgba(29,205,211,0.12);
+  border-radius:18px;
+  box-shadow:0 18px 42px rgba(0,0,0,0.26);
+  padding:18px;
+  overflow:hidden;
+}
+.admin-heatmap-card h3{margin:0 0 6px;font-size:17px;font-weight:800;color:#d9e5ef;letter-spacing:-0.02em}
+.admin-heatmap-card p{margin:0 0 14px;color:#7a8fa0;font-size:13px;line-height:1.45}
+.admin-hm-wrap{width:100%;max-width:100%;overflow:hidden}
+.admin-hm-day-row{
+  display:grid;
+  grid-template-columns:44px repeat(7,minmax(0,1fr));
+  gap:6px;
+  align-items:center;
+  margin-bottom:7px;
+}
+.admin-hm-day-lbl{font-size:11px;font-weight:800;color:#7a8fa0;text-align:center;letter-spacing:0.02em}
+.admin-hm-rows{display:grid;gap:6px}
+.admin-hm-row{
+  display:grid;
+  grid-template-columns:44px repeat(7,minmax(0,1fr));
+  gap:6px;
+  align-items:center;
+}
+.admin-hm-hour-lbl{font-size:11px;font-weight:700;color:#4a5f78;text-align:right;padding-right:2px}
+.admin-hm-cell{
+  min-height:28px;
+  border-radius:9px;
+  border:1px solid rgba(255,255,255,0.035);
+  background:rgba(255,255,255,0.035);
+  color:#d9e5ef;
+  display:grid;
+  place-items:center;
+  font-size:11px;
+  font-weight:800;
+  line-height:1;
+  cursor:default;
+  position:relative;
+}
+.admin-hm-c0{background:rgba(255,255,255,0.025);color:rgba(217,229,239,0.18)}
+.admin-hm-c1{background:rgba(29,205,211,0.12);color:rgba(217,229,239,0.74)}
+.admin-hm-c2{background:rgba(29,205,211,0.24);color:#d9e5ef}
+.admin-hm-c3{background:rgba(29,205,211,0.42);color:#061018}
+.admin-hm-c4{background:rgba(29,205,211,0.72);color:#061018}
+.admin-hm-cell:hover{outline:1px solid rgba(29,205,211,0.35);box-shadow:0 0 18px rgba(29,205,211,0.12)}
+.admin-hm-cell:hover::after{
+  content:attr(data-tip);
+  position:absolute;
+  left:50%;
+  bottom:calc(100% + 8px);
+  transform:translateX(-50%);
+  background:#102033;
+  border:1px solid rgba(29,205,211,0.18);
+  color:#d9e5ef;
+  font-size:12px;
+  font-weight:700;
+  padding:8px 10px;
+  border-radius:10px;
+  white-space:nowrap;
+  z-index:10;
+  box-shadow:0 10px 30px rgba(0,0,0,0.35);
+}
+.admin-hm-legend{display:flex;align-items:center;justify-content:flex-end;gap:5px;margin-top:12px;color:#7a8fa0;font-size:11px;font-weight:700}
+.admin-hm-leg-cell{width:16px;height:10px;border-radius:4px;border:1px solid rgba(255,255,255,0.04)}
+.admin-hm-foot{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-top:12px;padding-top:12px;border-top:1px solid rgba(29,205,211,0.08);color:#7a8fa0;font-size:12px;line-height:1.35}
+.admin-hm-foot strong{color:#d9e5ef}
+
+
+
+/* ── Retention og hegðun ── */
+.admin-retention-note{
+  margin:0 0 14px;
+  padding:12px 14px;
+  border:1px solid rgba(29,205,211,0.10);
+  background:rgba(255,255,255,0.025);
+  border-radius:14px;
+  color:#7a8fa0;
+  font-size:13px;
+  line-height:1.45;
+}
+.admin-retention-note strong{color:#d9e5ef}
+.admin-retention-grid{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:12px;
+  margin-bottom:18px;
+}
+.admin-retention-card{
+  background:rgba(9,20,36,0.78);
+  border:1px solid rgba(29,205,211,0.12);
+  border-radius:18px;
+  box-shadow:0 18px 42px rgba(0,0,0,0.26);
+  padding:16px;
+  display:grid;
+  gap:10px;
+  min-height:142px;
+}
+.admin-retention-label{font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:#7a8fa0;font-weight:800}
+.admin-retention-value{font-size:30px;line-height:1;color:#1dcdd3;font-family:Georgia,serif;font-weight:800}
+.admin-retention-sub{display:grid;gap:5px;color:#7a8fa0;font-size:12px;line-height:1.3}
+.admin-retention-sub strong{color:#d9e5ef}
+.admin-retention-compare{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:12px;
+  margin-bottom:18px;
+}
+.admin-compare-card{
+  background:rgba(9,20,36,0.78);
+  border:1px solid rgba(29,205,211,0.12);
+  border-radius:18px;
+  box-shadow:0 18px 42px rgba(0,0,0,0.26);
+  padding:18px;
+}
+.admin-compare-card h3{margin:0 0 6px;font-size:17px;font-weight:800;color:#d9e5ef;letter-spacing:-0.02em}
+.admin-compare-card p{margin:0 0 14px;color:#7a8fa0;font-size:13px;line-height:1.45}
+.admin-compare-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.admin-compare-box{border:1px solid rgba(29,205,211,0.08);background:rgba(255,255,255,0.02);border-radius:14px;padding:12px}
+.admin-compare-title{font-size:13px;font-weight:800;color:#d9e5ef;margin-bottom:8px}
+.admin-compare-line{display:flex;justify-content:space-between;gap:10px;color:#7a8fa0;font-size:12px;line-height:1.35;padding:4px 0;border-top:1px solid rgba(255,255,255,0.035)}
+.admin-compare-line:first-of-type{border-top:0}
+.admin-compare-line strong{color:#d9e5ef}
+@media(max-width:1350px){.admin-retention-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:1040px){.admin-retention-compare{grid-template-columns:1fr}}
+@media(max-width:560px){.admin-retention-grid,.admin-compare-grid{grid-template-columns:1fr}}
+
+/* ── Responsive ── */
+@media(max-width:1350px){
+  .admin-grid-top{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .admin-family-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .admin-sessions-grid{grid-template-columns:1fr 1fr}
+}
+@media(max-width:1040px){
+  .admin-heatmap-grid{grid-template-columns:1fr}
+  .admin-layout{grid-template-columns:1fr}
+  .admin-sidebar{display:none}
+  .admin-summary-row{grid-template-columns:1fr}
+  .admin-grid-top{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .admin-sessions-grid{grid-template-columns:1fr}
+  .admin-family-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:720px){
+  .admin-hm-day-row,.admin-hm-row{grid-template-columns:34px repeat(7,minmax(0,1fr));gap:4px}
+  .admin-hm-cell{min-height:22px;border-radius:7px;font-size:10px}
+  .admin-hm-hour-lbl,.admin-hm-day-lbl{font-size:10px}
+  .admin-main{padding:16px 14px 24px}
+  .admin-hero{display:grid}
+  .admin-hero-right{justify-content:flex-start}
+  .admin-grid-top{grid-template-columns:1fr 1fr}
+  .admin-family-grid{grid-template-columns:1fr}
+  .admin-section-head{display:grid}
+}
+@media(max-width:560px){
+  .admin-grid-top,.admin-metrics-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════
+     AUTH SCREEN
+════════════════════════════════════════ -->
+<div id="auth-screen" class="auth-screen">
+  <div class="auth-card">
+    <div class="auth-glow"></div>
+    <div class="auth-header">
+      <div class="auth-brand"><span>Upp</span>Hátt</div>
+      <div class="auth-sub">Stjórnborð — admin aðgangur</div>
+    </div>
+    <div class="auth-body">
+      <div class="auth-welcome">Admin innskráning</div>
+      <div class="auth-desc">Sláðu inn admin kóðann til að opna stjórnborðið</div>
+      <div class="auth-field">
+        <label class="auth-label" for="admin-code-input">Admin kóði</label>
+        <input id="admin-code-input" class="auth-input" type="password" maxlength="32"
+          autocomplete="off" placeholder="Sláðu inn kóða">
+      </div>
+      <button class="auth-btn" onclick="tryLogin()">Opna stjórnborð</button>
+      <div id="auth-error" class="auth-error"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     DASHBOARD
+════════════════════════════════════════ -->
+<div id="admin-page" class="admin-page">
+  <div class="admin-layout">
+    <aside class="admin-sidebar">
+      <div class="admin-brand"><span>Upp</span>Hátt</div>
+      <nav class="admin-nav" id="admin-nav"></nav>
+      <div class="admin-side-bottom">
+        <div class="admin-side-card">
+          <h4>Admin hamur</h4>
+          <p>Gögn eru dulkóðuð og ópersónugreinanleg</p>
+        </div>
+        <button class="admin-side-user" type="button" onclick="doLogout()">
+          <strong>Admin</strong>
+          <span>Útskrá</span>
+        </button>
+      </div>
+    </aside>
+    <main class="admin-main">
+      <div class="admin-shell">
+        <section class="admin-hero">
+          <div>
+            <div class="admin-eyebrow">Upphátt stjórnborð</div>
+            <h1>UppHátt Admin</h1>
+            <p>Yfirlit og innsýn í lestrarþróun úr hljóðupptökum og greiningu.</p>
+          </div>
+          <div class="admin-hero-right">
+            <div class="admin-top-chip" id="admin-date-chip"></div>
+          </div>
+        </section>
+        <div id="admin-content">
+          <div class="admin-loading">Hleð gögnum...</div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+<script>
+console.log('ADMIN SCRIPT STARTED');
+
+const firebaseConfig = {
+  apiKey:'AIzaSyAgTY3Uxd9_ZxixjqLj-sH8V3OhFAzg6DU',
+  authDomain:'lesum-22e85.firebaseapp.com',
+  projectId:'lesum-22e85',
+  storageBucket:'lesum-22e85.firebasestorage.app',
+  messagingSenderId:'204392598388',
+  appId:'1:204392598388:web:2dbbe3f476cd78d2ffba21'
+};
+
+let db = null;
+function initFirebase() {
+  if (db) return db;
+  if (!window.firebase) throw new Error('Firebase scripts hlóðust ekki. Prófaðu hard refresh eða athugaðu Network tab.');
+  if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+  db = firebase.firestore();
+  return db;
+}
+
+const ADMIN_CODE = 'ADMIN001';
+const PAGE_SIZE = 50;
+const ANALYTICS_EVENT_LIMIT = 1000;
+
+// ══════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════
+
+let _sessions = [];
+let _heatmapSessions = [];
+let _listenEvents = [];
+let _users = [];
+let _childBirthYearLookup = {};
+let _birthYearOptions = Array.from({length: 11}, (_, i) => String(2010 + i));
+let _adminBirthYear = localStorage.getItem('upphatt_admin_birth_year') || 'all';
+let _adminDateMode = localStorage.getItem('upphatt_admin_date_mode') || 'all';
+let _adminDateFrom = localStorage.getItem('upphatt_admin_date_from') || '';
+let _adminDateTo = localStorage.getItem('upphatt_admin_date_to') || '';
+let _families = {};
+let _lastDoc = null;
+let _hasMore = true;
+let _totalCount = 0;
+let _activeTab = 'overview';
+
+// ══════════════════════════════════════════
+// ADMIN — metrics extraction (new seven metrics)
+// ══════════════════════════════════════════
+
+function getMetrics(s) {
+  const snippets = s.analysis?.snippets || {};
+  const usable = [
+    snippets.min1, snippets.min2, snippets.min5, snippets.min8, snippets.min10,
+    snippets.min4, snippets.min7, snippets.min9, snippets.min13
+  ].filter(sn => sn && sn.usable);
+
+  if (!usable.length) return {
+    syllables: 0, cleanReadingPct: 0, articulationRate: 0, speechRate: 0,
+    formantVariation: 0, meanF1Variation: 0, meanF2Variation: 0
+  };
+
+  // Read from summary object if available, fall back to legacy flat fields
+  const val = (sn, key, ...legacyKeys) => {
+    if (sn.summary && sn.summary[key] != null) return sn.summary[key];
+    for (const lk of legacyKeys) {
+      if (lk && sn[lk] != null) return sn[lk];
+    }
+    if (sn[key] != null) return sn[key];
+    return 0;
+  };
+
+  return {
+    syllables: Math.round(usable.reduce((a, sn) => a + val(sn, 'syllables', 'praatSyllables'), 0) / usable.length),
+    cleanReadingPct: Number((usable.reduce((a, sn) => a + val(sn, 'cleanReadingPct'), 0) / usable.length).toFixed(1)),
+    articulationRate: Number((usable.reduce((a, sn) => a + val(sn, 'articulationRate', 'praatArticulationRate'), 0) / usable.length).toFixed(2)),
+    speechRate: Number((usable.reduce((a, sn) => a + val(sn, 'speechRate', 'praatSpeechRate'), 0) / usable.length).toFixed(2)),
+    formantVariation: Number((usable.reduce((a, sn) => a + val(sn, 'formantVariation'), 0) / usable.length).toFixed(1)),
+    meanF1Variation: Number((usable.reduce((a, sn) => a + val(sn, 'meanF1Variation'), 0) / usable.length).toFixed(1)),
+    meanF2Variation: Number((usable.reduce((a, sn) => a + val(sn, 'meanF2Variation'), 0) / usable.length).toFixed(1)),
+    speakingTime: Number((usable.reduce((a, sn) => a + val(sn, 'speakingTime'), 0) / usable.length).toFixed(1)),
+    disruptionCount: Number((usable.reduce((a, sn) => a + val(sn, 'disruptionCount', 'decodingPauseCount'), 0) / usable.length).toFixed(1))
+  };
+}
+
+// Profile classification — matches grading logic
+// Grunnur: articulation rate (talhraði)
+// Lækkanir: syllables < 30, cleanReading < 45%, F1 variation < 175
+const GRADE_THRESHOLDS_ADMIN = {
+  artRate: [5.0, 6.0, 7.0, 8.0],  // [Á réttri leið, Á réttum stað, Góð tök, Mjög góð tök]
+  syllablesPenalty: 30,
+  cleanReadingPenalty: 45,
+  f1VariationPenalty: 175
+};
+
+function getProfile(m) {
+  const T = GRADE_THRESHOLDS_ADMIN;
+  const art = m.articulationRate || 0;
+  const syl = m.syllables || 0;
+  const clean = m.cleanReadingPct || 0;
+  const f1 = m.meanF1Variation || 0;
+
+  if (!syl && !art) return 'unknown';
+
+  // Grunnur: articulation rate → stig 0–4
+  let level = 0;
+  for (let i = 0; i < T.artRate.length; i++) {
+    if (art >= T.artRate[i]) level = i + 1;
+  }
+
+  // Lækkanir
+  if (syl < T.syllablesPenalty) level = Math.max(level - 1, 0);
+  if (clean < T.cleanReadingPenalty) level = Math.max(level - 1, 0);
+  if (f1 > 0 && f1 < T.f1VariationPenalty) level = Math.max(level - 1, 0);
+
+  const profiles = ['early', 'developing', 'steady', 'flowing', 'top'];
+  return profiles[level];
+}
+
+const PROFILE_LABELS = { early:'Að ná tökum', developing:'Á réttri leið', steady:'Á réttum stað', flowing:'Góð tök', top:'Mjög góð tök', mixed:'Blandað', unknown:'Engin túlkun' };
+const PROFILE_COLORS = { early:'#f87171', developing:'#fbbf24', steady:'#60a5fa', flowing:'#4ade80', top:'#34d399', mixed:'#c084fc', unknown:'#94a3b8' };
+function qualityClass(q) { return q === 'good' ? 'admin-quality-good' : q === 'fair' ? 'admin-quality-fair' : q === 'poor' ? 'admin-quality-poor' : ''; }
+function esc(v) { return String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function dateLabel(v) {
+  if (!v) return '—';
+  if (typeof v === 'string') return v;
+  try { return new Date(v).toLocaleDateString('is-IS'); } catch { return String(v); }
+}
+
+// ══════════════════════════════════════════
+// AUTH
+// ══════════════════════════════════════════
+
+window.tryLogin = function() {
+  const code = document.getElementById('admin-code-input').value.trim();
+  const err = document.getElementById('auth-error');
+  if (code !== ADMIN_CODE) { err.textContent = 'Rangur kóði'; return; }
+  err.textContent = '';
+  document.getElementById('auth-screen').style.display = 'none';
+  document.getElementById('admin-page').style.display = 'block';
+  loadData();
+};
+
+window.doLogout = function() {
+  _sessions = []; _heatmapSessions = []; _listenEvents = []; _users = []; _childBirthYearLookup = {}; _birthYearOptions = []; _families = {}; _lastDoc = null; _hasMore = true;
+  document.getElementById('admin-page').style.display = 'none';
+  document.getElementById('auth-screen').style.display = 'flex';
+  document.getElementById('admin-code-input').value = '';
+};
+
+document.getElementById('admin-code-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') window.tryLogin();
+});
+
+// ══════════════════════════════════════════
+// NAV
+// ══════════════════════════════════════════
+
+const TABS = [
+  { id:'overview',  icon:'📊', label:'Yfirlit' },
+  { id:'sessions',  icon:'🗂️', label:'Lotur' },
+  { id:'families',  icon:'👥', label:'Fjölskyldur' },
+  { id:'insights',  icon:'📈', label:'Innsýn' }
+];
+
+function renderNav() {
+  document.getElementById('admin-nav').innerHTML = TABS.map(t =>
+    `<div class="admin-nav-item ${t.id===_activeTab?'active':''}" onclick="switchTab('${t.id}')">
+      <div>${t.icon}</div><div>${t.label}</div>
+    </div>`
+  ).join('');
+}
+
+window.switchTab = function(tab) {
+  _activeTab = tab;
+  renderNav();
+  renderContent();
+};
+
+// ══════════════════════════════════════════
+// DATA
+// ══════════════════════════════════════════
+
+async function loadData() {
+  const el = document.getElementById('admin-content');
+  el.innerHTML = '<div class="admin-loading">Hleð gögnum...</div>';
+  updateAdminDateChip();
+  renderNav();
+
+  try {
+    const firestore = initFirebase();
+    const snap = await firestore.collection('sessions')
+      .orderBy('timestamp', 'desc')
+      .limit(PAGE_SIZE)
+      .get();
+
+    _sessions = snap.docs.map(d => ({ _docId: d.id, ...d.data() }));
+    _totalCount = _sessions.length;
+    _lastDoc = snap.docs[snap.docs.length - 1] || null;
+    _hasMore = snap.docs.length === PAGE_SIZE;
+
+    try {
+      const analyticsSnap = await firestore.collection('sessions')
+        .orderBy('timestamp', 'desc')
+        .limit(ANALYTICS_EVENT_LIMIT)
+        .get();
+      _heatmapSessions = analyticsSnap.docs.map(d => ({ _docId: d.id, ...d.data() }));
+    } catch (analyticsErr) {
+      console.warn('Heatmap sessions load failed:', analyticsErr);
+      _heatmapSessions = _sessions.slice();
+    }
+
+    try {
+      const listenSnap = await firestore.collection('listenEvents')
+        .orderBy('timestamp', 'desc')
+        .limit(ANALYTICS_EVENT_LIMIT)
+        .get();
+      _listenEvents = listenSnap.docs.map(d => ({ _docId: d.id, ...d.data() }));
+    } catch (listenErr) {
+      console.warn('ListenEvents load failed:', listenErr);
+      _listenEvents = [];
+    }
+
+    try {
+      const usersSnap = await firestore.collection('users').get();
+      _users = usersSnap.docs.map(d => ({ _docId: d.id, ...d.data() }));
+      buildChildBirthYearLookup();
+    } catch (usersErr) {
+      console.warn('Users load failed:', usersErr);
+      _users = [];
+      buildChildBirthYearLookup();
+    }
+
+    buildFamilies();
+    renderContent();
+  } catch (e) {
+    console.error('Admin load failed:', e);
+    el.innerHTML = `<div class="admin-loading" style="color:#f87171">Villa: ${esc(e.message)}</div>`;
+  }
+}
+
+window.loadMore = async function() {
+  if (!_hasMore || !_lastDoc) return;
+  try {
+    const firestore = initFirebase();
+    const snap = await firestore.collection('sessions')
+      .orderBy('timestamp', 'desc')
+      .startAfter(_lastDoc)
+      .limit(PAGE_SIZE)
+      .get();
+    const newDocs = snap.docs.map(d => ({ _docId: d.id, ...d.data() }));
+    _sessions = _sessions.concat(newDocs);
+    _lastDoc = snap.docs[snap.docs.length - 1] || null;
+    _hasMore = snap.docs.length === PAGE_SIZE;
+    buildFamilies();
+    renderContent();
+  } catch (e) { console.error('Load more failed:', e); }
+};
+
+function buildFamilies() {
+  _families = {};
+  _sessions.forEach(s => {
+    if (!s.familyId) return;
+    if (!_families[s.familyId]) _families[s.familyId] = { sessions: [], children: new Set() };
+    _families[s.familyId].sessions.push(s);
+    if (s.childName) _families[s.familyId].children.add(s.childName);
+  });
+}
+
+
+// ══════════════════════════════════════════
+
+function childLookupKey(familyId, childKey) {
+  return `${familyId || ''}__${childKey || ''}`;
+}
+
+function buildChildBirthYearLookup() {
+  _childBirthYearLookup = {};
+  const years = new Set();
+  (_users || []).forEach(u => {
+    const familyId = u.familyId || u.familyCode || '';
+    const children = Array.isArray(u.children) ? u.children : [];
+    children.forEach(child => {
+      if (!familyId || !child || !child.key) return;
+      const birthYear = child.birthYear || child.childBirthYear || child.yearOfBirth || child.bornYear;
+      if (!birthYear) return;
+      const y = String(birthYear);
+      _childBirthYearLookup[childLookupKey(familyId, child.key)] = y;
+      years.add(y);
+    });
+  });
+  // Keep a fixed cohort range visible even before pilot data exists.
+  const fixedYears = Array.from({length: 11}, (_, i) => String(2010 + i));
+  const discoveredYears = Array.from(years).sort((a,b) => Number(a) - Number(b));
+  _birthYearOptions = Array.from(new Set([...fixedYears, ...discoveredYears]))
+    .sort((a,b) => Number(a) - Number(b));
+}
+
+function getAdminItemBirthYear(item) {
+  if (!item) return 'unknown';
+  const direct = item.childBirthYear || item.birthYear || item.yearOfBirth || item.bornYear;
+  if (direct) return String(direct);
+  const childKey = item.childKey || item.childId || item.key || (item.child && item.child.key) || '';
+  const familyId = item.familyId || item.family || '';
+  return _childBirthYearLookup[childLookupKey(familyId, childKey)] || 'unknown';
+}
+
+function adminBirthYearFilterLabel() {
+  if (_adminBirthYear === 'all') return 'Öll fæðingarár';
+  if (_adminBirthYear === 'unknown') return 'Óþekkt fæðingarár';
+  return 'Fæðingarár ' + _adminBirthYear;
+}
+
+function matchesAdminBirthYear(item) {
+  if (!_adminBirthYear || _adminBirthYear === 'all') return true;
+  const year = getAdminItemBirthYear(item);
+  if (_adminBirthYear === 'unknown') return year === 'unknown';
+  return String(year) === String(_adminBirthYear);
+}
+
+function filterByAdminBirthYear(items) {
+  return (items || []).filter(matchesAdminBirthYear);
+}
+
+function setAdminBirthYearFilter(year) {
+  _adminBirthYear = year || 'all';
+  localStorage.setItem('upphatt_admin_birth_year', _adminBirthYear);
+  updateAdminDateChip();
+  renderContent();
+}
+window.setAdminBirthYearFilter = setAdminBirthYearFilter;
+
+// ADMIN DATE FILTER — used by heatmap analytics
+// ══════════════════════════════════════════
+
+function adminLocalDateISO(date) {
+  const d = new Date(date);
+  d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+  return d.toISOString().slice(0, 10);
+}
+
+function adminTodayISO() {
+  return adminLocalDateISO(new Date());
+}
+
+function adminShiftDaysISO(days) {
+  const d = new Date();
+  d.setDate(d.getDate() + days);
+  return adminLocalDateISO(d);
+}
+
+function adminDateFromISO(value) {
+  if (!value) return null;
+  const d = new Date(value + 'T00:00:00');
+  return Number.isNaN(d.getTime()) ? null : d.getTime();
+}
+
+function adminDateToExclusiveISO(value) {
+  if (!value) return null;
+  const d = new Date(value + 'T00:00:00');
+  if (Number.isNaN(d.getTime())) return null;
+  d.setDate(d.getDate() + 1);
+  return d.getTime();
+}
+
+function saveAdminDateFilter() {
+  localStorage.setItem('upphatt_admin_date_mode', _adminDateMode || 'all');
+  localStorage.setItem('upphatt_admin_date_from', _adminDateFrom || '');
+  localStorage.setItem('upphatt_admin_date_to', _adminDateTo || '');
+}
+
+function adminDateFilterLabel() {
+  if (_adminDateMode === 'today') return 'Í dag';
+  if (_adminDateMode === 'last7') return 'Síðustu 7 dagar';
+  if (_adminDateMode === 'hard') return 'Frá og með deginum í dag';
+  return 'Allt tímabil';
+}
+
+function updateAdminDateChip() {
+  const el = document.getElementById('admin-date-chip');
+  if (!el) return;
+  const base = new Date().toLocaleDateString('is-IS');
+  const filter = adminDateFilterLabel();
+  const birth = adminBirthYearFilterLabel();
+  el.textContent = '📅 ' + base + ' · ' + filter + ' · ' + birth;
+}
+
+function setAdminDateFilter(mode) {
+  const today = adminTodayISO();
+  _adminDateMode = mode || 'all';
+  if (mode === 'today') {
+    _adminDateFrom = today;
+    _adminDateTo = today;
+  } else if (mode === 'last7') {
+    _adminDateFrom = adminShiftDaysISO(-6);
+    _adminDateTo = today;
+  } else if (mode === 'hard') {
+    // "Hard refresh" mode: from today onward, persistent until Reset.
+    _adminDateFrom = today;
+    _adminDateTo = '';
+  } else {
+    _adminDateMode = 'all';
+    _adminDateFrom = '';
+    _adminDateTo = '';
+  }
+  saveAdminDateFilter();
+  updateAdminDateChip();
+  renderContent();
+}
+window.setAdminDateFilter = setAdminDateFilter;
+
+function filterByAdminDateRange(items, getTime) {
+  const from = adminDateFromISO(_adminDateFrom);
+  const to = adminDateToExclusiveISO(_adminDateTo);
+  if (!from && !to) return items || [];
+  return (items || []).filter(item => {
+    const ts = getTime(item);
+    if (!ts) return false;
+    if (from && ts < from) return false;
+    if (to && ts >= to) return false;
+    return true;
+  });
+}
+
+
+function getAdminSessionTime(s) {
+  return toMillis(s.timestamp) || toMillis(s.createdAt) || (s.date ? adminDateFromISO(String(s.date).replace(/-(\d)(?=-)/g, '-0$1').replace(/-(\d)$/g, '-0$1')) : null);
+}
+
+function getAdminListenTime(ev) {
+  return toMillis(ev.timestamp) || toMillis(ev.createdAt) || toMillis(ev.completedAt) || toMillis(ev.listenedAt);
+}
+
+function getAdminFilteredSessions(source) {
+  const base = source || ((_heatmapSessions && _heatmapSessions.length) ? _heatmapSessions : _sessions);
+  return filterByAdminBirthYear(filterByAdminDateRange(base, getAdminSessionTime));
+}
+
+function getAdminFilteredListens(source) {
+  return filterByAdminBirthYear(filterByAdminDateRange(source || _listenEvents, getAdminListenTime));
+}
+
+function formatAdminDelay(ms) {
+  if (!Number.isFinite(ms) || ms < 0) return '—';
+  const mins = Math.round(ms / 60000);
+  if (mins < 60) return mins + ' mín';
+  const h = Math.floor(mins / 60);
+  const m = mins % 60;
+  if (h < 24) return m ? `${h} klst ${m} mín` : `${h} klst`;
+  const d = Math.floor(h / 24);
+  const rh = h % 24;
+  return rh ? `${d} d ${rh} klst` : `${d} d`;
+}
+
+function computeListenDelayStats(sourceSessions) {
+  const sessions = sourceSessions || getAdminFilteredSessions();
+  const delays = [];
+  let sessionsWithAudio = 0;
+  let sessionsWithListen = 0;
+
+  (sessions || []).forEach(s => {
+    if (s.hasAudio) sessionsWithAudio++;
+    const start = getAdminSessionTime(s);
+    if (!start) return;
+
+    // Best source: parent-view writes lastListenedAt directly onto the session doc.
+    const listenAt = toMillis(s.lastListenedAt);
+    if (!listenAt || listenAt < start) return;
+
+    sessionsWithListen++;
+    delays.push(listenAt - start);
+  });
+
+  const avgMs = delays.length ? delays.reduce((a,b)=>a+b,0) / delays.length : null;
+  return {
+    avgMs,
+    avgLabel: avgMs == null ? '—' : formatAdminDelay(avgMs),
+    count: delays.length,
+    sessionsWithAudio,
+    sessionsWithListen,
+    unheardAudio: Math.max(0, sessionsWithAudio - sessionsWithListen),
+    pct: sessionsWithAudio ? Math.round((sessionsWithListen / sessionsWithAudio) * 100) : 0
+  };
+}
+
+
+function hasValidSnippet(s) {
+  if (!s) return false;
+  if (s.hasAudio === true) return true;
+  if (s.audioPath || s.audioPath_min1 || s.audioPath_min2 || s.audioPath_min5 || s.audioPath_min8 || s.audioPath_min10) return true;
+  const overall = s.analysis && s.analysis.overall;
+  if (overall && Number(overall.usableCount || 0) > 0) return true;
+  const snippets = (s.analysis && s.analysis.snippets) || {};
+  return Object.values(snippets).some(sn => sn && (sn.usable === true || sn.path || sn.audioPath));
+}
+
+function getAdminChildIdFromParts(familyId, childKey) {
+  return `${familyId || ''}__${childKey || ''}`;
+}
+
+function getAdminSessionChildId(s) {
+  return getAdminChildIdFromParts(s && s.familyId, s && (s.childKey || s.childId || s.key));
+}
+
+function getRegisteredChildrenForAdmin() {
+  const out = [];
+  (_users || []).forEach(u => {
+    const familyId = u.familyId || u.familyCode || '';
+    const children = Array.isArray(u.children) ? u.children : [];
+    children.forEach(child => {
+      if (!familyId || !child || !child.key) return;
+      const item = {
+        familyId,
+        childKey: child.key,
+        childName: child.name || child.childName || 'Barn',
+        childBirthYear: child.birthYear || child.childBirthYear || child.yearOfBirth || child.bornYear || null
+      };
+      if (!matchesAdminBirthYear(item)) return;
+      out.push({
+        id: getAdminChildIdFromParts(familyId, child.key),
+        ...item
+      });
+    });
+  });
+  return out;
+}
+
+function adminDateKeyFromMillis(ms) {
+  if (!ms) return '';
+  const d = new Date(ms);
+  d.setHours(12,0,0,0);
+  return adminLocalDateISO(d);
+}
+
+function adminDateKeyFromSession(s) {
+  const ts = getAdminSessionTime(s);
+  if (ts) return adminDateKeyFromMillis(ts);
+  if (s && s.date) {
+    const parts = String(s.date).split('-').map(Number);
+    if (parts.length === 3 && parts.every(Boolean)) return `${parts[0]}-${String(parts[1]).padStart(2,'0')}-${String(parts[2]).padStart(2,'0')}`;
+  }
+  return '';
+}
+
+function pctText(count, denom) {
+  if (!denom) return '—';
+  return Math.round((count / denom) * 100) + '%';
+}
+
+function dualPctHtml(count, registeredCount, startedCount) {
+  return `<span><strong>${pctText(count, registeredCount)}</strong> af skráðum</span><span><strong>${pctText(count, startedCount)}</strong> af byrjuðum</span>`;
+}
+
+function retentionCard(label, count, registeredCount, startedCount, note) {
+  return `<article class="admin-retention-card">
+    <div class="admin-retention-label">${esc(label)}</div>
+    <div class="admin-retention-value">${esc(count)}</div>
+    <div class="admin-retention-sub">
+      ${dualPctHtml(count, registeredCount, startedCount)}
+      ${note ? `<span>${esc(note)}</span>` : ''}
+    </div>
+  </article>`;
+}
+
+function getChildReadingDaysMap(validSessions) {
+  const map = new Map();
+  (validSessions || []).forEach(s => {
+    const childId = getAdminSessionChildId(s);
+    const day = adminDateKeyFromSession(s);
+    if (!childId || childId === '__' || !day) return;
+    if (!map.has(childId)) map.set(childId, new Set());
+    map.get(childId).add(day);
+  });
+  return map;
+}
+
+function countDaysInWindow(daySet, startMs, endMsExclusive) {
+  let n = 0;
+  (daySet || new Set()).forEach(day => {
+    const ms = adminDateFromISO(day);
+    if (ms != null && ms >= startMs && ms < endMsExclusive) n++;
+  });
+  return n;
+}
+
+function currentStreakFromDays(daySet) {
+  if (!daySet || !daySet.size) return 0;
+  let streak = 0;
+  const d = new Date();
+  d.setHours(12,0,0,0);
+  while (true) {
+    const key = adminLocalDateISO(d);
+    if (!daySet.has(key)) break;
+    streak++;
+    d.setDate(d.getDate() - 1);
+  }
+  return streak;
+}
+
+function bucketCount(obj, key) { obj[key] = (obj[key] || 0) + 1; }
+
+function computeRetentionStats() {
+  const registered = getRegisteredChildrenForAdmin();
+  const registeredIds = new Set(registered.map(c => c.id));
+  const sessions = getAdminFilteredSessions();
+  const validSessions = sessions.filter(hasValidSnippet);
+  const daysByChild = getChildReadingDaysMap(validSessions);
+  const todayStart = adminDateFromISO(adminTodayISO());
+  const tomorrow = new Date(todayStart); tomorrow.setDate(tomorrow.getDate() + 1);
+  const tomorrowMs = tomorrow.getTime();
+  const last7Start = adminDateFromISO(adminShiftDaysISO(-6));
+  const last14Start = adminDateFromISO(adminShiftDaysISO(-13));
+
+  const startedIds = new Set([...daysByChild.keys()].filter(id => !registeredIds.size || registeredIds.has(id)));
+  const registeredCount = registeredIds.size;
+  const startedCount = startedIds.size;
+  const unstartedCount = Math.max(0, registeredCount - startedCount);
+
+  let activeToday = 0, active7 = 0, returned = 0, rareReturn = 0, rhythm3 = 0, strong5 = 0, dropped14 = 0;
+  const freqBuckets = {'0/7':0,'1/7':0,'2/7':0,'3–4/7':0,'5–6/7':0,'7/7':0};
+  const streakBuckets = {'0 dagar':0,'1 dagur':0,'2 dagar':0,'3–4 dagar':0,'5–6 dagar':0,'7+ dagar':0};
+
+  startedIds.forEach(id => {
+    const daySet = daysByChild.get(id) || new Set();
+    const totalDays = daySet.size;
+    const dToday = countDaysInWindow(daySet, todayStart, tomorrowMs);
+    const d7 = countDaysInWindow(daySet, last7Start, tomorrowMs);
+    const d14 = countDaysInWindow(daySet, last14Start, tomorrowMs);
+    const streak = currentStreakFromDays(daySet);
+
+    if (dToday > 0) activeToday++;
+    if (d7 > 0) active7++;
+    if (totalDays >= 2) returned++;
+    if (totalDays >= 2 && d7 < 3 && d14 > 0) rareReturn++;
+    if (d7 >= 3) rhythm3++;
+    if (d7 >= 5) strong5++;
+    if (d14 === 0) dropped14++;
+
+    if (d7 === 0) bucketCount(freqBuckets, '0/7');
+    else if (d7 === 1) bucketCount(freqBuckets, '1/7');
+    else if (d7 === 2) bucketCount(freqBuckets, '2/7');
+    else if (d7 <= 4) bucketCount(freqBuckets, '3–4/7');
+    else if (d7 <= 6) bucketCount(freqBuckets, '5–6/7');
+    else bucketCount(freqBuckets, '7/7');
+
+    if (streak === 0) bucketCount(streakBuckets, '0 dagar');
+    else if (streak === 1) bucketCount(streakBuckets, '1 dagur');
+    else if (streak === 2) bucketCount(streakBuckets, '2 dagar');
+    else if (streak <= 4) bucketCount(streakBuckets, '3–4 dagar');
+    else if (streak <= 6) bucketCount(streakBuckets, '5–6 dagar');
+    else bucketCount(streakBuckets, '7+ dagar');
+  });
+
+  // Add registered-but-not-started to the 0 buckets for denominator clarity.
+  freqBuckets['0/7'] += unstartedCount;
+  streakBuckets['0 dagar'] += unstartedCount;
+
+  return { registered, registeredCount, startedCount, unstartedCount, validSessions, daysByChild, startedIds,
+    activeToday, active7, returned, rareReturn, rhythm3, strong5, dropped14, freqBuckets, streakBuckets };
+}
+
+function computeListeningBehaviorStats(retention) {
+  const sessions = getAdminFilteredSessions().filter(hasValidSnippet);
+  const startedIds = retention.startedIds || new Set();
+  const registeredCount = retention.registeredCount || 0;
+  const startedCount = retention.startedCount || 0;
+
+  const withListen = new Set();
+  const within24 = new Set();
+  const after24 = new Set();
+  const audioSessions = sessions.filter(s => s.hasAudio || hasValidSnippet(s));
+  let listenedSessions = 0;
+  let unheardSessions = 0;
+
+  audioSessions.forEach(s => {
+    const childId = getAdminSessionChildId(s);
+    const start = getAdminSessionTime(s);
+    const listen = toMillis(s.lastListenedAt);
+    if (listen && start && listen >= start) {
+      listenedSessions++;
+      withListen.add(childId);
+      if (listen - start <= 24*60*60*1000) within24.add(childId);
+      else after24.add(childId);
+    } else {
+      unheardSessions++;
+    }
+  });
+
+  const withoutListen = new Set([...startedIds].filter(id => !withListen.has(id)));
+  const never = withoutListen;
+
+  function groupStats(ids) {
+    const idSet = new Set([...ids].filter(id => startedIds.has(id)));
+    let returned = 0, rhythm3 = 0, dropped14 = 0;
+    const todayStart = adminDateFromISO(adminTodayISO());
+    const tomorrow = new Date(todayStart); tomorrow.setDate(tomorrow.getDate() + 1);
+    const tomorrowMs = tomorrow.getTime();
+    const last7Start = adminDateFromISO(adminShiftDaysISO(-6));
+    const last14Start = adminDateFromISO(adminShiftDaysISO(-13));
+    idSet.forEach(id => {
+      const daySet = retention.daysByChild.get(id) || new Set();
+      const d7 = countDaysInWindow(daySet, last7Start, tomorrowMs);
+      const d14 = countDaysInWindow(daySet, last14Start, tomorrowMs);
+      if (daySet.size >= 2) returned++;
+      if (d7 >= 3) rhythm3++;
+      if (d14 === 0) dropped14++;
+    });
+    return { n:idSet.size, returned, rhythm3, dropped14 };
+  }
+
+  return { withListen, withoutListen, within24, after24, never, audioSessions: audioSessions.length,
+    listenedSessions, unheardSessions, registeredCount, startedCount,
+    withListenStats: groupStats(withListen), withoutListenStats: groupStats(withoutListen),
+    within24Stats: groupStats(within24), after24Stats: groupStats(after24), neverStats: groupStats(never) };
+}
+
+function renderRetentionSection() {
+  const r = computeRetentionStats();
+  const l = computeListeningBehaviorStats(r);
+  const reg = r.registeredCount;
+  const started = r.startedCount;
+  const startedPct = reg ? Math.round((started / reg) * 100) : 0;
+
+  // Distribution cards use their own bucket totals as denominator.
+  // They should always add up to 100%, unlike KPI cards that show
+  // % of registered / % of started.
+  const freqTotal = Math.max(Object.values(r.freqBuckets || {}).reduce((a, v) => a + Number(v || 0), 0), 1);
+  const streakTotal = Math.max(Object.values(r.streakBuckets || {}).reduce((a, v) => a + Number(v || 0), 0), 1);
+
+  return `<section class="admin-section">
+    <div class="admin-section-head">
+      <div>
+        <h2 class="admin-section-title">Retention og hegðun</h2>
+        <p>Hlutlaust mat byggt á gildum lestrarlotum: lota með gildu hljóðbroti/snippet.</p>
+      </div>
+    </div>
+    <p class="admin-retention-note"><strong>Prósentur eru sýndar á tvo vegu:</strong> af skráðum börnum og af börnum sem hafa byrjað. Þetta er gert til að forðast fegrun.</p>
+    <div class="admin-retention-grid">
+      <article class="admin-retention-card"><div class="admin-retention-label">Skráð börn</div><div class="admin-retention-value">${esc(reg)}</div><div class="admin-retention-sub"><span>Heild eftir fæðingarársfilter</span></div></article>
+      <article class="admin-retention-card"><div class="admin-retention-label">Byrjuð börn</div><div class="admin-retention-value">${esc(started)}</div><div class="admin-retention-sub"><span><strong>${esc(startedPct)}%</strong> af skráðum</span><span>Með a.m.k. eina gilda lotu</span></div></article>
+      ${retentionCard('Óbyrjuð', r.unstartedCount, reg, started, 'skráð, engin gild lota')}
+      ${retentionCard('Virk í dag', r.activeToday, reg, started, 'gild lota í dag')}
+      ${retentionCard('Virk síðustu 7', r.active7, reg, started, 'a.m.k. ein gild lota')}
+      ${retentionCard('Komu aftur', r.returned, reg, started, '2+ lestrardagar alls')}
+      ${retentionCard('Sjaldan en koma aftur', r.rareReturn, reg, started, '2+ dagar alls, ekki 3+ í viku')}
+      ${retentionCard('3+ dagar / 7', r.rhythm3, reg, started, 'mögulegur taktur')}
+      ${retentionCard('5+ dagar / 7', r.strong5, reg, started, 'sterkur taktur')}
+      ${retentionCard('Dottið út', r.dropped14, reg, started, 'byrjuðu, ekkert síðustu 14 daga')}
+    </div>
+  </section>
+
+  <section class="admin-summary-row" style="grid-template-columns:1fr 1fr">
+    <article class="admin-summary-card">
+      <h3>Lestrardagar síðustu 7 daga</h3>
+      <div class="admin-dist-stack">
+        ${Object.entries(r.freqBuckets).map(([label,count]) => distBar(label, count, '#1dcdd3', freqTotal)).join('')}
+      </div>
+    </article>
+    <article class="admin-summary-card">
+      <h3>Núverandi streak</h3>
+      <div class="admin-dist-stack">
+        ${Object.entries(r.streakBuckets).map(([label,count]) => distBar(label, count, '#60a5fa', streakTotal)).join('')}
+      </div>
+    </article>
+  </section>
+
+  <section class="admin-retention-compare">
+    <article class="admin-compare-card">
+      <h3>Hlustun og viðurkenning</h3>
+      <p>Ber saman lestrarhegðun barna sem hafa fengið hlustun og þeirra sem hafa ekki fengið hlustun.</p>
+      <div class="admin-compare-grid">
+        ${renderCompareBox('Með hlustun', l.withListenStats, started)}
+        ${renderCompareBox('Án hlustunar', l.withoutListenStats, started)}
+      </div>
+    </article>
+    <article class="admin-compare-card">
+      <h3>Tími að fyrstu hlustun</h3>
+      <p>Tengsl milli hraðrar hlustunar og endurkomu. Þetta sýnir tengsl, ekki orsök.</p>
+      <div class="admin-compare-grid">
+        ${renderCompareBox('Innan 24 klst', l.within24Stats, started)}
+        ${renderCompareBox('Eftir 24 klst', l.after24Stats, started)}
+        ${renderCompareBox('Aldrei hlustað', l.neverStats, started)}
+      </div>
+    </article>
+  </section>`;
+}
+
+function renderCompareBox(title, stats, denom) {
+  const n = stats.n || 0;
+  const pct = x => n ? Math.round((x / n) * 100) + '%' : '—';
+  return `<div class="admin-compare-box">
+    <div class="admin-compare-title">${esc(title)} · ${esc(n)} börn</div>
+    <div class="admin-compare-line"><span>Hlutfall af byrjuðum</span><strong>${esc(pctText(n, denom))}</strong></div>
+    <div class="admin-compare-line"><span>Komu aftur</span><strong>${esc(stats.returned)} · ${esc(pct(stats.returned))}</strong></div>
+    <div class="admin-compare-line"><span>3+ dagar / 7</span><strong>${esc(stats.rhythm3)} · ${esc(pct(stats.rhythm3))}</strong></div>
+    <div class="admin-compare-line"><span>Dottið út</span><strong>${esc(stats.dropped14)} · ${esc(pct(stats.dropped14))}</strong></div>
+  </div>`;
+}
+
+function buildFamiliesFromSessions(sessions) {
+  const families = {};
+  (sessions || []).forEach(s => {
+    if (!s.familyId) return;
+    if (!families[s.familyId]) families[s.familyId] = { sessions: [], children: new Set() };
+    families[s.familyId].sessions.push(s);
+    if (s.childName) families[s.familyId].children.add(s.childName);
+  });
+  return families;
+}
+
+function adminPatternFilterHtml() {
+  const active = _adminDateMode || 'all';
+  const status = adminDateFilterLabel();
+  const yearActive = _adminBirthYear || 'all';
+  const yearOptions = [
+    `<option value="all" ${yearActive==='all'?'selected':''}>Allt</option>`,
+    ...(_birthYearOptions || []).map(y => `<option value="${esc(y)}" ${yearActive===String(y)?'selected':''}>${esc(y)}</option>`),
+    `<option value="unknown" ${yearActive==='unknown'?'selected':''}>Óþekkt</option>`
+  ].join('');
+  return `<div class="admin-pattern-filter">
+    <div class="admin-pattern-filter-left">
+      <span class="admin-pattern-filter-label">Tímabil</span>
+      <button class="admin-filter-pill ${active==='all'?'active':''}" onclick="setAdminDateFilter('all')">Allt</button>
+      <button class="admin-filter-pill ${active==='today'?'active':''}" onclick="setAdminDateFilter('today')">Í dag</button>
+      <button class="admin-filter-pill ${active==='last7'?'active':''}" onclick="setAdminDateFilter('last7')">Síðustu 7</button>
+      <button class="admin-filter-pill ${active==='hard'?'active':''}" onclick="setAdminDateFilter('hard')">Hard refresh</button>
+      <button class="admin-filter-pill danger" onclick="setAdminDateFilter('reset')">Reset</button>
+    </div>
+    <div class="admin-filter-select-wrap">
+      <span class="admin-pattern-filter-label">Fæðingarár</span>
+      <select class="admin-filter-select" onchange="setAdminBirthYearFilter(this.value)" aria-label="Fæðingarár">
+        ${yearOptions}
+      </select>
+    </div>
+    <div class="admin-pattern-filter-status">Sýnir: <strong>${esc(status)}</strong> · <strong>${esc(adminBirthYearFilterLabel())}</strong></div>
+  </div>`;
+}
+
+// ══════════════════════════════════════════
+// RENDER
+// ══════════════════════════════════════════
+
+function renderContent() {
+  const el = document.getElementById('admin-content');
+  if (_activeTab === 'overview')  el.innerHTML = renderOverview();
+  if (_activeTab === 'sessions')  el.innerHTML = renderSessions();
+  if (_activeTab === 'families')  el.innerHTML = renderFamilies();
+  if (_activeTab === 'insights')  el.innerHTML = renderInsights();
+}
+
+// ── KPIs ──
+function computeKPIs(sourceSessions) {
+  const baseSessions = sourceSessions || getAdminFilteredSessions();
+  const families = buildFamiliesFromSessions(baseSessions);
+  const totalFamilies = Object.keys(families).length;
+  const totalSessions = baseSessions.length;
+  const totalMins = Math.round(baseSessions.reduce((a,s) => a+(s.seconds||0),0)/60);
+  const withAnalysis = baseSessions.filter(s => s.analysis?.overall).length;
+  const withAudio = baseSessions.filter(s => s.hasAudio).length;
+  const analyzed = baseSessions.filter(s => s.analysis?.overall);
+  const avgUsable = analyzed.length
+    ? (analyzed.reduce((a,s) => a+(s.analysis.overall.usableCount||0),0)/analyzed.length).toFixed(1) : '—';
+  const scoreSessions = analyzed.filter(s => (s.analysis?.overall?.avgScore||0) > 0);
+  const avgScore = scoreSessions.length
+    ? (scoreSessions.reduce((a,s) => a+(s.analysis.overall.avgScore||0),0)/scoreSessions.length).toFixed(1) : '—';
+
+  const profiles = { early:0, developing:0, steady:0, flowing:0, top:0, unknown:0 };
+  const qualities = { good:0, fair:0, poor:0 };
+  analyzed.forEach(s => {
+    const p = getProfile(getMetrics(s));
+    if (profiles[p] !== undefined) profiles[p]++;
+    const q = s.analysis?.overall?.readingQuality;
+    if (q && qualities[q] !== undefined) qualities[q]++;
+  });
+
+  return { totalFamilies, totalSessions, totalMins, withAnalysis, withAudio, analyzed, avgUsable, avgScore, profiles, qualities, families, baseSessions };
+}
+// ── Overview ──
+function renderOverview() {
+  const filteredSessions = getAdminFilteredSessions();
+  const k = computeKPIs(filteredSessions);
+  const delay = computeListenDelayStats(filteredSessions);
+  const sessionCards = renderSessionCards(k.analyzed.slice(0, 6));
+  const familyCards = renderFamilyCards(Object.entries(k.families).slice(0, 6));
+  return `
+    ${adminPatternFilterHtml()}
+    <section class="admin-grid-top">
+      ${kpiCard('Fjölskyldur', k.totalFamilies, 'virkir hópar')}
+      ${kpiCard('Lotur', k.totalSessions, adminDateFilterLabel())}
+      ${kpiCard('Mínútur', k.totalMins, adminDateFilterLabel())}
+      ${kpiCard('Greindar lotur', k.withAnalysis, 'með greiningu')}
+      ${kpiCard('Meðal bið', delay.avgLabel, delay.count ? delay.count + ' lotur með hlustun' : 'engin tengd hlustun')}
+      ${kpiCard('Hlustaðar lotur', delay.sessionsWithAudio ? delay.pct + '%' : '—', delay.sessionsWithListen + ' / ' + delay.sessionsWithAudio + ' lotur með hljóð')}
+      ${kpiCard('Meðalskor', k.avgScore, 'af 100 mögulegum')}
+    </section>
+
+    <section class="admin-summary-row">
+      <article class="admin-summary-card">
+        <h3>Hljóð og greining</h3>
+        <div class="admin-summary-list">
+          ${summaryItem('Lotur með hljóð', k.withAudio + ' / ' + k.totalSessions)}
+          ${summaryItem('Greindar lotur', k.withAnalysis + ' / ' + k.totalSessions)}
+          ${summaryItem('Meðal bið eftir hlustun', delay.avgLabel)}
+          ${summaryItem('Óhlustaðar hljóðlotur', delay.unheardAudio)}
+          ${summaryItem('Meðalskor', k.avgScore)}
+        </div>
+      </article>
+      <article class="admin-summary-card">
+        <h3>Lestrarstíll</h3>
+        <div class="admin-dist-stack">
+          ${distBar('Að ná tökum', k.profiles.early, '#f87171', k.analyzed.length)}
+          ${distBar('Á réttri leið', k.profiles.developing, '#fbbf24', k.analyzed.length)}
+          ${distBar('Á réttum stað', k.profiles.steady, '#60a5fa', k.analyzed.length)}
+          ${distBar('Góð tök', k.profiles.flowing, '#4ade80', k.analyzed.length)}
+          ${distBar('Mjög góð tök', k.profiles.top, '#34d399', k.analyzed.length)}
+        </div>
+      </article>
+      <article class="admin-summary-card">
+        <h3>Lestrargæði</h3>
+        <div class="admin-dist-stack">
+          ${distBar('Good', k.qualities.good, '#4ade80', k.analyzed.length)}
+          ${distBar('Fair', k.qualities.fair, '#fbbf24', k.analyzed.length)}
+          ${distBar('Poor', k.qualities.poor, '#f87171', k.analyzed.length)}
+        </div>
+      </article>
+    </section>
+
+    <section class="admin-section">
+      <div class="admin-section-head">
+        <div>
+          <h2 class="admin-section-title">Nýjustu lotur með greiningu</h2>
+          <p>Sýnir lotur innan valins tímabils.</p>
+        </div>
+        <div class="admin-action-link" onclick="switchTab('sessions')">Sjá allar lotur →</div>
+      </div>
+      <div class="admin-sessions-grid">
+        ${sessionCards || '<p class="admin-empty">Engar greindar lotur á þessu tímabili.</p>'}
+      </div>
+    </section>
+
+    <section class="admin-section">
+      <div class="admin-section-head">
+        <div>
+          <h2 class="admin-section-title">Fjölskyldur / hópar</h2>
+          <p>Ópersónugreinanlegt yfirlit innan valins tímabils.</p>
+        </div>
+        <div class="admin-action-link" onclick="switchTab('families')">Sjá alla hópa →</div>
+      </div>
+      <div class="admin-family-grid">
+        ${familyCards || '<p class="admin-empty">Engar fjölskyldur á þessu tímabili.</p>'}
+      </div>
+      <div class="admin-footer-note">Gögn eru dulkóðuð og ópersónugreinanleg.</div>
+    </section>`;
+}
+// ── Sessions tab ──
+let _sessionDateFrom = '';
+let _sessionDateTo = '';
+
+function applySessionDateFilter() {
+  _sessionDateFrom = document.getElementById('session-date-from')?.value || '';
+  _sessionDateTo = document.getElementById('session-date-to')?.value || '';
+  document.getElementById('admin-content').innerHTML = renderSessions();
+}
+
+function clearSessionDateFilter() {
+  _sessionDateFrom = '';
+  _sessionDateTo = '';
+  document.getElementById('admin-content').innerHTML = renderSessions();
+}
+
+function filterSessionsByDate(sessions) {
+  let filtered = sessions;
+  if (_sessionDateFrom) {
+    const from = new Date(_sessionDateFrom);
+    filtered = filtered.filter(s => {
+      const d = s.date ? new Date(s.date) : (s.createdAt?.toDate ? s.createdAt.toDate() : null);
+      return d && d >= from;
+    });
+  }
+  if (_sessionDateTo) {
+    const to = new Date(_sessionDateTo);
+    to.setDate(to.getDate() + 1); // end of day
+    filtered = filtered.filter(s => {
+      const d = s.date ? new Date(s.date) : (s.createdAt?.toDate ? s.createdAt.toDate() : null);
+      return d && d < to;
+    });
+  }
+  return filtered;
+}
+
+function renderSessions() {
+  const baseSessions = getAdminFilteredSessions(_sessions);
+  const analyzed = baseSessions.filter(s => s.analysis?.overall);
+  const filtered = filterSessionsByDate(analyzed);
+  const all = filterSessionsByDate(baseSessions);
+  return `
+    ${adminPatternFilterHtml()}
+    <section>
+      <div class="admin-section-head">
+        <div>
+          <h2 class="admin-section-title">Allar lotur (${all.length} af ${_totalCount})</h2>
+          <p>Sýnir ${filtered.length} greindar lotur.</p>
+        </div>
+      </div>
+      <div class="admin-date-filter">
+        <label>Frá: <input type="date" id="session-date-from" value="${_sessionDateFrom}" onchange="applySessionDateFilter()"></label>
+        <label>Til: <input type="date" id="session-date-to" value="${_sessionDateTo}" onchange="applySessionDateFilter()"></label>
+        ${_sessionDateFrom || _sessionDateTo ? '<button onclick="clearSessionDateFilter()" class="admin-filter-clear">Hreinsa filter</button>' : ''}
+      </div>
+      <div class="admin-sessions-grid">
+        ${renderSessionCards(filtered.slice(0, 50)) || '<p class="admin-empty">Engar greindar lotur á þessu tímabili.</p>'}
+      </div>
+      ${_hasMore ? '<button class="admin-load-more" onclick="loadMore()">Hlaða fleiri lotum →</button>' : ''}
+    </section>`;
+}
+
+// ── Families tab ──
+function renderFamilies() {
+  const filteredSessions = getAdminFilteredSessions();
+  const families = buildFamiliesFromSessions(filteredSessions);
+  const entries = Object.entries(families);
+  return `
+    ${adminPatternFilterHtml()}
+    <section>
+      <div class="admin-section-head">
+        <div>
+          <h2 class="admin-section-title">Fjölskyldur (${entries.length})</h2>
+          <p>Sýnir fjölskyldur með virkni innan valins tímabils.</p>
+        </div>
+      </div>
+      <div class="admin-family-grid">
+        ${renderFamilyCards(entries) || '<p class="admin-empty">Engar fjölskyldur á þessu tímabili.</p>'}
+      </div>
+    </section>`;
+}
+// ── Insights tab ──
+function renderInsights() {
+  const k = computeKPIs();
+  const analyzed = k.analyzed;
+  const heatmapSessions = getAdminFilteredSessions();
+  const listenEvents = getAdminFilteredListens();
+  const delay = computeListenDelayStats(heatmapSessions);
+  const hasActivity = (heatmapSessions && heatmapSessions.length) || (listenEvents && listenEvents.length);
+  const retentionPreview = computeRetentionStats();
+  if (!analyzed.length && !hasActivity && !retentionPreview.registeredCount) return `
+    ${adminPatternFilterHtml()}
+    <section class="admin-summary-card" style="padding:22px">
+      <h3>Engin gögn passa við filterinn</h3>
+      <p class="admin-empty" style="margin-top:8px">Veldu annað tímabil eða annað fæðingarár. Filterinn er áfram sýnilegur svo þú getir breytt valinu hér.</p>
+    </section>`;
+
+  const allMetrics = analyzed.map(s => getMetrics(s)).filter(m => m.syllables > 0);
+  const avgSyl = allMetrics.length ? Math.round(allMetrics.reduce((a,m)=>a+m.syllables,0)/allMetrics.length) : 0;
+  const avgClean = allMetrics.length ? (allMetrics.reduce((a,m)=>a+m.cleanReadingPct,0)/allMetrics.length).toFixed(1) : 0;
+  const avgArt = allMetrics.length ? (allMetrics.reduce((a,m)=>a+m.articulationRate,0)/allMetrics.length).toFixed(2) : 0;
+  const avgF1 = allMetrics.length ? (allMetrics.reduce((a,m)=>a+m.meanF1Variation,0)/allMetrics.length).toFixed(1) : 0;
+
+  const last7 = analyzed.filter(s => (s.timestamp||0) > Date.now() - 7*86400000);
+  const last30 = analyzed.filter(s => (s.timestamp||0) > Date.now() - 30*86400000);
+
+  return `
+    ${adminPatternFilterHtml()}
+    ${renderRetentionSection()}
+    <section class="admin-grid-top" style="grid-template-columns:repeat(4,minmax(0,1fr))">
+      ${kpiCard('Meðal bið eftir hlustun', delay.avgLabel, delay.count ? delay.count + ' lotur mældar' : 'engin tengd hlustun')}
+      ${kpiCard('Hlustaðar hljóðlotur', delay.sessionsWithAudio ? delay.pct + '%' : '—', delay.sessionsWithListen + ' / ' + delay.sessionsWithAudio)}
+      ${kpiCard('Óhlustaðar hljóðlotur', delay.unheardAudio, 'innan valins tímabils')}
+      ${kpiCard('Hlustanir', listenEvents.length, 'listenEvents')}
+    </section>
+
+    <section class="admin-heatmap-grid">
+      ${buildAdminReadingHeatmap(heatmapSessions)}
+      ${buildAdminListeningHeatmap(listenEvents)}
+    </section>
+
+    <section class="admin-grid-top" style="grid-template-columns:repeat(4,minmax(0,1fr))">
+      ${kpiCard('Meðal atkvæði', avgSyl, 'syllables')}
+      ${kpiCard('Meðal hreinn lestur', avgClean + '%', 'cleanReadingPct')}
+      ${kpiCard('Meðal talhraði', avgArt, 'articulationRate')}
+      ${kpiCard('Meðal F1 breytil.', avgF1, 'formendabreytileiki')}
+    </section>
+
+    <section class="admin-summary-row" style="grid-template-columns:1fr 1fr">
+      <article class="admin-summary-card">
+        <h3>Síðustu 7 dagar</h3>
+        <div class="admin-summary-list">
+          ${summaryItem('Lotur', last7.length)}
+          ${summaryItem('Mínútur', Math.round(last7.reduce((a,s)=>a+(s.seconds||0),0)/60))}
+          ${summaryItem('Fjölskyldur', new Set(last7.map(s=>s.familyId).filter(Boolean)).size)}
+        </div>
+      </article>
+      <article class="admin-summary-card">
+        <h3>Síðustu 30 dagar</h3>
+        <div class="admin-summary-list">
+          ${summaryItem('Lotur', last30.length)}
+          ${summaryItem('Mínútur', Math.round(last30.reduce((a,s)=>a+(s.seconds||0),0)/60))}
+          ${summaryItem('Fjölskyldur', new Set(last30.map(s=>s.familyId).filter(Boolean)).size)}
+        </div>
+      </article>
+    </section>
+
+    <section class="admin-summary-row" style="grid-template-columns:1fr">
+      <article class="admin-summary-card">
+        <h3>Lestrarstíll — dreifing</h3>
+        <div class="admin-dist-stack">
+          ${distBar('Að ná tökum', k.profiles.early, '#f87171', analyzed.length)}
+          ${distBar('Á réttri leið', k.profiles.developing, '#fbbf24', analyzed.length)}
+          ${distBar('Á réttum stað', k.profiles.steady, '#60a5fa', analyzed.length)}
+          ${distBar('Góð tök', k.profiles.flowing, '#4ade80', analyzed.length)}
+          ${distBar('Mjög góð tök', k.profiles.top, '#34d399', analyzed.length)}
+        </div>
+      </article>
+    </section>`;
+}
+
+// ── Admin heatmaps: reading minutes + listening starts ──
+const ADMIN_HM_HOURS = [13,14,15,16,17,18,19,20,21,22];
+const ADMIN_HM_DAYS = ['Mán','Þri','Mið','Fim','Fös','Lau','Sun'];
+
+function toMillis(v) {
+  if (!v) return null;
+  if (typeof v === 'number') return v;
+  if (v instanceof Date) return v.getTime();
+  if (typeof v === 'string') {
+    const n = Number(v);
+    if (!Number.isNaN(n) && n > 0) return n;
+    const d = Date.parse(v);
+    return Number.isNaN(d) ? null : d;
+  }
+  if (typeof v === 'object') {
+    if (typeof v.toMillis === 'function') return v.toMillis();
+    if (typeof v.seconds === 'number') return v.seconds * 1000;
+  }
+  return null;
+}
+
+function sessionTimestampMs(session) {
+  if (!session) return null;
+  return toMillis(session.timestamp)
+      || toMillis(session.createdAt)
+      || toMillis(session.startedAt)
+      || toMillis(session.savedAt)
+      || (session.date ? toMillis(String(session.date)) : null);
+}
+
+
+function shortAnonFamilyId(raw, idx) {
+  // Privacy-safe display code only. Never expose full familyId/familyCode in UI.
+  // Stable per underlying id, short enough for cards, not useful as an actual access code.
+  const value = String(raw || 'family-' + idx);
+  let hash = 2166136261;
+  for (let i = 0; i < value.length; i++) {
+    hash ^= value.charCodeAt(i);
+    hash = Math.imul(hash, 16777619);
+  }
+  const code = Math.abs(hash >>> 0).toString(36).toUpperCase().slice(0, 5).padStart(5, '0');
+  return `KÓÐI ${code}`;
+}
+
+function formatLastActiveFromSession(session) {
+  const ts = sessionTimestampMs(session);
+  if (!ts) return 'engin virkni';
+  const days = Math.max(0, Math.floor((Date.now() - ts) / 86400000));
+  if (days === 0) return 'virkni í dag';
+  if (days === 1) return '1 dagur síðan';
+  return `${days} dagar síðan`;
+}
+
+function adminHmLevel(value, type) {
+  if (!value) return 0;
+  if (type === 'minutes') {
+    if (value < 10) return 1;
+    if (value < 25) return 2;
+    if (value < 50) return 3;
+    return 4;
+  }
+  if (value < 2) return 1;
+  if (value < 4) return 2;
+  if (value < 8) return 3;
+  return 4;
+}
+function adminHmClass(level) { return ['admin-hm-c0','admin-hm-c1','admin-hm-c2','admin-hm-c3','admin-hm-c4'][level] || 'admin-hm-c0'; }
+
+function buildAdminReadingHeatmap(sessions) {
+  const map = {};
+  let total = 0;
+  let counted = 0;
+  (sessions || []).forEach(s => {
+    const seconds = Number(s.seconds || 0);
+    if (seconds < 60) return;
+    const ts = toMillis(s.timestamp) || toMillis(s.createdAt);
+    if (!ts) return;
+    const d = new Date(ts);
+    const dow = (d.getDay() + 6) % 7;
+    const h = d.getHours();
+    if (!ADMIN_HM_HOURS.includes(h)) return;
+    const mins = Math.max(1, Math.round(seconds / 60));
+    const k = `${dow}_${h}`;
+    map[k] = (map[k] || 0) + mins;
+    total += mins;
+    counted++;
+  });
+  return buildAdminHeatmapCard({
+    title: 'Lestrartímar',
+    desc: 'Hvenær barn les — heildarmínútur eftir vikudegi og klukkustund.',
+    unit: 'mín',
+    emptyLabel: 'Ekki lesið',
+    map,
+    type: 'minutes',
+    footLeft: `${total} lesnar mínútur`,
+    footRight: `${counted} lotur í korti`
+  });
+}
+
+function buildAdminListeningHeatmap(events) {
+  const map = {};
+  let total = 0;
+  const families = new Set();
+  (events || []).forEach(ev => {
+    const ts = toMillis(ev.timestamp) || toMillis(ev.createdAt);
+    if (!ts) return;
+    const d = new Date(ts);
+    const dow = (d.getDay() + 6) % 7;
+    const h = d.getHours();
+    if (!ADMIN_HM_HOURS.includes(h)) return;
+    const k = `${dow}_${h}`;
+    map[k] = (map[k] || 0) + 1;
+    total++;
+    if (ev.familyId) families.add(ev.familyId);
+  });
+  return buildAdminHeatmapCard({
+    title: 'Hlustunartímar',
+    desc: 'Hvenær fjölskylda hlustar — fjöldi hlustana eftir vikudegi og klukkustund.',
+    unit: 'hlustun',
+    emptyLabel: 'Engin hlustun',
+    map,
+    type: 'count',
+    footLeft: `${total} hlustanir`,
+    footRight: `${families.size} fjölskyldur`
+  });
+}
+
+function buildAdminHeatmapCard({ title, desc, unit, emptyLabel, map, type, footLeft, footRight }) {
+  const dayHdrs = ADMIN_HM_DAYS.map(d => `<div class="admin-hm-day-lbl">${d}</div>`).join('');
+  const rows = ADMIN_HM_HOURS.map(h => {
+    const cells = ADMIN_HM_DAYS.map((d, di) => {
+      const value = map[`${di}_${h}`] || 0;
+      const level = adminHmLevel(value, type);
+      const label = value > 0
+        ? `${d} ${h}:00 — ${value} ${unit}${value !== 1 && unit === 'hlustun' ? 'ir' : ''}`
+        : `${d} ${h}:00 — ${emptyLabel}`;
+      return `<div class="admin-hm-cell ${adminHmClass(level)}" data-tip="${esc(label)}">${value > 0 ? esc(value) : ''}</div>`;
+    }).join('');
+    return `<div class="admin-hm-row"><div class="admin-hm-hour-lbl">${h}:00</div>${cells}</div>`;
+  }).join('');
+  return `<article class="admin-heatmap-card">
+    <h3>${esc(title)}</h3>
+    <p>${esc(desc)}</p>
+    <div class="admin-hm-wrap">
+      <div class="admin-hm-day-row"><div></div>${dayHdrs}</div>
+      <div class="admin-hm-rows">${rows}</div>
+      ${adminHmLegend()}
+      <div class="admin-hm-foot"><span><strong>${esc(footLeft)}</strong></span><span>${esc(footRight)}</span></div>
+    </div>
+  </article>`;
+}
+
+function adminHmLegend() {
+  return `<div class="admin-hm-legend">
+    <span>Minna</span>
+    <span class="admin-hm-leg-cell admin-hm-c0"></span>
+    <span class="admin-hm-leg-cell admin-hm-c1"></span>
+    <span class="admin-hm-leg-cell admin-hm-c2"></span>
+    <span class="admin-hm-leg-cell admin-hm-c3"></span>
+    <span class="admin-hm-leg-cell admin-hm-c4"></span>
+    <span>Meira</span>
+  </div>`;
+}
+
+// ══════════════════════════════════════════
+// RENDER HELPERS
+// ══════════════════════════════════════════
+
+function kpiCard(label, value, sub) {
+  return `<article class="admin-kpi-card">
+    <div class="admin-kpi-label">${esc(label)}</div>
+    <div class="admin-kpi-value">${esc(value)}</div>
+    <div class="admin-kpi-sub">${esc(sub)}</div>
+  </article>`;
+}
+
+function summaryItem(label, value) {
+  return `<div class="admin-summary-item"><span>${esc(label)}</span><strong>${esc(value)}</strong></div>`;
+}
+
+function distBar(label, count, color, total) {
+  const safeCount = Number(count || 0);
+  const safeTotal = Number(total || 0);
+  const pct = safeTotal > 0 ? Math.round(safeCount / safeTotal * 100) : 0;
+  const childWord = safeCount === 1 ? 'barn' : 'börn';
+  return `<div class="admin-dist-item">
+    <div class="admin-dist-head"><span>${esc(label)}</span><strong>${esc(safeCount)} ${childWord} · ${esc(pct)}%</strong></div>
+    <div class="admin-bar"><span style="width:${Math.max(0, Math.min(100, pct))}%;background:${color}"></span></div>
+  </div>`;
+}
+
+function renderSessionCards(sessions) {
+  return sessions.map(s => {
+    const a = s.analysis;
+    const m = getMetrics(s);
+    const prof = getProfile(m);
+    const q = a?.overall?.readingQuality || '—';
+    const score = a?.overall?.avgScore ?? '—';
+    const usable = a?.overall?.usableCount ?? 0;
+    const total = a?.overall?.totalSnippets ?? '?';
+    return `
+      <article class="admin-session-card">
+        <div class="admin-session-top">
+          <div class="admin-session-name">
+            <div class="admin-avatar">👤</div>
+            <div>${esc(s.childName||'?')}</div>
+          </div>
+          <div class="admin-date-pill">${esc(dateLabel(s.date||s.timestamp))}</div>
+        </div>
+        <div class="admin-meta-line">
+          <span>Skor: ${esc(score)}</span>
+          <span>Nothæf: ${esc(usable)} / ${esc(total)}</span>
+          <span class="${qualityClass(q)}">Gæði: ${esc(q)}</span>
+        </div>
+        <div>
+          <div class="admin-session-label">Admin flokkur</div>
+          <div class="admin-profile-text" style="color:${PROFILE_COLORS[prof]}">${esc(PROFILE_LABELS[prof])}</div>
+        </div>
+        <div class="admin-metrics-grid">
+          <div class="admin-metric">
+            <div class="admin-metric-label">Atkvæði</div>
+            <div class="admin-metric-value">${esc(m.syllables||'—')}</div>
+          </div>
+          <div class="admin-metric">
+            <div class="admin-metric-label">Hreinn lestur</div>
+            <div class="admin-metric-value">${m.cleanReadingPct ? m.cleanReadingPct+'%' : '—'}</div>
+          </div>
+          <div class="admin-metric">
+            <div class="admin-metric-label">Talhraði</div>
+            <div class="admin-metric-value">${esc(m.articulationRate||'—')}</div>
+            <div class="admin-tooltip">Atkvæði á sekúndu þegar verið er að lesa. Hærra = hraðari lestur.</div>
+          </div>
+          <div class="admin-metric">
+            <div class="admin-metric-label">F1 breytil.</div>
+            <div class="admin-metric-value">${esc(m.meanF1Variation||'—')}</div>
+            <div class="admin-tooltip">Fyrsti formandi (F1) mælir kjálkaopnu. Hátt gildi = lesandi skiptir á milli margra sérhljóða (raunveruleg orð). Lágt gildi = eitt hljóð togað eða endurtekið. Byggt á LPC formendagreiningu.</div>
+          </div>
+          <div class="admin-metric">
+            <div class="admin-metric-label">F2 breytil.</div>
+            <div class="admin-metric-value">${esc(m.meanF2Variation||'—')}</div>
+            <div class="admin-tooltip">Annar formandi (F2) mælir tungustöðu. Hátt gildi = fjölbreytt tunguhreyfinng (mismunandi sérhljóð). Lágt gildi = tungan hreyfist lítið. Byggt á LPC formendagreiningu.</div>
+          </div>
+          <div class="admin-metric">
+            <div class="admin-metric-label">Taltími</div>
+            <div class="admin-metric-value">${m.speakingTime ? m.speakingTime+'s' : '—'}</div>
+          </div>
+          <div class="admin-metric">
+            <div class="admin-metric-label">Truflanir</div>
+            <div class="admin-metric-value">${m.disruptionCount != null ? m.disruptionCount : '—'}</div>
+            <div class="admin-tooltip">Fjöldi bila lengri en 0.7 sekúndur milli atkvæða. Getur verið hik, afkóðunarhlé eða togað hljóð.</div>
+          </div>
+        </div>
+      </article>`;
+  }).join('');
+}
+
+function renderFamilyCards(entries) {
+  return entries.map(([fid, fam], idx) => {
+    const famMins = Math.round(fam.sessions.reduce((a,s)=>a+(s.seconds||0),0)/60);
+    const famAnalyzed = fam.sessions.filter(s => s.analysis?.overall);
+    const famAvgScore = famAnalyzed.length
+      ? (famAnalyzed.reduce((a,s)=>a+(s.analysis?.overall?.avgScore||0),0)/famAnalyzed.length).toFixed(1) : '—';
+    const childCount = fam.children.size;
+    const label = `Hópur ${String.fromCharCode(65+(idx%26))}`;
+    const safeCode = shortAnonFamilyId(fid, idx);
+    const lastActive = formatLastActiveFromSession(fam.sessions[0]);
+    return `
+      <article class="admin-family-card-v2">
+        <div>
+          <div class="admin-family-code">${esc(safeCode)}</div>
+          <div class="admin-family-name">${esc(label)}</div>
+          <div class="admin-family-meta">${childCount} ${childCount===1?'barn':'börn'} · ${esc(lastActive)}</div>
+        </div>
+        <div class="admin-family-score"><span style="width:${famAvgScore==='—'?0:Math.max(0,Math.min(100,Number(famAvgScore)))}%"></span></div>
+        <div class="admin-family-bottom">
+          <span>${fam.sessions.length} lotur</span>
+          <span>${famMins} mínútur</span>
+        </div>
+      </article>`;
+  }).join('');
+}
+</script>
+</body>
+</html>

@@ -927,51 +927,104 @@ function _renderGoldMoments(hero, feedEl) {
         <span class="jm-gm-title">Varðveitt upptaka</span>
       </div>
       <div class="jm-gm-meta">${_esc(saver)} varðveitti gullmola${dateLbl ? ' · ' + _esc(dateLbl) : ''}${durLbl ? ' · ' + _esc(durLbl) : ''}</div>
-      <button class="jm-gm-play" id="${cardId}-btn" onclick="document.dispatchEvent(new CustomEvent('playGoldMoment',{detail:'${_esc(clipPath)}'}))">
+      <button class="jm-gm-play" id="${cardId}-btn" data-gold-path="${_esc(clipPath)}" data-gold-player="${cardId}-player" type="button">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
         Hlusta
       </button>
-      <div class="jm-gm-player" id="${cardId}-player"></div>
+      <div class="jm-gm-player" id="${cardId}-player"><div class="jm-gm-progress"><span></span></div></div>
     `;
     feedEl.appendChild(card);
   });
 }
 
-// Global listener for play events from gold moment cards
-document.addEventListener('playGoldMoment', async (e) => {
-  const clipPath = e.detail;
-  if (!clipPath) return;
+// Custom gold moment player — avoids native browser audio controls
+let _jmGoldAudio = null;
+let _jmGoldTimer = null;
+let _jmGoldButton = null;
+let _jmGoldPlayer = null;
+let _jmGoldPath = null;
 
-  // Find the player element near the button that triggered this
-  const btns = document.querySelectorAll('.jm-gm-play');
-  let playerEl = null;
-  btns.forEach(btn => {
-    const card = btn.closest('.jm-gold-moment');
-    if (card && btn.getAttribute('onclick')?.includes(clipPath)) {
-      playerEl = card.querySelector('.jm-gm-player');
-      btn.disabled = true;
-      btn.innerHTML = '<span style="opacity:.6">Hleð...</span>';
-    }
-  });
+function _resetGoldMomentPlayerUI() {
+  clearInterval(_jmGoldTimer);
+  if (_jmGoldButton) {
+    _jmGoldButton.disabled = false;
+    _jmGoldButton.classList.remove('is-playing');
+    _jmGoldButton.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg> Hlusta';
+  }
+  if (_jmGoldPlayer) {
+    const fill = _jmGoldPlayer.querySelector('.jm-gm-progress span');
+    if (fill) fill.style.width = '0%';
+  }
+}
 
-  if (!playerEl) return;
+async function _toggleGoldMomentPlayback(clipPath, playerId, btn) {
+  const playerEl = document.getElementById(playerId);
+  if (!clipPath || !playerEl || !btn) return;
+
+  if (_jmGoldAudio && _jmGoldPath === clipPath && _jmGoldPlayer === playerEl) {
+    if (_jmGoldAudio.paused) await _jmGoldAudio.play().catch(() => {});
+    else _jmGoldAudio.pause();
+    return;
+  }
+
+  if (_jmGoldAudio) _jmGoldAudio.pause();
+  _resetGoldMomentPlayerUI();
+  _jmGoldAudio = null;
+  _jmGoldPath = clipPath;
+  _jmGoldButton = btn;
+  _jmGoldPlayer = playerEl;
+
+  playerEl.innerHTML = '<div class="jm-gm-progress"><span></span></div>';
+  const fill = playerEl.querySelector('.jm-gm-progress span');
+  btn.disabled = true;
+  btn.innerHTML = '<span style="opacity:.7">Hleð...</span>';
 
   const url = await getCachedAudioUrl(clipPath);
   if (!url) {
     playerEl.innerHTML = '<div style="font-size:12px;color:#ff6b6b;margin-top:6px">Ekki tókst að hlaða</div>';
+    btn.disabled = false;
+    btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg> Hlusta';
     return;
   }
 
-  playerEl.innerHTML = `<audio controls preload="auto" src="${url}" style="width:100%;margin-top:8px;border-radius:8px;height:36px"></audio>`;
-  const audio = playerEl.querySelector('audio');
-  if (audio) {
-    audio.play().catch(() => {});
-    // Reset button when done
-    audio.addEventListener('ended', () => {
-      const btn = playerEl.closest('.jm-gold-moment')?.querySelector('.jm-gm-play');
-      if (btn) { btn.disabled = false; btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg> Hlusta'; }
-    });
-  }
+  _jmGoldAudio = new Audio(url);
+  _jmGoldAudio.preload = 'auto';
+
+  _jmGoldAudio.addEventListener('play', () => {
+    btn.disabled = false;
+    btn.classList.add('is-playing');
+    btn.innerHTML = '❚❚ Spilar';
+    clearInterval(_jmGoldTimer);
+    _jmGoldTimer = setInterval(() => {
+      if (!fill || !_jmGoldAudio?.duration) return;
+      fill.style.width = Math.min(100, (_jmGoldAudio.currentTime / _jmGoldAudio.duration) * 100) + '%';
+    }, 120);
+  });
+
+  _jmGoldAudio.addEventListener('pause', () => {
+    btn.classList.remove('is-playing');
+    btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg> Hlusta';
+    clearInterval(_jmGoldTimer);
+  });
+
+  _jmGoldAudio.addEventListener('ended', () => {
+    if (fill) fill.style.width = '0%';
+    if (_jmGoldAudio) _jmGoldAudio.currentTime = 0;
+    _resetGoldMomentPlayerUI();
+  });
+
+  await _jmGoldAudio.play().catch(() => {
+    btn.disabled = false;
+    btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg> Hlusta';
+  });
+}
+
+document.addEventListener('click', (e) => {
+  const btn = e.target.closest('.jm-gm-play[data-gold-path]');
+  if (!btn) return;
+  e.preventDefault();
+  e.stopPropagation();
+  _toggleGoldMomentPlayback(btn.dataset.goldPath, btn.dataset.goldPlayer, btn);
 });
 
 function _getListenerName() {

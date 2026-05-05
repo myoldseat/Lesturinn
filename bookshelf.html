@@ -50,7 +50,17 @@ button{font:inherit;cursor:pointer;border:0;background:none;color:inherit}a{colo
 .featured-pct{color:var(--accent);font-weight:800;font-size:14px}
 .progress-bar{height:5px;border-radius:99px;background:rgba(255,255,255,.06);overflow:hidden}
 .progress-fill{height:100%;border-radius:inherit;background:linear-gradient(90deg,var(--accent),var(--accent2));box-shadow:0 0 12px rgba(29,205,211,.3);transition:width .4s ease}
-.featured-quote{font-style:italic;font-size:13px;color:rgba(217,229,239,.7);line-height:1.35;padding:9px 11px;border-radius:10px;background:rgba(255,255,255,.025);border:1px solid rgba(122,187,218,.08)}
+.featured-quote{font-style:italic;font-family:Georgia,'Times New Roman',serif;font-size:13px;color:rgba(217,229,239,.7);line-height:1.35;padding:9px 11px;border-radius:10px;background:rgba(255,255,255,.025);border:1px solid rgba(122,187,218,.08)}
+.featured-reaction{font-size:12px;color:rgba(217,229,239,.65);padding:6px 10px;border-radius:8px;background:rgba(255,255,255,.03);border:1px solid rgba(122,187,218,.06);margin-top:2px}
+.featured-gold{display:flex;flex-direction:column;gap:4px;padding:10px 12px;border-radius:10px;background:rgba(29,205,211,.05);border:1px solid rgba(29,205,211,.12);margin-top:6px}
+.featured-gold-top{display:flex;align-items:center;gap:8px}
+.featured-gold-info{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+.featured-gold-label{font-size:12px;font-weight:700;color:#1dcdd3}
+.featured-gold-saver{font-size:10px;font-weight:600;color:rgba(217,229,239,.5)}
+.featured-gold-play{background:none;border:1px solid rgba(29,205,211,.3);border-radius:8px;padding:5px 12px;font-size:11px;font-weight:700;color:#1dcdd3;cursor:pointer;white-space:nowrap;flex-shrink:0;transition:background .15s}
+.featured-gold-play:hover{background:rgba(29,205,211,.1)}
+.featured-gold-play:disabled{opacity:.5;cursor:default}
+.featured-gold-player{min-height:0}
 .featured-arrow{position:absolute;top:16px;right:16px;width:28px;height:28px;border-radius:50%;border:1px solid var(--line);background:var(--surface);display:grid;place-items:center;color:var(--soft);font-size:16px}
 .section{margin-bottom:26px}
 .section-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px}
@@ -295,8 +305,20 @@ button{font:inherit;cursor:pointer;border:0;background:none;color:inherit}a{colo
 <script type="module">
 import{initializeApp}from'https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js';
 import{getFirestore,collection,addDoc,doc,deleteDoc,setDoc,onSnapshot,query,where,serverTimestamp,updateDoc}from'https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js';
+import{getStorage,ref as storageRef,getDownloadURL}from'https://www.gstatic.com/firebasejs/12.11.0/firebase-storage.js';
 const app=initializeApp({apiKey:'AIzaSyAgTY3Uxd9_ZxixjqLj-sH8V3OhFAzg6DU',authDomain:'lesum-22e85.firebaseapp.com',projectId:'lesum-22e85',storageBucket:'lesum-22e85.firebasestorage.app',messagingSenderId:'204392598388',appId:'1:204392598388:web:2dbbe3f476cd78d2ffba21'});
 const db=getFirestore(app);
+const bsStorage=getStorage(app);
+
+// Audio URL cache (15 min TTL)
+const _bsAudioCache={};
+async function _getCachedAudioUrl(path){
+  if(!path)return null;
+  const now=Date.now();
+  if(_bsAudioCache[path]&&_bsAudioCache[path].exp>now)return _bsAudioCache[path].url;
+  try{const url=await getDownloadURL(storageRef(bsStorage,path));_bsAudioCache[path]={url,exp:now+15*60000};return url}
+  catch(e){console.warn('Audio fetch fail:',e);return null}
+}
 
 function getChildSession(){try{const r=localStorage.getItem('upphatt_child');if(!r)return null;const d=JSON.parse(r);return d&&d.familyId&&d.childKey&&d.childName?d:null}catch(e){return null}}
 function getViewerSession(){try{const p=new URLSearchParams(window.location.search);const fid=p.get('family'),ck=p.get('child');const cn=p.get('name')||ck;const isParent=p.has('parent')||document.referrer.includes('index.html')||document.referrer.endsWith('/');if(fid&&ck)return{familyId:fid,childKey:ck,childName:cn,_viewer:!isParent,_parent:isParent};return null}catch(e){return null}}
@@ -626,6 +648,69 @@ function covHTML(b){const u=cc[b.id]||b.coverBase64;if(u)return'<img src="'+u+'"
 function covS(b){return'--c1:'+(b.c1||'#2b8f91')+';--c2:'+(b.c2||'#0a2341')}
 function latestNote(b){if(b?.journeyEntries?.length){const e=b.journeyEntries[0];if(e?.note)return e.note}return b?.note||'Bókin er komin á hilluna.'}
 
+function _getLastReaction(hero) {
+  if (!hero?.journeyEntries?.length) return '';
+  for (const e of hero.journeyEntries) {
+    if (e.reactions?.length) {
+      const last = e.reactions[e.reactions.length - 1];
+      return '<div class="featured-reaction">' + esc(last) + '</div>';
+    }
+  }
+  return '';
+}
+
+function _getHeroGoldMoment(hero) {
+  try {
+    const raw = localStorage.getItem('upphatt_child');
+    if (!raw) return '';
+    const child = JSON.parse(raw);
+    const fid = child?.familyId;
+    const ck = child?.childKey;
+    if (!fid || !ck) return '';
+    const gmKey = 'upphatt_gm_' + fid + '_' + ck;
+    const gm = localStorage.getItem(gmKey);
+    if (!gm) return '';
+    const data = JSON.parse(gm);
+    if (!data?.saver || !data?.clipPath) return '';
+    return '<div class="featured-gold" id="hero-gm-card">'
+      + '<div class="featured-gold-top">'
+      + '<svg width="16" height="16" viewBox="0 0 24 24" fill="#1dcdd3" stroke="none"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>'
+      + '<div class="featured-gold-info"><span class="featured-gold-label">Varðveitt upptaka</span><span class="featured-gold-saver">' + esc(data.saver) + ' varðveitti gullmola</span></div>'
+      + '<button class="featured-gold-play" onclick="event.stopPropagation();_playHeroGold()" type="button">► Hlusta</button>'
+      + '</div>'
+      + '<div class="featured-gold-player" id="hero-gm-player"></div>'
+      + '</div>';
+  } catch (e) { return ''; }
+}
+
+async function _playHeroGold() {
+  const btn = document.querySelector('.featured-gold-play');
+  const player = document.getElementById('hero-gm-player');
+  if (!player) return;
+  try {
+    const raw = localStorage.getItem('upphatt_child');
+    if (!raw) return;
+    const child = JSON.parse(raw);
+    const gmKey = 'upphatt_gm_' + child.familyId + '_' + child.childKey;
+    const data = JSON.parse(localStorage.getItem(gmKey) || '{}');
+    if (!data.clipPath) return;
+    if (btn) { btn.disabled = true; btn.textContent = 'Hleð...'; }
+    const url = await _getCachedAudioUrl(data.clipPath);
+    if (!url) { player.innerHTML = '<div style="font-size:11px;color:#ff6b6b;margin-top:4px">Ekki tókst</div>'; return; }
+    player.innerHTML = '<audio controls preload="auto" src="' + url + '" style="width:100%;margin-top:6px;border-radius:8px;height:36px"></audio>';
+    const audio = player.querySelector('audio');
+    if (audio) {
+      audio.play().catch(function(){});
+      audio.addEventListener('ended', function() {
+        if (btn) { btn.disabled = false; btn.textContent = '► Hlusta'; }
+      });
+    }
+  } catch (e) {
+    if (btn) { btn.disabled = false; btn.textContent = '► Hlusta'; }
+  }
+}
+window._playHeroGold = _playHeroGold;
+
 function progressRingSVG(done,target,pct,icon,ringClass='goal-mini-ring',size=48,r=19){
   const circ=2*Math.PI*r;
   const offset=circ-(Math.min(100,Math.max(0,pct||0))/100)*circ;
@@ -664,7 +749,11 @@ function render(){
   }else{
     const u=cc[hero.id]||hero.coverBase64;const ci=u?'<img src="'+u+'" alt="">':'<span class="featured-cover-title">'+esc(hero.title)+'</span><span class="featured-cover-author">'+esc(hero.author||'')+'</span>';
     fc.className='featured';
-    fc.innerHTML=goalRingHTML()+'<div class="featured-badge">⚡ '+(hero.status==='reading'?'Að lesa':'Á hillunni')+'</div><div class="featured-grid"><div class="featured-cover" style="'+covS(hero)+'" data-open-book="'+hero.id+'">'+ci+'</div><div class="featured-meta"><div class="featured-title">'+esc(hero.title)+'</div><div class="featured-author">'+esc(hero.author||'')+'</div><div class="featured-stats"><span>'+(hero.currentPageFrom?'bls. '+hero.currentPageFrom+'–'+hero.currentPageTo:'Á hillunni')+'</span><span class="featured-pct">'+(hero.progressPercent||0)+'%</span></div><div class="progress-bar"><div class="progress-fill" style="width:'+(hero.progressPercent||0)+'%"></div></div><div class="featured-quote">"'+esc(latestNote(hero))+'"</div></div></div>';
+    // Last reaction from family
+    const lastReaction = _getLastReaction(hero);
+    // Gold moment check
+    const goldMoment = _getHeroGoldMoment(hero);
+    fc.innerHTML=goalRingHTML()+'<div class="featured-badge">⚡ '+(hero.status==='reading'?'Að lesa':'Á hillunni')+'</div><div class="featured-grid"><div class="featured-cover" style="'+covS(hero)+'" data-open-book="'+hero.id+'">'+ci+'</div><div class="featured-meta"><div class="featured-title">'+esc(hero.title)+'</div><div class="featured-author">'+esc(hero.author||'')+'</div><div class="featured-stats"><span>'+(hero.currentPageFrom?'bls. '+hero.currentPageFrom+'–'+hero.currentPageTo:'Á hillunni')+'</span><span class="featured-pct">'+(hero.progressPercent||0)+'%</span></div><div class="progress-bar"><div class="progress-fill" style="width:'+(hero.progressPercent||0)+'%"></div></div><div class="featured-quote">\u201C'+esc(latestNote(hero))+'\u201D</div>'+lastReaction+goldMoment+'</div></div>';
   }
   rGrid('readingSection','readingGrid','readingCount',reading);
   rGrid('shelfSection','shelfGrid','shelfCount',shelf);

@@ -1340,6 +1340,19 @@ audio { width: 100%; border-radius: 8px }
   font-size: 10px;
   color: var(--ph-soft);
 }
+.ph-jn-gm-preview {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  padding: 6px 8px;
+  background: rgba(29,205,211,0.05);
+  border: 1px solid rgba(29,205,211,0.12);
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(217,229,239,0.7);
+}
 
 /* ═══════════════════════════════════════
    JOURNEY FULL MODAL
@@ -1474,6 +1487,48 @@ audio { width: 100%; border-radius: 8px }
   text-align: center;
   padding: 20px 0;
 }
+
+/* ── Gullmoli card ── */
+.jm-gold-moment {
+  background: rgba(29,205,211,0.04);
+  border: 1px solid rgba(29,205,211,0.15);
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-top: 10px;
+}
+.jm-gm-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+.jm-gm-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #1dcdd3;
+}
+.jm-gm-meta {
+  font-size: 11px;
+  color: rgba(217,229,239,0.55);
+  margin-bottom: 8px;
+}
+.jm-gm-play {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: 1px solid rgba(29,205,211,0.3);
+  border-radius: 8px;
+  padding: 6px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #1dcdd3;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.jm-gm-play:hover { background: rgba(29,205,211,0.1); }
+.jm-gm-play:disabled { opacity: 0.5; cursor: default; }
+.jm-gm-player { min-height: 0; }
 
 /* ═══════════════════════════════════════
    BOOKSHELF ICON WRAP
@@ -1956,6 +2011,8 @@ audio { width: 100%; border-radius: 8px }
   border-color: rgba(0,0,0,0.08);
 }
 #screen-parent-home.ph-light .jm-entry-meta { color: #0b9ea4; }
+#screen-parent-home.ph-light .jm-gold-moment { background: rgba(29,205,211,0.06); border-color: rgba(29,205,211,0.2); }
+#screen-parent-home.ph-light .jm-gm-meta { color: #6b7a8d; }
 
 
 /* ── Light theme: Recordings / Upptökur ── */

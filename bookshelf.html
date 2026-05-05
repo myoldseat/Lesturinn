@@ -659,28 +659,60 @@ function _getLastReaction(hero) {
   return '';
 }
 
+function _getGoldMomentData(hero){
+  // Firestore/book journey is the source of truth.
+  const entry=(hero?.journeyEntries||[]).find(e=>e&&e.type==='gold_moment'&&e.clipPath);
+  if(entry){
+    return{
+      saver:entry.savedBy||'Foreldri',
+      clipPath:entry.clipPath,
+      clipKey:entry.clipKey||'gold',
+      sessionId:entry.sessionId||'',
+      bookId:hero.id||'',
+      bookTitle:hero.title||'',
+      date:entry.date||''
+    };
+  }
+
+  // Fallback only: local cache/bridge for older moments or repeat playback.
+  try{
+    const raw=localStorage.getItem('upphatt_child');
+    if(!raw)return null;
+    const child=JSON.parse(raw);
+    const fid=child?.familyId,ck=child?.childKey;
+    if(!fid||!ck)return null;
+    const gm=localStorage.getItem('upphatt_gm_'+fid+'_'+ck);
+    if(!gm)return null;
+    const data=JSON.parse(gm);
+    if(!data?.saver||!data?.clipPath)return null;
+    if(data.bookId&&hero?.id&&data.bookId!==hero.id)return null;
+    if(data.bookTitle&&hero?.title&&data.bookTitle!==hero.title)return null;
+    return data;
+  }catch(e){return null}
+}
+
+function _cacheHeroGoldMoment(data){
+  try{
+    const raw=localStorage.getItem('upphatt_child');
+    if(!raw||!data?.clipPath)return;
+    const child=JSON.parse(raw);
+    if(!child?.familyId||!child?.childKey)return;
+    localStorage.setItem('upphatt_gm_'+child.familyId+'_'+child.childKey,JSON.stringify(data));
+  }catch(e){}
+}
+
 function _getHeroGoldMoment(hero) {
-  try {
-    const raw = localStorage.getItem('upphatt_child');
-    if (!raw) return '';
-    const child = JSON.parse(raw);
-    const fid = child?.familyId;
-    const ck = child?.childKey;
-    if (!fid || !ck) return '';
-    const gmKey = 'upphatt_gm_' + fid + '_' + ck;
-    const gm = localStorage.getItem(gmKey);
-    if (!gm) return '';
-    const data = JSON.parse(gm);
-    if (!data?.saver || !data?.clipPath) return '';
-    return '<div class="featured-gold" id="hero-gm-card">'
-      + '<div class="featured-gold-top">'
-      + '<svg width="16" height="16" viewBox="0 0 24 24" fill="#1dcdd3" stroke="none"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>'
-      + '<div class="featured-gold-info"><span class="featured-gold-label">Varðveitt upptaka</span><span class="featured-gold-saver">' + esc(data.saver) + ' varðveitti gullmola</span></div>'
-      + '<button class="featured-gold-play" onclick="event.stopPropagation();_playHeroGold()" type="button">► Hlusta</button>'
-      + '</div>'
-      + '<div class="featured-gold-player" id="hero-gm-player"></div>'
-      + '</div>';
-  } catch (e) { return ''; }
+  const data=_getGoldMomentData(hero);
+  if(!data)return '';
+  _cacheHeroGoldMoment(data);
+  return '<div class="featured-gold" id="hero-gm-card">'
+    + '<div class="featured-gold-top">'
+    + '<svg width="16" height="16" viewBox="0 0 24 24" fill="#1dcdd3" stroke="none"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>'
+    + '<div class="featured-gold-info"><span class="featured-gold-label">Varðveitt upptaka</span><span class="featured-gold-saver">' + esc(data.saver) + ' geymdi lesturinn þinn</span></div>'
+    + '<button class="featured-gold-play" onclick="event.stopPropagation();_playHeroGold()" type="button">► Hlusta</button>'
+    + '</div>'
+    + '<div class="featured-gold-player" id="hero-gm-player"></div>'
+    + '</div>';
 }
 
 async function _playHeroGold() {
@@ -688,12 +720,10 @@ async function _playHeroGold() {
   const player = document.getElementById('hero-gm-player');
   if (!player) return;
   try {
-    const raw = localStorage.getItem('upphatt_child');
-    if (!raw) return;
-    const child = JSON.parse(raw);
-    const gmKey = 'upphatt_gm_' + child.familyId + '_' + child.childKey;
-    const data = JSON.parse(localStorage.getItem(gmKey) || '{}');
-    if (!data.clipPath) return;
+    const hero=books.find(b=>b.status==='reading')||[...books].sort((a,b)=>ts(b,'lastReadAt')-ts(a,'lastReadAt'))[0];
+    const data=_getGoldMomentData(hero);
+    if (!data?.clipPath) return;
+    _cacheHeroGoldMoment(data);
     if (btn) { btn.disabled = true; btn.textContent = 'Hleð...'; }
     const url = await _getCachedAudioUrl(data.clipPath);
     if (!url) { player.innerHTML = '<div style="font-size:11px;color:#ff6b6b;margin-top:4px">Ekki tókst</div>'; return; }
@@ -710,6 +740,19 @@ async function _playHeroGold() {
   }
 }
 window._playHeroGold = _playHeroGold;
+
+async function _playJourneyGold(clipPath,playerId,btnId){
+  const player=document.getElementById(playerId);
+  const btn=document.getElementById(btnId);
+  if(!clipPath||!player)return;
+  if(btn){btn.disabled=true;btn.textContent='Hleð...'}
+  const url=await _getCachedAudioUrl(clipPath);
+  if(!url){player.innerHTML='<div style="font-size:11px;color:#ff6b6b;margin-top:4px">Ekki tókst</div>';if(btn){btn.disabled=false;btn.textContent='► Hlusta'}return}
+  player.innerHTML='<audio controls preload="auto" src="'+url+'" style="width:100%;margin-top:6px;border-radius:8px;height:36px"></audio>';
+  const audio=player.querySelector('audio');
+  if(audio){audio.play().catch(function(){});audio.addEventListener('ended',function(){if(btn){btn.disabled=false;btn.textContent='► Hlusta'}})}
+}
+window._playJourneyGold=_playJourneyGold;
 
 function progressRingSVG(done,target,pct,icon,ringClass='goal-mini-ring',size=48,r=19){
   const circ=2*Math.PI*r;
@@ -810,7 +853,15 @@ function openJourney(id){
   }
 
   const ent=b.journeyEntries?.length?b.journeyEntries:[{date:'Í dag',pageFrom:b.currentPageFrom||'',pageTo:b.currentPageTo||'',note:b.note||'Bókin var sett á hilluna.',reactions:[]}];
-  document.getElementById('journeyEntries').innerHTML=ent.map(e=>{const meta=esc(e.date)+(e.pageFrom?' · bls. '+e.pageFrom+'–'+e.pageTo:'');return'<article class="event"><div class="event-date">'+meta+'</div>'+(e.note?'<p class="event-quote">\u201C'+esc(e.note)+'\u201D</p>':'')+'<div class="reactions">'+(e.reactions||[]).map(r=>'<span class="react">'+esc(r)+'</span>').join('')+'</div></article>'}).join('');
+  document.getElementById('journeyEntries').innerHTML=ent.map((e,i)=>{
+    const meta=esc(e.date||'')+(e.pageFrom?' · bls. '+e.pageFrom+'–'+e.pageTo:'');
+    if(e.type==='gold_moment'&&e.clipPath){
+      const pid='journey-gm-player-'+i;
+      const bid='journey-gm-btn-'+i;
+      return '<article class="event"><div class="event-date">'+meta+'</div><p class="event-quote">'+esc(e.text||((e.savedBy||'Foreldri')+' geymdi lesturinn þinn'))+'</p><button class="featured-gold-play" id="'+bid+'" onclick="event.stopPropagation();_playJourneyGold(\''+esc(e.clipPath)+'\',\''+pid+'\',\''+bid+'\')" type="button">► Hlusta</button><div class="featured-gold-player" id="'+pid+'"></div></article>';
+    }
+    return'<article class="event"><div class="event-date">'+meta+'</div>'+(e.note?'<p class="event-quote">\u201C'+esc(e.note)+'\u201D</p>':'')+'<div class="reactions">'+(e.reactions||[]).map(r=>'<span class="react">'+esc(r)+'</span>').join('')+'</div></article>'
+  }).join('');
   openOv('journeyModal');
 }
 

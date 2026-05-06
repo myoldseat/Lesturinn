@@ -729,6 +729,7 @@ function renderJourneyCard() {
         ${cardMeta ? `<div class="ph-jn-card-pages">${cardMeta}</div>` : ''}
         <div class="ph-jn-card-text">\u201C${_esc(lastWithNote.note)}\u201D</div>
       </div>
+      ${latestReactionHtml}
       <div class="ph-jn-meira-row">
         <span class="ph-jn-meira-pill">Meira &rsaquo;</span>
         <span class="ph-jn-total-hint">${totalCount} ${totalCount === 1 ? 'færsla' : 'færslur'}</span>
@@ -789,6 +790,14 @@ export function closeJourneyModal(e) {
   if (e && e.target && e.target !== document.getElementById('journey-modal') && !e.target.closest('.rg-popup-close')) return;
   const modal = document.getElementById('journey-modal');
   if (modal) modal.style.display = 'none';
+  const input = document.getElementById('jm-input');
+  if (input) {
+    input.value = '';
+    input.disabled = false;
+    input.onkeydown = null;
+  }
+  const sendBtn = document.getElementById('jm-send');
+  if (sendBtn) sendBtn.onclick = null;
   _jmBookId = null;
 }
 
@@ -855,19 +864,23 @@ function _renderJourneyModal(bookId) {
   // Scroll to bottom (newest is first visually, feed is reversed)
   feed.scrollTop = 0;
 
-  // Wire up compose
+  // Wire up compose — overwrite old handlers so comments never go to a stale book/child.
   const input = document.getElementById('jm-input');
   const sendBtn = document.getElementById('jm-send');
-  const listenerName = _getListenerName();
   if (sendBtn) {
-    sendBtn.onclick = null;
-    sendBtn.addEventListener('click', () => _sendJourneyReaction(bookId, listenerName, true));
+    sendBtn.onclick = () => {
+      if (!_jmBookId) return;
+      _sendJourneyReaction(_jmBookId, _getListenerName(), true);
+    };
   }
   if (input) {
-    input.onkeydown = null;
-    input.addEventListener('keydown', ev => {
-      if (ev.key === 'Enter') _sendJourneyReaction(bookId, listenerName, true);
-    });
+    input.onkeydown = ev => {
+      if (ev.key === 'Enter') {
+        ev.preventDefault();
+        if (!_jmBookId) return;
+        _sendJourneyReaction(_jmBookId, _getListenerName(), true);
+      }
+    };
   }
 }
 
@@ -1037,6 +1050,15 @@ function _getListenerName() {
 }
 
 async function _sendJourneyReaction(bookId, listenerName, fromModal = false) {
+  // Modal sends must always target the currently open journal, not an old closure.
+  if (fromModal) {
+    if (!_jmBookId) return;
+    if (bookId !== _jmBookId) {
+      console.warn('Blocked stale journal comment send', { attemptedBookId: bookId, openBookId: _jmBookId });
+      return;
+    }
+  }
+
   if (_jnSending) return;
   const inputId = fromModal ? 'jm-input' : 'ph-jn-input';
   const sentId  = fromModal ? 'jm-sent'  : 'ph-jn-sent';
@@ -1050,26 +1072,45 @@ async function _sendJourneyReaction(bookId, listenerName, fromModal = false) {
   input.disabled = true;
 
   try {
-    const book = (S.books || []).find(b => b.id === bookId);
+    const currentBookId = fromModal ? _jmBookId : bookId;
+    const book = (S.books || []).find(b => b.id === currentBookId);
     if (!book || !book.journeyEntries?.length) return;
 
-    const entries = [...book.journeyEntries];
-    const newest = { ...entries[0] };
-    newest.reactions = [...(newest.reactions || []), `${listenerName}: ${text}`];
-    entries[0] = newest;
+    // Extra guard: if a specific child is selected, never write to another child's book.
+    if (_phSelectedKey && _phSelectedKey !== 'all' && book.childKey && book.childKey !== _phSelectedKey) {
+      console.warn('Blocked journal comment send to wrong child', { bookChildKey: book.childKey, selectedChildKey: _phSelectedKey, bookId: currentBookId });
+      return;
+    }
 
-    await updateDoc(doc(db, 'books', bookId), { journeyEntries: entries });
+    const entries = (book.journeyEntries || []).map(e => ({
+      ...e,
+      reactions: Array.isArray(e.reactions) ? [...e.reactions] : []
+    }));
 
+    // Attach the comment to the newest real reading entry, not a gold_moment entry.
+    let targetIndex = entries.findIndex(e => e && e.type !== 'gold_moment' && (e.note || e.pageFrom || e.pageTo || e.date));
+    if (targetIndex < 0) targetIndex = 0;
+
+    const target = { ...entries[targetIndex] };
+    target.reactions = [...(target.reactions || []), `${listenerName}: ${text}`];
+    entries[targetIndex] = target;
+
+    await updateDoc(doc(db, 'books', currentBookId), {
+      journeyEntries: entries,
+      updatedAt: serverTimestamp()
+    });
+
+    book.journeyEntries = entries;
     input.value = '';
     if (sentEl) {
       sentEl.classList.add('show');
       setTimeout(() => sentEl.classList.remove('show'), 2000);
     }
-    // Refresh modal feed if sending from modal
-    if (fromModal && _jmBookId) {
-      book.journeyEntries = entries;
-      _renderJourneyModal(_jmBookId);
+
+    if (fromModal && _jmBookId === currentBookId) {
+      _renderJourneyModal(currentBookId);
     }
+    renderJourneyCard();
   } catch (e) {
     console.error('Journey reaction villa:', e);
   } finally {

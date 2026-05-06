@@ -50,16 +50,17 @@
       <h2 class="cl-heading">Tilbúin/n að lesa?</h2>
       <p class="cl-subheading">Sláðu inn leynikóðann til að byrja</p>
       <input id="child-code-input" class="cl-input" type="text" maxlength="8"
-      autocomplete="off"
-       autocapitalize="characters" 
+       autocomplete="off" 
        autocorrect="off" 
+       autocapitalize="characters" 
        spellcheck="false" 
        inputmode="text" 
        enterkeyhint="done"
        placeholder="ABC1234"
        oninput="this.value=this.value.toUpperCase();"
-       onfocus="if(window.activateChildLoginInputGlow)window.activateChildLoginInputGlow();">
-        onpaste="return false" ondrop="return false">
+       onfocus="if(window.activateChildLoginInputGlow)window.activateChildLoginInputGlow();"
+       onpaste="return false;" 
+       ondrop="return false;">
       <div id="child-code-error" style="color:#ff6b6b;text-align:center;font-size:13px;font-weight:700;min-height:18px"></div>
       <button class="cl-btn" onclick="childLogin()">Byrja að lesa</button>
     </div>

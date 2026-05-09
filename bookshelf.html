@@ -471,6 +471,7 @@ async function getC(id){try{const x=await odb();if(!x)return null;return new Pro
 async function delC(id){try{const x=await odb();if(x)x.transaction(IDS,'readwrite').objectStore(IDS).delete(id)}catch(e){}}
 
 let books=[],cc={},curCov=null,curCovHQ=null,selBookId=null,editMode=false,selIds=new Set(),saving=false,unsub=null;
+let _booksLoaded=false;
 let demoDismissed=false;
 const DEMO_KEY='upphatt_bookshelf_demo_dismissed';
 
@@ -749,6 +750,7 @@ function startListener(){
       books=[];
     }
     for(const b of books){if(b._demo||cc[b.id])continue;const c=await getC(b.id);if(c){cc[b.id]=c;continue}if(b.coverBase64){cc[b.id]=b.coverBase64;cacheC(b.id,b.coverBase64)}}
+    _booksLoaded=true;
     render();
   },e=>{
     console.error('Books listener error:',e);
@@ -1045,6 +1047,10 @@ function render(){
   const fc=document.getElementById('featuredCard');
   checkAchievements();
   if(!hero||!books.length){
+    if(!_booksLoaded){
+      fc.className='';fc.innerHTML='<div class="empty-state"><div class="empty-icon">📚</div><div class="empty-title">Sæki bækurnar þínar...</div></div>';
+      return;
+    }
     fc.className='';fc.innerHTML='<div class="empty-state"><div class="empty-icon">📚</div><div class="empty-title">Bókahillan er tóm</div><div class="empty-sub">Ýttu á <strong>Bók</strong> neðst og bættu fyrstu bókinni við!</div></div>';
   }else{
     const u=cc[hero.id]||hero.coverBase64;const ci=u?'<img src="'+u+'" alt="">':'<span class="featured-cover-title">'+esc(hero.title)+'</span><span class="featured-cover-author">'+esc(hero.author||'')+'</span>';

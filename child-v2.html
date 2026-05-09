@@ -1850,28 +1850,8 @@
       var firestoreBooks = [];
       var firestoreBooksLoaded = false;
 
-      function loadBooksFromFirestore() {
-        if (!childSession || !childSession.familyId || !childSession.childKey) return;
-        try {
-          var dbScript = document.createElement("script");
-          dbScript.type = "module";
-          dbScript.textContent = `
-            import{initializeApp}from'https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js';
-            import{getFirestore,collection,onSnapshot,query,where}from'https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js';
-            const app=initializeApp({apiKey:'AIzaSyAgTY3Uxd9_ZxixjqLj-sH8V3OhFAzg6DU',authDomain:'lesum-22e85.firebaseapp.com',projectId:'lesum-22e85',storageBucket:'lesum-22e85.firebasestorage.app',messagingSenderId:'204392598388',appId:'1:204392598388:web:2dbbe3f476cd78d2ffba21'});
-            const db=getFirestore(app);
-            const q=query(collection(db,'books'),where('familyId','==',"${childSession.familyId}"),where('childKey','==',"${childSession.childKey}"));
-            onSnapshot(q,snap=>{
-              window._firestoreBooks=snap.docs.map(d=>({id:d.id,...d.data()}));
-              window._firestoreBooksLoaded=true;
-              if(window._onFirestoreBooksReady) window._onFirestoreBooksReady();
-            });
-          `;
-          document.head.appendChild(dbScript);
-        } catch(e) { console.warn("Firestore book load failed:", e); }
-      }
-
-      loadBooksFromFirestore();
+      // Books are now loaded directly from the Firebase module script below.
+      // See onSnapshot on 'books' collection in the module block.
 
       function readBookshelfBooksForChildModal() {
         var allBooks = window._firestoreBooks || [];
@@ -2710,6 +2690,28 @@
     const db = getFirestore(app);
     const storage = getStorage(app);
     const useListenEventsStream = true;
+
+    // ── Load books immediately for child book picker ──
+    {
+      const childRaw = localStorage.getItem('upphatt_child');
+      if (childRaw) {
+        try {
+          const ch = JSON.parse(childRaw);
+          if (ch.familyId && ch.childKey) {
+            const booksQ = query(
+              collection(db, 'books'),
+              where('familyId', '==', ch.familyId),
+              where('childKey', '==', ch.childKey)
+            );
+            onSnapshot(booksQ, snap => {
+              window._firestoreBooks = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+              window._firestoreBooksLoaded = true;
+              if (window._onFirestoreBooksReady) window._onFirestoreBooksReady();
+            });
+          }
+        } catch(e) { console.warn('Books listener failed:', e); }
+      }
+    }
 
     function makeDateKey(d) {
       const yyyy = d.getFullYear();

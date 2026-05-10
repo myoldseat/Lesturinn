@@ -1287,7 +1287,7 @@ async function identifyBookWithExtension(gsPath){
     // Búa til doc í bookScans — extension trigger-ast sjálfkrafa
     const scanDoc=await addDoc(collection(db,'bookScans'),{
       image_url:gsPath,
-      prompt:'Identify this book cover. Return ONLY a valid JSON object with no other text: {"title":"exact title from cover","author":"author name from cover","totalPages":0}',
+      prompt:'You are a JSON API. Look at the book cover image. Respond with ONLY this JSON, nothing else, no explanation:\n{"title":"BOOK TITLE HERE","author":"AUTHOR NAME HERE","totalPages":0}',
       createTime:serverTimestamp(),
       familyId:FID,
       childKey:CK
@@ -1321,12 +1321,23 @@ async function identifyBookWithExtension(gsPath){
         // Ef ekki JSON — reyna að draga title og author úr texta
         console.log('Gemini: not JSON, extracting from text');
         const resp=data.response;
-        // Leita að "Title:" eða **Title:**
-        const titleMatch=resp.match(/\*{0,2}Title:?\*{0,2}\s*"?([^"*\n]+)"?/i);
-        if(titleMatch)title=titleMatch[1].replace(/[",*]+$/,'').trim();
-        // Leita að "Author:"
-        const authorMatch=resp.match(/\*{0,2}Author:?\*{0,2}\s*"?([^"*\n]+)"?/i);
-        if(authorMatch)author=authorMatch[1].replace(/[",*]+$/,'').trim();
+        // Leita að titli með "titled" eða **Title:** mynstri
+        const titledMatch=resp.match(/titled\s+"([^"]+)"/i);
+        const titleFieldMatch=resp.match(/\*{0,2}Titles?:?\*{0,2}\s*(?:\*{0,2})?\s*(?:The title[^"]*?"([^"]+)")|(?:"([^"]{2,50})")/i);
+        const titleStarMatch=resp.match(/\*{0,2}Title:?\*{0,2}\s*\*{0,2}\s*(?:The title is\s+)?[""]?([^"""\n*]{2,60})[""]?/i);
+        if(titledMatch) title=titledMatch[1].trim();
+        else if(titleFieldMatch) title=(titleFieldMatch[1]||titleFieldMatch[2]||'').trim();
+        else if(titleStarMatch) title=titleStarMatch[1].replace(/["",.*]+$/,'').trim();
+        // Hreinsa "is prominently" og annað
+        title=title.replace(/\s*is\s+prominently.*/i,'').replace(/[""",*]+$/,'').trim();
+
+        // Leita að höfundi með "Author:" eða "author's name" eða "credited"
+        const authorCreditMatch=resp.match(/[""]([^""]{3,40})[""][,\s]+is credited/i);
+        const authorFieldMatch=resp.match(/\*{0,2}Authors?:?\*{0,2}\s*(?:The author[^"]*?)?[""]?([^"""\n*]{2,50})[""]?/i);
+        if(authorCreditMatch) author=authorCreditMatch[1].trim();
+        else if(authorFieldMatch) author=authorFieldMatch[1].replace(/["",.*]+$/,'').replace(/^\s*The\s+author.*?is\s+/i,'').trim();
+        // Hreinsa "is credited" o.fl.
+        author=author.replace(/[""",*]+$/,'').replace(/\s*is\s+credited.*/i,'').trim();
       }
 
       if(title&&!titleEl.value){

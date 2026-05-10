@@ -435,11 +435,9 @@ button{font:inherit;cursor:pointer;border:0;background:none;color:inherit}a{colo
 import{initializeApp}from'https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js';
 import{getFirestore,collection,addDoc,doc,deleteDoc,setDoc,onSnapshot,query,where,serverTimestamp,updateDoc}from'https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js';
 import{getStorage,ref as storageRef,getDownloadURL,uploadBytes}from'https://www.gstatic.com/firebasejs/12.11.0/firebase-storage.js';
-import{getFunctions,httpsCallable}from'https://www.gstatic.com/firebasejs/12.11.0/firebase-functions.js';
 const app=initializeApp({apiKey:'AIzaSyAgTY3Uxd9_ZxixjqLj-sH8V3OhFAzg6DU',authDomain:'lesum-22e85.firebaseapp.com',projectId:'lesum-22e85',storageBucket:'lesum-22e85.firebasestorage.app',messagingSenderId:'204392598388',appId:'1:204392598388:web:2dbbe3f476cd78d2ffba21'});
 const db=getFirestore(app);
 const bsStorage=getStorage(app);
-const functions=getFunctions(app,'europe-west1');
 
 // Audio URL cache (15 min TTL)
 const _bsAudioCache={};
@@ -493,6 +491,7 @@ async function uploadCover(bookId,b64){
 }
 
 let books=[],cc={},curCov=null,curCovHQ=null,selBookId=null,editMode=false,selIds=new Set(),saving=false,unsub=null;
+let pendingCoverUrl=null,pendingCoverGsPath=null;
 let _booksLoaded=false;
 let demoDismissed=false;
 const DEMO_KEY='upphatt_bookshelf_demo_dismissed';
@@ -783,18 +782,23 @@ function startListener(){
 
 async function addBook(d){
   const ref=await addDoc(collection(db,'books'),d);
-  // Upload cover to Storage, save URL back to Firestore
-  const coverSrc=curCovHQ||curCov||d.coverBase64;
-  if(coverSrc){
-    const url=await uploadCover(ref.id,coverSrc);
-    if(url){
-      await updateDoc(doc(db,'books',ref.id),{coverUrl:url,coverBase64:null});
-      cc[ref.id]=url;
-      await cacheC(ref.id,url);
-    }else{
-      // Fallback: keep base64 in doc if upload failed
-      cc[ref.id]=coverSrc;
-      await cacheC(ref.id,coverSrc);
+  // Use already-uploaded cover URL if available, otherwise upload now
+  if(pendingCoverUrl){
+    await updateDoc(doc(db,'books',ref.id),{coverUrl:pendingCoverUrl,coverBase64:null});
+    cc[ref.id]=pendingCoverUrl;
+    await cacheC(ref.id,pendingCoverUrl);
+  }else{
+    const coverSrc=curCovHQ||curCov||d.coverBase64;
+    if(coverSrc){
+      const url=await uploadCover(ref.id,coverSrc);
+      if(url){
+        await updateDoc(doc(db,'books',ref.id),{coverUrl:url,coverBase64:null});
+        cc[ref.id]=url;
+        await cacheC(ref.id,url);
+      }else{
+        cc[ref.id]=coverSrc;
+        await cacheC(ref.id,coverSrc);
+      }
     }
   }
   return ref.id;
@@ -1217,7 +1221,7 @@ async function compress(file,tw=180,th=270,q=.50){
 
 function setReady(){saving=false;const b=document.getElementById('saveBook');if(b){b.hidden=false;b.disabled=false;b.textContent='Vista bók'}}
 function showStep(n){['addStep2','addStep3'].forEach((id,i)=>document.getElementById(id).style.display=i===(n-2)?'':'none')}
-function resetF(){curCov=null;curCovHQ=null;['bookTitle','bookAuthor'].forEach(id=>document.getElementById(id).value='');document.getElementById('bookStatus').value='shelf';document.getElementById('bookPages').value='';document.getElementById('coverInput').value='';document.getElementById('previewImg').removeAttribute('src');document.getElementById('previewMeta').textContent='';document.getElementById('previewRow').style.display='none';showStep(2);setReady()}
+function resetF(){curCov=null;curCovHQ=null;pendingCoverUrl=null;pendingCoverGsPath=null;['bookTitle','bookAuthor'].forEach(id=>document.getElementById(id).value='');document.getElementById('bookStatus').value='shelf';document.getElementById('bookPages').value='';document.getElementById('coverInput').value='';document.getElementById('previewImg').removeAttribute('src');document.getElementById('previewMeta').textContent='';document.getElementById('previewRow').style.display='none';showStep(2);setReady()}
 function openAddM(){
   // Trigger native camera/gallery picker
   document.getElementById('coverInput').click();
@@ -1245,11 +1249,25 @@ async function handleCoverFile(file){
   showStep(2);setReady();
   openOv('addModal');
 
-  // ── Gemini Vision: auto-fill title, author, pages ──
-  identifyBookWithGemini(curCovHQ);
+  // ── Upload strax í Storage og kalla Gemini extension ──
+  if(!previewMode){
+    try{
+      const ts=Date.now();
+      const path='covers/'+FID+'/'+CK+'/'+ts+'.webp';
+      const blob=base64ToBlob(curCov);
+      if(blob){
+        const sRef=storageRef(bsStorage,path);
+        await uploadBytes(sRef,blob,{contentType:blob.type});
+        pendingCoverUrl=await getDownloadURL(sRef);
+        pendingCoverGsPath='gs://lesum-22e85.firebasestorage.app/'+path;
+        console.log('Cover uploaded:',pendingCoverGsPath);
+        identifyBookWithExtension(pendingCoverGsPath);
+      }
+    }catch(e){console.warn('Early cover upload failed:',e);pendingCoverUrl=null;pendingCoverGsPath=null}
+  }
 }
 
-async function identifyBookWithGemini(base64DataUrl){
+async function identifyBookWithExtension(gsPath){
   const titleEl=document.getElementById('bookTitle');
   const authorEl=document.getElementById('bookAuthor');
   const pagesEl=document.getElementById('bookPages');
@@ -1261,28 +1279,49 @@ async function identifyBookWithGemini(base64DataUrl){
   titleEl.placeholder='Augnablik...';
 
   try{
-    const parts=base64DataUrl.split(',');
-    if(parts.length<2){console.warn('Gemini: invalid base64');metaEl.textContent=origMeta;return;}
-    const mimeMatch=parts[0].match(/data:([^;]+)/);
-    const mimeType=mimeMatch?mimeMatch[1]:'image/jpeg';
-    const base64Data=parts[1];
-    console.log('Gemini: sending',Math.round(base64Data.length/1024)+'KB as',mimeType);
+    // Búa til doc í bookScans — extension trigger-ast sjálfkrafa
+    const scanDoc=await addDoc(collection(db,'bookScans'),{
+      image_url:gsPath,
+      prompt:'Hvaða bók er þetta? Skrifaðu titil og höfund.',
+      createTime:serverTimestamp(),
+      familyId:FID,
+      childKey:CK
+    });
+    console.log('bookScan created:',scanDoc.id);
 
-    const identify=httpsCallable(functions,'identifyBookCover');
-    const result=await identify({imageBase64:base64Data,mimeType});
-    const info=result.data;
-    console.log('Gemini: parsed',info);
+    // Hlusta á response reitinn
+    const unsub=onSnapshot(doc(db,'bookScans',scanDoc.id),snap=>{
+      const data=snap.data();
+      if(!data?.response)return; // Bíða eftir svari
+      unsub(); // Hætta að hlusta
 
-    if(info.title&&!titleEl.value){
-      titleEl.value=info.title;
-      metaEl.textContent='\u2728 '+info.title;
-    }
-    if(info.author&&authorEl&&!authorEl.value) authorEl.value=info.author;
-    if(info.totalPages&&pagesEl&&!pagesEl.value) pagesEl.value=info.totalPages;
-    titleEl.placeholder='t.d. Drekastormur';
-    if(!info.title) metaEl.textContent=origMeta;
+      console.log('Gemini response:',data.response);
+      try{
+        // Extension skilar JSON streng í response
+        const raw=data.response.replace(/```json|```/g,'').trim();
+        const info=JSON.parse(raw);
+        if(info.title&&!titleEl.value){
+          titleEl.value=info.title;
+          metaEl.textContent='\u2728 '+info.title;
+        }
+        if(info.author&&authorEl&&!authorEl.value) authorEl.value=info.author;
+        if(info.totalPages&&pagesEl&&!pagesEl.value) pagesEl.value=info.totalPages;
+        titleEl.placeholder='t.d. Drekastormur';
+        if(!info.title) metaEl.textContent=origMeta;
+      }catch(parseErr){
+        console.warn('Gemini parse failed:',parseErr,'raw:',data.response);
+        metaEl.textContent=origMeta;
+        titleEl.placeholder='t.d. Drekastormur';
+      }
+    });
+
+    // Timeout — ef ekkert svar eftir 20 sek
+    setTimeout(()=>{try{unsub()}catch(e){}
+      if(!titleEl.value){metaEl.textContent=origMeta;titleEl.placeholder='t.d. Drekastormur'}
+    },20000);
+
   }catch(e){
-    console.warn('Gemini failed:',e);
+    console.warn('Gemini extension failed:',e);
     metaEl.textContent=origMeta;
     titleEl.placeholder='t.d. Drekastormur';
   }

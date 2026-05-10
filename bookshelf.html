@@ -1254,7 +1254,7 @@ async function handleCoverFile(file){
     try{
       const ts=Date.now();
       const path='covers/'+FID+'/'+CK+'/'+ts+'.webp';
-      const blob=base64ToBlob(curCov);
+      const blob=base64ToBlob(curCovHQ||curCov);
       if(blob){
         const sRef=storageRef(bsStorage,path);
         await uploadBytes(sRef,blob,{contentType:blob.type});
@@ -1282,7 +1282,7 @@ async function identifyBookWithExtension(gsPath){
     // Búa til doc í bookScans — extension trigger-ast sjálfkrafa
     const scanDoc=await addDoc(collection(db,'bookScans'),{
       image_url:gsPath,
-      prompt:'Hvaða bók er þetta? Skrifaðu titil og höfund.',
+      prompt:'Look at this book cover image. Read the title and author name printed on the cover. Return ONLY JSON: {"title":"...","author":"...","totalPages":0}. If you cannot read the text, try your best guess from what you can see.',
       createTime:serverTimestamp(),
       familyId:FID,
       childKey:CK

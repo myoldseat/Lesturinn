@@ -1107,53 +1107,42 @@ function openJourney(id){
   const totalEl=document.getElementById('journeyTotalPages');
   const resultEl=document.getElementById('journeyUpdateResult');
   resultEl.style.display='none';
-}
-  
-async function processBookImage(base64Image) {
-    try {
-        const resultDiv = document.getElementById('scanResult');
-        resultDiv.innerHTML = "Sendi mynd í skýið... bíddu augnablik.";
-        resultDiv.style.display = 'block';
 
-        // 1. Breytum Base64 textanum aftur í raunverulega mynd (Blob)
-        const response = await fetch(base64Image);
-        const blob = await response.blob();
+  if(b.status==='reading'){
+    pageUpdate.style.display='';
+    pageInput.value=b.currentPageTo||'';
+    totalEl.textContent=b.totalPages||'?';
+    document.getElementById('journeySub').textContent='bls. '+(b.currentPageTo||0)+' af '+(b.totalPages||'?')+' · '+(b.progressPercent||0)+'% lokið';
+  }else{
+    pageUpdate.style.display='none';
+    document.getElementById('journeySub').textContent=b.status==='finished'?'Lokið!':'Á hillunni';
+  }
 
-        // 2. Vistum myndina í Firebase Storage (Núna sjást myndirnar loksins í Storage!)
-        const fileName = `covers/book_${Date.now()}.jpg`;
-        const storageRef = firebase.storage().ref(fileName);
-        await storageRef.put(blob);
-
-        // 3. Búum til gs:// slóðina sem Gemini vill fá
-        const bucketName = firebase.app().options.storageBucket;
-        const gsPath = `gs://${bucketName}/${fileName}`;
-
-        resultDiv.innerHTML = "Mynd komin upp! Býð eftir svari frá Gemini...";
-
-        // 4. Búum til skjal í Firestore til að "vekja" Gemini Extension-ið
-        const docRef = await firebase.firestore().collection('bookScans').add({
-            prompt: "Hvaða bók er þetta? Svaraðu stutt og hnitmiðað með titli og höfundi á íslensku.",
-            image: gsPath,
-            createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-
-        // 5. Hlustum á skjalið okkar - svarið skilar sér sjálfkrafa hingað
-        docRef.onSnapshot((doc) => {
-            const data = doc.data();
-            
-            if (data.response) {
-                // Svarið komið frá Gemini!
-                resultDiv.innerHTML = `<strong>Niðurstaða:</strong><br>${data.response}`;
-            } else if (data.status && data.status.state === 'ERROR') {
-                // Eitthvað fór úrskeiðis hjá vélmenninu
-                resultDiv.innerHTML = `<span style="color:red;">Villa við greiningu hjá Gemini.</span>`;
-            }
-        });
-
-    } catch (error) {
-        console.error("Villa í myndgreiningu:", error);
-        document.getElementById('scanResult').innerHTML = `<span style="color:red;">Villa við að senda mynd: ${error.message}</span>`;
+  const ent=b.journeyEntries?.length?b.journeyEntries:[{date:'Í dag',pageFrom:b.currentPageFrom||'',pageTo:b.currentPageTo||'',note:b.note||'Bókin var sett á hilluna.',reactions:[]}];
+  document.getElementById('journeyEntries').innerHTML=ent.map((e,i)=>{
+    const meta=esc(e.date||'')+(e.pageFrom?' · bls. '+e.pageFrom+'–'+e.pageTo:'');
+    if(e.type==='gold_moment'&&e.clipPath){
+      const pid='journey-gm-player-'+i;
+      const bid='journey-gm-btn-'+i;
+      return '<article class="event"><div class="event-date">'+meta+'</div><p class="event-quote">'+esc(e.text||((e.savedBy||'Foreldri')+' geymdi lesturinn þinn'))+'</p><button class="featured-gold-play" id="'+bid+'" onclick="event.stopPropagation();_playJourneyGold(\''+esc(e.clipPath)+'\',\''+pid+'\',\''+bid+'\')" type="button">► Hlusta</button><div class="featured-gold-player" id="'+pid+'"></div></article>';
     }
+    return'<article class="event"><div class="event-date">'+meta+'</div>'+(e.note?'<p class="event-quote">\u201C'+esc(e.note)+'\u201D</p>':'')+'<div class="reactions">'+(e.reactions||[]).map((r,ri)=>'<span class="react"><span class="react-text">'+esc(r)+'</span><button class="react-delete" type="button" data-delete-reaction="'+i+':'+ri+'" aria-label="Eyða kommenti">×</button></span>').join('')+'</div></article>'
+  }).join('');
+  openOv('journeyModal');
+}
+
+async function deleteJourneyReaction(entryIndex,reactionIndex){
+  const b=books.find(x=>x.id===selBookId);if(!b||!Array.isArray(b.journeyEntries))return;
+  const entries=b.journeyEntries.map(e=>({...e,reactions:Array.isArray(e.reactions)?[...e.reactions]:[]}));
+  if(!entries[entryIndex]||!entries[entryIndex].reactions||entries[entryIndex].reactions[reactionIndex]===undefined)return;
+  if(!confirm('Eyða kommenti?'))return;
+  entries[entryIndex].reactions.splice(reactionIndex,1);
+  try{
+    if(b._demo){b.journeyEntries=entries;render();openJourney(b.id);return}
+    await updBook(b.id,{journeyEntries:entries});
+    b.journeyEntries=entries;
+    render();openJourney(b.id);
+  }catch(err){console.error('Delete reaction failed:',err);alert('Villa við að eyða kommenti.')}
 }
 
 document.getElementById('journeyUpdateBtn').addEventListener('click',async()=>{

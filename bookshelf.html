@@ -1264,7 +1264,7 @@ async function handleCoverFile(file){
         const sRef=storageRef(bsStorage,path);
         await uploadBytes(sRef,blob,{contentType:'image/jpeg'});
         pendingCoverUrl=await getDownloadURL(sRef);
-        pendingCoverGsPath='gs://lesum-22e85.appspot.com/'+path;
+        pendingCoverGsPath='gs://lesum-22e85.firebasestorage.app/'+path;
         console.log('Cover uploaded:',pendingCoverGsPath);
         identifyBookWithExtension(pendingCoverGsPath);
       }

@@ -1287,7 +1287,7 @@ async function identifyBookWithExtension(gsPath){
     // Búa til doc í bookScans — extension trigger-ast sjálfkrafa
     const scanDoc=await addDoc(collection(db,'bookScans'),{
       image_url:gsPath,
-      prompt:'You are a JSON API. Look at the book cover image. Respond with ONLY this JSON, nothing else, no explanation:\n{"title":"BOOK TITLE HERE","author":"AUTHOR NAME HERE","totalPages":0}',
+      prompt:'You are a JSON API. `Return ONLY JSON: {"title":"...","author":"..."}. No intro, no markdown, no explanation. Strictly follow this schema.`;
       createTime:serverTimestamp(),
       familyId:FID,
       childKey:CK

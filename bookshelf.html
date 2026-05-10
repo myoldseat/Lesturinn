@@ -1280,14 +1280,14 @@ async function identifyBookWithExtension(gsPath){
   if(!titleEl||!metaEl){console.warn('Gemini: form not found');return;}
 
   const origMeta=metaEl.textContent;
-  metaEl.textContent='🔍 Þekki bók...';
+  metaEl.textContent='🔍 Finn bókina þína...';
   titleEl.placeholder='Augnablik...';
 
   try{
     // Búa til doc í bookScans — extension trigger-ast sjálfkrafa
     const scanDoc=await addDoc(collection(db,'bookScans'),{
       image_url:gsPath,
-      prompt:'Look at this book cover image. Read the title and author name printed on the cover. Return ONLY JSON: {"title":"...","author":"...","totalPages":0}. If you cannot read the text, try your best guess from what you can see.',
+      prompt:'Identify this book cover. Return ONLY a valid JSON object with no other text: {"title":"exact title from cover","author":"author name from cover","totalPages":0}',
       createTime:serverTimestamp(),
       familyId:FID,
       childKey:CK
@@ -1297,33 +1297,52 @@ async function identifyBookWithExtension(gsPath){
     // Hlusta á response reitinn
     const unsub=onSnapshot(doc(db,'bookScans',scanDoc.id),snap=>{
       const data=snap.data();
-      if(!data?.response)return; // Bíða eftir svari
+      console.log('bookScan snapshot:',JSON.stringify({hasResponse:!!data?.response,status:data?.status?.state,fields:Object.keys(data||{})}));
+      if(!data?.response){
+        // Athuga hvort ERRORED
+        if(data?.status?.state==='ERRORED'){
+          console.warn('Gemini error:',data.status.error);
+          unsub();
+          metaEl.textContent=origMeta;
+          titleEl.placeholder='t.d. Drekastormur';
+        }
+        return;
+      }
       unsub(); // Hætta að hlusta
 
       console.log('Gemini response:',data.response);
+      let title='',author='',pages=0;
       try{
-        // Extension skilar JSON streng í response
+        // Reyna JSON parse fyrst
         const raw=data.response.replace(/```json|```/g,'').trim();
         const info=JSON.parse(raw);
-        if(info.title&&!titleEl.value){
-          titleEl.value=info.title;
-          metaEl.textContent='\u2728 '+info.title;
-        }
-        if(info.author&&authorEl&&!authorEl.value) authorEl.value=info.author;
-        if(info.totalPages&&pagesEl&&!pagesEl.value) pagesEl.value=info.totalPages;
-        titleEl.placeholder='t.d. Drekastormur';
-        if(!info.title) metaEl.textContent=origMeta;
+        title=info.title||'';author=info.author||'';pages=info.totalPages||0;
       }catch(parseErr){
-        console.warn('Gemini parse failed:',parseErr,'raw:',data.response);
-        metaEl.textContent=origMeta;
-        titleEl.placeholder='t.d. Drekastormur';
+        // Ef ekki JSON — reyna að draga title og author úr texta
+        console.log('Gemini: not JSON, extracting from text');
+        const resp=data.response;
+        // Leita að "Title:" eða **Title:**
+        const titleMatch=resp.match(/\*{0,2}Title:?\*{0,2}\s*"?([^"*\n]+)"?/i);
+        if(titleMatch)title=titleMatch[1].replace(/[",*]+$/,'').trim();
+        // Leita að "Author:"
+        const authorMatch=resp.match(/\*{0,2}Author:?\*{0,2}\s*"?([^"*\n]+)"?/i);
+        if(authorMatch)author=authorMatch[1].replace(/[",*]+$/,'').trim();
       }
+
+      if(title&&!titleEl.value){
+        titleEl.value=title;
+        metaEl.textContent='\u2728 '+title;
+      }
+      if(author&&authorEl&&!authorEl.value) authorEl.value=author;
+      if(pages&&pagesEl&&!pagesEl.value) pagesEl.value=pages;
+      titleEl.placeholder='t.d. Drekastormur';
+      if(!title) metaEl.textContent=origMeta;
     });
 
-    // Timeout — ef ekkert svar eftir 20 sek
+    // Timeout — ef ekkert svar eftir 30 sek
     setTimeout(()=>{try{unsub()}catch(e){}
       if(!titleEl.value){metaEl.textContent=origMeta;titleEl.placeholder='t.d. Drekastormur'}
-    },20000);
+    },30000);
 
   }catch(e){
     console.warn('Gemini extension failed:',e);

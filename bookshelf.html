@@ -1253,13 +1253,18 @@ async function handleCoverFile(file){
   if(!previewMode){
     try{
       const ts=Date.now();
-      const path='covers/'+FID+'/'+CK+'/'+ts+'.webp';
-      const blob=base64ToBlob(curCovHQ||curCov);
+      const path='covers/'+FID+'/'+CK+'/'+ts+'.jpg';
+      // Re-compress as JPEG for Gemini compatibility
+      const img=await new Promise((ok,no)=>{const i=new Image();i.onload=()=>ok(i);i.onerror=no;i.src=curCovHQ||curCov});
+      const c=document.createElement('canvas');c.width=img.width;c.height=img.height;
+      const ctx=c.getContext('2d');ctx.drawImage(img,0,0);
+      const jpegB64=c.toDataURL('image/jpeg',0.85);
+      const blob=base64ToBlob(jpegB64);
       if(blob){
         const sRef=storageRef(bsStorage,path);
-        await uploadBytes(sRef,blob,{contentType:blob.type});
+        await uploadBytes(sRef,blob,{contentType:'image/jpeg'});
         pendingCoverUrl=await getDownloadURL(sRef);
-        pendingCoverGsPath='gs://lesum-22e85.firebasestorage.app/'+path;
+        pendingCoverGsPath='gs://lesum-22e85.appspot.com/'+path;
         console.log('Cover uploaded:',pendingCoverGsPath);
         identifyBookWithExtension(pendingCoverGsPath);
       }

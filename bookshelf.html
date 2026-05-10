@@ -434,7 +434,7 @@ button{font:inherit;cursor:pointer;border:0;background:none;color:inherit}a{colo
 <script type="module">
 import{initializeApp}from'https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js';
 import{getFirestore,collection,addDoc,doc,deleteDoc,setDoc,onSnapshot,query,where,serverTimestamp,updateDoc}from'https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js';
-import{getStorage,ref as storageRef,getDownloadURL}from'https://www.gstatic.com/firebasejs/12.11.0/firebase-storage.js';
+import{getStorage,ref as storageRef,getDownloadURL,uploadBytes}from'https://www.gstatic.com/firebasejs/12.11.0/firebase-storage.js';
 import{getFunctions,httpsCallable}from'https://www.gstatic.com/firebasejs/12.11.0/firebase-functions.js';
 const app=initializeApp({apiKey:'AIzaSyAgTY3Uxd9_ZxixjqLj-sH8V3OhFAzg6DU',authDomain:'lesum-22e85.firebaseapp.com',projectId:'lesum-22e85',storageBucket:'lesum-22e85.firebasestorage.app',messagingSenderId:'204392598388',appId:'1:204392598388:web:2dbbe3f476cd78d2ffba21'});
 const db=getFirestore(app);
@@ -471,6 +471,26 @@ function odb(){return new Promise(r=>{if(_idb){r(_idb);return}const q=indexedDB.
 async function cacheC(id,d){try{const x=await odb();if(x)x.transaction(IDS,'readwrite').objectStore(IDS).put(d,id)}catch(e){}}
 async function getC(id){try{const x=await odb();if(!x)return null;return new Promise(r=>{const q=x.transaction(IDS,'readonly').objectStore(IDS).get(id);q.onsuccess=()=>r(q.result||null);q.onerror=()=>r(null)})}catch(e){return null}}
 async function delC(id){try{const x=await odb();if(x)x.transaction(IDS,'readwrite').objectStore(IDS).delete(id)}catch(e){}}
+
+// ── Cover upload to Firebase Storage ──
+function base64ToBlob(b64){
+  const parts=b64.split(',');if(parts.length<2)return null;
+  const mimeMatch=parts[0].match(/data:([^;]+)/);
+  const mime=mimeMatch?mimeMatch[1]:'image/webp';
+  const bin=atob(parts[1]);const arr=new Uint8Array(bin.length);
+  for(let i=0;i<bin.length;i++)arr[i]=bin.charCodeAt(i);
+  return new Blob([arr],{type:mime});
+}
+async function uploadCover(bookId,b64){
+  try{
+    const blob=base64ToBlob(b64);if(!blob)return null;
+    const path='covers/'+FID+'/'+CK+'/'+bookId+'.webp';
+    const sRef=storageRef(bsStorage,path);
+    await uploadBytes(sRef,blob,{contentType:blob.type});
+    const url=await getDownloadURL(sRef);
+    return url;
+  }catch(e){console.warn('Cover upload failed:',e);return null}
+}
 
 let books=[],cc={},curCov=null,curCovHQ=null,selBookId=null,editMode=false,selIds=new Set(),saving=false,unsub=null;
 let _booksLoaded=false;
@@ -751,7 +771,7 @@ function startListener(){
     }else{
       books=[];
     }
-    for(const b of books){if(b._demo||cc[b.id])continue;const c=await getC(b.id);if(c){cc[b.id]=c;continue}if(b.coverBase64){cc[b.id]=b.coverBase64;cacheC(b.id,b.coverBase64)}}
+    for(const b of books){if(b._demo||cc[b.id])continue;const c=await getC(b.id);if(c){cc[b.id]=c;continue}if(b.coverUrl){cc[b.id]=b.coverUrl;cacheC(b.id,b.coverUrl)}else if(b.coverBase64){cc[b.id]=b.coverBase64;cacheC(b.id,b.coverBase64)}}
     _booksLoaded=true;
     render();
   },e=>{
@@ -761,7 +781,24 @@ function startListener(){
   });
 }
 
-async function addBook(d){const ref=await addDoc(collection(db,'books'),d);if(curCovHQ){await cacheC(ref.id,curCovHQ);cc[ref.id]=curCovHQ}else if(d.coverBase64){await cacheC(ref.id,d.coverBase64);cc[ref.id]=d.coverBase64}return ref.id}
+async function addBook(d){
+  const ref=await addDoc(collection(db,'books'),d);
+  // Upload cover to Storage, save URL back to Firestore
+  const coverSrc=curCovHQ||curCov||d.coverBase64;
+  if(coverSrc){
+    const url=await uploadCover(ref.id,coverSrc);
+    if(url){
+      await updateDoc(doc(db,'books',ref.id),{coverUrl:url,coverBase64:null});
+      cc[ref.id]=url;
+      await cacheC(ref.id,url);
+    }else{
+      // Fallback: keep base64 in doc if upload failed
+      cc[ref.id]=coverSrc;
+      await cacheC(ref.id,coverSrc);
+    }
+  }
+  return ref.id;
+}
 async function updBook(id,u){await updateDoc(doc(db,'books',id),{...u,updatedAt:serverTimestamp()})}
 async function delBook(id){
   const b=books.find(x=>x.id===id);
@@ -777,7 +814,7 @@ async function delBook(id){
 function esc(s=""){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function chipT(b){if(isPending(b))return'Lokið — ýttu!';if(b.status==='finished')return'Lokið ✓';if(b.status==='reading')return(b.progressPercent||0)+'%';return'Á hillu'}
 function chipCls(b){return(b.status==='finished')?'done':''}
-function covHTML(b){const u=cc[b.id]||b.coverBase64;if(u)return'<img src="'+u+'" alt="">';return'<span class="book-cover-title">'+esc(b.title)+'</span><span class="book-cover-author">'+esc(b.author||'')+'</span>'}
+function covHTML(b){const u=cc[b.id]||b.coverUrl||b.coverBase64;if(u)return'<img src="'+u+'" alt="">';return'<span class="book-cover-title">'+esc(b.title)+'</span><span class="book-cover-author">'+esc(b.author||'')+'</span>'}
 function covS(b){return'--c1:'+(b.c1||'#2b8f91')+';--c2:'+(b.c2||'#0a2341')}
 function latestNote(b){if(b?.journeyEntries?.length){const e=b.journeyEntries[0];if(e?.note)return e.note}return b?.note||'Bókin er komin á hilluna.'}
 
@@ -1055,7 +1092,7 @@ function render(){
     }
     fc.className='';fc.innerHTML='<div class="empty-state"><div class="empty-icon">📚</div><div class="empty-title">Bókahillan er tóm</div><div class="empty-sub">Ýttu á <strong>Bók</strong> neðst og bættu fyrstu bókinni við!</div></div>';
   }else{
-    const u=cc[hero.id]||hero.coverBase64;const ci=u?'<img src="'+u+'" alt="">':'<span class="featured-cover-title">'+esc(hero.title)+'</span><span class="featured-cover-author">'+esc(hero.author||'')+'</span>';
+    const u=cc[hero.id]||hero.coverUrl||hero.coverBase64;const ci=u?'<img src="'+u+'" alt="">':'<span class="featured-cover-title">'+esc(hero.title)+'</span><span class="featured-cover-author">'+esc(hero.author||'')+'</span>';
     fc.className='featured';
     // Last reaction from family
     const lastReaction = _getLastReaction(hero);

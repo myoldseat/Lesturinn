@@ -1330,14 +1330,24 @@ async function identifyBookWithExtension(gsPath){
         else if(titleStarMatch) title=titleStarMatch[1].replace(/["",.*]+$/,'').trim();
         // Hreinsa "is prominently" og annað
         title=title.replace(/\s*is\s+prominently.*/i,'').replace(/[""",*]+$/,'').trim();
+        // Ef titill er í HÁSTÖFUM, breyta í Title Case
+        if(title&&title===title.toUpperCase()&&title.length>3){
+          title=title.toLowerCase().replace(/(^|\s|-)\S/g,c=>c.toUpperCase());
+        }
 
-        // Leita að höfundi með "Author:" eða "author's name" eða "credited"
+        // Leita að höfundi með "written by", "Author:", "credited"
+        const writtenByMatch=resp.match(/written by\s+([^.(,\n]{2,50})/i);
         const authorCreditMatch=resp.match(/[""]([^""]{3,40})[""][,\s]+is credited/i);
         const authorFieldMatch=resp.match(/\*{0,2}Authors?:?\*{0,2}\s*(?:The author[^"]*?)?[""]?([^"""\n*]{2,50})[""]?/i);
-        if(authorCreditMatch) author=authorCreditMatch[1].trim();
+        if(writtenByMatch) author=writtenByMatch[1].trim();
+        else if(authorCreditMatch) author=authorCreditMatch[1].trim();
         else if(authorFieldMatch) author=authorFieldMatch[1].replace(/["",.*]+$/,'').replace(/^\s*The\s+author.*?is\s+/i,'').trim();
         // Hreinsa "is credited" o.fl.
         author=author.replace(/[""",*]+$/,'').replace(/\s*is\s+credited.*/i,'').trim();
+        // Ef höfundur er í HÁSTÖFUM, breyta í Title Case
+        if(author&&author===author.toUpperCase()&&author.length>3){
+          author=author.toLowerCase().replace(/(^|\s|-)\S/g,c=>c.toUpperCase());
+        }
       }
 
       if(title&&!titleEl.value){

@@ -650,7 +650,7 @@ function renderNowReading(filteredSessions) {
   });
   const avgMin = daySet.size > 0 ? Math.round(totalMins / daySet.size) : 0;
 
-  const coverSrc = hero.imagePath || hero.coverBase64 || '';
+  const coverSrc = hero.imagePath || hero.coverUrl || hero.coverBase64 || '';
   let coverHtml = '';
   if (coverSrc) {
     coverHtml = `<img src="${_esc(coverSrc)}" alt="" class="ph-nr-cover">`;
@@ -811,7 +811,7 @@ function _renderJourneyModal(bookId) {
   // Book cover thumbnail in header
   const coverEl = document.getElementById('jm-book-cover');
   if (coverEl) {
-    const coverSrc = hero.imagePath || hero.coverBase64 || '';
+    const coverSrc = hero.imagePath || hero.coverUrl || hero.coverBase64 || '';
     if (coverSrc) {
       coverEl.innerHTML = `<img src="${_esc(coverSrc)}" alt="" class="jm-cover-img">`;
     } else {
@@ -1282,9 +1282,9 @@ function renderBookshelfLink() {
 
   // Get up to 3 covers for fan display — any book with a cover
   const covers = childBooks
-    .filter(b => b.imagePath || b.coverBase64)
+    .filter(b => b.imagePath || b.coverUrl || b.coverBase64)
     .slice(0, 3)
-    .map(b => b.imagePath || b.coverBase64);
+    .map(b => b.imagePath || b.coverUrl || b.coverBase64);
 
   let coversHtml = '';
   if (covers.length >= 3) {

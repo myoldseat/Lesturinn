@@ -783,25 +783,17 @@ function startListener(){
 }
 
 async function addBook(d){
-  const ref=await addDoc(collection(db,'books'),d);
-  // Use already-uploaded cover URL if available, otherwise upload now
+  // Set coverUrl directly in doc if already uploaded
   if(pendingCoverUrl){
-    await updateDoc(doc(db,'books',ref.id),{coverUrl:pendingCoverUrl,coverBase64:null});
-    cc[ref.id]=pendingCoverUrl;
-    await cacheC(ref.id,pendingCoverUrl);
-  }else{
-    const coverSrc=curCovHQ||curCov||d.coverBase64;
-    if(coverSrc){
-      const url=await uploadCover(ref.id,coverSrc);
-      if(url){
-        await updateDoc(doc(db,'books',ref.id),{coverUrl:url,coverBase64:null});
-        cc[ref.id]=url;
-        await cacheC(ref.id,url);
-      }else{
-        cc[ref.id]=coverSrc;
-        await cacheC(ref.id,coverSrc);
-      }
-    }
+    d.coverUrl=pendingCoverUrl;
+    d.coverBase64=null;
+  }
+  const ref=await addDoc(collection(db,'books'),d);
+  // Cache cover locally
+  const coverSrc=pendingCoverUrl||curCovHQ||curCov||d.coverBase64;
+  if(coverSrc){
+    cc[ref.id]=coverSrc;
+    await cacheC(ref.id,coverSrc);
   }
   return ref.id;
 }

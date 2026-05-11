@@ -758,19 +758,27 @@ async function checkAchievements(){
 }
 
 // ── Celebration system ──
-const CELEB_KEY='upphatt_celebrated_'+CK;
-function getCelebrated(){try{return new Set(JSON.parse(localStorage.getItem(CELEB_KEY)||'[]'))}catch(e){return new Set()}}
-function markCelebrated(id){const s=getCelebrated();s.add(id);try{localStorage.setItem(CELEB_KEY,JSON.stringify([...s]))}catch(e){}}
-function isPending(b){return b.status==='finished'&&!getCelebrated().has(b.id)}
+function isPending(b){return b.status==='finished'&&!b.celebratedAt}
+
+function markCelebrated(id){
+  const b=books.find(x=>x.id===id);
+  if(b){b.celebratedAt=Date.now()}
+  if(!previewMode&&!b?._demo){updBook(id,{celebratedAt:Date.now()}).catch(e=>console.warn('markCelebrated failed:',e))}
+}
 
 function playMilestoneSound(){
   try{
     const ctx=new(window.AudioContext||window.webkitAudioContext)();const now=ctx.currentTime;
-    [[523,0],[659,.1],[784,.2],[1047,.35],[1047,.55]].forEach(([f,dl])=>{
+    // Warm "achievement unlocked" chime — softer, deeper, more satisfying
+    const notes=[[392,0,.15],[523,.12,.15],[659,.24,.18],[784,.38,.22],[1047,.55,.30]];
+    notes.forEach(([f,dl,dur])=>{
       const o=ctx.createOscillator(),g=ctx.createGain();
-      o.connect(g);g.connect(ctx.destination);o.frequency.value=f;o.type='triangle';
-      g.gain.setValueAtTime(.3,now+dl);g.gain.exponentialRampToValueAtTime(.001,now+dl+.5);
-      o.start(now+dl);o.stop(now+dl+.6);
+      o.connect(g);g.connect(ctx.destination);
+      o.frequency.value=f;o.type='sine';
+      g.gain.setValueAtTime(0,now+dl);
+      g.gain.linearRampToValueAtTime(.18,now+dl+.02);
+      g.gain.exponentialRampToValueAtTime(.001,now+dl+dur);
+      o.start(now+dl);o.stop(now+dl+dur+.1);
     });
   }catch(e){}
 }
@@ -1183,12 +1191,11 @@ function goalRingHTML(){
 
 function render(){
   if(celebrating)return; // Don't re-render during celebration animation
-  const celebrated=getCelebrated();
   const sorted=[...books].sort((a,b)=>ts(b,'lastReadAt')-ts(a,'lastReadAt'));
-  const pending=sorted.filter(b=>b.status==='finished'&&!celebrated.has(b.id));
+  const pending=sorted.filter(b=>isPending(b));
   const reading=[...sorted.filter(b=>b.status==='reading'),...pending];
   const shelf=books.filter(b=>b.status==='shelf');
-  const finished=books.filter(b=>b.status==='finished'&&celebrated.has(b.id));
+  const finished=books.filter(b=>b.status==='finished'&&b.celebratedAt);
   const hero=reading[0]||sorted[0];
   const fc=document.getElementById('featuredCard');
   checkAchievements();

@@ -472,6 +472,90 @@ async function cacheC(id,d){try{const x=await odb();if(x)x.transaction(IDS,'read
 async function getC(id){try{const x=await odb();if(!x)return null;return new Promise(r=>{const q=x.transaction(IDS,'readonly').objectStore(IDS).get(id);q.onsuccess=()=>r(q.result||null);q.onerror=()=>r(null)})}catch(e){return null}}
 async function delC(id){try{const x=await odb();if(x)x.transaction(IDS,'readwrite').objectStore(IDS).delete(id)}catch(e){}}
 
+// ── Local cover cache helpers ──
+function isDataImg(s){return typeof s==='string'&&s.startsWith('data:image/')}
+
+// Migration tracking — never retry same book twice in a session
+const _migrating=new Set();
+const _migrateFailed=new Set();
+
+// Throttled migration queue — max 2 concurrent canvas conversions
+const _migrateQueue=[];
+let _migrateRunning=0;
+const _MIGRATE_MAX=2;
+
+function _runMigrateQueue(){
+  while(_migrateRunning<_MIGRATE_MAX&&_migrateQueue.length){
+    const job=_migrateQueue.shift();
+    _migrateRunning++;
+    job().finally(()=>{_migrateRunning--;_runMigrateQueue()});
+  }
+}
+
+function queueMigrate(bookId,src){
+  if(_migrating.has(bookId)||_migrateFailed.has(bookId))return;
+  _migrating.add(bookId);
+  _migrateQueue.push(async()=>{
+    const local=await makeLocalThumb(src);
+    if(local&&isDataImg(local)){
+      cc[bookId]=local;
+      await cacheC(bookId,local);
+      render();
+    }else{
+      _migrateFailed.add(bookId);
+    }
+    _migrating.delete(bookId);
+  });
+  _runMigrateQueue();
+}
+
+function makeLocalThumb(src){
+  return new Promise(ok=>{
+    const img=new Image();
+    img.crossOrigin='anonymous';
+    img.onload=()=>{
+      try{
+        const tw=180,th=270,sr=img.naturalWidth/img.naturalHeight,tr=tw/th;
+        let sx=0,sy=0,sw=img.naturalWidth,sh=img.naturalHeight;
+        if(sr>tr){sw=img.naturalHeight*tr;sx=(img.naturalWidth-sw)/2}
+        else{sh=img.naturalWidth/tr;sy=(img.naturalHeight-sh)/2}
+        const c=document.createElement('canvas');c.width=tw;c.height=th;
+        const ctx=c.getContext('2d');ctx.imageSmoothingQuality='high';
+        ctx.drawImage(img,sx,sy,sw,sh,0,0,tw,th);
+        ok(c.toDataURL('image/webp',0.70));
+      }catch(e){ok(null)}
+    };
+    img.onerror=()=>ok(null);
+    img.src=src;
+  });
+}
+
+async function ensureLocalCover(b){
+  if(!b||!b.id||b._demo)return null;
+  // Already have data:image in memory — done
+  if(cc[b.id]&&isDataImg(cc[b.id]))return cc[b.id];
+  // Check IndexedDB for local thumbnail
+  const cached=await getC(b.id);
+  if(cached&&isDataImg(cached)){cc[b.id]=cached;return cached}
+  // Have remote URL cached — use it now, queue background migration
+  if(cached){
+    cc[b.id]=cached;
+    queueMigrate(b.id,b.coverUrl||cached);
+    return cached;
+  }
+  // Have base64 in Firestore doc — use and cache it
+  if(b.coverBase64&&isDataImg(b.coverBase64)){
+    cc[b.id]=b.coverBase64;cacheC(b.id,b.coverBase64);return b.coverBase64;
+  }
+  // Have coverUrl but no cache — use URL now, queue background migration
+  if(b.coverUrl){
+    cc[b.id]=b.coverUrl;
+    queueMigrate(b.id,b.coverUrl);
+    return b.coverUrl;
+  }
+  return null;
+}
+
 // ── Cover upload to Firebase Storage ──
 function base64ToBlob(b64){
   const parts=b64.split(',');if(parts.length<2)return null;
@@ -772,7 +856,7 @@ function startListener(){
     }else{
       books=[];
     }
-    for(const b of books){if(b._demo||cc[b.id])continue;const c=await getC(b.id);if(c){cc[b.id]=c;continue}if(b.coverUrl){cc[b.id]=b.coverUrl;cacheC(b.id,b.coverUrl)}else if(b.coverBase64){cc[b.id]=b.coverBase64;cacheC(b.id,b.coverBase64)}}
+    for(const b of books){await ensureLocalCover(b)}
     _booksLoaded=true;
     render();
   },e=>{
@@ -789,11 +873,17 @@ async function addBook(d){
     d.coverBase64=null;
   }
   const ref=await addDoc(collection(db,'books'),d);
-  // Cache cover locally
-  const coverSrc=pendingCoverUrl||curCovHQ||curCov||d.coverBase64;
-  if(coverSrc){
-    cc[ref.id]=coverSrc;
-    await cacheC(ref.id,coverSrc);
+  // Cache local base64 thumbnail (not URL) for instant render
+  const localSrc=curCovHQ||curCov;
+  if(localSrc&&isDataImg(localSrc)){
+    cc[ref.id]=localSrc;
+    await cacheC(ref.id,localSrc);
+  }else if(pendingCoverUrl){
+    cc[ref.id]=pendingCoverUrl;
+    // Convert to local thumbnail in background
+    makeLocalThumb(pendingCoverUrl).then(local=>{
+      if(local&&isDataImg(local)){cc[ref.id]=local;cacheC(ref.id,local)}
+    });
   }
   return ref.id;
 }

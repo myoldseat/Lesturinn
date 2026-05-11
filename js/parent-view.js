@@ -108,9 +108,89 @@ let _booksUnsub = null;
 let _dashboardReady = false;
 
 const _preloadedCovers = new Set();
+
+// ── Cover cache: memory + IndexedDB ──
+const _coverCache = {};
+const _IDB_NAME = 'upphatt_parent';
+const _IDB_STORE = 'covers';
+let _idb = null;
+
+function _openIDB() {
+  if (_idb) return Promise.resolve(_idb);
+  return new Promise((ok, no) => {
+    try {
+      const req = indexedDB.open(_IDB_NAME, 1);
+      req.onupgradeneeded = () => { req.result.createObjectStore(_IDB_STORE); };
+      req.onsuccess = () => { _idb = req.result; ok(_idb); };
+      req.onerror = () => { console.warn('IDB open failed'); ok(null); };
+    } catch (e) { ok(null); }
+  });
+}
+
+async function _idbGet(bookId) {
+  try {
+    const db2 = await _openIDB();
+    if (!db2) return null;
+    return new Promise(ok => {
+      const tx = db2.transaction(_IDB_STORE, 'readonly');
+      const req = tx.objectStore(_IDB_STORE).get(bookId);
+      req.onsuccess = () => ok(req.result || null);
+      req.onerror = () => ok(null);
+    });
+  } catch (e) { return null; }
+}
+
+async function _idbSet(bookId, src) {
+  try {
+    const db2 = await _openIDB();
+    if (!db2) return;
+    const tx = db2.transaction(_IDB_STORE, 'readwrite');
+    tx.objectStore(_IDB_STORE).put(src, bookId);
+  } catch (e) { /* ok */ }
+}
+
+// Get cover for a book: memory → IndexedDB → book fields
+function getParentCover(book) {
+  if (!book) return '';
+  if (_coverCache[book.id]) return _coverCache[book.id];
+  const src = book.imagePath || book.coverUrl || book.coverBase64 || '';
+  if (src) _coverCache[book.id] = src;
+  return src;
+}
+
+// Async version that also checks IndexedDB
+async function getParentCoverAsync(book) {
+  if (!book) return '';
+  if (_coverCache[book.id]) return _coverCache[book.id];
+  // Check IndexedDB
+  const cached = await _idbGet(book.id);
+  if (cached) { _coverCache[book.id] = cached; return cached; }
+  // Fall back to book fields
+  const src = book.imagePath || book.coverUrl || book.coverBase64 || '';
+  if (src) {
+    _coverCache[book.id] = src;
+    _idbSet(book.id, src);
+  }
+  return src;
+}
+
+// Warm covers: load into memory + IndexedDB for a set of books
+async function warmCovers(books) {
+  for (const b of books) {
+    if (!b || _coverCache[b.id]) continue;
+    const cached = await _idbGet(b.id);
+    if (cached) { _coverCache[b.id] = cached; continue; }
+    const src = b.imagePath || b.coverUrl || b.coverBase64 || '';
+    if (src) {
+      _coverCache[b.id] = src;
+      _idbSet(b.id, src);
+    }
+  }
+}
+
 function preloadCovers(books) {
   const urls = books
-    .map(b => b.coverUrl || b.coverBase64)
+    .map(b => getParentCover(b))
     .filter(Boolean)
     .filter(src => !_preloadedCovers.has(src));
   if (!urls.length) return Promise.resolve();
@@ -124,17 +204,18 @@ function preloadCovers(books) {
 }
 
 // Preload only covers visible on dashboard: hero book + up to 3 fan covers
-function preloadDashboardCovers() {
+async function preloadDashboardCovers() {
   const books = S.books || [];
   const childBooks = !_phSelectedKey || _phSelectedKey === 'all'
     ? books : books.filter(b => b.childKey === _phSelectedKey);
 
   const hero = childBooks.find(b => b.status === 'reading');
   const fanBooks = childBooks
-    .filter(b => b.coverUrl || b.coverBase64 || b.imagePath)
+    .filter(b => getParentCover(b))
     .slice(0, 3);
 
   const needed = [hero, ...fanBooks].filter(Boolean);
+  await warmCovers(needed);
   return preloadCovers(needed);
 }
 
@@ -146,8 +227,10 @@ export function startBooksListener() {
     S.books = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     _dashboardReady = true;
     renderDashboard();
-    // Preload only dashboard-visible covers in background, then re-render
+    // Preload dashboard-visible covers, then re-render
     preloadDashboardCovers().then(() => renderDashboard());
+    // Warm all book covers in background for child-switching
+    warmCovers(S.books);
   }, e => console.warn('Books listener villa:', e));
 }
 
@@ -718,7 +801,7 @@ function renderNowReading(filteredSessions) {
   });
   const avgMin = daySet.size > 0 ? Math.round(totalMins / daySet.size) : 0;
 
-  const coverSrc = hero.imagePath || hero.coverUrl || hero.coverBase64 || '';
+  const coverSrc = getParentCover(hero);
   let coverHtml = '';
   if (coverSrc) {
     coverHtml = `<img src="${_esc(coverSrc)}" alt="" class="ph-nr-cover">`;
@@ -879,7 +962,7 @@ function _renderJourneyModal(bookId) {
   // Book cover thumbnail in header
   const coverEl = document.getElementById('jm-book-cover');
   if (coverEl) {
-    const coverSrc = hero.imagePath || hero.coverUrl || hero.coverBase64 || '';
+    const coverSrc = getParentCover(hero);
     if (coverSrc) {
       coverEl.innerHTML = `<img src="${_esc(coverSrc)}" alt="" class="jm-cover-img">`;
     } else {
@@ -1208,7 +1291,7 @@ function _calcGoalProgress(g, books, sessions) {
   let done = 0;
 
   if (g.type === 'books') {
-    done = books.filter(b => b.status === 'done' && bookTs(b, 'lastReadAt') >= start).length;
+    done = books.filter(b => b.status === 'finished' && bookTs(b, 'lastReadAt') >= start).length;
   } else if (g.type === 'pages') {
     done = sessions.filter(s => (s.timestamp || 0) >= start && (s.seconds || 0) >= 60)
       .reduce((sum, s) => sum + (s.pagesRead || 0), 0);
@@ -1233,7 +1316,7 @@ async function renderGoalsCard() {
   // If no specific child selected, show simple book stats
   if (!childKey) {
     const books = S.books || [];
-    const doneBooks = books.filter(b => b.status === 'done').length;
+    const doneBooks = books.filter(b => b.status === 'finished').length;
     const totalBooks = books.length;
     const bookPct = totalBooks > 0 ? Math.round((doneBooks / totalBooks) * 100) : 0;
     el.innerHTML = `
@@ -1273,7 +1356,7 @@ async function renderGoalsCard() {
     const currentPage = activeBook?.currentPageTo || 0;
     const totalPages = activeBook?.totalPages || 0;
     const pagePct = totalPages > 0 ? Math.round((currentPage / totalPages) * 100) : 0;
-    const doneBooks = books.filter(b => b.status === 'done').length;
+    const doneBooks = books.filter(b => b.status === 'finished').length;
     const totalBooks = books.length;
     const bookPct = totalBooks > 0 ? Math.round((doneBooks / totalBooks) * 100) : 0;
 
@@ -1341,7 +1424,7 @@ function renderBookshelfLink() {
   const childBooks = !_phSelectedKey || _phSelectedKey === 'all'
     ? books : books.filter(b => b.childKey === _phSelectedKey);
   const count = childBooks.length;
-  const doneBooks = childBooks.filter(b => b.status === 'done');
+  const doneBooks = childBooks.filter(b => b.status === 'finished');
 
   const childKey = _phSelectedKey && _phSelectedKey !== 'all' ? _phSelectedKey : '';
   const bookshelfUrl = childKey
@@ -1350,9 +1433,9 @@ function renderBookshelfLink() {
 
   // Get up to 3 covers for fan display — any book with a cover
   const covers = childBooks
-    .filter(b => b.imagePath || b.coverUrl || b.coverBase64)
+    .filter(b => getParentCover(b))
     .slice(0, 3)
-    .map(b => b.imagePath || b.coverUrl || b.coverBase64);
+    .map(b => getParentCover(b));
 
   let coversHtml = '';
   if (covers.length >= 3) {

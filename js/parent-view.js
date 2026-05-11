@@ -8,6 +8,13 @@ import { S }    from './state.js';
 import { fmtTime, formatLabel, getMonday, getStreak } from './helpers.js';
 
 // ── Theme toggle SVG icons ──
+
+// ── Inject cover fade-in CSS ──
+(function(){const s=document.createElement('style');s.textContent=`
+.ph-bs-fan-img{transition:opacity .28s ease,filter .28s ease}
+.ph-bs-img-loading{opacity:0;filter:blur(6px)}
+.ph-bs-img-loaded{opacity:1;filter:blur(0)}
+`;document.head.appendChild(s)})();
 const _THEME_SVG_SUN = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1dcdd3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>`;
 const _THEME_SVG_MOON = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1dcdd3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`;
 
@@ -116,15 +123,31 @@ function preloadCovers(books) {
   })));
 }
 
+// Preload only covers visible on dashboard: hero book + up to 3 fan covers
+function preloadDashboardCovers() {
+  const books = S.books || [];
+  const childBooks = !_phSelectedKey || _phSelectedKey === 'all'
+    ? books : books.filter(b => b.childKey === _phSelectedKey);
+
+  const hero = childBooks.find(b => b.status === 'reading');
+  const fanBooks = childBooks
+    .filter(b => b.coverUrl || b.coverBase64 || b.imagePath)
+    .slice(0, 3);
+
+  const needed = [hero, ...fanBooks].filter(Boolean);
+  return preloadCovers(needed);
+}
+
 export function startBooksListener() {
   if (_booksUnsub) { _booksUnsub(); _booksUnsub = null; }
   if (!S.familyId) return;
   const q = query(collection(db, 'books'), where('familyId', '==', S.familyId));
   _booksUnsub = onSnapshot(q, async snap => {
     S.books = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    await preloadCovers(S.books);
     _dashboardReady = true;
     renderDashboard();
+    // Preload only dashboard-visible covers in background, then re-render
+    preloadDashboardCovers().then(() => renderDashboard());
   }, e => console.warn('Books listener villa:', e));
 }
 
@@ -1335,20 +1358,20 @@ function renderBookshelfLink() {
   if (covers.length >= 3) {
     coversHtml = `
       <div class="ph-bs-fan">
-        <img class="ph-bs-fan-img ph-bs-fan-left" src="${_esc(covers[0])}" alt="">
-        <img class="ph-bs-fan-img ph-bs-fan-center" src="${_esc(covers[1])}" alt="">
-        <img class="ph-bs-fan-img ph-bs-fan-right" src="${_esc(covers[2])}" alt="">
+        <img class="ph-bs-fan-img ph-bs-fan-left ph-bs-img-loading" src="${_esc(covers[0])}" alt="" onload="this.classList.remove('ph-bs-img-loading');this.classList.add('ph-bs-img-loaded')" onerror="this.classList.remove('ph-bs-img-loading')">
+        <img class="ph-bs-fan-img ph-bs-fan-center ph-bs-img-loading" src="${_esc(covers[1])}" alt="" onload="this.classList.remove('ph-bs-img-loading');this.classList.add('ph-bs-img-loaded')" onerror="this.classList.remove('ph-bs-img-loading')">
+        <img class="ph-bs-fan-img ph-bs-fan-right ph-bs-img-loading" src="${_esc(covers[2])}" alt="" onload="this.classList.remove('ph-bs-img-loading');this.classList.add('ph-bs-img-loaded')" onerror="this.classList.remove('ph-bs-img-loading')">
       </div>`;
   } else if (covers.length === 2) {
     coversHtml = `
       <div class="ph-bs-fan">
-        <img class="ph-bs-fan-img ph-bs-fan-left" src="${_esc(covers[0])}" alt="">
-        <img class="ph-bs-fan-img ph-bs-fan-center" src="${_esc(covers[1])}" alt="">
+        <img class="ph-bs-fan-img ph-bs-fan-left ph-bs-img-loading" src="${_esc(covers[0])}" alt="" onload="this.classList.remove('ph-bs-img-loading');this.classList.add('ph-bs-img-loaded')" onerror="this.classList.remove('ph-bs-img-loading')">
+        <img class="ph-bs-fan-img ph-bs-fan-center ph-bs-img-loading" src="${_esc(covers[1])}" alt="" onload="this.classList.remove('ph-bs-img-loading');this.classList.add('ph-bs-img-loaded')" onerror="this.classList.remove('ph-bs-img-loading')">
       </div>`;
   } else if (covers.length === 1) {
     coversHtml = `
       <div class="ph-bs-fan">
-        <img class="ph-bs-fan-img ph-bs-fan-center" src="${_esc(covers[0])}" alt="">
+        <img class="ph-bs-fan-img ph-bs-fan-center ph-bs-img-loading" src="${_esc(covers[0])}" alt="" onload="this.classList.remove('ph-bs-img-loading');this.classList.add('ph-bs-img-loaded')" onerror="this.classList.remove('ph-bs-img-loading')">
       </div>`;
   } else {
     coversHtml = `

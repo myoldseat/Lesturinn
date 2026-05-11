@@ -98,13 +98,29 @@ export function startFamilyListener() {
 // ══════════════════════════════════════════════
 
 let _booksUnsub = null;
+let _dashboardReady = false;
+
+function preloadCovers(books) {
+  const urls = books
+    .map(b => b.coverUrl || b.coverBase64)
+    .filter(Boolean);
+  if (!urls.length) return Promise.resolve();
+  return Promise.all(urls.map(src => new Promise(resolve => {
+    const img = new Image();
+    img.onload = resolve;
+    img.onerror = resolve;
+    img.src = src;
+  })));
+}
 
 export function startBooksListener() {
   if (_booksUnsub) { _booksUnsub(); _booksUnsub = null; }
   if (!S.familyId) return;
   const q = query(collection(db, 'books'), where('familyId', '==', S.familyId));
-  _booksUnsub = onSnapshot(q, snap => {
+  _booksUnsub = onSnapshot(q, async snap => {
     S.books = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    await preloadCovers(S.books);
+    _dashboardReady = true;
     renderDashboard();
   }, e => console.warn('Books listener villa:', e));
 }
@@ -341,6 +357,32 @@ export function switchRecTab(tab) {
 // ══════════════════════════════════════════════
 
 export function renderDashboard() {
+  // Show loading until books + covers are ready
+  const body = document.querySelector('.ph-body');
+  if (!_dashboardReady && body) {
+    if (!document.getElementById('ph-loading-screen')) {
+      const loader = document.createElement('div');
+      loader.id = 'ph-loading-screen';
+      loader.style.cssText = 'display:flex;align-items:center;justify-content:center;padding:60px 0;flex-direction:column;gap:12px;';
+      loader.innerHTML = '<div style="font-size:2em">📚</div><div style="opacity:0.7">Sæki gögn...</div>';
+      body.prepend(loader);
+    }
+    // Hide all tiles until ready
+    body.querySelectorAll('.ph-tile, .ph-tile-split, .ph-stats-grid, .ph-tabs, .ph-tab-content').forEach(el => el.style.display = 'none');
+    return;
+  }
+
+  // Remove loading screen and show content
+  const loader = document.getElementById('ph-loading-screen');
+  if (loader) loader.remove();
+  const body2 = document.querySelector('.ph-body');
+  if (body2) {
+    body2.querySelectorAll('.ph-tile, .ph-tile-split, .ph-stats-grid, .ph-tabs').forEach(el => el.style.display = '');
+    // Tab content visibility handled by switchTab
+    const activeTab = document.querySelector('.ph-tab-active');
+    if (activeTab) activeTab.click();
+  }
+
   if (!_phSelectedKey) {
     const children = S.parentChildren || [];
     _phSelectedKey = children.length > 0 ? children[0].key : 'all';

@@ -27,13 +27,31 @@ button{font:inherit;cursor:pointer;border:0;background:none;color:inherit}a{colo
 .header-avatar{width:36px;height:36px;border-radius:50%;border:1.5px solid var(--line-hot);background:radial-gradient(circle at 50% 35%,rgba(29,205,211,.18),rgba(8,19,31,.95) 68%);display:grid;place-items:center;transition:border-color .18s,box-shadow .18s}
 .header-avatar:hover,.header-avatar:focus-visible{border-color:rgba(29,205,211,.5);box-shadow:0 0 16px rgba(29,205,211,.2);outline:none}
 .header-avatar span{font-size:11px;font-weight:900;color:#dff8fb;letter-spacing:.3px}
-.edit-bar{margin:0 0 12px;padding:10px 12px;border-radius:14px;border:1px solid rgba(29,205,211,.22);background:rgba(6,14,26,.88);display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.edit-bar{position:fixed;bottom:calc(var(--nav-h) + var(--safe) + 8px);left:50%;transform:translateX(-50%);width:min(calc(100% - 32px),410px);padding:10px 14px;border-radius:16px;border:1px solid rgba(29,205,211,.32);background:rgba(6,14,26,.94);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;z-index:38;box-shadow:0 -4px 24px rgba(0,0,0,.4),0 0 20px rgba(29,205,211,.08)}
 .edit-bar[hidden]{display:none!important}
 .edit-bar span{color:var(--text);font-size:12px;font-weight:800}
 .edit-bar-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:6px}
 .edit-move,.edit-finish,.edit-danger,.edit-cancel{height:30px;border-radius:99px;padding:0 10px;font-size:11px;font-weight:800;border:1px solid var(--line);background:var(--surface);color:var(--soft);transition:border-color .15s,color .15s}
 .edit-danger{border-color:rgba(255,107,107,.25);color:rgba(255,107,107,.7)}
 .edit-move:disabled,.edit-finish:disabled,.edit-danger:disabled{opacity:.4;cursor:not-allowed}
+.edit-state-select{height:30px;border-radius:99px;padding:0 10px;font-size:11px;font-weight:800;border:1px solid var(--line);background:var(--surface);color:var(--soft);-webkit-appearance:none;appearance:none;cursor:pointer;transition:border-color .15s,color .15s}
+.edit-state-select:disabled{opacity:.4;cursor:not-allowed}
+.edit-state-select:not(:disabled):focus{border-color:var(--line-hot);color:var(--accent);outline:none}
+/* ── Edit book modal ── */
+.edit-modal-form{display:flex;flex-direction:column;gap:14px;padding:4px 0}
+.edit-modal-label{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--soft);margin-bottom:4px;display:block}
+.edit-modal-input{width:100%;background:rgba(0,0,0,.3);border:1px solid var(--line);border-radius:10px;padding:11px 13px;color:var(--text);font-size:14px;-webkit-appearance:none}
+.edit-modal-input:focus{outline:none;border-color:var(--line-hot);box-shadow:0 0 12px var(--accent-glow)}
+.edit-modal-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.edit-modal-save{width:100%;height:44px;border-radius:12px;background:var(--accent);color:var(--bg);font-weight:800;font-size:14px;border:none;cursor:pointer;margin-top:4px}
+/* ── Desktop rail arrows ── */
+.rail-wrap{position:relative}
+.rail-arrow{display:none;position:absolute;top:50%;transform:translateY(-50%);width:36px;height:36px;border-radius:50%;background:var(--surface);border:1px solid var(--line);color:var(--soft);z-index:5;align-items:center;justify-content:center;cursor:pointer;transition:border-color .15s,color .15s}
+.rail-arrow:hover{border-color:var(--line-hot);color:var(--accent)}
+.rail-arrow-left{left:-18px}
+.rail-arrow-right{right:-18px}
+.rail-arrow svg{width:16px;height:16px}
+@media(min-width:700px){.rail-arrow{display:flex}}
 .featured{margin:14px 0 22px;background:var(--card);border:1px solid var(--line);border-radius:20px;padding:16px;position:relative;overflow:hidden;box-shadow:0 20px 50px rgba(0,0,0,.3),0 0 40px rgba(29,205,211,.04)}
 .featured::before{content:"";position:absolute;top:0;left:12%;right:12%;height:1px;background:linear-gradient(90deg,rgba(29,205,211,0),rgba(29,205,211,.45),rgba(29,205,211,0))}
 .featured-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:9px;border:1px solid rgba(29,205,211,.22);background:rgba(29,205,211,.06);color:var(--accent);font-size:12px;font-weight:800;margin-bottom:12px}
@@ -321,11 +339,11 @@ button{font:inherit;cursor:pointer;border:0;background:none;color:inherit}a{colo
 <button class="header-avatar" id="openProfile" aria-label="Prófíll"><span id="navAvatar">KK</span></button>
 </div>
 </header>
-<div class="edit-bar" id="editBar" hidden><span id="editCount">0 valdar</span><div class="edit-bar-actions"><button id="markSelectedReading" class="edit-move" disabled>Að lesa</button><button id="moveSelectedToShelf" class="edit-move" disabled>Á hillu</button><button id="markSelectedFinished" class="edit-finish" disabled>Lokið</button><button id="deleteSelectedBooks" class="edit-danger" disabled>Eyða</button><button id="cancelEditBooks" class="edit-cancel">Hætta við</button></div></div>
+<div class="edit-bar" id="editBar" hidden><span id="editCount">0 valdar</span><div class="edit-bar-actions"><select id="editStateSelect" class="edit-state-select" disabled><option value="">Færa ↓</option><option value="reading">Að lesa</option><option value="shelf">Á hillu</option><option value="finished">Lokið</option></select><button id="editSelectedBook" class="edit-move" disabled>✎ Breyta</button><button id="deleteSelectedBooks" class="edit-danger" disabled>Eyða</button><button id="cancelEditBooks" class="edit-cancel">Hætta við</button></div></div>
 <section id="featuredCard"></section>
-<section class="section" id="readingSection" style="display:none"><div class="section-head"><h2 class="section-title">Að lesa</h2><span class="section-count" id="readingCount">0</span></div><div class="book-rail" id="readingGrid"></div></section>
-<section class="section" id="shelfSection" style="display:none"><div class="section-head"><h2 class="section-title">Á hillunni</h2><span class="section-count" id="shelfCount">0</span></div><div class="book-rail" id="shelfGrid"></div></section>
-<section class="section" id="finishedSection" style="display:none"><div class="section-head"><h2 class="section-title">Lokið</h2><span class="section-count" id="finishedCount">0</span></div><div class="book-rail" id="finishedGrid"></div></section>
+<section class="section" id="readingSection" style="display:none"><div class="section-head"><h2 class="section-title">Að lesa</h2><span class="section-count" id="readingCount">0</span></div><div class="rail-wrap"><button class="rail-arrow rail-arrow-left" data-rail="readingGrid" data-dir="-1"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10 3L5 8l5 5"/></svg></button><div class="book-rail" id="readingGrid"></div><button class="rail-arrow rail-arrow-right" data-rail="readingGrid" data-dir="1"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 3l5 5-5 5"/></svg></button></div></section>
+<section class="section" id="shelfSection" style="display:none"><div class="section-head"><h2 class="section-title">Á hillunni</h2><span class="section-count" id="shelfCount">0</span></div><div class="rail-wrap"><button class="rail-arrow rail-arrow-left" data-rail="shelfGrid" data-dir="-1"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10 3L5 8l5 5"/></svg></button><div class="book-rail" id="shelfGrid"></div><button class="rail-arrow rail-arrow-right" data-rail="shelfGrid" data-dir="1"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 3l5 5-5 5"/></svg></button></div></section>
+<section class="section" id="finishedSection" style="display:none"><div class="section-head"><h2 class="section-title">Lokið</h2><span class="section-count" id="finishedCount">0</span></div><div class="rail-wrap"><button class="rail-arrow rail-arrow-left" data-rail="finishedGrid" data-dir="-1"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10 3L5 8l5 5"/></svg></button><div class="book-rail" id="finishedGrid"></div><button class="rail-arrow rail-arrow-right" data-rail="finishedGrid" data-dir="1"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 3l5 5-5 5"/></svg></button></div></section>
 </main>
 <!-- Hidden file input — triggered by Bók tab -->
 <input id="coverInput" type="file" accept="image/*" style="display:none">
@@ -385,6 +403,7 @@ button{font:inherit;cursor:pointer;border:0;background:none;color:inherit}a{colo
 <button class="dialog-btn secondary" id="closeJourney2">Loka</button>
 </section></div>
 <div class="overlay" id="profileModal"><section class="dialog" style="text-align:center"><button class="close" id="closeProfile">×</button><div class="child-initials" id="profileInitials" style="width:64px;height:64px;margin:5px auto 12px;font-size:20px">KK</div><h2 id="profileName">Barn</h2><p class="dialog-sub">Bókahillan mín</p><div class="card" style="padding:14px;text-align:left;margin-bottom:14px" id="lastReadCard"></div><p class="dialog-sub" style="margin-bottom:8px">Deila síðasta lestri?</p><button class="dialog-btn" id="shareLastReading">Deila</button><button class="dialog-btn secondary" id="closeProfile2">Loka</button><div class="share-result" id="shareResult">Tilbúið — tengjum push seinna.</div></section></div>
+<div class="overlay" id="editBookModal"><section class="dialog"><button class="close" id="closeEditBook">×</button><h2>Breyta bók</h2><p class="dialog-sub" id="editBookSub">Laga titil, höfund eða blaðsíðufjölda.</p><div class="edit-modal-form"><div><label class="edit-modal-label" for="editBookTitle">Titill</label><input class="edit-modal-input" type="text" id="editBookTitle" placeholder="Titill bókar"></div><div><label class="edit-modal-label" for="editBookAuthor">Höfundur</label><input class="edit-modal-input" type="text" id="editBookAuthor" placeholder="Höfundur"></div><div class="edit-modal-row"><div><label class="edit-modal-label" for="editBookPages">Blaðsíður</label><input class="edit-modal-input" type="number" id="editBookPages" placeholder="120" inputmode="numeric"></div><div><label class="edit-modal-label" for="editBookStatus">Staða</label><select class="edit-modal-input" id="editBookStatus"><option value="shelf">Á hillu</option><option value="reading">Að lesa</option><option value="finished">Lokið</option></select></div></div><button class="edit-modal-save" id="saveEditBook">Vista breytingar</button></div></section></div>
 <div class="overlay" id="deleteBooksModal"><section class="dialog delete-warning"><button class="close" id="closeDeleteBooks">×</button><div class="delete-warning-icon">!</div><h2>Eyða bókum?</h2><p class="delete-warning-copy">Þetta eyðir öllu.<span class="delete-book-name" id="deleteBooksName"></span></p><p class="delete-warning-copy">Ertu viss?</p><button class="dialog-btn delete-confirm" id="confirmDeleteBooks">Eyða</button><button class="dialog-btn secondary" id="cancelDeleteBooks">Hætta við</button></section></div>
 
 <div class="overlay" id="goalOverviewModal"><section class="dialog goal-overview-dialog">
@@ -1544,7 +1563,7 @@ document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',e=>{
 document.getElementById('shareLastReading').addEventListener('click',()=>document.getElementById('shareResult').classList.add('show'));
 document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelectorAll('.overlay.open').forEach(o=>closeOv(o.id))});
 
-function updEUI(){const bar=document.getElementById('editBar'),cnt=document.getElementById('editCount'),tog=document.getElementById('toggleEditBooks');if(bar)bar.hidden=!editMode;if(tog)tog.classList.toggle('active',editMode);const c=selIds.size;if(cnt)cnt.textContent=c===1?'1 valin':c+' valdar';['deleteSelectedBooks','markSelectedReading','moveSelectedToShelf','markSelectedFinished'].forEach(id=>{const b=document.getElementById(id);if(b)b.disabled=c===0})}
+function updEUI(){const bar=document.getElementById('editBar'),cnt=document.getElementById('editCount'),tog=document.getElementById('toggleEditBooks');if(bar)bar.hidden=!editMode;if(tog)tog.classList.toggle('active',editMode);const c=selIds.size;if(cnt)cnt.textContent=c===1?'1 valin':c+' valdar';const sel=document.getElementById('editStateSelect');if(sel)sel.disabled=c===0;const editBtn=document.getElementById('editSelectedBook');if(editBtn)editBtn.disabled=c!==1;const delBtn=document.getElementById('deleteSelectedBooks');if(delBtn)delBtn.disabled=c===0;if(sel)sel.value=''}
 function setEM(v){editMode=Boolean(v);if(!editMode)selIds.clear();updEUI();render()}
 function toggleSel(id){if(selIds.has(id))selIds.delete(id);else selIds.add(id);updEUI();render()}
 
@@ -1558,13 +1577,70 @@ function attachLP(){document.querySelectorAll('[data-open-book]').forEach(el=>{i
 
 document.getElementById('toggleEditBooks').addEventListener('click',()=>setEM(!editMode));
 document.getElementById('cancelEditBooks').addEventListener('click',()=>setEM(false));
-document.getElementById('markSelectedReading').addEventListener('click',markReading);
-document.getElementById('moveSelectedToShelf').addEventListener('click',moveShelf);
-document.getElementById('markSelectedFinished').addEventListener('click',markFinished);
+// State dropdown — change status of selected books
+document.getElementById('editStateSelect').addEventListener('change',async function(){
+  const val=this.value;if(!val||!selIds.size)return;
+  try{
+    for(const id of selIds){
+      const b=books.find(x=>x.id===id);if(!b)continue;
+      if(val==='reading'){
+        const tp=Number(b.totalPages||0),fr=b.currentPageFrom||1,to=b.currentPageTo||Math.min(10,tp||10),pc=tp?Math.min(99,Math.max(1,Math.round((to/tp)*100))):(b.progressPercent||1);
+        await updBook(id,{status:'reading',currentPageFrom:fr,currentPageTo:to,progressPercent:pc,lastReadAt:b.lastReadAt||Date.now()});
+      }else if(val==='shelf'){
+        await updBook(id,{status:'shelf'});
+      }else if(val==='finished'){
+        await updBook(id,{status:'finished',progressPercent:100,currentPageTo:Number(b.totalPages||0)||b.currentPageTo||null,lastReadAt:b.lastReadAt||Date.now()});
+      }
+    }
+  }catch(e){alert('Villa.')}
+  selIds.clear();setEM(false);
+});
+// Edit modal — open with selected book data
+document.getElementById('editSelectedBook').addEventListener('click',()=>{
+  if(selIds.size!==1)return;
+  const id=[...selIds][0];
+  const b=books.find(x=>x.id===id);if(!b)return;
+  document.getElementById('editBookTitle').value=b.title||'';
+  document.getElementById('editBookAuthor').value=b.author||'';
+  document.getElementById('editBookPages').value=b.totalPages||'';
+  document.getElementById('editBookStatus').value=b.status||'shelf';
+  document.getElementById('editBookSub').textContent=b.title||'Breyta bók';
+  openOv('editBookModal');
+});
+document.getElementById('closeEditBook').addEventListener('click',()=>closeOv('editBookModal'));
+document.getElementById('saveEditBook').addEventListener('click',async()=>{
+  if(selIds.size!==1)return;
+  const id=[...selIds][0];
+  const title=document.getElementById('editBookTitle').value.trim();
+  const author=document.getElementById('editBookAuthor').value.trim();
+  const pages=Number(document.getElementById('editBookPages').value)||null;
+  const status=document.getElementById('editBookStatus').value||'shelf';
+  if(!title){alert('Titill vantar.');return}
+  const updates={title,author,status};
+  if(pages)updates.totalPages=pages;
+  // Recalculate progress if pages changed
+  const b=books.find(x=>x.id===id);
+  if(b&&pages&&b.currentPageTo){
+    updates.progressPercent=Math.min(100,Math.round((b.currentPageTo/pages)*100));
+    if(updates.progressPercent>=100)updates.status='finished';
+  }
+  try{await updBook(id,updates)}catch(e){alert('Villa.')}
+  closeOv('editBookModal');selIds.clear();setEM(false);
+});
 document.getElementById('deleteSelectedBooks').addEventListener('click',openDelM);
 document.getElementById('closeDeleteBooks').addEventListener('click',()=>closeOv('deleteBooksModal'));
 document.getElementById('cancelDeleteBooks').addEventListener('click',()=>closeOv('deleteBooksModal'));
 document.getElementById('confirmDeleteBooks').addEventListener('click',async()=>{if(!selIds.size)return;try{for(const id of selIds)await delBook(id)}catch(e){alert('Villa.')}selIds.clear();closeOv('deleteBooksModal');setEM(false)});
+
+// ── Desktop rail arrows ──
+document.querySelectorAll('.rail-arrow').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    const rail=document.getElementById(btn.dataset.rail);
+    if(!rail)return;
+    const dir=Number(btn.dataset.dir)||1;
+    rail.scrollBy({left:dir*200,behavior:'smooth'});
+  });
+});
 
 if(previewMode){
   // Preview mode — show demo books, no Firestore

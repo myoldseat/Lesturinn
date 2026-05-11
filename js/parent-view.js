@@ -100,12 +100,15 @@ export function startFamilyListener() {
 let _booksUnsub = null;
 let _dashboardReady = false;
 
+const _preloadedCovers = new Set();
 function preloadCovers(books) {
   const urls = books
     .map(b => b.coverUrl || b.coverBase64)
-    .filter(Boolean);
+    .filter(Boolean)
+    .filter(src => !_preloadedCovers.has(src));
   if (!urls.length) return Promise.resolve();
   return Promise.all(urls.map(src => new Promise(resolve => {
+    _preloadedCovers.add(src);
     const img = new Image();
     img.onload = resolve;
     img.onerror = resolve;

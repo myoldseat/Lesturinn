@@ -1637,7 +1637,26 @@ document.getElementById('saveEditBook').addEventListener('click',async()=>{
 document.getElementById('deleteSelectedBooks').addEventListener('click',openDelM);
 document.getElementById('closeDeleteBooks').addEventListener('click',()=>closeOv('deleteBooksModal'));
 document.getElementById('cancelDeleteBooks').addEventListener('click',()=>closeOv('deleteBooksModal'));
-document.getElementById('confirmDeleteBooks').addEventListener('click',async()=>{if(!selIds.size)return;try{for(const id of selIds)await delBook(id)}catch(e){alert('Villa.')}selIds.clear();closeOv('deleteBooksModal');setEM(false)});
+document.getElementById('confirmDeleteBooks').addEventListener('click', async () => {
+  if (!selIds.size) return;
+
+  try {
+    for (const id of selIds) {
+      console.log("Deleting book:", id);
+      await delBook(id);
+    }
+
+    selIds.clear();
+    closeOv('deleteBooksModal');
+    setEM(false);
+
+  } catch (e) {
+    console.error("DELETE BOOK ERROR:", e);
+    console.error("code:", e?.code);
+    console.error("message:", e?.message);
+    alert(`Villa við að eyða bók: ${e?.code || e?.message || "óþekkt villa"}`);
+  }
+});
 
 // ── Desktop rail arrows ──
 document.querySelectorAll('.rail-arrow').forEach(btn=>{

@@ -18,12 +18,20 @@ let _signupInProgress = false;
 let _anonymousLoginInProgress = false;
 
 function consumeChildRedirectSkip() {
-  const skipOnce = sessionStorage.getItem('upphatt_skip_child_redirect_once');
+  const params = new URLSearchParams(window.location.search);
+  const skipOnce =
+    params.get('skipChild') === '1' ||
+    sessionStorage.getItem('upphatt_skip_child_redirect_once') ||
+    localStorage.getItem('upphatt_skip_child_redirect_once');
   if (!skipOnce) return false;
   sessionStorage.removeItem('upphatt_skip_child_redirect_once');
+  localStorage.removeItem('upphatt_skip_child_redirect_once');
   localStorage.removeItem('upphatt_child');
   localStorage.removeItem('childName');
   S.role = null; S.familyId = null; S.childKey = null; S.childName = null;
+  if (params.get('skipChild') === '1') {
+    window.history.replaceState({}, document.title, window.location.pathname);
+  }
   return true;
 }
 

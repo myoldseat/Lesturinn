@@ -2429,10 +2429,11 @@
       homeBtn.addEventListener("click", function () {
         try {
           sessionStorage.setItem("upphatt_skip_child_redirect_once", "1");
+          localStorage.setItem("upphatt_skip_child_redirect_once", "1");
         } catch (e) {
           // no-op
         }
-        window.location.href = "index.html";
+        window.location.href = "index.html?skipChild=1";
       });
 
       function showListenToastNearStar(star, listenerName, timestamp) {

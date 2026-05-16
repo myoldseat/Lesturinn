@@ -17,6 +17,16 @@ import { startFamilyListener, startBooksListener, renderDashboard } from './pare
 let _signupInProgress = false;
 let _anonymousLoginInProgress = false;
 
+function consumeChildRedirectSkip() {
+  const skipOnce = sessionStorage.getItem('upphatt_skip_child_redirect_once');
+  if (!skipOnce) return false;
+  sessionStorage.removeItem('upphatt_skip_child_redirect_once');
+  localStorage.removeItem('upphatt_child');
+  localStorage.removeItem('childName');
+  S.role = null; S.familyId = null; S.childKey = null; S.childName = null;
+  return true;
+}
+
 // ══════════════════════════════════════════
 // KÓÐA BÚNINGUR
 // ══════════════════════════════════════════
@@ -920,6 +930,11 @@ export function initAuth() {
     if (user) {
       if (user.isAnonymous) {
         if (_anonymousLoginInProgress) return;
+        if (consumeChildRedirectSkip()) {
+          await signOut(auth).catch(() => {});
+          goTo('screen-child-login');
+          return;
+        }
         // Anonymous user = child or guest — check claims
         try {
           const token = await user.getIdTokenResult(true);

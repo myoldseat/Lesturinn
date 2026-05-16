@@ -18,6 +18,20 @@ h1{margin:22px 0 6px;font-size:58px;line-height:.95;letter-spacing:0}.sub{margin
 .hearts{display:grid;grid-template-columns:1.15fr .85fr;align-items:center;gap:14px}.hearts h2{margin:0 0 10px}.hearts .big{font-size:30px;font-weight:850;color:white;margin-bottom:6px}.hearts .small{color:#aebdcb;font-size:19px}.listen-art{position:relative;height:130px}.listen-art svg{position:absolute}.headphones{left:8%;top:7%;width:78px;height:78px;color:var(--teal);filter:drop-shadow(0 0 18px rgba(57,246,238,.35))}.listener{left:32%;top:38%;width:58px;height:58px;color:#cfe7ff;filter:drop-shadow(0 0 15px rgba(57,246,238,.24))}.heart{right:9%;top:10%;width:66px;height:66px;color:var(--pink);filter:drop-shadow(0 0 18px rgba(255,122,223,.35))}
 .bottom-nav{position:fixed;left:50%;bottom:0;transform:translateX(-50%);width:min(480px,100%);height:calc(78px + var(--safe));padding-bottom:var(--safe);display:grid;grid-template-columns:repeat(4,1fr);background:rgba(4,12,22,.94);border-top:1px solid rgba(57,246,238,.18);backdrop-filter:blur(14px);z-index:20}.nav-item{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:#7f8da0;font-weight:800;font-size:11px;position:relative;border:0;background:none}.nav-item svg{width:22px;height:22px;stroke:currentColor;stroke-width:2.1;fill:none;stroke-linecap:round;stroke-linejoin:round}.nav-item.active{color:var(--teal)}.nav-item.active:after{content:"";position:absolute;bottom:4px;width:32px;height:3px;border-radius:999px;background:var(--teal);box-shadow:0 0 14px rgba(57,246,238,.8)}
 @media(max-width:380px){.app{padding-left:14px;padding-right:14px}.hello{font-size:26px}h1{font-size:48px}.week-card{grid-template-columns:76px 1fr}.icon-disc{width:74px;height:74px}.days{gap:6px}.day span{width:32px;height:32px}.journey-grid{grid-template-columns:1fr}.path{height:130px}.card p,.journey-text{font-size:18px}}
+
+/* Compact placeholder shell: match the existing app scale and reduce page scrolling. */
+.app{height:100dvh;overflow:hidden;padding:12px 14px calc(76px + var(--safe));display:grid;grid-template-rows:auto auto auto minmax(0,1fr) auto auto;gap:7px}
+.top{gap:10px;margin-bottom:0}.home{width:36px;height:36px}.home .u-icon{width:19px;height:19px}.hello{font-size:20px;line-height:1.05}
+h1{font-size:34px;line-height:1;margin:2px 0 0}.sub{font-size:13px;margin:0;color:#9eacba}
+.card{border-radius:16px;padding:10px 11px;margin:0;box-shadow:0 12px 34px rgba(0,0,0,.24),inset 0 0 0 1px rgba(255,255,255,.025)}
+.card h2{font-size:16px;margin-bottom:4px}.card p{font-size:13px;line-height:1.25}
+.week-card{grid-template-columns:48px 1fr;gap:10px}.icon-disc{width:48px;height:48px;border-radius:15px}.u-icon.big{width:28px;height:28px}
+.days{gap:5px;margin-top:8px}.day{font-size:11px}.day span{width:24px;height:24px;margin-top:3px}.day span svg{width:14px;height:14px}
+.journey{min-height:0}.journey h2,.badges h2,.hearts h2{font-size:16px;margin-bottom:4px}.journey-grid{grid-template-columns:1fr 1fr;gap:8px}.journey-text{font-size:12px;line-height:1.25}.path{height:76px}
+.node{width:28px;height:28px}.node .u-icon{width:16px;height:16px}.book-start{width:30px;height:30px}.book-start .u-icon{width:22px;height:22px}
+.badge-row{gap:8px;margin-top:8px}.medal{width:42px;height:42px;margin-bottom:5px;font-size:18px}.medal svg{width:21px;height:21px}.badge div:last-child{font-size:11px;line-height:1.1}
+.hearts{grid-template-columns:1.25fr .75fr;gap:8px}.hearts .big{font-size:18px;margin-bottom:2px}.hearts .small{font-size:12px}.listen-art{height:58px}.headphones{width:42px;height:42px}.listener{width:32px;height:32px}.heart{width:36px;height:36px}
+.bottom-nav{height:calc(68px + var(--safe))}.nav-item{font-size:10px}.nav-item svg{width:20px;height:20px}
 </style>
 </head>
 <body>

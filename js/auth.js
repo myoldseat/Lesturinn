@@ -15,6 +15,7 @@ import { setupChildHome, cancelReading } from './child-view.js';
 import { startFamilyListener, startBooksListener, renderDashboard } from './parent-view.js';
 
 let _signupInProgress = false;
+let _anonymousLoginInProgress = false;
 
 // ══════════════════════════════════════════
 // KÓÐA BÚNINGUR
@@ -282,6 +283,7 @@ export async function famCodeLogin() {
   if (!_selectedGuestRole) { errEl.textContent = 'Veldu hlutverk.'; return; }
   if (btn) { btn.textContent = 'Leita...'; btn.disabled = true; }
   try {
+    _anonymousLoginInProgress = true;
     // Sign in anonymously so the Cloud Function can set custom claims
     const cred = await signInAnonymously(auth);
 
@@ -293,6 +295,7 @@ export async function famCodeLogin() {
       });
     } catch (fnErr) {
       await signOut(auth);
+      _anonymousLoginInProgress = false;
       errEl.textContent = fnErr.code === 'functions/not-found'
         ? 'Kóðinn fannst ekki — athugaðu með fjölskyldumeðlim.'
         : 'Villa — reyndu aftur.';
@@ -347,7 +350,9 @@ export async function famCodeLogin() {
     startFamilyListener();
     startBooksListener();
     goTo('screen-parent-home');
+    _anonymousLoginInProgress = false;
   } catch(e) {
+    _anonymousLoginInProgress = false;
     errEl.textContent = 'Villa — reyndu aftur.';
     console.error('FAM code login villa:', e);
     if (btn) { btn.textContent = 'Tengjast fjölskyldu'; btn.disabled = false; }
@@ -822,6 +827,7 @@ export async function childLogin() {
     return;
   }
   try {
+    _anonymousLoginInProgress = true;
     document.getElementById('child-code-input').disabled = true;
 
     // Sign in anonymously so the Cloud Function can set custom claims on the caller
@@ -833,6 +839,7 @@ export async function childLogin() {
       result = await httpsCallable(functions, 'verifyChildCode')({ code });
     } catch (fnErr) {
       await signOut(auth);
+      _anonymousLoginInProgress = false;
       err.textContent = fnErr.code === 'functions/not-found'
         ? 'Kóðinn fannst ekki — athugaðu með foreldri.'
         : 'Villa: ' + (fnErr.message || fnErr.code);
@@ -850,8 +857,10 @@ export async function childLogin() {
       familyId: data.familyId, childKey: data.childKey, childName: data.childName, code
     }));
     localStorage.setItem('childName', data.childName);
+    _anonymousLoginInProgress = false;
     window.location.href = 'child-v2.html';
   } catch (e) {
+    _anonymousLoginInProgress = false;
     err.textContent = 'Villa: ' + e.message;
     document.getElementById('child-code-input').disabled = false;
   }
@@ -910,9 +919,10 @@ export function initAuth() {
 
     if (user) {
       if (user.isAnonymous) {
+        if (_anonymousLoginInProgress) return;
         // Anonymous user = child or guest — check claims
         try {
-          const token = await user.getIdTokenResult();
+          const token = await user.getIdTokenResult(true);
           const role  = token.claims.role;
 
           if (role === 'child') {

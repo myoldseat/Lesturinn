@@ -471,11 +471,12 @@ function ensureAuth(){
     const unsub=onAuthStateChanged(auth,async(user)=>{
       unsub();
       if(!user){window.location.href='index.html';reject(new Error('not-authenticated'));return;}
-      const delays=[0,200,500,1000];
+      const delays=[0,250,750,1500,3000];
       for(let i=0;i<delays.length;i++){
         if(delays[i]>0) await new Promise(r=>setTimeout(r,delays[i]));
         try{
-          const token=await user.getIdTokenResult(i>0); // force-refresh on retries
+          // Always force-refresh so freshly-set custom claims are visible before redirecting.
+          const token=await user.getIdTokenResult(true);
           const role=token.claims.role;
           if(role&&token.claims.familyId){
             resolve({user,role,familyId:token.claims.familyId});

@@ -3069,12 +3069,13 @@
             reject(new Error('not-authenticated'));
             return;
           }
-          const delays = [0, 200, 500, 1000];
+          const delays = [0, 250, 750, 1500, 3000];
           for (let i = 0; i < delays.length; i++) {
             if (delays[i] > 0) await new Promise(r => setTimeout(r, delays[i]));
             try {
-              // Force-refresh on retries so we pick up freshly-set claims
-              const token = await user.getIdTokenResult(i > 0);
+              // Always force-refresh so a cached anonymous token without claims
+              // cannot bounce the child back to the front page.
+              const token = await user.getIdTokenResult(true);
               if (token.claims.role === 'child') { resolve(user); return; }
             } catch (e) {
               if (i === delays.length - 1) {

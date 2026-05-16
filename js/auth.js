@@ -1,11 +1,12 @@
 // ─── Authentication & user processing ───
 // TODO: Bæta við emailVerified check í firebaseLogin, parentLoginFromPopup og onAuthStateChanged
 import {
-  auth, db,
+  auth, db, functions,
   signInWithEmailAndPassword, createUserWithEmailAndPassword,
   sendEmailVerification, sendPasswordResetEmail,
-  onAuthStateChanged, signOut,
+  onAuthStateChanged, signOut, signInAnonymously,
   setPersistence, browserLocalPersistence,
+  httpsCallable,
   collection, setDoc, doc, getDoc, getDocs, query, where, serverTimestamp
 } from './firebase-config.js';
 import { S }  from './state.js';
@@ -60,6 +61,15 @@ async function restoreMissingCodeDocsFromProfile(familyId, children) {
 // ══════════════════════════════════════════
 
 async function processAuthUser(user) {
+  // Ensure parent has custom claims before making any Firestore reads
+  const tokenResult = await user.getIdTokenResult();
+  if (tokenResult.claims.role !== 'parent') {
+    try {
+      await httpsCallable(functions, 'setParentClaims')();
+      await user.getIdToken(true); // force-refresh token with new claims
+    } catch (e) { console.warn('setParentClaims villa:', e); }
+  }
+
   const snap    = await getDoc(doc(db, 'users', user.uid));
   const profile = snap.exists() ? snap.data() : null;
 
@@ -272,40 +282,46 @@ export async function famCodeLogin() {
   if (!_selectedGuestRole) { errEl.textContent = 'Veldu hlutverk.'; return; }
   if (btn) { btn.textContent = 'Leita...'; btn.disabled = true; }
   try {
-    const snap = await getDoc(doc(db, 'familycodes', code));
-    if (!snap.exists()) {
-      errEl.textContent = 'Kóðinn fannst ekki — athugaðu með fjölskyldumeðlim.';
+    // Sign in anonymously so the Cloud Function can set custom claims
+    const cred = await signInAnonymously(auth);
+
+    // Cloud Function verifies the code and sets { role:'guest', familyId, ... } claims
+    let result;
+    try {
+      result = await httpsCallable(functions, 'verifyFamilyCode')({
+        code, guestName, guestRole: _selectedGuestRole
+      });
+    } catch (fnErr) {
+      await signOut(auth);
+      errEl.textContent = fnErr.code === 'functions/not-found'
+        ? 'Kóðinn fannst ekki — athugaðu með fjölskyldumeðlim.'
+        : 'Villa — reyndu aftur.';
       if (btn) { btn.textContent = 'Tengjast fjölskyldu'; btn.disabled = false; }
       return;
     }
-    const data = snap.data();
+
+    const data = result.data;
+    // Force-refresh token so new claims take effect immediately
+    await cred.user.getIdToken(true);
+
     S.role           = 'guest';
     S.familyId       = data.familyId;
     S.guestName      = guestName;
     S.guestRole      = _selectedGuestRole;
     S.parentName     = guestName;
     S.parentEmail    = '';
-    S.parentChildren = [];
+    S.parentChildren = data.children || [];
     S.familyCode     = code;
     S.expandedChildren = {};
 
-    // Vista guest info í localStorage
+    // Vista guest info í localStorage (incl. children fyrir endurkomu)
     localStorage.setItem('upphatt_guest', JSON.stringify({
       familyId: data.familyId,
-      guestName: guestName,
+      guestName,
       guestRole: _selectedGuestRole,
-      familyCode: code
+      familyCode: code,
+      children: data.children || []
     }));
-
-    // Sækja börn úr users collection með parentUid
-    if (data.parentUid) {
-      try {
-        const userSnap = await getDoc(doc(db, 'users', data.parentUid));
-        if (userSnap.exists()) {
-          S.parentChildren = userSnap.data()?.children || [];
-        }
-      } catch(e) { console.warn('Could not fetch children:', e); }
-    }
 
     // Búa til sýnileg nöfn eftir hlutverki
     const roleLabels = { amma: 'Amma', afi: 'Afi', mamma: 'Mamma', pabbi: 'Pabbi', annad: '' };
@@ -764,15 +780,18 @@ export async function firebaseSignup() {
     const familyId   = 'FAM-' + Math.random().toString(36).substr(2, 5).toUpperCase();
     const familyCode = makeFamilyCode();
     const childrenArray = [];
+    // User doc must exist BEFORE code docs (codes/create rule reads users/{uid}.familyId)
+    await setDoc(doc(db, 'users', uid), {
+      name, email, role: 'parent', familyId, familyCode, children: [], createdAt: serverTimestamp()
+    });
     for (const cName of childNames) {
       const loginCode = makeChildCode(cName);
       const childKey  = Math.random().toString(36).substr(2, 10);
       await setDoc(doc(db, 'codes', loginCode), { familyId, childKey, childName: cName });
       childrenArray.push({ name: cName, key: childKey, code: loginCode });
     }
-    await setDoc(doc(db, 'users', uid), {
-      name, email, role: 'parent', familyId, familyCode, children: childrenArray, createdAt: serverTimestamp()
-    });
+    // Update user doc with children list now that all codes are written
+    await setDoc(doc(db, 'users', uid), { children: childrenArray }, { merge: true });
     await setDoc(doc(db, 'familycodes', familyCode), {
       familyId, parentUid: uid, parentName: name, createdAt: serverTimestamp()
     });
@@ -804,13 +823,27 @@ export async function childLogin() {
   }
   try {
     document.getElementById('child-code-input').disabled = true;
-    const snap = await getDoc(doc(db, 'codes', code));
-    if (!snap.exists()) {
-      err.textContent = 'Kóðinn fannst ekki — athugaðu með foreldri.';
+
+    // Sign in anonymously so the Cloud Function can set custom claims on the caller
+    const cred = await signInAnonymously(auth);
+
+    // Cloud Function verifies the code and sets { role:'child', familyId, childKey, childName } claims
+    let result;
+    try {
+      result = await httpsCallable(functions, 'verifyChildCode')({ code });
+    } catch (fnErr) {
+      await signOut(auth);
+      err.textContent = fnErr.code === 'functions/not-found'
+        ? 'Kóðinn fannst ekki — athugaðu með foreldri.'
+        : 'Villa: ' + (fnErr.message || fnErr.code);
       document.getElementById('child-code-input').disabled = false;
       return;
     }
-    const data = snap.data();
+
+    const data = result.data;
+    // Force-refresh token so new claims take effect immediately
+    await cred.user.getIdToken(true);
+
     S.role = 'child'; S.familyId = data.familyId;
     S.childKey = data.childKey; S.childName = data.childName;
     localStorage.setItem('upphatt_child', JSON.stringify({
@@ -831,12 +864,15 @@ export async function logout() {
     localStorage.removeItem('upphatt_child');
     S.role = null; S.familyId = null; S.childKey = null; S.childName = null;
     cancelReading();
+    // Sign out the anonymous session so onAuthStateChanged doesn't redirect back
+    await signOut(auth).catch(() => {});
     goTo('screen-child-login');
     return;
   }
   if (S.role === 'guest') {
     S.role = null; S.familyId = null;
     localStorage.clear();
+    await signOut(auth).catch(() => {});
     location.reload();
     return;
   }
@@ -871,7 +907,96 @@ export function initAuth() {
 
   onAuthStateChanged(auth, async (user) => {
     if (_signupInProgress) return;
+
     if (user) {
+      if (user.isAnonymous) {
+        // Anonymous user = child or guest — check claims
+        try {
+          const token = await user.getIdTokenResult();
+          const role  = token.claims.role;
+
+          if (role === 'child') {
+            const saved = localStorage.getItem('upphatt_child');
+            if (saved) {
+              try {
+                const data = JSON.parse(saved);
+                S.role = 'child'; S.familyId = data.familyId;
+                S.childKey = data.childKey; S.childName = data.childName;
+                localStorage.setItem('childName', data.childName || 'Lesari');
+                window.location.href = 'child-v2.html';
+              } catch (e) {
+                localStorage.removeItem('upphatt_child');
+                await signOut(auth).catch(() => {});
+                goTo('screen-child-login');
+              }
+            } else {
+              // Claims exist but localStorage cleared — sign out the orphaned session
+              await signOut(auth).catch(() => {});
+              goTo('screen-child-login');
+            }
+            return;
+          }
+
+          if (role === 'guest') {
+            const saved = localStorage.getItem('upphatt_guest');
+            if (saved) {
+              try {
+                const guestData = JSON.parse(saved);
+                S.role           = 'guest';
+                S.familyId       = guestData.familyId || token.claims.familyId;
+                S.guestName      = guestData.guestName || 'Gestur';
+                S.guestRole      = guestData.guestRole || '';
+                S.parentName     = S.guestName;
+                S.parentEmail    = '';
+                S.parentChildren = guestData.children || [];
+                S.familyCode     = guestData.familyCode || '';
+                S.expandedChildren = {};
+
+                const roleLabels = { amma: 'Amma', afi: 'Afi', mamma: 'Mamma', pabbi: 'Pabbi', annad: '' };
+                const displayRole = roleLabels[S.guestRole] || '';
+                const displayName = displayRole ? `${displayRole} ${S.guestName}` : S.guestName;
+
+                document.getElementById('parent-pill').textContent = S.guestName;
+                document.getElementById('parent-hero').textContent = `Hæ, ${S.guestName}!`;
+                document.getElementById('codes-list').innerHTML    = '';
+                const emailEl = document.getElementById('ph-user-email');
+                if (emailEl) emailEl.textContent = displayName;
+
+                const fcEl = document.getElementById('ph-family-code');
+                if (fcEl) fcEl.parentElement.style.display = 'none';
+                const addChildBtn = document.getElementById('ph-add-child-btn');
+                if (addChildBtn) addChildBtn.style.display = 'none';
+                const settingsBtn = document.querySelector('.ph-settings-btn');
+                if (settingsBtn) settingsBtn.style.display = 'none';
+
+                initParentTheme();
+                startFamilyListener();
+                startBooksListener();
+                goTo('screen-parent-home');
+              } catch (e) {
+                localStorage.removeItem('upphatt_guest');
+                await signOut(auth).catch(() => {});
+                goTo('screen-child-login');
+              }
+            } else {
+              await signOut(auth).catch(() => {});
+              goTo('screen-child-login');
+            }
+            return;
+          }
+
+          // Anonymous but no valid role claims — orphaned session
+          await signOut(auth).catch(() => {});
+          goTo('screen-child-login');
+        } catch (e) {
+          console.error('Anonymous auth villa:', e);
+          await signOut(auth).catch(() => {});
+          goTo('screen-child-login');
+        }
+        return;
+      }
+
+      // Non-anonymous user = parent (email/password)
       try {
         await processAuthUser(user);
       } catch (e) {
@@ -883,21 +1008,10 @@ export function initAuth() {
       }
       return;
     }
+
+    // No user signed in
     if (S.familyUnsub) { S.familyUnsub(); S.familyUnsub = null; }
     S.sessions = [];
-    const saved = localStorage.getItem('upphatt_child');
-   const skipOnce = sessionStorage.getItem('upphatt_skip_child_redirect_once');
-if (skipOnce) { sessionStorage.removeItem('upphatt_skip_child_redirect_once'); localStorage.removeItem('upphatt_child'); }
-if (saved && !skipOnce) {
-      try {
-        const data = JSON.parse(saved);
-        S.role = 'child'; S.familyId = data.familyId;
-        S.childKey = data.childKey; S.childName = data.childName;
-        localStorage.setItem('childName', data.childName || 'Lesari');
-        window.location.href = 'child-v2.html';
-        return;
-      } catch (e) { localStorage.removeItem('upphatt_child'); }
-    }
     goTo('screen-child-login');
   });
 }

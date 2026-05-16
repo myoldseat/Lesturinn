@@ -3,14 +3,19 @@ import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.11.0/fireba
 import { getAuth }       from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js';
 import { getFirestore }  from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js';
 import { getStorage }    from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-storage.js';
+import { getFunctions }  from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-functions.js';
 
 // Re-export every SDK function the app uses (change version in ONE place)
 export {
   signInWithEmailAndPassword, createUserWithEmailAndPassword,
   sendEmailVerification, sendPasswordResetEmail,
-  onAuthStateChanged, signOut,
+  onAuthStateChanged, signOut, signInAnonymously,
   setPersistence, browserLocalPersistence
 } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js';
+
+export {
+  getFunctions, httpsCallable
+} from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-functions.js';
 
 export {
   collection, addDoc, setDoc, doc, getDoc, getDocs,
@@ -32,6 +37,7 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 
-export const auth    = getAuth(app);
-export const db      = getFirestore(app);
-export const storage = getStorage(app);
+export const auth      = getAuth(app);
+export const db        = getFirestore(app);
+export const storage   = getStorage(app);
+export const functions = getFunctions(app, 'europe-west1');

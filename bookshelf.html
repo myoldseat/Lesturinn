@@ -452,13 +452,43 @@ button{font:inherit;cursor:pointer;border:0;background:none;color:inherit}a{colo
 </section></div>
 <script type="module">
 import{initializeApp}from'https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js';
+import{getAuth,onAuthStateChanged}from'https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js';
 import{getFirestore,collection,addDoc,doc,deleteDoc,setDoc,onSnapshot,query,where,serverTimestamp,updateDoc}from'https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js';
 import{getStorage,ref as storageRef,getDownloadURL,uploadBytes}from'https://www.gstatic.com/firebasejs/12.11.0/firebase-storage.js';
 import{getFunctions,httpsCallable}from'https://www.gstatic.com/firebasejs/12.11.0/firebase-functions.js';
 const app=initializeApp({apiKey:'AIzaSyAgTY3Uxd9_ZxixjqLj-sH8V3OhFAzg6DU',authDomain:'lesum-22e85.firebaseapp.com',projectId:'lesum-22e85',storageBucket:'lesum-22e85.firebasestorage.app',messagingSenderId:'204392598388',appId:'1:204392598388:web:2dbbe3f476cd78d2ffba21'});
+const auth=getAuth(app);
 const db=getFirestore(app);
 const bsStorage=getStorage(app);
 const functions=getFunctions(app,'europe-west1');
+
+// Ensure caller has a valid Firebase Auth session (child, parent, or guest).
+// Retries 3× with backoff (200/500/1000ms) so freshly-set custom claims have
+// time to propagate before we give up and redirect.
+function ensureAuth(){
+  return new Promise((resolve,reject)=>{
+    const unsub=onAuthStateChanged(auth,async(user)=>{
+      unsub();
+      if(!user){window.location.href='index.html';reject(new Error('not-authenticated'));return;}
+      const delays=[0,200,500,1000];
+      for(let i=0;i<delays.length;i++){
+        if(delays[i]>0) await new Promise(r=>setTimeout(r,delays[i]));
+        try{
+          const token=await user.getIdTokenResult(i>0); // force-refresh on retries
+          const role=token.claims.role;
+          if(role&&token.claims.familyId){
+            resolve({user,role,familyId:token.claims.familyId});
+            return;
+          }
+        }catch(e){
+          if(i===delays.length-1){window.location.href='index.html';reject(e);return;}
+        }
+      }
+      window.location.href='index.html';
+      reject(new Error('no-claims'));
+    });
+  });
+}
 
 // Audio URL cache (15 min TTL)
 const _bsAudioCache={};
@@ -1674,8 +1704,10 @@ if(previewMode){
   achievements=[];
   books=[...demoBooks];render();
 }else{
-  loadGoal();render();
-  startListener();startSessionsListener();startGoalsListener();
+  ensureAuth().then(()=>{
+    loadGoal();render();
+    startListener();startSessionsListener();startGoalsListener();
+  }).catch(()=>{});
 }
 </script>
 

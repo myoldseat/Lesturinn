@@ -1,0 +1,123 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── Helpers ────────────────────────────────────────────────────────────
+    function isAuth()        { return request.auth != null; }
+    function role()          { return request.auth.token.get('role', ''); }
+    function famId()         { return request.auth.token.get('familyId', ''); }
+    function childKey()      { return request.auth.token.get('childKey', ''); }
+    function signInProv()    { return request.auth.token.firebase.sign_in_provider; }
+    function isNonAnonAuth() { return isAuth() && signInProv() != 'anonymous'; }
+
+    function isParent() { return isAuth() && role() == 'parent'; }
+    function isGuest()  { return isAuth() && role() == 'guest'; }
+    function isChild()  { return isAuth() && role() == 'child'; }
+
+    // True for parent, guest, or child who all share the same familyId claim
+    function isFamilyMember(fid) {
+      return isAuth() && famId() != '' && famId() == fid;
+    }
+
+    // ── users/{uid} ────────────────────────────────────────────────────────
+    // Non-anonymous Firebase Auth users (email/password parents) read/write
+    // their own profile.  This permits the initial signup write before
+    // setParentClaims has run.
+    match /users/{uid} {
+      allow read, write: if isNonAnonAuth() && request.auth.uid == uid;
+    }
+
+    // ── familycodes/{code} ─────────────────────────────────────────────────
+    // - Established parents read/update/delete their own family's doc.
+    // - During signup, a non-anonymous user creates a doc that points to
+    //   their own UID via parentUid.
+    // - Cloud Functions (admin SDK) handle code verification — clients never
+    //   read other families' code documents.
+    match /familycodes/{code} {
+      allow read: if isParent() && resource.data.familyId == famId();
+      allow create: if isNonAnonAuth() &&
+        request.resource.data.parentUid == request.auth.uid;
+      allow update, delete: if isParent() && resource.data.familyId == famId();
+    }
+
+    // ── codes/{childCode} ──────────────────────────────────────────────────
+    // - Established parents read/update/delete their family's child codes.
+    // - Non-anonymous users may create code docs ONLY for their own family —
+    //   verified against users/{uid}.familyId.  This blocks cross-family
+    //   takeover where a malicious parent plants a code pointing at someone
+    //   else's familyId.
+    // - Anonymous users (children, guests) have no direct access — they go
+    //   through the verifyChildCode Cloud Function.
+    match /codes/{childCode} {
+      allow read: if isParent() && resource.data.familyId == famId();
+      allow create: if isNonAnonAuth() &&
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        request.resource.data.familyId ==
+          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.familyId;
+      allow update, delete: if isParent() && resource.data.familyId == famId();
+    }
+
+    // ── sessions/{sessionId} ───────────────────────────────────────────────
+    // All family members can read.  Children may only create for themselves.
+    // Parents and guests can create/update any session in their family.
+    match /sessions/{sessionId} {
+      allow read: if isFamilyMember(resource.data.familyId);
+      allow create: if isAuth() && famId() != '' &&
+        request.resource.data.familyId == famId() && (
+          !isChild() ||
+          request.resource.data.childKey == childKey()
+        );
+      allow update: if isFamilyMember(resource.data.familyId);
+      allow delete: if isParent() && resource.data.familyId == famId();
+    }
+
+    // ── books/{bookId} ─────────────────────────────────────────────────────
+    // All family members can read.  Children may only write their own books.
+    // Parents can write any book in their family.  Guests are read-only.
+    match /books/{bookId} {
+      allow read: if isFamilyMember(resource.data.familyId);
+      allow create: if isAuth() && famId() != '' &&
+        request.resource.data.familyId == famId() && (
+          isParent() ||
+          (isChild() && request.resource.data.childKey == childKey())
+        );
+      allow update, delete: if (isParent() || isChild()) &&
+        resource.data.familyId == famId() && (
+          isParent() || resource.data.childKey == childKey()
+        );
+    }
+
+    // ── goals/{goalId} ─────────────────────────────────────────────────────
+    // All family members read.  Only parent or child (their own) can write.
+    match /goals/{goalId} {
+      allow read: if isFamilyMember(resource.data.familyId);
+      allow write: if (isParent() || isChild()) &&
+        famId() != '' && (
+          resource == null
+            ? request.resource.data.familyId == famId()
+            : resource.data.familyId == famId()
+        );
+    }
+
+    // ── listens/{listenId} ─────────────────────────────────────────────────
+    // Document ID pattern: {familyId}_{childKey}
+    // Child reads their own listen command; any family member writes.
+    match /listens/{listenId} {
+      allow read: if isChild() &&
+        listenId == famId() + '_' + childKey();
+      allow write: if isAuth() && famId() != '' &&
+        request.resource.data.familyId == famId();
+    }
+
+    // ── listenEvents/{eventId} ────────────────────────────────────────────
+    // Child reads events addressed to them; family members create events.
+    match /listenEvents/{eventId} {
+      allow read: if isChild() &&
+        resource.data.familyId == famId() &&
+        resource.data.childKey == childKey();
+      allow create: if isAuth() && famId() != '' &&
+        request.resource.data.familyId == famId();
+      allow delete: if isParent() && resource.data.familyId == famId();
+    }
+  }
+}

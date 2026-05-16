@@ -571,7 +571,7 @@
   background: rgba(6,14,26,.96);
   border-top: 1px solid rgba(29,205,211,.14);
   backdrop-filter: blur(16px);
-  display: grid; grid-template-columns: 1fr 1fr 1fr;
+  display: grid; grid-template-columns: repeat(4, 1fr);
   z-index: 200;
 }
 .child-nav-tab {
@@ -1156,6 +1156,199 @@
   }
 }
 
+
+
+/* =========================================================
+   VISUAL SHELL PLACEHOLDER - reading hero template
+   Phase 1 only: uses static placeholder book/goal data.
+   Keeps existing child-v2 IDs and recording/save pipeline.
+   ========================================================= */
+:root{
+  --read-bg:#070d16;
+  --read-line:rgba(122,187,218,.22);
+  --read-line-strong:rgba(122,187,218,.38);
+  --read-text:#e5edf6;
+  --read-muted:#9eacba;
+  --read-teal:#24d6df;
+}
+.screen{
+  min-height:100dvh;
+  padding:30px 18px calc(88px + env(safe-area-inset-bottom,0px));
+  background:
+    radial-gradient(circle at 50% 15%, rgba(35,214,223,.09), transparent 34%),
+    radial-gradient(circle at 42% 62%, rgba(35,214,223,.10), transparent 30%),
+    linear-gradient(180deg,#070d16 0%, #0b111c 58%, #090f18 100%) !important;
+  overflow:hidden;
+}
+.panel{
+  flex:1;
+  margin-top:0 !important;
+  border:0 !important;
+  border-radius:0 !important;
+  background:transparent !important;
+  backdrop-filter:none !important;
+  padding:0 !important;
+  display:flex !important;
+  flex-direction:column !important;
+  align-items:stretch !important;
+  justify-content:flex-start !important;
+  gap:16px !important;
+}
+.panel-top{
+  width:100%;
+  justify-content:flex-start !important;
+  gap:13px !important;
+  margin-bottom:0 !important;
+}
+.home-btn{
+  width:42px !important;
+  height:42px !important;
+  border-color:rgba(122,187,218,.28) !important;
+  background:rgba(15,29,47,.66) !important;
+  box-shadow:0 0 20px rgba(36,214,223,.08) !important;
+  flex:0 0 auto;
+}
+.greeting{
+  text-align:left !important;
+  font-size:1.34rem !important;
+  font-weight:850 !important;
+  letter-spacing:0 !important;
+  line-height:1.1 !important;
+}
+.greeting-name{color:var(--read-teal) !important;}
+.title{
+  text-align:center !important;
+  font-size:2.15rem !important;
+  line-height:1.02 !important;
+  font-weight:900 !important;
+  letter-spacing:0 !important;
+  margin:4px 0 0 !important;
+  color:#edf5fb !important;
+}
+.reading-hero-card{
+  width:100%;
+  border:1px solid var(--read-line-strong);
+  background:
+    radial-gradient(circle at 32% 12%, rgba(36,214,223,.08), transparent 42%),
+    rgba(7,18,32,.74);
+  border-radius:24px;
+  padding:16px;
+  display:grid;
+  grid-template-columns:104px minmax(0,1fr);
+  gap:18px;
+  align-items:center;
+  box-shadow:0 0 40px rgba(36,214,223,.06), inset 0 0 0 1px rgba(255,255,255,.02);
+}
+.reading-cover-placeholder{
+  width:104px;
+  height:138px;
+  border-radius:18px;
+  overflow:hidden;
+  position:relative;
+  border:1px solid rgba(36,214,223,.32);
+  box-shadow:0 14px 28px rgba(0,0,0,.44),0 0 24px rgba(36,214,223,.18);
+  background:
+    radial-gradient(circle at 42% 35%, #ffe7a2 0%, #c9d776 25%, #48b4a5 42%, #12345d 70%, #07111e 100%);
+}
+.reading-cover-placeholder:before{content:"";position:absolute;inset:0;background:linear-gradient(160deg,rgba(255,255,255,.2),transparent 28%,rgba(0,0,0,.28) 100%)}
+.reading-dragon{position:absolute;left:12px;top:34px;width:52px;height:66px;border-radius:60% 45% 55% 45%;background:#37c9bc;box-shadow:18px 11px 0 #249d98;transform:rotate(-12deg)}
+.reading-dragon:before{content:"";position:absolute;right:-16px;top:10px;border-left:22px solid #37c9bc;border-top:10px solid transparent;border-bottom:10px solid transparent;transform:rotate(-18deg)}
+.reading-cover-title{position:absolute;top:16px;right:9px;left:38px;text-align:center;color:#10243a;font-weight:950;font-size:18px;line-height:.95;text-shadow:0 1px 0 rgba(255,255,255,.35)}
+.reading-cover-bottom{position:absolute;bottom:9px;left:8px;right:8px;color:#f0f9ff;font-weight:850;font-size:8px;letter-spacing:.6px;text-transform:uppercase;text-align:center}
+.reading-book-kicker{color:var(--read-teal);font-size:.82rem;line-height:1.1;text-transform:uppercase;font-weight:900;letter-spacing:.7px;margin-bottom:8px}
+.reading-book-title{font-size:1.65rem;line-height:1.05;font-weight:950;letter-spacing:0;color:#f1f7fb;margin-bottom:28px}
+.reading-page-row{display:flex;align-items:center;justify-content:space-between;font-size:1.12rem;color:#d6e0ea;margin-bottom:12px}
+.reading-progress{height:10px;border-radius:999px;background:rgba(122,187,218,.16);overflow:hidden}
+.reading-progress span{display:block;width:29%;height:100%;border-radius:inherit;background:var(--read-teal);box-shadow:0 0 12px rgba(36,214,223,.45)}
+.reading-continue-card{
+  display:grid;
+  grid-template-columns:52px 1fr;
+  gap:14px;
+  align-items:center;
+  border:1px solid var(--read-line);
+  background:rgba(7,18,32,.64);
+  border-radius:20px;
+  padding:14px;
+  color:#e2edf5;
+}
+.reading-continue-icon{width:52px;height:52px;border-radius:16px;border:1px solid rgba(36,214,223,.25);display:grid;place-items:center;background:rgba(36,214,223,.08);color:var(--read-teal);box-shadow:0 0 20px rgba(36,214,223,.09)}
+.reading-continue-icon svg{width:25px;height:25px;stroke:currentColor;fill:none;stroke-width:2}
+.reading-continue-text{font-size:1rem;line-height:1.42;color:#e2ebf3}
+.reading-continue-text b{color:var(--read-teal);font-weight:900}
+.orb-wrap{
+  position:relative !important;
+  width:285px !important;
+  height:285px !important;
+  display:grid !important;
+  place-items:center !important;
+  margin:0 auto !important;
+  overflow:visible !important;
+  flex:1 0 auto;
+  min-height:250px;
+}
+.aura-reactive{
+  position:absolute !important;
+  top:50% !important;
+  left:50% !important;
+  width:270px !important;
+  height:270px !important;
+  transform:translate(-50%,-50%) scale(1) !important;
+  opacity:.9 !important;
+}
+.aura-breathe{
+  background:radial-gradient(circle,rgba(36,214,223,.24) 0%,rgba(36,214,223,.12) 38%,rgba(36,214,223,.04) 63%,transparent 74%) !important;
+}
+.main-btn{
+  width:156px !important;
+  height:156px !important;
+  border:1px solid rgba(215,255,255,.78) !important;
+  background:radial-gradient(circle at 35% 25%, #43f1ef 0%, #26d3dc 50%, #18bfc8 100%) !important;
+  box-shadow:0 0 42px rgba(36,214,223,.35),0 0 0 18px rgba(36,214,223,.08) !important;
+  font-weight:950 !important;
+  gap:10px !important;
+}
+.main-btn.recording-reactive{
+  animation:readListenPulse .82s ease-in-out infinite alternate;
+  filter:saturate(1.08);
+}
+@keyframes readListenPulse{
+  0%{box-shadow:0 0 34px rgba(36,214,223,.30),0 0 0 14px rgba(36,214,223,.07)}
+  100%{box-shadow:0 0 72px rgba(36,214,223,.58),0 0 0 26px rgba(36,214,223,.12)}
+}
+.btn-label{font-size:1.22rem !important;line-height:1 !important;}
+.helper{margin:0 !important;text-align:center !important;color:rgba(221,231,239,.76) !important;font-size:.94rem !important;}
+.save-btn{margin:10px auto 0 !important;align-self:center !important;}
+.save-status{margin:8px 0 0 !important;}
+.reading-month-card{
+  width:min(74%,270px);
+  margin:0 auto;
+  border:1px solid var(--read-line);
+  border-radius:18px;
+  background:rgba(7,18,32,.64);
+  padding:12px 14px;
+  display:grid;
+  grid-template-columns:46px 1fr;
+  gap:14px;
+  align-items:center;
+}
+.reading-trophy{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;background:rgba(36,214,223,.12);border:1px solid rgba(36,214,223,.24);color:var(--read-teal)}
+.reading-trophy svg{width:25px;height:25px;stroke:currentColor;fill:none;stroke-width:2}
+.reading-month-kicker{color:var(--read-teal);font-size:.8rem;font-weight:900;letter-spacing:.7px;text-transform:uppercase}
+.reading-month-title{font-size:1.15rem;font-weight:950;letter-spacing:0;color:#f1f7fb;margin-top:2px}
+@media(max-height:760px){
+  .screen{gap:11px;padding-top:22px}
+  .title{font-size:1.8rem !important}
+  .reading-hero-card{padding:12px;grid-template-columns:86px 1fr}
+  .reading-cover-placeholder{width:86px;height:114px;border-radius:15px}
+  .reading-book-title{font-size:1.35rem;margin-bottom:18px}
+  .reading-continue-card{padding:11px}
+  .orb-wrap{width:240px !important;height:240px !important;min-height:210px}
+  .aura-reactive{width:230px !important;height:230px !important}
+  .main-btn{width:132px !important;height:132px !important}
+  .reading-month-card{padding:10px 12px}
+  .helper{font-size:.8rem !important}
+}
+
 </style>
 </head>
 <body>
@@ -1187,7 +1380,27 @@
       </div>
 
       <h1 class="title">Tími til að lesa!</h1>
-      
+
+      <article class="reading-hero-card" aria-label="Bók sem er í gangi">
+        <div class="reading-cover-placeholder" aria-hidden="true">
+          <div class="reading-dragon"></div>
+          <div class="reading-cover-title">Bók</div>
+          <div class="reading-cover-bottom">Úr hillunni</div>
+        </div>
+        <div>
+          <div class="reading-book-kicker">Halda áfram að lesa...</div>
+          <div class="reading-book-title">Dreki og ævintýri</div>
+          <div class="reading-page-row"><span>Síða 24</span><span>af 86</span></div>
+          <div class="reading-progress"><span></span></div>
+        </div>
+      </article>
+
+      <section class="reading-continue-card" aria-label="Halda áfram">
+        <div class="reading-continue-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M7 4.5h10v15l-5-3-5 3v-15Z"/></svg>
+        </div>
+        <div class="reading-continue-text">Þú kláraðir síðast síðu 24. Viltu halda áfram á <b>síðu 25</b> eða velja aðra bók?</div>
+      </section>
 
       <div class="orb-wrap">
         <div id="aura-reactive" class="aura-reactive" aria-hidden="true">
@@ -1209,6 +1422,16 @@
       <p id="helper-text" class="helper">Ýttu á takkann til að byrja að lesa upphátt</p>
       <button id="save-session-btn" class="save-btn" type="button" hidden>Vista</button>
       <p id="save-session-status" class="save-status"></p>
+
+      <section class="reading-month-card" aria-label="Mánaðarmarkmið">
+        <div class="reading-trophy" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M8 4h8v4a4 4 0 0 1-8 0V4Z"/><path d="M8 6H5.5a2 2 0 0 0 0 4H8M16 6h2.5a2 2 0 0 1 0 4H16M12 12v5M9 20h6M10 17h4"/></svg>
+        </div>
+        <div>
+          <div class="reading-month-kicker">Þennan mánuð</div>
+          <div class="reading-month-title">3/3 bækur lesnar</div>
+        </div>
+      </section>
     </section>
 
     <div id="child-reading-modal" class="child-action-overlay" aria-hidden="true">
@@ -1269,11 +1492,15 @@
       </button>
       <a href="bookshelf.html" class="child-nav-tab">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
-        Hillan
+        Bókahilla
+      </a>
+      <a href="arangur.html" class="child-nav-tab">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4h8v5a4 4 0 0 1-8 0z"/><path d="M16 6h3v2a4 4 0 0 1-4 4"/><path d="M8 6H5v2a4 4 0 0 0 4 4"/><path d="M12 13v5"/><path d="M8 21h8"/></svg>
+        Árangur
       </a>
       <button id="child-reading-settings-float" class="child-nav-tab" type="button">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5Z"/><path d="M12 8v8M8 12h8" stroke-width="1.6"/></svg>
-        Bók
+        Ný bók
       </button>
     </nav>
 

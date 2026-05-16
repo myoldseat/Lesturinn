@@ -1427,8 +1427,12 @@ function renderBookshelfLink() {
   const doneBooks = childBooks.filter(b => b.status === 'finished');
 
   const childKey = _phSelectedKey && _phSelectedKey !== 'all' ? _phSelectedKey : '';
+  const selectedChild = childKey
+    ? (S.parentChildren || []).find(c => c.key === childKey)
+    : null;
+  const childName = selectedChild?.name || childBooks[0]?.childName || childKey;
   const bookshelfUrl = childKey
-    ? `bookshelf.html?family=${encodeURIComponent(S.familyId)}&child=${encodeURIComponent(childKey)}&parent=1`
+    ? `bookshelf.html?family=${encodeURIComponent(S.familyId)}&child=${encodeURIComponent(childKey)}&name=${encodeURIComponent(childName)}&parent=1`
     : 'bookshelf.html';
 
   // Get up to 3 covers for fan display — any book with a cover

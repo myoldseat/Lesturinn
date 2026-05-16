@@ -2755,7 +2755,7 @@
             const db=getFirestore(app);
             const bookRef=doc(db,'books','${setup.bookId}');
             const entries=${JSON.stringify(book.journeyEntries||[])};
-            entries.unshift({date:"Í dag",pageFrom:${startPage}||"",pageTo:${finalPage}||"",note:${JSON.stringify(note||"")},reactions:[]});
+            entries.unshift({date:"Í dag",createdAt:Date.now(),pageFrom:${startPage}||"",pageTo:${finalPage}||"",note:${JSON.stringify(note||"")},reactions:[]});
             updateDoc(bookRef,{
               status:${pct>=100?'"finished"':'"reading"'},
               currentPageFrom:${startPage}||null,

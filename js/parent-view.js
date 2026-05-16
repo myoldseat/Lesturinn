@@ -85,6 +85,39 @@ function fmtDateISFull(dateStr) {
   return `${parseInt(parts[2])}. ${IS_MONTHS[parseInt(parts[1]) - 1] || ''} ${parts[0]}`;
 }
 
+function _toMillis(v) {
+  if (!v) return 0;
+  if (typeof v === 'number') return v;
+  if (v.toMillis) return v.toMillis();
+  if (v.seconds) return v.seconds * 1000;
+  if (typeof v === 'string') {
+    const direct = Date.parse(v);
+    if (Number.isFinite(direct)) return direct;
+    const p = v.split('-').map(Number);
+    if (p.length >= 3 && p.every(Number.isFinite)) return new Date(p[0], p[1] - 1, p[2]).getTime();
+  }
+  return 0;
+}
+
+function _entryTs(e, fallbackIndex = 0) {
+  return _toMillis(e?.createdAt) || _toMillis(e?.savedAt) || _toMillis(e?.timestamp) ||
+    _toMillis(e?.updatedAt) || _toMillis(e?.date) || fallbackIndex;
+}
+
+function _reactionTs(r, entry, fallbackIndex = 0) {
+  return _toMillis(r?.createdAt) || _toMillis(r?.timestamp) || _toMillis(r?.sentAt) ||
+    (_entryTs(entry) ? _entryTs(entry) + fallbackIndex : fallbackIndex);
+}
+
+function _formatDateTimeIS(ts) {
+  if (!ts) return '';
+  const d = new Date(ts);
+  if (!Number.isFinite(d.getTime())) return '';
+  const day = `${d.getDate()}. ${IS_MONTHS_SHORT[d.getMonth()] || ''}`;
+  const time = d.toLocaleTimeString('is-IS', { hour: '2-digit', minute: '2-digit' });
+  return `${day} ${time}`;
+}
+
 // ══════════════════════════════════════════════
 // REALTIME FAMILY LISTENER
 // ══════════════════════════════════════════════
@@ -404,6 +437,7 @@ function _makeGoldMomentEntry(session, clipKey, clipPath, listenerName, now) {
     clipKey,
     clipPath,
     date: session.date || makeDateKey(new Date()),
+    createdAt: now,
     savedAt: now,
     savedBy: listenerName || 'Foreldri',
     text: `${listenerName || 'Foreldri'} geymdi lesturinn þinn`,
@@ -658,14 +692,14 @@ function _getReadingBook() {
 function _reactionText(r) {
   if (typeof r === 'string') return r;
   if (!r) return '';
-  const name = r.name || r.authorName || r.by || r.savedBy || '';
+  const name = r.name || r.authorName || r.listenerName || r.by || r.savedBy || '';
   const text = r.text || r.comment || r.message || '';
   return name && text ? `${name}: ${text}` : (text || name || '');
 }
 
 function _reactionAuthor(r) {
   const txt = _reactionText(r);
-  if (typeof r === 'object' && r) return r.name || r.authorName || r.by || r.savedBy || '';
+  if (typeof r === 'object' && r) return r.name || r.authorName || r.listenerName || r.by || r.savedBy || '';
   const idx = txt.indexOf(':');
   return idx > -1 ? txt.slice(0, idx).trim() : '';
 }
@@ -688,24 +722,25 @@ function _canDeleteJourneyReaction(r) {
 }
 
 function _getLatestJourneyReaction(hero) {
-  const entries = hero?.journeyEntries || [];
-  for (const e of entries) {
-    if (e?.type === 'gold_moment') continue;
-    const reactions = Array.isArray(e?.reactions) ? e.reactions.filter(Boolean) : [];
-    if (reactions.length) return reactions[reactions.length - 1];
-  }
-  return null;
+  const candidates = (hero?.journeyEntries || [])
+    .flatMap((entry, entryIndex) => (entry?.type === 'gold_moment' ? [] : (entry.reactions || [])
+      .map((reaction, reactionIndex) => ({ reaction, ts: _reactionTs(reaction, entry, reactionIndex), entryIndex }))))
+    .filter(x => x.reaction);
+  candidates.sort((a, b) => (b.ts - a.ts) || (b.entryIndex - a.entryIndex));
+  return candidates[0]?.reaction || null;
 }
 
 function _renderReactionBubble(r, entryIndex = null, reactionIndex = null) {
   const author = _reactionAuthor(r);
   const body = _reactionBody(r);
+  const when = _formatDateTimeIS(_toMillis(r?.createdAt) || _toMillis(r?.timestamp) || _toMillis(r?.sentAt));
   const canDelete = entryIndex !== null && reactionIndex !== null && _canDeleteJourneyReaction(r);
   return `
     <div class="jm-reaction-bubble">
       <div class="jm-reaction-copy">
         ${author ? `<span class="jm-reaction-author">${_esc(author)}</span>` : ''}
         <span class="jm-reaction-text">${_esc(body)}</span>
+        ${when ? `<span class="jm-reaction-time">${_esc(when)}</span>` : ''}
       </div>
       ${canDelete ? `<button class="jm-reaction-delete" data-entry-index="${entryIndex}" data-reaction-index="${reactionIndex}" type="button" aria-label="Eyða kommenti">×</button>` : ''}
     </div>`;
@@ -847,9 +882,12 @@ function renderJourneyCard() {
     return;
   }
 
-  // Find the last entry that has a child note
+  // Find the newest entry that has a child note.
   const allEntries = hero.journeyEntries;
-  const lastWithNote = [...allEntries].reverse().find(e => e.note && e.note.trim());
+  const sortedEntries = allEntries
+    .map((entry, originalIndex) => ({ entry, originalIndex, ts: _entryTs(entry, originalIndex) }))
+    .sort((a, b) => (b.ts - a.ts) || (b.originalIndex - a.originalIndex));
+  const lastWithNote = sortedEntries.find(x => x.entry?.note && x.entry.note.trim())?.entry;
   const totalCount = allEntries.length;
   const bookId = hero.id;
 
@@ -858,7 +896,10 @@ function renderJourneyCard() {
     ? `bls. ${lastWithNote.pageFrom}–${lastWithNote.pageTo}`
     : '';
   let cardMeta = '';
-  if (lastWithNote?.date) {
+  const noteTs = _entryTs(lastWithNote);
+  if (noteTs) {
+    cardMeta = _formatDateTimeIS(noteTs);
+  } else if (lastWithNote?.date) {
     const p = lastWithNote.date.split('-');
     if (p.length === 3) cardMeta = `${parseInt(p[2])}. ${IS_MONTHS_SHORT[parseInt(p[1]) - 1] || ''}`;
   }
@@ -982,13 +1023,17 @@ function _renderJourneyModal(bookId) {
     return;
   }
 
-  feed.innerHTML = entries.map((entry, originalIndex) => ({ entry, originalIndex })).reverse().map(({ entry: e, originalIndex }) => {
-    const reactions = (e.reactions || []).map((r, reactionIndex) =>
-      _renderReactionBubble(r, originalIndex, reactionIndex)
-    ).join('');
+  feed.innerHTML = entries.map((entry, originalIndex) => ({ entry, originalIndex, ts: _entryTs(entry, originalIndex) })).sort((a, b) => (b.ts - a.ts) || (b.originalIndex - a.originalIndex)).map(({ entry: e, originalIndex, ts }) => {
+    const reactions = (e.reactions || [])
+      .map((r, reactionIndex) => ({ r, reactionIndex, ts: _reactionTs(r, e, reactionIndex) }))
+      .sort((a, b) => (b.ts - a.ts) || (b.reactionIndex - a.reactionIndex))
+      .map(({ r, reactionIndex }) => _renderReactionBubble(r, originalIndex, reactionIndex))
+      .join('');
     // Neat short timestamp: "30. apr. · bls. 10–15"
     let meta = '';
-    if (e.date) {
+    if (ts) {
+      meta = _formatDateTimeIS(ts);
+    } else if (e.date) {
       const p = e.date.split('-');
       if (p.length === 3) meta = `${parseInt(p[2])}. ${IS_MONTHS_SHORT[parseInt(p[1]) - 1] || ''}`;
     }
@@ -1239,11 +1284,14 @@ async function _sendJourneyReaction(bookId, listenerName, fromModal = false) {
     }));
 
     // Attach the comment to the newest real reading entry, not a gold_moment entry.
-    let targetIndex = entries.findIndex(e => e && e.type !== 'gold_moment' && (e.note || e.pageFrom || e.pageTo || e.date));
-    if (targetIndex < 0) targetIndex = 0;
+    const newestEntry = entries
+      .map((entry, index) => ({ entry, index, ts: _entryTs(entry, index) }))
+      .filter(x => x.entry && x.entry.type !== 'gold_moment' && (x.entry.note || x.entry.pageFrom || x.entry.pageTo || x.entry.date))
+      .sort((a, b) => (b.ts - a.ts) || (b.index - a.index))[0];
+    let targetIndex = newestEntry ? newestEntry.index : 0;
 
     const target = { ...entries[targetIndex] };
-    target.reactions = [...(target.reactions || []), `${listenerName}: ${text}`];
+    target.reactions = [...(target.reactions || []), { name: listenerName, text, createdAt: Date.now() }];
     entries[targetIndex] = target;
 
     await updateDoc(doc(db, 'books', currentBookId), {

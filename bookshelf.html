@@ -928,21 +928,24 @@ async function delBook(id){
 }
 
 function esc(s=""){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function toMillis(v){if(!v)return 0;if(typeof v==='number')return v;if(v.toMillis)return v.toMillis();if(v.seconds)return v.seconds*1000;if(typeof v==='string'){const direct=Date.parse(v);if(Number.isFinite(direct))return direct;const p=v.split('-').map(Number);if(p.length>=3&&p.every(Number.isFinite))return new Date(p[0],p[1]-1,p[2]).getTime()}return 0}
+function entryTs(e,i=0){return toMillis(e?.createdAt)||toMillis(e?.savedAt)||toMillis(e?.timestamp)||toMillis(e?.updatedAt)||toMillis(e?.date)||i}
+function reactionTs(r,e,i=0){return toMillis(r?.createdAt)||toMillis(r?.timestamp)||toMillis(r?.sentAt)||(entryTs(e)?entryTs(e)+i:i)}
+function fmtDT(ts){if(!ts)return'';const d=new Date(ts);if(!Number.isFinite(d.getTime()))return'';return d.toLocaleDateString('is-IS',{day:'numeric',month:'short'})+' '+d.toLocaleTimeString('is-IS',{hour:'2-digit',minute:'2-digit'})}
+function reactionText(r){if(typeof r==='string')return r;if(!r)return'';const name=r.name||r.authorName||r.listenerName||r.by||r.savedBy||'';const text=r.text||r.comment||r.message||'';return name&&text?name+': '+text:(text||name||'')}
 function chipT(b){if(isPending(b))return'Lokið — ýttu!';if(b.status==='finished')return'Lokið ✓';if(b.status==='reading')return(b.progressPercent||0)+'%';return'Á hillu'}
 function chipCls(b){return(b.status==='finished')?'done':''}
 function covHTML(b){const u=cc[b.id]||b.coverUrl||b.coverBase64;if(u)return'<img src="'+u+'" alt="">';return'<span class="book-cover-title">'+esc(b.title)+'</span><span class="book-cover-author">'+esc(b.author||'')+'</span>'}
 function covS(b){return'--c1:'+(b.c1||'#2b8f91')+';--c2:'+(b.c2||'#0a2341')}
-function latestNote(b){if(b?.journeyEntries?.length){const e=b.journeyEntries[0];if(e?.note)return e.note}return b?.note||'Bókin er komin á hilluna.'}
+function latestNote(b){if(b?.journeyEntries?.length){const e=[...b.journeyEntries].sort((a,b)=>entryTs(b)-entryTs(a)).find(x=>x?.note);if(e?.note)return e.note}return b?.note||'Bókin er komin á hilluna.'}
 
 function _getLastReaction(hero) {
   if (!hero?.journeyEntries?.length) return '';
-  for (const e of hero.journeyEntries) {
-    if (e.reactions?.length) {
-      const last = e.reactions[e.reactions.length - 1];
-      return '<div class="featured-reaction">' + esc(last) + '</div>';
-    }
-  }
-  return '';
+  const hit=hero.journeyEntries
+    .flatMap((e,ei)=>(e.reactions||[]).map((r,ri)=>({r,ts:reactionTs(r,e,ri),ei})))
+    .filter(x=>x.r)
+    .sort((a,b)=>(b.ts-a.ts)||(b.ei-a.ei))[0];
+  return hit?'<div class="featured-reaction">'+esc(reactionText(hit.r))+'</div>':'';
 }
 
 function _getGoldMomentData(hero){
@@ -1270,15 +1273,17 @@ function openJourney(id){
     document.getElementById('journeySub').textContent=b.status==='finished'?'Lokið!':'Á hillunni';
   }
 
-  const ent=b.journeyEntries?.length?b.journeyEntries:[{date:'Í dag',pageFrom:b.currentPageFrom||'',pageTo:b.currentPageTo||'',note:b.note||'Bókin var sett á hilluna.',reactions:[]}];
-  document.getElementById('journeyEntries').innerHTML=ent.map((e,i)=>{
-    const meta=esc(e.date||'')+(e.pageFrom?' · bls. '+e.pageFrom+'–'+e.pageTo:'');
+  const ent=(b.journeyEntries?.length?b.journeyEntries:[{date:'Í dag',createdAt:Date.now(),pageFrom:b.currentPageFrom||'',pageTo:b.currentPageTo||'',note:b.note||'Bókin var sett á hilluna.',reactions:[]}])
+    .map((entry,originalIndex)=>({entry,originalIndex,ts:entryTs(entry,originalIndex)}))
+    .sort((a,b)=>(b.ts-a.ts)||(b.originalIndex-a.originalIndex));
+  document.getElementById('journeyEntries').innerHTML=ent.map(({entry:e,originalIndex:i,ts})=>{
+    const meta=esc((ts?fmtDT(ts):(e.date||''))+(e.pageFrom?' · bls. '+e.pageFrom+'–'+e.pageTo:''));
     if(e.type==='gold_moment'&&e.clipPath){
       const pid='journey-gm-player-'+i;
       const bid='journey-gm-btn-'+i;
       return '<article class="event"><div class="event-date">'+meta+'</div><p class="event-quote">'+esc(e.text||((e.savedBy||'Foreldri')+' geymdi lesturinn þinn'))+'</p><button class="featured-gold-play" id="'+bid+'" onclick="event.stopPropagation();_playJourneyGold(\''+esc(e.clipPath)+'\',\''+pid+'\',\''+bid+'\')" type="button">► Hlusta</button><div class="featured-gold-player" id="'+pid+'"></div></article>';
     }
-    return'<article class="event"><div class="event-date">'+meta+'</div>'+(e.note?'<p class="event-quote">\u201C'+esc(e.note)+'\u201D</p>':'')+'<div class="reactions">'+(e.reactions||[]).map((r,ri)=>'<span class="react"><span class="react-text">'+esc(r)+'</span><button class="react-delete" type="button" data-delete-reaction="'+i+':'+ri+'" aria-label="Eyða kommenti">×</button></span>').join('')+'</div></article>'
+    return'<article class="event"><div class="event-date">'+meta+'</div>'+(e.note?'<p class="event-quote">\u201C'+esc(e.note)+'\u201D</p>':'')+'<div class="reactions">'+(e.reactions||[]).map((r,ri)=>'<span class="react"><span class="react-text">'+esc(reactionText(r))+(fmtDT(toMillis(r?.createdAt)||toMillis(r?.timestamp)||toMillis(r?.sentAt))?'<small style="display:block;margin-top:3px;color:rgba(148,164,180,.75);font-weight:700">'+esc(fmtDT(toMillis(r?.createdAt)||toMillis(r?.timestamp)||toMillis(r?.sentAt)))+'</small>':'')+'</span><button class="react-delete" type="button" data-delete-reaction="'+i+':'+ri+'" aria-label="Eyða kommenti">×</button></span>').join('')+'</div></article>'
   }).join('');
   openOv('journeyModal');
 }
@@ -1420,7 +1425,7 @@ document.getElementById('saveBook').addEventListener('click',async()=>{
   saving=true;if(btn){btn.disabled=true;btn.textContent='Vista...'}
   const st=document.getElementById('bookStatus').value,now=Date.now();
   const pals=[['#2b8f91','#0a2341'],['#23814b','#0d2b23'],['#7c23df','#1d1537'],['#c4523a','#2a1418'],['#3a7bd5','#0f1f3d'],['#d4a03c','#2b1e0e']];const pk=pals[Math.floor(Math.random()*pals.length)];
-  const d={familyId:FID,childKey:CK,childName:CN,title,author:document.getElementById('bookAuthor').value.trim(),status:st,totalPages:pages,currentPageFrom:st==='reading'?1:null,currentPageTo:st==='reading'?Math.min(10,pages):null,progressPercent:st==='finished'?100:st==='reading'?Math.min(10,Math.round((10/pages)*100)):0,coverBase64:curCov||null,c1:curCov?null:pk[0],c2:curCov?null:pk[1],note:st==='reading'?'Bókin er byrjuð.':null,lastReadAt:st==='reading'?now:null,journeyEntries:st==='reading'?[{date:'Í dag',pageFrom:1,pageTo:Math.min(10,pages),note:'Bókin er byrjuð.',reactions:[]}]:[],createdAt:now,updatedAt:now};
+  const d={familyId:FID,childKey:CK,childName:CN,title,author:document.getElementById('bookAuthor').value.trim(),status:st,totalPages:pages,currentPageFrom:st==='reading'?1:null,currentPageTo:st==='reading'?Math.min(10,pages):null,progressPercent:st==='finished'?100:st==='reading'?Math.min(10,Math.round((10/pages)*100)):0,coverBase64:curCov||null,c1:curCov?null:pk[0],c2:curCov?null:pk[1],note:st==='reading'?'Bókin er byrjuð.':null,lastReadAt:st==='reading'?now:null,journeyEntries:st==='reading'?[{date:'Í dag',createdAt:now,pageFrom:1,pageTo:Math.min(10,pages),note:'Bókin er byrjuð.',reactions:[]}]:[],createdAt:now,updatedAt:now};
   try{
     if(previewMode){
       d.id='local_'+now+'_'+Math.random().toString(36).slice(2,6);

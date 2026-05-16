@@ -2411,6 +2411,13 @@ audio { width: 100%; border-radius: 8px }
   color: rgba(217,229,239,0.76);
   font-weight: 600;
 }
+.jm-reaction-time {
+  display: block;
+  margin-top: 3px;
+  color: rgba(148,164,180,0.72);
+  font-size: 11px;
+  font-weight: 700;
+}
 .jm-reaction-delete {
   flex: 0 0 auto;
   width: 24px;
@@ -2529,6 +2536,7 @@ audio { width: 100%; border-radius: 8px }
 }
 #screen-parent-home.ph-light .jm-reaction-author { color: #1a2332; }
 #screen-parent-home.ph-light .jm-reaction-text { color: #3a4a5c; }
+#screen-parent-home.ph-light .jm-reaction-time { color: #6a7a8c; }
 
 
 /* === Custom gold audio player — no native browser controls === */

@@ -203,13 +203,13 @@
     }
     .resume-row {
       display: grid;
-      grid-template-columns: 56px 1fr auto;
+      grid-template-columns: 68px 1fr auto;
       gap: 12px;
       align-items: center;
     }
     .resume-cover {
-      width: 56px; height: 78px;
-      border-radius: 7px;
+      width: 68px; height: 94px;
+      border-radius: 8px;
       background: linear-gradient(135deg, #5a2d6b, #3d1a52);
       box-shadow: 0 6px 14px rgba(0,0,0,0.4), inset 2px 0 0 rgba(255,255,255,0.12);
       position: relative;
@@ -225,7 +225,7 @@
     }
     .resume-cover-fallback {
       position: relative;
-      font-size: 0.58rem; font-weight: 900; color: #fff;
+      font-size: 0.62rem; font-weight: 900; color: #fff;
       text-align: center; padding: 0 5px; line-height: 1.1;
       text-shadow: 0 1px 4px rgba(0,0,0,0.5);
       letter-spacing: 0.2px;
@@ -292,9 +292,9 @@
     /* Star field container - holds the existing stars but positioned in the dead-zone */
     .star-field {
       position: absolute;
-      top: 130px;
+      top: 190px;
       left: 0; right: 0; bottom: 64px;
-      z-index: 1;
+      z-index: 6;
       pointer-events: none;
       overflow: hidden;
     }
@@ -441,6 +441,10 @@
       color: rgba(221,231,239,0.7);
       font-size: 0.82rem;
       min-height: 18px;
+    }
+    .helper[hidden] {
+      display: block;
+      visibility: hidden;
     }
 
     /* ── Goal toast - floats above bottom nav, fades in then out ── */
@@ -950,6 +954,27 @@
       })();
       var childName = localStorage.getItem("childName") || (childSession && childSession.childName ? childSession.childName : null) || "Lesari";
       var childStorageKey = childSession && childSession.childKey ? String(childSession.childKey) : "unknown";
+      var childBooksCacheKey = childSession && childSession.familyId && childSession.childKey
+        ? "upphatt_child_books_cache_" + childSession.familyId + "_" + childSession.childKey
+        : null;
+
+      function readChildBooksCache() {
+        if (!childBooksCacheKey) return [];
+        try {
+          var raw = localStorage.getItem(childBooksCacheKey);
+          var parsed = raw ? JSON.parse(raw) : null;
+          return parsed && Array.isArray(parsed.books) ? parsed.books : [];
+        } catch (e) { return []; }
+      }
+
+      window.cacheChildBooks = function (books) {
+        if (!childBooksCacheKey || !Array.isArray(books)) return;
+        try { localStorage.setItem(childBooksCacheKey, JSON.stringify({ savedAt: Date.now(), books: books })); }
+        catch (e) { /* no-op */ }
+      };
+
+      var cachedChildBooks = readChildBooksCache();
+      if (cachedChildBooks.length && !window._firestoreBooks) window._firestoreBooks = cachedChildBooks;
 
       document.getElementById("greeting-name").textContent = childName;
 
@@ -1447,10 +1472,16 @@
         }
 
         if (!activeBook) {
-          pillTitleEl.textContent = "Veldu bók";
-          pillPageEl.textContent = "Opnaðu bókahilluna";
+          var isLoadingBooks = !window._firestoreBooksLoaded && !books.length;
+          pillTitleEl.textContent = isLoadingBooks ? "Sæki bókahillu..." : "Veldu bók";
+          pillPageEl.textContent = isLoadingBooks ? "Augnablik" : "Opnaðu bókahilluna";
           setPillArc(0);
           renderResumeCard(null, null);
+          if (isLoadingBooks) {
+            if (resumeTagEl) resumeTagEl.textContent = "Bókahilla";
+            if (resumeTitleEl) resumeTitleEl.textContent = "Sæki bókahillu...";
+            if (resumePageEl) resumePageEl.textContent = "Augnablik";
+          }
           return;
         }
 
@@ -2249,6 +2280,11 @@
             const booksQ = query(collection(db, 'books'), where('familyId', '==', ch.familyId), where('childKey', '==', ch.childKey));
             onSnapshot(booksQ, snap => {
               window._firestoreBooks = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+              if (window.cacheChildBooks) window.cacheChildBooks(window._firestoreBooks);
+              window._firestoreBooksLoaded = true;
+              if (window._onFirestoreBooksReady) window._onFirestoreBooksReady();
+            }, e => {
+              console.warn('Books listener failed:', e);
               window._firestoreBooksLoaded = true;
               if (window._onFirestoreBooksReady) window._onFirestoreBooksReady();
             });

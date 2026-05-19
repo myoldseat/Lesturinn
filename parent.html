@@ -15,22 +15,36 @@
 <style>
   html, body { background-color:#07101e !important; min-height:100%; min-height:-webkit-fill-available; }
   body.parent-shell-body { overflow:hidden; }
-  .parent-page-shell { min-height:100dvh; display:grid; grid-template-rows:minmax(0,1fr) auto; background:var(--ph-bg,#07101e); color:var(--ph-text,#d9e5ef); }
+  .parent-page-shell { width:min(430px,100%); height:100dvh; min-height:100dvh; margin:0 auto; display:grid; grid-template-rows:minmax(0,1fr) auto; background:var(--ph-bg,#07101e); color:var(--ph-text,#d9e5ef); box-shadow:0 0 0 1px rgba(29,205,211,.08); }
   .parent-page-main { min-height:0; overflow:hidden; }
   .parent-page-main .screen { min-height:100%; height:100%; }
   .parent-page-main .ph-screen { padding-bottom:0; }
-  .parent-page-main .ph-body { min-height:0; overflow:auto; padding-bottom:18px; }
-  .parent-page-screen { display:none; min-height:100%; overflow:auto; background:var(--ph-bg,#07101e); padding:16px 16px 18px; }
-  .parent-page-screen.active { display:block; }
-  .parent-placeholder-wrap { width:min(920px,100%); margin:0 auto; }
-  .parent-placeholder-head { display:flex; align-items:flex-end; justify-content:space-between; gap:16px; margin:0 0 14px; }
-  .parent-placeholder-kicker { color:var(--ph-accent,#1dcdd3); font-size:11px; font-weight:900; letter-spacing:.08em; text-transform:uppercase; }
-  .parent-placeholder-title { margin:2px 0 0; font-size:30px; line-height:1.05; font-weight:900; color:#fff; }
-  .parent-placeholder-copy { margin:5px 0 0; color:var(--ph-soft,#8fa1b4); font-size:14px; line-height:1.4; }
-  .parent-placeholder-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
-  .parent-placeholder-card { border:1px solid rgba(29,205,211,.16); background:rgba(8,18,32,.82); border-radius:18px; padding:14px; min-height:116px; box-shadow:0 18px 44px rgba(0,0,0,.22),inset 0 0 0 1px rgba(255,255,255,.02); }
-  .parent-placeholder-card strong { display:block; color:#fff; font-size:18px; line-height:1.15; margin-bottom:6px; }
-  .parent-placeholder-card span { color:var(--ph-soft,#8fa1b4); font-size:13px; line-height:1.35; }
+  .parent-page-main .ph-topbar { padding:14px 14px 10px; }
+  .parent-page-main .ph-body { min-height:0; overflow:auto; padding:0 12px 18px; }
+  .parent-page-main .ph-tile { border-radius:16px; }
+  .parent-page-main .ph-stats-grid { grid-template-columns:1fr; gap:10px; }
+  .parent-page-main .ph-tile-split { grid-template-columns:1fr; }
+  .parent-page-main .ph-tile-right { min-height:auto; }
+  .parent-page-main .ph-children-row { overflow-x:auto; flex-wrap:nowrap; padding-bottom:2px; }
+  .parent-page-main .ph-child-card { min-width:142px; }
+  .parent-page-screen { display:none; height:100%; min-height:0; overflow:hidden; background:var(--ph-bg,#07101e); }
+  .parent-page-screen.active { display:flex; flex-direction:column; }
+  .parent-state-top { flex:0 0 auto; display:flex; align-items:center; justify-content:space-between; gap:12px; padding:14px 14px 10px; border-bottom:1px solid rgba(29,205,211,.08); }
+  .parent-state-title { min-width:0; }
+  .parent-state-kicker { color:var(--ph-accent,#1dcdd3); font-size:10px; font-weight:900; letter-spacing:.1em; text-transform:uppercase; }
+  .parent-state-title h1 { margin:2px 0 0; color:#fff; font-size:22px; line-height:1.05; font-weight:900; letter-spacing:0; }
+  .parent-state-title p { margin:4px 0 0; color:var(--ph-soft,#8fa1b4); font-size:12px; line-height:1.35; }
+  .parent-state-body { min-height:0; overflow:auto; padding:12px 12px 18px; display:grid; gap:10px; align-content:start; }
+  .parent-mini-card { border:1px solid rgba(29,205,211,.16); background:rgba(8,18,32,.82); border-radius:16px; padding:13px; box-shadow:0 14px 34px rgba(0,0,0,.18),inset 0 0 0 1px rgba(255,255,255,.02); }
+  button.parent-mini-card { width:100%; color:inherit; font:inherit; text-align:left; cursor:pointer; }
+  .parent-mini-card strong { display:block; color:#fff; font-size:16px; line-height:1.15; margin-bottom:5px; }
+  .parent-mini-card span { color:var(--ph-soft,#8fa1b4); font-size:12px; line-height:1.35; }
+  .parent-list-row { display:flex; align-items:center; justify-content:space-between; gap:10px; }
+  .parent-avatar { width:42px; height:42px; flex:0 0 auto; border-radius:50%; display:grid; place-items:center; color:var(--ph-accent,#1dcdd3); background:rgba(29,205,211,.12); border:1px solid rgba(29,205,211,.28); font-weight:900; }
+  .parent-row-main { min-width:0; flex:1; }
+  .parent-row-main strong { margin:0; }
+  .parent-row-action { color:var(--ph-accent,#1dcdd3); font-size:12px; font-weight:900; white-space:nowrap; }
+  .parent-compact-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
   .parent-bottom-nav { height:calc(70px + env(safe-area-inset-bottom,0px)); padding-bottom:env(safe-area-inset-bottom,0px); display:grid; grid-template-columns:repeat(4,1fr); border-top:1px solid rgba(29,205,211,.16); background:rgba(5,11,20,.94); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); }
   .parent-bottom-nav button { border:0; background:none; color:var(--ph-soft,#8fa1b4); font:inherit; font-size:11px; font-weight:850; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; position:relative; }
   .parent-bottom-nav button svg { width:21px; height:21px; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
@@ -39,8 +53,7 @@
   .parent-toast { position:fixed; left:50%; bottom:calc(82px + env(safe-area-inset-bottom,0px)); transform:translate(-50%,12px); opacity:0; pointer-events:none; background:#101d30; border:1px solid rgba(29,205,211,.28); color:#d9e5ef; border-radius:999px; padding:10px 13px; font-size:13px; font-weight:800; transition:opacity .18s ease,transform .18s ease; z-index:10000; }
   .parent-toast.show { opacity:1; transform:translate(-50%,0); }
   @media(max-width:720px){
-    .parent-placeholder-title { font-size:26px; }
-    .parent-placeholder-grid { grid-template-columns:1fr; }
+    .parent-page-shell { width:100%; box-shadow:none; }
   }
 </style>
 </head>
@@ -214,57 +227,79 @@
     </section>
 
     <section class="parent-page-screen" data-parent-screen="children">
-      <div class="parent-placeholder-wrap">
-        <div class="parent-placeholder-head">
-          <div>
-            <div class="parent-placeholder-kicker">Börn</div>
-            <h1 class="parent-placeholder-title">Börn og kóðar</h1>
-            <p class="parent-placeholder-copy">Placeholder fyrir sér skjá með barnakortum, kóðum og aðgerðum.</p>
-          </div>
-          <button class="ph-add-btn" type="button" onclick="openAddChildPopup()">+ Bæta við barni</button>
+      <div class="parent-state-top">
+        <div class="parent-state-title">
+          <div class="parent-state-kicker">Börn</div>
+          <h1>Börn og kóðar</h1>
+          <p>Velja barn, sjá kóða og bæta við.</p>
         </div>
-        <div class="parent-placeholder-grid">
-          <div class="parent-placeholder-card"><strong>Hrafnkell Hersir</strong><span>HRA78 · 4 mín · 1/7 daga</span></div>
-          <div class="parent-placeholder-card"><strong>Kolbeinn Kvasir</strong><span>KOL58 · 5 mín · 2/7 daga</span></div>
-          <div class="parent-placeholder-card"><strong>Nýtt barn</strong><span>Tengjum seinna við núverandi add-child flæði.</span></div>
-        </div>
+        <button class="ph-add-btn" type="button" onclick="openAddChildPopup()">+ Barn</button>
+      </div>
+      <div class="parent-state-body">
+        <button class="parent-mini-card parent-list-row" type="button" onclick="showParentPlaceholderToast('Barnaval tengist seinna')">
+          <span class="parent-avatar">HH</span>
+          <span class="parent-row-main"><strong>Hrafnkell Hersir</strong><span>HRA78 · 4 mín · 1/7 daga</span></span>
+          <span class="parent-row-action">Velja</span>
+        </button>
+        <button class="parent-mini-card parent-list-row" type="button" onclick="showParentPlaceholderToast('Barnaval tengist seinna')">
+          <span class="parent-avatar">KK</span>
+          <span class="parent-row-main"><strong>Kolbeinn Kvasir</strong><span>KOL58 · 5 mín · 2/7 daga</span></span>
+          <span class="parent-row-action">Velja</span>
+        </button>
+        <button class="parent-mini-card parent-list-row" type="button" onclick="openAddChildPopup()">
+          <span class="parent-avatar">+</span>
+          <span class="parent-row-main"><strong>Nýtt barn</strong><span>Tengjum seinna við núverandi add-child flæði.</span></span>
+          <span class="parent-row-action">Bæta við</span>
+        </button>
       </div>
     </section>
 
     <section class="parent-page-screen" data-parent-screen="library">
-      <div class="parent-placeholder-wrap">
-        <div class="parent-placeholder-head">
-          <div>
-            <div class="parent-placeholder-kicker">Bókasafn</div>
-            <h1 class="parent-placeholder-title">Bækur fjölskyldunnar</h1>
-            <p class="parent-placeholder-copy">Placeholder fyrir parent-side bókasafn áður en við tengjum raunveruleg bókagögn.</p>
-          </div>
-          <button class="ph-add-btn" type="button" onclick="showParentPlaceholderToast('Bókasafn tengist seinna')">Opna núverandi bókasafn</button>
+      <div class="parent-state-top">
+        <div class="parent-state-title">
+          <div class="parent-state-kicker">Bókasafn</div>
+          <h1>Bækur</h1>
+          <p>Parent-side bókasafn sem fær gögn seinna.</p>
         </div>
-        <div class="parent-placeholder-grid">
-          <div class="parent-placeholder-card"><strong>Í lestri</strong><span>Fuglabúrið · Kolbeinn · 52%</span></div>
-          <div class="parent-placeholder-card"><strong>Lokið</strong><span>Placeholder fyrir bækur sem hafa verið kláraðar.</span></div>
-          <div class="parent-placeholder-card"><strong>Ný bók</strong><span>Camera/Gemini flæði tengist seinna.</span></div>
-          <div class="parent-placeholder-card"><strong>Staða</strong><span>Reading · shelf · finished</span></div>
+        <button class="ph-add-btn" type="button" onclick="showParentPlaceholderToast('Ný bók tengist seinna')">+ Bók</button>
+      </div>
+      <div class="parent-state-body">
+        <div class="parent-mini-card parent-list-row">
+          <span class="parent-avatar">F</span>
+          <span class="parent-row-main"><strong>Fuglabúrið</strong><span>Kolbeinn · 52% · í lestri</span></span>
+          <span class="parent-row-action">Opna</span>
+        </div>
+        <div class="parent-mini-card parent-list-row">
+          <span class="parent-avatar">V</span>
+          <span class="parent-row-main"><strong>Verðlaunabókin</strong><span>Hrafnkell · 18% · í lestri</span></span>
+          <span class="parent-row-action">Opna</span>
+        </div>
+        <div class="parent-compact-grid">
+          <div class="parent-mini-card"><strong>Lokið</strong><span>Placeholder fyrir kláraðar bækur.</span></div>
+          <div class="parent-mini-card"><strong>Ný bók</strong><span>Camera/Gemini flæði tengist seinna.</span></div>
         </div>
       </div>
     </section>
 
     <section class="parent-page-screen" data-parent-screen="settings">
-      <div class="parent-placeholder-wrap">
-        <div class="parent-placeholder-head">
-          <div>
-            <div class="parent-placeholder-kicker">Stillingar</div>
-            <h1 class="parent-placeholder-title">Fjölskylda og aðgangur</h1>
-            <p class="parent-placeholder-copy">Placeholder fyrir account, fjölskyldulykil, þema og barnastillingar.</p>
-          </div>
+      <div class="parent-state-top">
+        <div class="parent-state-title">
+          <div class="parent-state-kicker">Stillingar</div>
+          <h1>Aðgangur</h1>
+          <p>Fjölskylda, þema og account.</p>
         </div>
-        <div class="parent-placeholder-grid">
-          <div class="parent-placeholder-card"><strong>Fjölskyldulykill</strong><span id="settings-family-code">FAM0000AA</span></div>
-          <div class="parent-placeholder-card"><strong>Netfang</strong><span id="settings-email">parent@example.test</span></div>
-          <div class="parent-placeholder-card"><strong>Þema</strong><span>Dökkt/létt verður tengt við núverandi theme helper.</span></div>
-          <div class="parent-placeholder-card"><strong>Útskrá</strong><span>Seinna: hreinsa session og fara á index.html.</span></div>
-        </div>
+      </div>
+      <div class="parent-state-body">
+        <div class="parent-mini-card"><strong>Fjölskyldulykill</strong><span id="settings-family-code">FAM0000AA</span></div>
+        <div class="parent-mini-card"><strong>Netfang</strong><span id="settings-email">parent@example.test</span></div>
+        <button class="parent-mini-card parent-list-row" type="button" onclick="toggleParentTheme()">
+          <span class="parent-row-main"><strong>Þema</strong><span>Dökkt/létt verður tengt við núverandi theme helper.</span></span>
+          <span class="parent-row-action">Skipta</span>
+        </button>
+        <button class="parent-mini-card parent-list-row" type="button" onclick="parentPlaceholderLogout()">
+          <span class="parent-row-main"><strong>Útskrá</strong><span>Seinna: hreinsa session og fara á index.html.</span></span>
+          <span class="parent-row-action">Út</span>
+        </button>
       </div>
     </section>
   </main>

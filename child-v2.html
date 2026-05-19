@@ -6,19 +6,17 @@
   <title>Upphatt Child V2</title>
   <style>
     :root {
-      --bg: #0f1115;
-      --panel: rgba(7, 16, 30, 0.48);
+      --bg: #070d16;
       --panel-border: rgba(122, 187, 218, 0.22);
-      --text-strong: #d9e5ef;
-      --text-soft: #94a4b4;
-      --button-top: #1dcdd3;
-      --button-mid: #1ac5cb;
-      --button-base: #18bcc2;
+      --text-strong: #e5edf6;
+      --text-soft: #9eacba;
+      --teal: #24d6df;
+      --teal-glow: rgba(36, 214, 223, 0.3);
+      --gold: #f0c94d;
+      --gold-glow: rgba(240, 201, 77, 0.3);
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     html, body {
       height: 100%;
@@ -28,133 +26,52 @@
       font-family: "Manrope", "Segoe UI", sans-serif;
     }
 
+    /* ── Screen shell ── */
     .screen {
       min-height: 100dvh;
       display: flex;
       flex-direction: column;
-      background: var(--bg);
-      color: #d7dee9;
-      padding: 18px;
+      background:
+        radial-gradient(circle at 50% 15%, rgba(35,214,223,.07), transparent 34%),
+        radial-gradient(circle at 42% 62%, rgba(35,214,223,.08), transparent 30%),
+        linear-gradient(180deg, #070d16 0%, #0b111c 58%, #090f18 100%);
+      color: var(--text-strong);
+      padding: 14px 14px calc(72px + env(safe-area-inset-bottom, 0px));
       position: relative;
       overflow: hidden;
       isolation: isolate;
     }
 
+    /* ── Constellation background ── */
     .constellation {
       position: absolute;
       inset: 0;
       z-index: 1;
       pointer-events: none;
-      opacity: 1;
       background:
-        radial-gradient(circle at 20% 25%, rgba(62, 130, 173, 0.12), rgba(62, 130, 173, 0) 40%),
-        radial-gradient(circle at 82% 32%, rgba(47, 184, 187, 0.1), rgba(47, 184, 187, 0) 38%),
-        radial-gradient(circle at 62% 78%, rgba(98, 116, 170, 0.1), rgba(98, 116, 170, 0) 44%);
-    }
-
-    .constellation::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background: none;
-      filter: blur(0.2px);
-      pointer-events: none;
+        radial-gradient(circle at 20% 25%, rgba(62,130,173,0.10), transparent 40%),
+        radial-gradient(circle at 82% 32%, rgba(47,184,187,0.08), transparent 38%),
+        radial-gradient(circle at 62% 78%, rgba(98,116,170,0.08), transparent 44%);
     }
 
     .star {
       position: absolute;
-      width: 14px;
-      height: 14px;
-      border: 0;
-      border-radius: 999px;
-      background: radial-gradient(circle at 40% 40%, rgba(220, 243, 255, 0.86), rgba(126, 205, 224, 0.45) 44%, rgba(126, 205, 224, 0.04) 72%, rgba(126, 205, 224, 0) 100%);
-      box-shadow: 0 0 8px rgba(108, 214, 238, 0.12);
+      width: 14px; height: 14px;
+      border: 0; border-radius: 999px;
+      background: radial-gradient(circle at 40% 40%, rgba(220,243,255,0.86), rgba(126,205,224,0.45) 44%, rgba(126,205,224,0.04) 72%, transparent);
+      box-shadow: 0 0 8px rgba(108,214,238,0.12);
       opacity: 0;
-      transform: scale(1);
       transition: opacity 240ms ease, transform 240ms ease, box-shadow 260ms ease;
       pointer-events: none;
       cursor: pointer;
       z-index: 8;
       mix-blend-mode: screen;
     }
-
-    .star.active {
-      opacity: 0.22;
-      pointer-events: auto;
-    }
-
-    .star.frozen {
-      opacity: 0.42;
-      pointer-events: auto;
-      box-shadow: 0 0 12px rgba(120, 240, 255, 0.24), 0 0 28px rgba(120, 240, 255, 0.1);
-    }
-
-    .star:hover {
-      opacity: 0.45;
-    }
-
-    .constellation-lines {
-      position: absolute;
-      inset: 0;
-      z-index: 7;
-      pointer-events: none;
-      overflow: visible;
-    }
-
-    .listen-line {
-      stroke: rgba(140, 226, 246, 0.3);
-      stroke-width: 1.9;
-      stroke-linecap: round;
-      stroke-linejoin: round;
-      opacity: 0;
-      stroke-dasharray: 0;
-      stroke-dashoffset: 0;
-      fill: none;
-      filter: drop-shadow(0 0 5px rgba(122, 233, 255, 0.34)) drop-shadow(0 0 12px rgba(122, 233, 255, 0.18));
-    }
-
-    .listen-line.animating {
-      animation: lightning-flicker 180ms ease-in-out infinite alternate;
-    }
-
-    @keyframes lightning-flicker {
-      0% {
-        opacity: 0.32;
-        filter: drop-shadow(0 0 5px rgba(160, 240, 255, 0.28)) drop-shadow(0 0 11px rgba(130, 225, 255, 0.16));
-      }
-      100% {
-        opacity: 0.64;
-        filter: drop-shadow(0 0 10px rgba(216, 252, 255, 0.54)) drop-shadow(0 0 22px rgba(168, 245, 255, 0.34));
-      }
-    }
-
-    .listen-line.frozen {
-      stroke: rgba(150, 222, 240, 0.26);
-      stroke-width: 2.2;
-      opacity: 0.42;
-      stroke-dasharray: none;
-      stroke-dashoffset: 0;
-      filter: drop-shadow(0 0 4px rgba(122, 233, 255, 0.14));
-    }
-
-    .listen-line.flash {
-      stroke: rgba(255, 255, 255, 1);
-      stroke-width: 4.1;
-      opacity: 1;
-      filter: drop-shadow(0 0 16px rgba(255, 255, 255, 1)) drop-shadow(0 0 36px rgba(168, 245, 255, 1));
-    }
-
-    .star.listened {
-      opacity: 0.96;
-      transform: scale(1.35);
-      box-shadow: 0 0 14px rgba(120, 240, 255, 0.65), 0 0 32px rgba(120, 240, 255, 0.35);
-    }
-
-    .star.flash {
-      opacity: 1;
-      transform: scale(1.8);
-      box-shadow: 0 0 28px rgba(255, 255, 255, 1), 0 0 60px rgba(168, 245, 255, 1);
-    }
+    .star.active { opacity: 0.22; pointer-events: auto; }
+    .star.frozen { opacity: 0.42; pointer-events: auto; box-shadow: 0 0 12px rgba(120,240,255,0.24), 0 0 28px rgba(120,240,255,0.1); }
+    .star:hover { opacity: 0.45; }
+    .star.listened { opacity: 0.96; transform: scale(1.35); box-shadow: 0 0 14px rgba(120,240,255,0.65), 0 0 32px rgba(120,240,255,0.35); }
+    .star.flash { opacity: 1; transform: scale(1.8); box-shadow: 0 0 28px rgba(255,255,255,1), 0 0 60px rgba(168,245,255,1); }
 
     .star-1 { top: 12%; left: 18%; }
     .star-2 { top: 18%; left: 72%; }
@@ -166,1326 +83,544 @@
     .star-8 { top: 78%; left: 54%; }
     .star-9 { top: 84%; left: 86%; }
 
+    .constellation-lines {
+      position: absolute; inset: 0; z-index: 7;
+      pointer-events: none; overflow: visible;
+    }
+
+    .listen-line {
+      stroke: rgba(140,226,246,0.3); stroke-width: 1.9;
+      stroke-linecap: round; stroke-linejoin: round;
+      opacity: 0; fill: none;
+      filter: drop-shadow(0 0 5px rgba(122,233,255,0.34)) drop-shadow(0 0 12px rgba(122,233,255,0.18));
+    }
+    .listen-line.animating { animation: lightning-flicker 180ms ease-in-out infinite alternate; }
+    @keyframes lightning-flicker {
+      0%   { opacity: 0.32; filter: drop-shadow(0 0 5px rgba(160,240,255,0.28)) drop-shadow(0 0 11px rgba(130,225,255,0.16)); }
+      100% { opacity: 0.64; filter: drop-shadow(0 0 10px rgba(216,252,255,0.54)) drop-shadow(0 0 22px rgba(168,245,255,0.34)); }
+    }
+    .listen-line.frozen { stroke: rgba(150,222,240,0.26); stroke-width: 2.2; opacity: 0.42; filter: drop-shadow(0 0 4px rgba(122,233,255,0.14)); }
+    .listen-line.flash { stroke: rgba(255,255,255,1); stroke-width: 4.1; opacity: 1; filter: drop-shadow(0 0 16px rgba(255,255,255,1)) drop-shadow(0 0 36px rgba(168,245,255,1)); }
+
     .toast {
       position: absolute;
-      left: 50%;
-      top: 50%;
+      left: 50%; top: 50%;
       transform: translateY(18px);
       padding: 10px 14px;
       border-radius: 999px;
-      border: 1px solid rgba(147, 217, 236, 0.35);
-      background: rgba(9, 27, 43, 0.88);
+      border: 1px solid rgba(147,217,236,0.35);
+      background: rgba(9,27,43,0.88);
       color: #d8edf8;
-      font-size: 0.9rem;
-      font-weight: 600;
-      letter-spacing: 0.01em;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 1.7s cubic-bezier(0.22, 0.61, 0.36, 1), transform 1.7s cubic-bezier(0.22, 0.61, 0.36, 1);
-      z-index: 9;
-      white-space: nowrap;
+      font-size: 0.9rem; font-weight: 600;
+      opacity: 0; pointer-events: none;
+      transition: opacity 1.7s cubic-bezier(0.22,0.61,0.36,1), transform 1.7s cubic-bezier(0.22,0.61,0.36,1);
+      z-index: 9; white-space: nowrap;
     }
+    .toast.show { opacity: 1; transform: translateY(0); }
 
-    .toast.show {
-      opacity: 1;
-      transform: translateY(0);
-      transition: opacity 2.2s cubic-bezier(0.22, 0.61, 0.36, 1), transform 2.2s cubic-bezier(0.22, 0.61, 0.36, 1);
-    }
-
-    .panel-top {
-      width: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 12px;
-      margin-bottom: 40px;
-    }
-
-    .home-btn {
-      width: 36px;
-      height: 36px;
-      border-radius: 999px;
-      border: 1px solid rgba(200, 223, 244, 0.24);
-      background: rgba(20, 32, 50, 0.45);
-      color: #c7d8e7;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: background 220ms ease, border-color 220ms ease, transform 220ms ease;
-    }
-
-    .home-btn:hover {
-      background: rgba(33, 50, 74, 0.62);
-      border-color: rgba(200, 223, 244, 0.36);
-      transform: translateY(-1px);
-    }
-
-    .greeting {
-      margin: 0;
-      text-align: center;
-      font-size: clamp(1.7rem, 5.4vw, 2.15rem);
-      font-weight: 700;
-      color: var(--text-strong);
-      line-height: 1.15;
-    }
-
-    .greeting-name {
-      color: #27d8e5;
-    }
-
+    /* ── Panel layout ── */
     .panel {
       flex: 1;
-      margin-top: max(10px, env(safe-area-inset-top));
-      border-radius: 24px;
-      border: 1px solid var(--panel-border);
-      background:
-        radial-gradient(circle at 50% 45%, rgba(32, 151, 168, 0.14), rgba(32, 151, 168, 0) 62%),
-        var(--panel);
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: flex-start;
-      padding: 28px 20px 32px;
-      gap: 10px;
-      backdrop-filter: blur(4px);
+      gap: 12px;
       position: relative;
       z-index: 3;
+      padding-top: max(8px, env(safe-area-inset-top));
     }
 
-    .title {
-      margin: 0;
-      text-align: center;
-      font-size: clamp(2rem, 6.4vw, 2.7rem);
-      font-weight: 700;
-      color: #d9e5ef;
-      position: relative;
-      z-index: 4;
+    /* ── Top bar ── */
+    .top-bar {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
-
-    .subtitle {
+    .home-btn {
+      width: 36px; height: 36px;
+      border-radius: 999px;
+      border: 1px solid rgba(122,187,218,0.28);
+      background: rgba(15,29,47,0.66);
+      color: #c7d8e7;
+      display: inline-flex;
+      align-items: center; justify-content: center;
+      cursor: pointer;
+      transition: background 220ms ease, border-color 220ms ease;
+      flex: 0 0 auto;
+    }
+    .home-btn:hover { background: rgba(33,50,74,0.62); border-color: rgba(200,223,244,0.36); }
+    .greeting {
       margin: 0;
-      text-align: center;
-      font-size: clamp(1rem, 3.8vw, 1.25rem);
+      font-size: 1rem; font-weight: 850;
+      color: var(--text-strong);
+      line-height: 1.1;
+    }
+    .greeting-name { color: var(--teal); }
+
+    /* ── Book pill ── */
+    .book-pill {
+      width: 100%;
+      height: 56px;
+      display: grid;
+      grid-template-columns: 40px 1fr auto;
+      gap: 10px;
+      align-items: center;
+      border-radius: 16px;
+      border: 1px solid rgba(122,187,218,0.18);
+      background: rgba(7,18,32,0.64);
+      padding: 0 14px;
+      cursor: pointer;
+      transition: border-color 180ms ease, box-shadow 180ms ease;
+      font-family: inherit;
+      color: inherit;
+      text-align: left;
+    }
+    .book-pill:active {
+      border-color: rgba(29,205,211,0.5);
+      box-shadow: 0 0 18px rgba(29,205,211,0.15);
+    }
+    .book-pill-progress {
+      width: 36px; height: 36px;
+      display: grid; place-items: center;
+    }
+    .book-pill-progress svg {
+      width: 36px; height: 36px;
+    }
+    .book-pill-progress .arc-bg {
+      stroke: rgba(122,187,218,0.14);
+      fill: none; stroke-width: 3;
+    }
+    .book-pill-progress .arc-fill {
+      stroke: var(--teal);
+      fill: none; stroke-width: 3;
+      stroke-linecap: round;
+      transition: stroke-dashoffset 400ms ease;
+    }
+    .book-pill-info {
+      min-width: 0;
+      display: flex; flex-direction: column; gap: 2px;
+    }
+    .book-pill-title {
+      font-size: 0.88rem; font-weight: 800;
+      color: var(--text-strong);
+      line-height: 1.1;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .book-pill-page {
+      font-size: 0.72rem; font-weight: 700;
       color: var(--text-soft);
-      max-width: 520px;
-      line-height: 1.45;
-      position: relative;
-      z-index: 4;
+    }
+    .book-pill-action {
+      font-size: 0.68rem; font-weight: 800;
+      color: var(--teal);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      flex: 0 0 auto;
     }
 
-    .orb-wrap {
+    /* ── Recording area ── */
+    .rec-area {
       position: relative;
-      width: min(86vw, 560px);
-      height: min(78vw, 500px);
+      width: 160px; height: 160px;
       display: grid;
       place-items: center;
-      margin: 46px 0 16px;
-      overflow: visible;
+      margin: 0 auto;
+      flex: 1 0 auto;
+      min-height: 140px;
+      max-height: 200px;
     }
-
     .aura-reactive {
       position: absolute;
-      top: 50%;
-      left: 50%;
-      width: min(76vw, 500px);
-      height: min(76vw, 500px);
+      top: 50%; left: 50%;
+      width: 140px; height: 140px;
       transform: translate(-50%, -50%) scale(1);
-      opacity: 0.56;
+      opacity: 0.7;
       transition: opacity 260ms ease;
       pointer-events: none;
-      filter: saturate(0.98);
     }
-
     .aura-breathe {
-      width: 100%;
-      height: 100%;
+      width: 100%; height: 100%;
       border-radius: 50%;
-      background: radial-gradient(circle at center, rgba(31, 198, 213, 0.68), rgba(31, 198, 213, 0.22) 46%, rgba(31, 198, 213, 0.05) 72%, rgba(31, 198, 213, 0) 100%);
+      background: radial-gradient(circle, rgba(36,214,223,0.22) 0%, rgba(36,214,223,0.10) 38%, rgba(36,214,223,0.03) 63%, transparent 74%);
       animation: breathe 6.8s ease-in-out infinite;
     }
-
     @keyframes breathe {
-      0%, 100% {
-        transform: scale(0.94);
-      }
-      50% {
-        transform: scale(1.08);
-      }
+      0%, 100% { transform: scale(0.94); }
+      50%      { transform: scale(1.08); }
     }
 
-    .main-btn {
-      width: min(40vw, 190px);
-      height: min(40vw, 190px);
-      border: 1px solid rgba(158, 255, 241, 0.5);
+    .rec-btn {
+      width: 96px; height: 96px;
+      border: 2px solid rgba(215,255,255,0.6);
       border-radius: 50%;
-      background: radial-gradient(circle at 30% 25%, var(--button-top) 0%, var(--button-mid) 48%, var(--button-base) 100%);
+      background: radial-gradient(circle at 35% 25%, #43f1ef, #26d3dc 50%, #18bfc8);
       color: #081012;
-      font-size: clamp(1.2rem, 4.8vw, 1.9rem);
-      font-weight: 700;
-      letter-spacing: 0.015em;
-      cursor: pointer;
-      outline: none;
-      transform: scale(1);
-      box-shadow: 0 0 45px rgba(77, 255, 232, 0.3);
-      filter: saturate(0.92);
-      transition: transform 240ms ease, box-shadow 300ms ease, filter 300ms ease;
-      -webkit-tap-highlight-color: transparent;
-      display: inline-flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
+      font-size: 1rem; font-weight: 950;
+      cursor: pointer; outline: none;
+      box-shadow: 0 0 32px var(--teal-glow), 0 0 0 12px rgba(36,214,223,0.06);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
       gap: 4px;
-      position: relative;
-      z-index: 2;
+      position: relative; z-index: 2;
+      transition: transform 240ms ease, box-shadow 300ms ease, background 400ms ease, border-color 400ms ease;
+      -webkit-tap-highlight-color: transparent;
+      font-family: inherit;
     }
+    .rec-btn:active { transform: scale(0.95); }
 
-    .main-btn:active {
-      transform: scale(0.97);
-      box-shadow: 0 0 24px rgba(77, 255, 232, 0.24);
-      filter: saturate(1.08);
+    .rec-btn--saving {
+      background: radial-gradient(circle at 35% 25%, #f5d96b, #d4a422 50%, #b8901a) !important;
+      border-color: rgba(255,224,130,0.6) !important;
+      box-shadow: 0 0 32px var(--gold-glow), 0 0 0 12px rgba(240,201,77,0.06) !important;
     }
-
-    @keyframes tapPulse {
-      0% {
-        transform: scale(1);
-        box-shadow: 0 0 34px rgba(77, 255, 232, 0.25);
-      }
-      45% {
-        transform: scale(0.95);
-        box-shadow: 0 0 18px rgba(77, 255, 232, 0.2);
-      }
-      100% {
-        transform: scale(1.03);
-        box-shadow: 0 0 54px rgba(77, 255, 232, 0.42);
-      }
+    .rec-btn--uploading {
+      background: radial-gradient(circle at 35% 25%, #f5d96b, #d4a422 50%, #b8901a) !important;
+      border-color: rgba(255,224,130,0.6) !important;
+      animation: uploadPulse 1.2s ease-in-out infinite alternate !important;
     }
-
-    @keyframes tapPulseStop {
-      0% {
-        transform: scale(1);
-        box-shadow: 0 0 34px rgba(77, 255, 232, 0.25);
-      }
-      45% {
-        transform: scale(0.94);
-        box-shadow: 0 0 16px rgba(77, 255, 232, 0.18);
-      }
-      100% {
-        transform: scale(1);
-        box-shadow: 0 0 38px rgba(77, 255, 232, 0.32);
-      }
-    }
-
-    .main-btn.visual-tap {
-      animation: tapPulse 280ms ease-out;
-    }
-
-    .main-btn.visual-stop {
-      animation: tapPulseStop 300ms ease-out;
+    @keyframes uploadPulse {
+      0%   { opacity: 0.7; box-shadow: 0 0 24px var(--gold-glow); }
+      100% { opacity: 1.0; box-shadow: 0 0 42px var(--gold-glow); }
     }
 
     .mic-mark {
-      width: clamp(18px, 6vw, 26px);
-      height: clamp(18px, 6vw, 26px);
+      width: 22px; height: 22px;
+      display: inline-block; line-height: 1;
+    }
+    .mic-mark svg { width: 100%; height: 100%; display: block; stroke: #051219; }
+    .btn-label { line-height: 1; font-size: 0.92rem; }
+    .btn-countdown {
+      font-size: 1.1rem; font-weight: 950;
+      font-variant-numeric: tabular-nums;
       line-height: 1;
-      opacity: 0.92;
-      display: inline-block;
     }
 
-    .mic-mark svg {
-      width: 100%;
-      height: 100%;
-      display: block;
-      stroke: #051219;
+    /* Progress ring around button (timer mode) */
+    .progress-ring {
+      position: absolute;
+      top: 50%; left: 50%;
+      width: 104px; height: 104px;
+      transform: translate(-50%, -50%) rotate(-90deg);
+      pointer-events: none;
+      z-index: 3;
+      opacity: 0;
+      transition: opacity 300ms ease;
+    }
+    .progress-ring.active { opacity: 1; }
+    .progress-ring-bg {
+      stroke: rgba(122,187,218,0.12);
+      fill: none; stroke-width: 3;
+    }
+    .progress-ring-fill {
+      stroke: var(--teal);
+      fill: none; stroke-width: 3;
+      stroke-linecap: round;
+      transition: stroke-dashoffset 500ms linear;
     }
 
-    .btn-label {
-      line-height: 1;
-      font-size: clamp(0.6rem, 2vw, 0.8rem);
-    }
-
+    /* ── Helper text ── */
     .helper {
-      margin: 44px 0 0;
+      margin: 0;
       text-align: center;
-      color: var(--text-soft);
-      font-size: clamp(0.98rem, 3.4vw, 1.18rem);
-    }
-
-    .save-btn {
-      margin-top: 40px;
-      border: 1px solid rgba(158, 255, 241, 0.5);
-      border-radius: 999px;
-      background: rgba(16, 57, 71, 0.8);
-      color: #d8f8fa;
-      font-size: clamp(0.92rem, 3.2vw, 1.05rem);
-      font-weight: 700;
-      letter-spacing: 0.01em;
-      padding: 10px 18px;
-      cursor: pointer;
-    }
-
-    .save-btn.visual-tap {
-      transform: scale(0.98);
-      box-shadow: 0 0 18px rgba(122, 233, 243, 0.28);
-      transition: transform 180ms ease, box-shadow 220ms ease;
-    }
-
-    .save-btn[hidden] {
-      display: none;
-    }
-
-    .save-status {
-      margin: 18px 0 0;
+      color: rgba(221,231,239,0.7);
+      font-size: 0.82rem;
       min-height: 18px;
-      text-align: center;
-      color: #9fd3d9;
-      font-size: clamp(0.82rem, 2.8vw, 0.95rem);
-      opacity: 0.92;
     }
+
+    /* ── Goal toast ── */
+    .goal-toast {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0 auto;
+      padding: 8px 16px;
+      border-radius: 99px;
+      border: 1px solid rgba(29,205,211,0.22);
+      background: rgba(29,205,211,0.06);
+      font-size: 0.82rem; font-weight: 800;
+      color: var(--teal);
+      animation: goalSlideIn 400ms ease-out;
+    }
+    .goal-toast[hidden] { display: none; }
+    @keyframes goalSlideIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Bottom nav ── */
+    .child-bottom-nav {
+      position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+      width: min(430px, 100vw);
+      height: calc(68px + env(safe-area-inset-bottom, 0px));
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+      background: rgba(6,14,26,0.96);
+      border-top: 1px solid rgba(29,205,211,0.14);
+      backdrop-filter: blur(16px);
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      z-index: 200;
+    }
+    .child-nav-tab {
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; gap: 3px;
+      color: rgba(148,164,180,0.7); font-size: 11px; font-weight: 700;
+      position: relative; text-decoration: none;
+      border: 0; background: none; font-family: inherit; cursor: pointer;
+    }
+    .child-nav-tab svg { width: 22px; height: 22px; stroke: currentColor; fill: none; }
+    .child-nav-tab.active { color: var(--teal); }
+    .child-nav-tab.active::after {
+      content: ""; position: absolute; bottom: 4px;
+      width: 28px; height: 3px; border-radius: 99px;
+      background: var(--teal);
+      box-shadow: 0 0 10px rgba(29,205,211,0.4);
+    }
+
+    /* ── Book picker modal ── */
+    .child-action-overlay {
+      position: fixed; inset: 0; z-index: 90;
+      display: none; place-items: end center;
+      padding: 18px calc(16px + env(safe-area-inset-right)) calc(18px + env(safe-area-inset-bottom)) calc(16px + env(safe-area-inset-left));
+      background: rgba(2,7,13,0.68);
+      backdrop-filter: blur(8px);
+    }
+    .child-action-overlay.open { display: grid; }
+    .child-action-modal {
+      width: min(100%, 420px);
+      max-height: min(84svh, 620px);
+      overflow: auto;
+      position: relative;
+      background: rgba(6,14,26,0.985);
+      border: 1px solid rgba(29,205,211,0.20);
+      border-radius: 22px;
+      padding: 22px 22px calc(22px + 80px);
+      color: #d9e5ef;
+      box-shadow: 0 32px 80px rgba(0,0,0,0.62), 0 0 60px rgba(29,205,211,0.08);
+    }
+    .child-action-modal::before {
+      content: ""; position: absolute; top: 0; left: 10%; right: 10%; height: 1px;
+      background: linear-gradient(90deg, rgba(29,205,211,0), rgba(29,205,211,0.55), rgba(29,205,211,0));
+    }
+    .child-action-close {
+      position: absolute; top: 13px; right: 13px;
+      width: 30px; height: 30px; border-radius: 50%;
+      border: 1px solid rgba(122,187,218,0.16);
+      background: rgba(255,255,255,0.06);
+      color: rgba(148,164,180,0.86);
+      display: grid; place-items: center;
+      cursor: pointer; font-size: 18px;
+    }
+    .child-action-modal h2 {
+      margin: 2px 0 4px; font-size: 24px; line-height: 1.1;
+      letter-spacing: -0.6px; text-align: center;
+    }
+    .child-action-sub {
+      margin: 0 0 20px;
+      color: rgba(148,164,180,0.78);
+      font-size: 13px; text-align: center;
+    }
+    .child-field { margin-bottom: 13px; }
+    .child-field label {
+      display: block; margin-bottom: 6px;
+      color: #d9e5ef; font-size: 11px; font-weight: 800; letter-spacing: 0.25px;
+    }
+    .child-input {
+      width: 100%; min-height: 42px; border-radius: 10px;
+      border: 1px solid rgba(122,187,218,0.18);
+      background: rgba(7,18,33,0.96);
+      color: #d9e5ef; padding: 10px 12px; font-size: 15px; outline: none;
+      transition: border-color 180ms ease, box-shadow 180ms ease;
+    }
+    .child-input:focus {
+      border-color: rgba(29,205,211,0.70);
+      box-shadow: 0 0 0 3px rgba(29,205,211,0.14), 0 0 18px rgba(29,205,211,0.32);
+    }
+    .child-book-list { display: flex; flex-direction: column; gap: 8px; }
+    .child-book-option {
+      width: 100%; min-height: 74px; border-radius: 12px;
+      border: 1px solid rgba(122,187,218,0.16);
+      background: rgba(7,18,33,0.96);
+      color: #d9e5ef; text-align: left;
+      padding: 13px; font-size: 15px; font-weight: 700;
+      cursor: pointer;
+      display: grid; grid-template-columns: minmax(0,1fr) auto;
+      column-gap: 12px; align-items: center;
+      transition: border-color 180ms ease, box-shadow 180ms ease, background 180ms ease;
+      font-family: inherit;
+    }
+    .child-book-option:active { transform: scale(0.985); }
+    .child-book-option.selected {
+      border-color: rgba(29,205,211,0.72);
+      background: linear-gradient(180deg, rgba(29,205,211,0.14), rgba(29,205,211,0.08)), rgba(9,25,43,0.98);
+      box-shadow: 0 0 0 2px rgba(29,205,211,0.12), 0 0 22px rgba(29,205,211,0.30);
+    }
+    .child-book-option-main { display: flex; flex-direction: column; gap: 7px; min-width: 0; }
+    .child-book-option-title { color: #d9e5ef; line-height: 1.14; white-space: normal; }
+    .child-book-option-meta {
+      color: rgba(148,164,180,0.78); font-size: 12px; font-weight: 800; letter-spacing: 0.15px;
+    }
+    .child-book-option.selected .child-book-option-meta { color: var(--teal); }
+    .child-book-page-control { display: none; min-width: 92px; text-align: right; }
+    .child-book-option.selected .child-book-page-control { display: block; }
+    .child-book-page-label {
+      display: block; margin-bottom: 5px;
+      color: rgba(217,229,239,0.72); font-size: 10px; font-weight: 850;
+      letter-spacing: 0.25px; text-transform: uppercase;
+    }
+    .child-book-page-input {
+      width: 78px; height: 40px; border-radius: 11px;
+      border: 1px solid rgba(29,205,211,0.36);
+      background: rgba(7,18,33,0.96);
+      color: #d9e5ef; padding: 8px 10px;
+      font: inherit; font-size: 17px; font-weight: 800;
+      text-align: center; outline: none;
+    }
+    .child-book-page-input:focus {
+      border-color: rgba(29,205,211,0.72);
+      box-shadow: 0 0 0 3px rgba(29,205,211,0.14), 0 0 18px rgba(29,205,211,0.32);
+    }
+    .child-book-empty {
+      padding: 14px 13px; border-radius: 12px;
+      border: 1px dashed rgba(29,205,211,0.25);
+      background: rgba(29,205,211,0.045);
+      color: rgba(217,229,239,0.78); font-size: 14px; line-height: 1.35;
+    }
+    .child-modal-btn {
+      width: 100%; min-height: 44px; border-radius: 11px;
+      border: 1px solid rgba(29,205,211,0.34);
+      background: rgba(29,205,211,0.10);
+      color: #dffbff; font-size: 15px; font-weight: 800;
+      cursor: pointer;
+      box-shadow: 0 0 0 1px rgba(29,205,211,0.05), 0 0 18px rgba(29,205,211,0.16);
+      transition: transform 140ms ease, border-color 180ms ease, box-shadow 180ms ease;
+    }
+    .child-modal-btn:active {
+      transform: scale(0.985);
+      background: rgba(29,205,211,0.22);
+    }
+    .child-modal-result {
+      display: none; margin-top: 10px; padding: 10px 12px;
+      border-radius: 12px; background: rgba(29,205,211,0.08);
+      border: 1px solid rgba(29,205,211,0.22);
+      color: var(--teal); font-size: 13px; font-weight: 700; text-align: center;
+    }
+    .child-modal-result.show { display: block; }
+    .child-action-preview-text { display: none; }
+
+    /* ── Timer selector pills ── */
+    .timer-selector {
+      margin-bottom: 16px;
+    }
+    .timer-selector label {
+      display: block; margin-bottom: 8px;
+      color: #d9e5ef; font-size: 11px; font-weight: 800; letter-spacing: 0.25px;
+    }
+    .timer-pills {
+      display: flex; gap: 6px; flex-wrap: wrap;
+    }
+    .timer-pill {
+      padding: 8px 14px; border-radius: 99px;
+      border: 1px solid rgba(122,187,218,0.18);
+      background: rgba(7,18,33,0.96);
+      color: var(--text-soft); font-size: 13px; font-weight: 800;
+      cursor: pointer; font-family: inherit;
+      transition: border-color 180ms ease, background 180ms ease, color 180ms ease;
+    }
+    .timer-pill:active { transform: scale(0.96); }
+    .timer-pill.selected {
+      border-color: rgba(29,205,211,0.72);
+      background: rgba(29,205,211,0.12);
+      color: var(--teal);
+      box-shadow: 0 0 14px rgba(29,205,211,0.20);
+    }
+
+    /* ── Post-save popup ── */
+    .post-save-overlay {
+      position: fixed; inset: 0; z-index: 11000;
+      display: none; place-items: center;
+      padding: 18px;
+      background: rgba(2,7,13,0.66);
+      backdrop-filter: blur(8px);
+    }
+    .post-save-overlay.open { display: grid; }
+    .post-save-card {
+      width: min(92vw, 390px);
+      position: relative; border-radius: 22px;
+      border: 1px solid rgba(29,205,211,0.22);
+      background: rgba(6,14,26,0.985);
+      color: #d9e5ef;
+      padding: 24px 22px 22px;
+      box-shadow: 0 32px 80px rgba(0,0,0,0.62), 0 0 60px rgba(29,205,211,0.09);
+      text-align: center;
+    }
+    .post-save-card::before {
+      content: ""; position: absolute; top: 0; left: 12%; right: 12%; height: 1px;
+      background: linear-gradient(90deg, rgba(29,205,211,0), rgba(29,205,211,0.60), rgba(29,205,211,0));
+    }
+    .post-save-icon {
+      width: 58px; height: 58px; margin: 0 auto 13px;
+      border-radius: 50%; display: grid; place-items: center;
+      border: 1px solid rgba(29,205,211,0.42);
+      background: radial-gradient(circle at 50% 36%, rgba(29,205,211,0.25), rgba(8,19,31,0.96) 68%);
+      color: var(--teal); font-size: 25px;
+      box-shadow: 0 0 22px rgba(29,205,211,0.30), 0 0 44px rgba(29,205,211,0.16);
+    }
+    .post-save-card h2 { margin: 0 0 7px; font-size: 24px; line-height: 1.1; letter-spacing: -0.55px; }
+    .post-save-card p { margin: 0 0 18px; color: rgba(148,164,180,0.84); font-size: 14px; line-height: 1.42; }
+    .post-save-actions { display: grid; gap: 10px; }
+    .post-save-btn {
+      width: 100%; min-height: 44px; border-radius: 11px;
+      border: 1px solid rgba(29,205,211,0.34);
+      background: rgba(29,205,211,0.10);
+      color: #dffbff; font-size: 15px; font-weight: 800;
+      cursor: pointer; font-family: inherit;
+      transition: transform 140ms ease, border-color 180ms ease;
+    }
+    .post-save-btn:active { transform: scale(0.985); background: rgba(29,205,211,0.22); }
+    .post-save-btn.secondary {
+      background: rgba(255,255,255,0.025);
+      border-color: rgba(122,187,218,0.18);
+      color: rgba(217,229,239,0.82); box-shadow: none;
+    }
+    .post-save-tagline {
+      margin: 0 0 9px; color: var(--teal); font-size: 12px; font-weight: 800;
+      letter-spacing: 0.45px; text-transform: uppercase;
+    }
+    .post-save-intro { margin-bottom: 16px; }
+    .post-save-field { text-align: left; margin-bottom: 13px; }
+    .post-save-field label {
+      display: block; margin-bottom: 6px;
+      color: #d9e5ef; font-size: 11px; font-weight: 800; letter-spacing: 0.2px;
+    }
+    .post-save-field input,
+    .post-save-field textarea {
+      width: 100%; border-radius: 11px;
+      border: 1px solid rgba(122,187,218,0.18);
+      background: rgba(7,18,33,0.96);
+      color: #d9e5ef; padding: 11px 12px;
+      font: inherit; font-size: 15px; outline: none; resize: vertical;
+      transition: border-color 180ms ease, box-shadow 180ms ease;
+    }
+    .post-save-field input:focus,
+    .post-save-field textarea:focus {
+      border-color: rgba(29,205,211,0.70);
+      box-shadow: 0 0 0 3px rgba(29,205,211,0.14), 0 0 18px rgba(29,205,211,0.32);
+    }
+    .post-save-field textarea::placeholder,
+    .post-save-field input::placeholder { color: rgba(148,164,180,0.48); }
+    .post-save-note {
+      display: none; margin-top: 10px; padding: 10px 12px;
+      border-radius: 12px; background: rgba(29,205,211,0.08);
+      border: 1px solid rgba(29,205,211,0.22);
+      color: var(--teal); font-size: 13px; font-weight: 700;
+    }
+    .post-save-note.show { display: block; }
 
     .dependency-node {
-      position: absolute;
-      opacity: 0;
-      pointer-events: none;
-      user-select: none;
-      color: var(--bg);
+      position: absolute; opacity: 0; pointer-events: none; user-select: none; color: var(--bg);
     }
-
-    
-      .child-book-list {
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-      }
-
-      .child-book-option {
-        width: 100%;
-        min-height: 44px;
-        border-radius: 12px;
-        border: 1px solid rgba(122, 187, 218, 0.16);
-        background: rgba(7, 18, 33, 0.96);
-        color: #d9e5ef;
-        text-align: left;
-        padding: 11px 13px;
-        font-size: 15px;
-        font-weight: 700;
-        cursor: pointer;
-        transition:
-          border-color 180ms ease,
-          box-shadow 180ms ease,
-          background 180ms ease,
-          transform 120ms ease,
-          color 180ms ease;
-      }
-
-      .child-book-option:hover,
-      .child-book-option:focus-visible {
-        outline: none;
-        border-color: rgba(29, 205, 211, 0.56);
-        background: rgba(9, 25, 43, 0.98);
-        color: #e9fcff;
-        box-shadow:
-          0 0 0 1px rgba(29,205,211,0.08),
-          0 0 18px rgba(29,205,211,0.22),
-          0 0 36px rgba(29,205,211,0.12);
-      }
-
-      .child-book-option:active {
-        transform: scale(0.985);
-        border-color: rgba(29, 205, 211, 0.72);
-        box-shadow:
-          0 0 0 2px rgba(29,205,211,0.14),
-          0 0 24px rgba(29,205,211,0.34);
-      }
-
-      .child-book-option.selected {
-        border-color: rgba(29, 205, 211, 0.72);
-        background:
-          linear-gradient(180deg, rgba(29,205,211,0.14), rgba(29,205,211,0.08)),
-          rgba(9, 25, 43, 0.98);
-        color: #e9fcff;
-        box-shadow:
-          0 0 0 2px rgba(29,205,211,0.12),
-          0 0 22px rgba(29,205,211,0.30),
-          0 0 42px rgba(29,205,211,0.16);
-      }
-
-
-      @media (max-width: 720px) {
-      .screen {
-        padding: 0;
-      }
-
-      .panel {
-        margin-top: 0;
-        min-height: 100dvh;
-        border-radius: 0;
-        border-left: 0;
-        border-right: 0;
-        padding:
-          calc(28px + env(safe-area-inset-top))
-          calc(14px + env(safe-area-inset-right))
-          calc(22px + env(safe-area-inset-bottom))
-          calc(14px + env(safe-area-inset-left));
-        overflow-y: auto;
-      }
-
-      .panel-top {
-        margin-bottom: 20px;
-      }
-
-      .orb-wrap {
-        width: min(92vw, 560px);
-        height: min(60vw, 360px);
-        margin: clamp(18px, 10vh, 96px) 0 clamp(18px, 8vh, 68px);
-        overflow: visible;
-      }
-
-      .main-btn {
-        width: min(36vw, 170px);
-        height: min(36vw, 170px);
-      }
-
-      .helper {
-        margin-top: 0;
-      }
-
-      .save-btn {
-        margin-top: 16px;
-      }
-
-      .save-status {
-        margin-top: 12px;
-      }
-    }
-  
-/* ══════════════════════════════════════════════
-   Floating child actions — bookshelf + reading setup
-   ══════════════════════════════════════════════ */
-/* ── Bottom Nav Bar ── */
-.child-bottom-nav {
-  position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
-  width: min(430px, 100vw);
-  height: calc(68px + env(safe-area-inset-bottom, 0px));
-  padding-bottom: env(safe-area-inset-bottom, 0px);
-  background: rgba(6,14,26,.96);
-  border-top: 1px solid rgba(29,205,211,.14);
-  backdrop-filter: blur(16px);
-  display: grid; grid-template-columns: repeat(4, 1fr);
-  z-index: 200;
-}
-.child-nav-tab {
-  display: flex; flex-direction: column; align-items: center;
-  justify-content: center; gap: 3px;
-  color: rgba(148,164,180,.7); font-size: 11px; font-weight: 700;
-  position: relative; text-decoration: none;
-  border: 0; background: none; font-family: inherit; cursor: pointer;
-}
-.child-nav-tab svg { width: 22px; height: 22px; stroke: currentColor; fill: none; }
-.child-nav-tab.active { color: #1dcdd3; }
-.child-nav-tab.active::after {
-  content: ""; position: absolute; bottom: 4px;
-  width: 28px; height: 3px; border-radius: 99px;
-  background: #1dcdd3;
-  box-shadow: 0 0 10px rgba(29,205,211,.4);
-}
-
-.child-action-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 90;
-  display: none;
-  place-items: end center;
-  padding:
-    18px
-    calc(16px + env(safe-area-inset-right))
-    calc(18px + env(safe-area-inset-bottom))
-    calc(16px + env(safe-area-inset-left));
-  background: rgba(2, 7, 13, 0.68);
-  backdrop-filter: blur(8px);
-}
-
-.child-action-overlay.open {
-  display: grid;
-}
-
-.child-action-modal {
-  width: min(100%, 420px);
-  max-height: min(84svh, 620px);
-  overflow: auto;
-  position: relative;
-  background: rgba(6, 14, 26, 0.985);
-  border: 1px solid rgba(29, 205, 211, 0.20);
-  border-radius: 22px;
-  padding: 22px 22px calc(22px + 80px);
-  color: #d9e5ef;
-  box-shadow:
-    0 32px 80px rgba(0, 0, 0, 0.62),
-    0 0 60px rgba(29, 205, 211, 0.08);
-}
-
-.child-action-modal::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 10%;
-  right: 10%;
-  height: 1px;
-  background: linear-gradient(
-    90deg,
-    rgba(29,205,211,0),
-    rgba(29,205,211,0.55),
-    rgba(29,205,211,0)
-  );
-}
-
-.child-action-close {
-  position: absolute;
-  top: 13px;
-  right: 13px;
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  border: 1px solid rgba(122, 187, 218, 0.16);
-  background: rgba(255, 255, 255, 0.06);
-  color: rgba(148, 164, 180, 0.86);
-  display: grid;
-  place-items: center;
-  cursor: pointer;
-}
-
-.child-action-modal h2 {
-  margin: 2px 0 4px;
-  font-size: 24px;
-  line-height: 1.1;
-  letter-spacing: -0.6px;
-  text-align: center;
-}
-
-.child-action-sub {
-  margin: 0 0 20px;
-  color: rgba(148, 164, 180, 0.78);
-  font-size: 13px;
-  text-align: center;
-}
-
-.child-field {
-  margin-bottom: 13px;
-}
-
-.child-field label {
-  display: block;
-  margin-bottom: 6px;
-  color: #d9e5ef;
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.25px;
-}
-
-.child-select,
-.child-input {
-  width: 100%;
-  min-height: 42px;
-  border-radius: 10px;
-  border: 1px solid rgba(122, 187, 218, 0.18);
-  background: rgba(7, 18, 33, 0.96);
-  color: #d9e5ef;
-  padding: 10px 12px;
-  font-size: 15px;
-  outline: none;
-  transition:
-    border-color 180ms ease,
-    box-shadow 180ms ease,
-    background 180ms ease;
-}
-
-.child-select {
-  color-scheme: dark;
-}
-
-.child-input::placeholder {
-  color: rgba(148, 164, 180, 0.45);
-}
-
-.child-select:focus,
-.child-input:focus {
-  border-color: rgba(29, 205, 211, 0.70);
-  background: rgba(9, 25, 43, 0.98);
-  box-shadow:
-    0 0 0 3px rgba(29, 205, 211, 0.14),
-    0 0 18px rgba(29, 205, 211, 0.32),
-    0 0 36px rgba(29, 205, 211, 0.18);
-}
-
-.child-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-}
-
-.child-action-preview {
-  margin: 4px 0 14px;
-  padding: 13px;
-  border-radius: 15px;
-  border: 1px solid rgba(122, 187, 218, 0.13);
-  background: rgba(255, 255, 255, 0.035);
-}
-
-.child-action-preview-title {
-  color: #1dcdd3;
-  font-size: 11px;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.65px;
-  margin-bottom: 7px;
-}
-
-.child-action-preview-text {
-  margin: 0;
-  color: rgba(217, 229, 239, 0.86);
-  font-size: 13px;
-  line-height: 1.45;
-}
-
-.child-modal-btn {
-  width: 100%;
-  min-height: 44px;
-  border-radius: 11px;
-  border: 1px solid rgba(29, 205, 211, 0.34);
-  background: rgba(29, 205, 211, 0.10);
-  color: #dffbff;
-  font-size: 15px;
-  font-weight: 800;
-  cursor: pointer;
-  box-shadow:
-    0 0 0 1px rgba(29,205,211,0.05),
-    0 0 18px rgba(29,205,211,0.16);
-  transition:
-    transform 140ms ease,
-    border-color 180ms ease,
-    box-shadow 180ms ease,
-    background 180ms ease;
-}
-
-.child-modal-btn:hover,
-.child-modal-btn:focus-visible {
-  outline: none;
-  background: rgba(29, 205, 211, 0.16);
-  border-color: rgba(29, 205, 211, 0.58);
-  box-shadow:
-    0 0 0 1px rgba(29,205,211,0.10),
-    0 0 22px rgba(29,205,211,0.30),
-    0 0 44px rgba(29,205,211,0.16);
-}
-
-.child-modal-btn:active {
-  transform: scale(0.985);
-  background: rgba(29, 205, 211, 0.22);
-  border-color: rgba(29, 205, 211, 0.72);
-  box-shadow:
-    0 0 0 2px rgba(29,205,211,0.14),
-    0 0 30px rgba(29,205,211,0.44),
-    0 0 64px rgba(29,205,211,0.24);
-}
-
-.child-modal-result {
-  display: none;
-  margin-top: 10px;
-  padding: 10px 12px;
-  border-radius: 12px;
-  background: rgba(29,205,211,0.08);
-  border: 1px solid rgba(29,205,211,0.22);
-  color: #1dcdd3;
-  font-size: 13px;
-  font-weight: 700;
-  text-align: center;
-}
-
-.child-modal-result.show {
-  display: block;
-}
-
-@media (max-width: 720px) {
-  .child-action-modal {
-    border-radius: 20px;
-  }
-}
-
-  
-/* ══════════════════════════════════════════════
-   Post-save share popup after reading is saved
-   ══════════════════════════════════════════════ */
-.post-save-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 11000;
-  display: none;
-  place-items: center;
-  padding: 18px;
-  background: rgba(2, 7, 13, 0.66);
-  backdrop-filter: blur(8px);
-}
-
-.post-save-overlay.open {
-  display: grid;
-}
-
-.post-save-card {
-  width: min(92vw, 390px);
-  position: relative;
-  border-radius: 22px;
-  border: 1px solid rgba(29, 205, 211, 0.22);
-  background: rgba(6, 14, 26, 0.985);
-  color: #d9e5ef;
-  padding: 24px 22px 22px;
-  box-shadow:
-    0 32px 80px rgba(0,0,0,0.62),
-    0 0 60px rgba(29,205,211,0.09);
-  text-align: center;
-}
-
-.post-save-card::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 12%;
-  right: 12%;
-  height: 1px;
-  background: linear-gradient(
-    90deg,
-    rgba(29,205,211,0),
-    rgba(29,205,211,0.60),
-    rgba(29,205,211,0)
-  );
-}
-
-.post-save-icon {
-  width: 58px;
-  height: 58px;
-  margin: 0 auto 13px;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  border: 1px solid rgba(29,205,211,0.42);
-  background:
-    radial-gradient(circle at 50% 36%, rgba(29,205,211,0.25), rgba(8,19,31,0.96) 68%);
-  color: #1dcdd3;
-  font-size: 25px;
-  box-shadow:
-    0 0 0 1px rgba(29,205,211,0.10),
-    0 0 22px rgba(29,205,211,0.30),
-    0 0 44px rgba(29,205,211,0.16);
-}
-
-.post-save-card h2 {
-  margin: 0 0 7px;
-  font-size: 24px;
-  line-height: 1.1;
-  letter-spacing: -0.55px;
-}
-
-.post-save-card p {
-  margin: 0 0 18px;
-  color: rgba(148, 164, 180, 0.84);
-  font-size: 14px;
-  line-height: 1.42;
-}
-
-.post-save-actions {
-  display: grid;
-  gap: 10px;
-}
-
-.post-save-btn {
-  width: 100%;
-  min-height: 44px;
-  border-radius: 11px;
-  border: 1px solid rgba(29,205,211,0.34);
-  background: rgba(29,205,211,0.10);
-  color: #dffbff;
-  font-size: 15px;
-  font-weight: 800;
-  cursor: pointer;
-  box-shadow:
-    0 0 0 1px rgba(29,205,211,0.05),
-    0 0 18px rgba(29,205,211,0.16);
-  transition:
-    transform 140ms ease,
-    border-color 180ms ease,
-    box-shadow 180ms ease,
-    background 180ms ease;
-}
-
-.post-save-btn:hover,
-.post-save-btn:focus-visible {
-  outline: none;
-  background: rgba(29,205,211,0.16);
-  border-color: rgba(29,205,211,0.58);
-  box-shadow:
-    0 0 0 1px rgba(29,205,211,0.10),
-    0 0 22px rgba(29,205,211,0.30),
-    0 0 44px rgba(29,205,211,0.16);
-}
-
-.post-save-btn:active {
-  transform: scale(0.985);
-  background: rgba(29,205,211,0.22);
-}
-
-.post-save-btn.secondary {
-  background: rgba(255,255,255,0.025);
-  border-color: rgba(122,187,218,0.18);
-  color: rgba(217,229,239,0.82);
-  box-shadow: none;
-}
-
-.post-save-note {
-  display: none;
-  margin-top: 10px;
-  padding: 10px 12px;
-  border-radius: 12px;
-  background: rgba(29,205,211,0.08);
-  border: 1px solid rgba(29,205,211,0.22);
-  color: #1dcdd3;
-  font-size: 13px;
-  font-weight: 700;
-}
-
-.post-save-note.show {
-  display: block;
-}
-
-
-/* Final reading setup: modal only chooses book + starting page */
-.child-row {
-  grid-template-columns: 1fr !important;
-}
-
-
-.post-save-tagline {
-  margin: 0 0 9px !important;
-  color: #1dcdd3 !important;
-  font-size: 12px !important;
-  font-weight: 800 !important;
-  letter-spacing: .45px !important;
-  text-transform: uppercase !important;
-}
-.post-save-intro {
-  margin-bottom: 16px !important;
-}
-.post-save-field {
-  text-align: left;
-  margin-bottom: 13px;
-}
-.post-save-field label {
-  display: block;
-  margin-bottom: 6px;
-  color: #d9e5ef;
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: .2px;
-}
-.post-save-field input,
-.post-save-field textarea {
-  width: 100%;
-  border-radius: 11px;
-  border: 1px solid rgba(122,187,218,.18);
-  background: rgba(7,18,33,.96);
-  color: #d9e5ef;
-  padding: 11px 12px;
-  font: inherit;
-  font-size: 15px;
-  outline: none;
-  resize: vertical;
-  transition: border-color .18s ease, box-shadow .18s ease, background .18s ease;
-}
-.post-save-field input:focus,
-.post-save-field textarea:focus {
-  border-color: rgba(29,205,211,.70);
-  background: rgba(9,25,43,.98);
-  box-shadow:
-    0 0 0 3px rgba(29,205,211,.14),
-    0 0 18px rgba(29,205,211,.32),
-    0 0 36px rgba(29,205,211,.18);
-}
-.post-save-field textarea::placeholder,
-.post-save-field input::placeholder {
-  color: rgba(148,164,180,.48);
-}
-
-
-/* Final book picker polish: only “Að lesa” books + clear spacing */
-.child-book-option {
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: flex-start !important;
-  gap: 7px !important;
-  line-height: 1.12 !important;
-}
-
-.child-book-option-title {
-  display: block !important;
-  width: 100% !important;
-  color: #d9e5ef !important;
-  line-height: 1.14 !important;
-}
-
-.child-book-option-meta {
-  display: block !important;
-  width: 100% !important;
-  margin-top: 0 !important;
-  color: rgba(148, 164, 180, 0.78) !important;
-  font-size: 12px !important;
-  font-weight: 800 !important;
-  letter-spacing: .15px !important;
-  line-height: 1.15 !important;
-}
-
-.child-book-option.selected .child-book-option-meta {
-  color: #1dcdd3 !important;
-}
-
-.child-book-empty {
-  padding: 14px 13px;
-  border-radius: 12px;
-  border: 1px dashed rgba(29,205,211,.25);
-  background: rgba(29,205,211,.045);
-  color: rgba(217,229,239,.78);
-  font-size: 14px;
-  line-height: 1.35;
-}
-
-
-/* FINAL: book picker with page input inside selected tile */
-.child-book-option {
-  display: grid !important;
-  grid-template-columns: minmax(0, 1fr) auto !important;
-  column-gap: 12px !important;
-  align-items: center !important;
-  min-height: 74px !important;
-  padding: 13px 13px !important;
-}
-
-.child-book-option-main {
-  min-width: 0 !important;
-  display: flex !important;
-  flex-direction: column !important;
-  gap: 7px !important;
-}
-
-.child-book-option-title {
-  display: block !important;
-  width: 100% !important;
-  color: #d9e5ef !important;
-  line-height: 1.14 !important;
-  white-space: normal !important;
-}
-
-.child-book-option-meta {
-  display: block !important;
-  width: 100% !important;
-  margin-top: 0 !important;
-  color: rgba(148,164,180,.78) !important;
-  font-size: 12px !important;
-  font-weight: 800 !important;
-  letter-spacing: .15px !important;
-  line-height: 1.15 !important;
-}
-
-.child-book-option.selected .child-book-option-meta {
-  color: #1dcdd3 !important;
-}
-
-.child-book-page-control {
-  display: none !important;
-  min-width: 92px !important;
-  text-align: right !important;
-}
-
-.child-book-option.selected .child-book-page-control {
-  display: block !important;
-}
-
-.child-book-page-label {
-  display: block !important;
-  margin-bottom: 5px !important;
-  color: rgba(217,229,239,.72) !important;
-  font-size: 10px !important;
-  font-weight: 850 !important;
-  letter-spacing: .25px !important;
-  text-transform: uppercase !important;
-}
-
-.child-book-page-input {
-  width: 78px !important;
-  height: 40px !important;
-  border-radius: 11px !important;
-  border: 1px solid rgba(29,205,211,.36) !important;
-  background: rgba(7,18,33,.96) !important;
-  color: #d9e5ef !important;
-  padding: 8px 10px !important;
-  font: inherit !important;
-  font-size: 17px !important;
-  font-weight: 800 !important;
-  text-align: center !important;
-  outline: none !important;
-  box-shadow:
-    0 0 0 1px rgba(29,205,211,.05),
-    0 0 14px rgba(29,205,211,.14) !important;
-}
-
-.child-book-page-input:focus {
-  border-color: rgba(29,205,211,.72) !important;
-  background: rgba(9,25,43,.98) !important;
-  box-shadow:
-    0 0 0 3px rgba(29,205,211,.14),
-    0 0 18px rgba(29,205,211,.32),
-    0 0 36px rgba(29,205,211,.18) !important;
-}
-
-@media (max-width: 390px) {
-  .child-book-option {
-    grid-template-columns: minmax(0, 1fr) 84px !important;
-    column-gap: 10px !important;
-  }
-  .child-book-page-control {
-    min-width: 84px !important;
-  }
-  .child-book-page-input {
-    width: 74px !important;
-  }
-}
-
-
-
-/* =========================================================
-   VISUAL SHELL PLACEHOLDER - reading hero template
-   Phase 1 only: uses static placeholder book/goal data.
-   Keeps existing child-v2 IDs and recording/save pipeline.
-   ========================================================= */
-:root{
-  --read-bg:#070d16;
-  --read-line:rgba(122,187,218,.22);
-  --read-line-strong:rgba(122,187,218,.38);
-  --read-text:#e5edf6;
-  --read-muted:#9eacba;
-  --read-teal:#24d6df;
-}
-.screen{
-  min-height:100dvh;
-  padding:30px 18px calc(88px + env(safe-area-inset-bottom,0px));
-  background:
-    radial-gradient(circle at 50% 15%, rgba(35,214,223,.09), transparent 34%),
-    radial-gradient(circle at 42% 62%, rgba(35,214,223,.10), transparent 30%),
-    linear-gradient(180deg,#070d16 0%, #0b111c 58%, #090f18 100%) !important;
-  overflow:hidden;
-}
-.panel{
-  flex:1;
-  margin-top:0 !important;
-  border:0 !important;
-  border-radius:0 !important;
-  background:transparent !important;
-  backdrop-filter:none !important;
-  padding:0 !important;
-  display:flex !important;
-  flex-direction:column !important;
-  align-items:stretch !important;
-  justify-content:flex-start !important;
-  gap:16px !important;
-}
-.panel-top{
-  width:100%;
-  justify-content:flex-start !important;
-  gap:13px !important;
-  margin-bottom:0 !important;
-}
-.home-btn{
-  width:42px !important;
-  height:42px !important;
-  border-color:rgba(122,187,218,.28) !important;
-  background:rgba(15,29,47,.66) !important;
-  box-shadow:0 0 20px rgba(36,214,223,.08) !important;
-  flex:0 0 auto;
-}
-.greeting{
-  text-align:left !important;
-  font-size:1.34rem !important;
-  font-weight:850 !important;
-  letter-spacing:0 !important;
-  line-height:1.1 !important;
-}
-.greeting-name{color:var(--read-teal) !important;}
-.title{
-  text-align:center !important;
-  font-size:2.15rem !important;
-  line-height:1.02 !important;
-  font-weight:900 !important;
-  letter-spacing:0 !important;
-  margin:4px 0 0 !important;
-  color:#edf5fb !important;
-}
-.reading-hero-card{
-  width:100%;
-  border:1px solid var(--read-line-strong);
-  background:
-    radial-gradient(circle at 32% 12%, rgba(36,214,223,.08), transparent 42%),
-    rgba(7,18,32,.74);
-  border-radius:24px;
-  padding:16px;
-  display:grid;
-  grid-template-columns:104px minmax(0,1fr);
-  gap:18px;
-  align-items:center;
-  box-shadow:0 0 40px rgba(36,214,223,.06), inset 0 0 0 1px rgba(255,255,255,.02);
-}
-.reading-cover-placeholder{
-  width:104px;
-  height:138px;
-  border-radius:18px;
-  overflow:hidden;
-  position:relative;
-  border:1px solid rgba(36,214,223,.32);
-  box-shadow:0 14px 28px rgba(0,0,0,.44),0 0 24px rgba(36,214,223,.18);
-  background:
-    radial-gradient(circle at 42% 35%, #ffe7a2 0%, #c9d776 25%, #48b4a5 42%, #12345d 70%, #07111e 100%);
-}
-.reading-cover-placeholder:before{content:"";position:absolute;inset:0;background:linear-gradient(160deg,rgba(255,255,255,.2),transparent 28%,rgba(0,0,0,.28) 100%)}
-.reading-dragon{position:absolute;left:12px;top:34px;width:52px;height:66px;border-radius:60% 45% 55% 45%;background:#37c9bc;box-shadow:18px 11px 0 #249d98;transform:rotate(-12deg)}
-.reading-dragon:before{content:"";position:absolute;right:-16px;top:10px;border-left:22px solid #37c9bc;border-top:10px solid transparent;border-bottom:10px solid transparent;transform:rotate(-18deg)}
-.reading-cover-title{position:absolute;top:16px;right:9px;left:38px;text-align:center;color:#10243a;font-weight:950;font-size:18px;line-height:.95;text-shadow:0 1px 0 rgba(255,255,255,.35)}
-.reading-cover-bottom{position:absolute;bottom:9px;left:8px;right:8px;color:#f0f9ff;font-weight:850;font-size:8px;letter-spacing:.6px;text-transform:uppercase;text-align:center}
-.reading-book-kicker{color:var(--read-teal);font-size:.82rem;line-height:1.1;text-transform:uppercase;font-weight:900;letter-spacing:.7px;margin-bottom:8px}
-.reading-book-title{font-size:1.65rem;line-height:1.05;font-weight:950;letter-spacing:0;color:#f1f7fb;margin-bottom:28px}
-.reading-page-row{display:flex;align-items:center;justify-content:space-between;font-size:1.12rem;color:#d6e0ea;margin-bottom:12px}
-.reading-progress{height:10px;border-radius:999px;background:rgba(122,187,218,.16);overflow:hidden}
-.reading-progress span{display:block;width:29%;height:100%;border-radius:inherit;background:var(--read-teal);box-shadow:0 0 12px rgba(36,214,223,.45)}
-.reading-continue-card{
-  display:grid;
-  grid-template-columns:52px 1fr;
-  gap:14px;
-  align-items:center;
-  border:1px solid var(--read-line);
-  background:rgba(7,18,32,.64);
-  border-radius:20px;
-  padding:14px;
-  color:#e2edf5;
-}
-.reading-continue-icon{width:52px;height:52px;border-radius:16px;border:1px solid rgba(36,214,223,.25);display:grid;place-items:center;background:rgba(36,214,223,.08);color:var(--read-teal);box-shadow:0 0 20px rgba(36,214,223,.09)}
-.reading-continue-icon svg{width:25px;height:25px;stroke:currentColor;fill:none;stroke-width:2}
-.reading-continue-text{font-size:1rem;line-height:1.42;color:#e2ebf3}
-.reading-continue-text b{color:var(--read-teal);font-weight:900}
-.orb-wrap{
-  position:relative !important;
-  width:285px !important;
-  height:285px !important;
-  display:grid !important;
-  place-items:center !important;
-  margin:0 auto !important;
-  overflow:visible !important;
-  flex:1 0 auto;
-  min-height:250px;
-}
-.aura-reactive{
-  position:absolute !important;
-  top:50% !important;
-  left:50% !important;
-  width:270px !important;
-  height:270px !important;
-  transform:translate(-50%,-50%) scale(1) !important;
-  opacity:.9 !important;
-}
-.aura-breathe{
-  background:radial-gradient(circle,rgba(36,214,223,.24) 0%,rgba(36,214,223,.12) 38%,rgba(36,214,223,.04) 63%,transparent 74%) !important;
-}
-.main-btn{
-  width:156px !important;
-  height:156px !important;
-  border:1px solid rgba(215,255,255,.78) !important;
-  background:radial-gradient(circle at 35% 25%, #43f1ef 0%, #26d3dc 50%, #18bfc8 100%) !important;
-  box-shadow:0 0 42px rgba(36,214,223,.35),0 0 0 18px rgba(36,214,223,.08) !important;
-  font-weight:950 !important;
-  gap:10px !important;
-}
-.main-btn.recording-reactive{
-  animation:readListenPulse .82s ease-in-out infinite alternate;
-  filter:saturate(1.08);
-}
-@keyframes readListenPulse{
-  0%{box-shadow:0 0 34px rgba(36,214,223,.30),0 0 0 14px rgba(36,214,223,.07)}
-  100%{box-shadow:0 0 72px rgba(36,214,223,.58),0 0 0 26px rgba(36,214,223,.12)}
-}
-.btn-label{font-size:1.22rem !important;line-height:1 !important;}
-.helper{margin:0 !important;text-align:center !important;color:rgba(221,231,239,.76) !important;font-size:.94rem !important;}
-.save-btn{margin:10px auto 0 !important;align-self:center !important;}
-.save-status{margin:8px 0 0 !important;}
-.reading-month-card{
-  width:min(74%,270px);
-  margin:0 auto;
-  border:1px solid var(--read-line);
-  border-radius:18px;
-  background:rgba(7,18,32,.64);
-  padding:12px 14px;
-  display:grid;
-  grid-template-columns:46px 1fr;
-  gap:14px;
-  align-items:center;
-}
-.reading-trophy{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;background:rgba(36,214,223,.12);border:1px solid rgba(36,214,223,.24);color:var(--read-teal)}
-.reading-trophy svg{width:25px;height:25px;stroke:currentColor;fill:none;stroke-width:2}
-.reading-month-kicker{color:var(--read-teal);font-size:.8rem;font-weight:900;letter-spacing:.7px;text-transform:uppercase}
-.reading-month-title{font-size:1.15rem;font-weight:950;letter-spacing:0;color:#f1f7fb;margin-top:2px}
-@media(max-height:760px){
-  .screen{gap:11px;padding-top:22px}
-  .title{font-size:1.8rem !important}
-  .reading-hero-card{padding:12px;grid-template-columns:86px 1fr}
-  .reading-cover-placeholder{width:86px;height:114px;border-radius:15px}
-  .reading-book-title{font-size:1.35rem;margin-bottom:18px}
-  .reading-continue-card{padding:11px}
-  .orb-wrap{width:240px !important;height:240px !important;min-height:210px}
-  .aura-reactive{width:230px !important;height:230px !important}
-  .main-btn{width:132px !important;height:132px !important}
-  .reading-month-card{padding:10px 12px}
-  .helper{font-size:.8rem !important}
-}
-
-/* Compact child shell: keep the new visual sections inside the app viewport. */
-.screen{
-  padding:14px 14px calc(72px + env(safe-area-inset-bottom,0px)) !important;
-}
-.panel{
-  gap:8px !important;
-}
-.panel-top{
-  gap:10px !important;
-}
-.home-btn{
-  width:36px !important;
-  height:36px !important;
-}
-.home-btn svg{
-  width:18px !important;
-  height:18px !important;
-}
-.greeting{
-  font-size:1rem !important;
-}
-.title{
-  font-size:1.45rem !important;
-  margin:0 !important;
-}
-.reading-hero-card{
-  grid-template-columns:66px minmax(0,1fr) !important;
-  gap:10px !important;
-  border-radius:16px !important;
-  padding:9px !important;
-}
-.reading-cover-placeholder{
-  width:66px !important;
-  height:86px !important;
-  border-radius:12px !important;
-}
-.reading-dragon{
-  left:8px !important;
-  top:24px !important;
-  width:32px !important;
-  height:40px !important;
-  box-shadow:12px 7px 0 #249d98 !important;
-}
-.reading-dragon:before{
-  right:-11px !important;
-  top:7px !important;
-  border-left-width:14px !important;
-  border-top-width:7px !important;
-  border-bottom-width:7px !important;
-}
-.reading-cover-title{
-  top:10px !important;
-  left:23px !important;
-  right:5px !important;
-  font-size:12px !important;
-}
-.reading-cover-bottom{
-  bottom:6px !important;
-  font-size:6px !important;
-}
-.reading-book-kicker{
-  font-size:.66rem !important;
-  margin-bottom:4px !important;
-}
-.reading-book-title{
-  font-size:1.08rem !important;
-  margin-bottom:9px !important;
-}
-.reading-page-row{
-  font-size:.84rem !important;
-  margin-bottom:6px !important;
-}
-.reading-progress{
-  height:6px !important;
-}
-.reading-continue-card{
-  grid-template-columns:34px 1fr !important;
-  gap:9px !important;
-  border-radius:14px !important;
-  padding:8px 10px !important;
-}
-.reading-continue-icon{
-  width:34px !important;
-  height:34px !important;
-  border-radius:10px !important;
-}
-.reading-continue-icon svg{
-  width:18px !important;
-  height:18px !important;
-}
-.reading-continue-text{
-  font-size:.78rem !important;
-  line-height:1.25 !important;
-}
-.orb-wrap{
-  width:176px !important;
-  height:176px !important;
-  min-height:166px !important;
-}
-.aura-reactive{
-  width:166px !important;
-  height:166px !important;
-}
-.main-btn{
-  width:108px !important;
-  height:108px !important;
-  box-shadow:0 0 28px rgba(36,214,223,.30),0 0 0 10px rgba(36,214,223,.07) !important;
-}
-.btn-label{
-  font-size:.94rem !important;
-}
-.helper{
-  font-size:.75rem !important;
-}
-.reading-month-card{
-  width:min(78%,240px) !important;
-  grid-template-columns:32px 1fr !important;
-  gap:9px !important;
-  border-radius:13px !important;
-  padding:7px 10px !important;
-}
-.reading-trophy{
-  width:32px !important;
-  height:32px !important;
-}
-.reading-trophy svg{
-  width:18px !important;
-  height:18px !important;
-}
-.reading-month-kicker{
-  font-size:.63rem !important;
-}
-.reading-month-title{
-  font-size:.86rem !important;
-}
-
-</style>
+  </style>
 </head>
 <body>
   <main class="screen">
@@ -1505,86 +640,86 @@
     </svg>
 
     <section class="panel">
-      <div class="panel-top">
+      <div class="top-bar">
         <button id="home-btn" class="home-btn" type="button" aria-label="Go home">
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true">
             <path d="M4 11.5L12 5L20 11.5V19C20 19.5523 19.5523 20 19 20H15V14H9V20H5C4.44772 20 4 19.5523 4 19V11.5Z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         </button>
-
-        <p id="greeting" class="greeting">Hæ, <span id="greeting-name" class="greeting-name">Lesari</span>!</p>
+        <p class="greeting">Hæ, <span id="greeting-name" class="greeting-name">Lesari</span>!</p>
       </div>
 
-      <h1 class="title">Tími til að lesa!</h1>
+      <button id="book-pill" class="book-pill" type="button" aria-label="Velja bók">
+        <span class="book-pill-progress">
+          <svg viewBox="0 0 40 40">
+            <circle class="arc-bg" cx="20" cy="20" r="16"/>
+            <circle id="pill-arc" class="arc-fill" cx="20" cy="20" r="16"
+                    stroke-dasharray="100.53" stroke-dashoffset="100.53"
+                    transform="rotate(-90 20 20)"/>
+          </svg>
+        </span>
+        <span class="book-pill-info">
+          <span id="pill-title" class="book-pill-title">Veldu bók</span>
+          <span id="pill-page" class="book-pill-page">Opnaðu bókahilluna</span>
+        </span>
+        <span class="book-pill-action">Breyta</span>
+      </button>
 
-      <article class="reading-hero-card" aria-label="Bók sem er í gangi">
-        <div class="reading-cover-placeholder" aria-hidden="true">
-          <div class="reading-dragon"></div>
-          <div class="reading-cover-title">Bók</div>
-          <div class="reading-cover-bottom">Úr hillunni</div>
-        </div>
-        <div>
-          <div class="reading-book-kicker">Halda áfram að lesa...</div>
-          <div class="reading-book-title">Dreki og ævintýri</div>
-          <div class="reading-page-row"><span>Síða 24</span><span>af 86</span></div>
-          <div class="reading-progress"><span></span></div>
-        </div>
-      </article>
-
-      <section class="reading-continue-card" aria-label="Halda áfram">
-        <div class="reading-continue-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24"><path d="M7 4.5h10v15l-5-3-5 3v-15Z"/></svg>
-        </div>
-        <div class="reading-continue-text">Þú kláraðir síðast síðu 24. Viltu halda áfram á <b>síðu 25</b> eða velja aðra bók?</div>
-      </section>
-
-      <div class="orb-wrap">
+      <div class="rec-area">
         <div id="aura-reactive" class="aura-reactive" aria-hidden="true">
           <div class="aura-breathe"></div>
         </div>
 
-        <button id="record-btn" class="main-btn" type="button" aria-label="Start recording">
-          <span class="mic-mark" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <svg id="progress-ring" class="progress-ring" viewBox="0 0 104 104">
+          <circle class="progress-ring-bg" cx="52" cy="52" r="50"/>
+          <circle id="progress-ring-fill" class="progress-ring-fill" cx="52" cy="52" r="50"
+                  stroke-dasharray="314.16" stroke-dashoffset="0"/>
+        </svg>
+
+        <button id="record-btn" class="rec-btn" type="button" aria-label="Byrja upptoku">
+          <span id="mic-mark" class="mic-mark" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none">
               <path d="M12 3.5C10.067 3.5 8.5 5.067 8.5 7V12C8.5 13.933 10.067 15.5 12 15.5C13.933 15.5 15.5 13.933 15.5 12V7C15.5 5.067 13.933 3.5 12 3.5Z" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
               <path d="M5.5 11.5C5.5 15.09 8.41 18 12 18C15.59 18 18.5 15.09 18.5 11.5" stroke-width="2.4" stroke-linecap="round"/>
               <path d="M12 18V21" stroke-width="2.4" stroke-linecap="round"/>
             </svg>
           </span>
           <span id="record-btn-label" class="btn-label">Byrja</span>
+          <span id="record-btn-countdown" class="btn-countdown" hidden></span>
         </button>
       </div>
 
       <p id="helper-text" class="helper">Ýttu á takkann til að byrja að lesa upphátt</p>
-      <button id="save-session-btn" class="save-btn" type="button" hidden>Vista</button>
-      <p id="save-session-status" class="save-status"></p>
 
-      <section class="reading-month-card" aria-label="Mánaðarmarkmið">
-        <div class="reading-trophy" aria-hidden="true">
-          <svg viewBox="0 0 24 24"><path d="M8 4h8v4a4 4 0 0 1-8 0V4Z"/><path d="M8 6H5.5a2 2 0 0 0 0 4H8M16 6h2.5a2 2 0 0 1 0 4H16M12 12v5M9 20h6M10 17h4"/></svg>
-        </div>
-        <div>
-          <div class="reading-month-kicker">Þennan mánuð</div>
-          <div class="reading-month-title">3/3 bækur lesnar</div>
-        </div>
+      <section id="goal-toast" class="goal-toast" hidden>
+        <span class="goal-toast-icon">&#127942;</span>
+        <span id="goal-toast-text" class="goal-toast-text"></span>
       </section>
     </section>
 
+    <!-- Book picker modal -->
     <div id="child-reading-modal" class="child-action-overlay" aria-hidden="true">
       <section class="child-action-modal" role="dialog" aria-modal="true" aria-labelledby="child-reading-modal-title">
-        <button id="child-reading-modal-close" class="child-action-close" type="button" aria-label="Loka">×</button>
+        <button id="child-reading-modal-close" class="child-action-close" type="button" aria-label="Loka">&times;</button>
         <h2 id="child-reading-modal-title">Veldu bók</h2>
         <p class="child-action-sub">Veldu bók og blaðsíðu þar sem þú byrjar.</p>
 
         <div class="child-field">
           <label>Bók</label>
-          <div id="child-book-list" class="child-book-list" role="listbox" aria-label="Veldu bók">
-            <button class="child-book-option selected" type="button" data-book-id="drekastormur" data-book-title="Drekastormur" aria-selected="true">Drekastormur</button>
-            <button class="child-book-option" type="button" data-book-id="herra-zippo" data-book-title="Herra Zippo" aria-selected="false">Herra Zippo</button>
-            <button class="child-book-option" type="button" data-book-id="lappa-vandamal" data-book-title="Lappa vandamál" aria-selected="false">Lappa vandamál</button>
-            <button class="child-book-option" type="button" data-book-id="uglubarn" data-book-title="Uglubarn" aria-selected="false">Uglubarn</button>
+          <div id="child-book-list" class="child-book-list" role="listbox" aria-label="Veldu bók"></div>
+        </div>
+
+        <div class="timer-selector">
+          <label>Tími</label>
+          <div id="timer-pills" class="timer-pills">
+            <button class="timer-pill" type="button" data-minutes="5">5 min</button>
+            <button class="timer-pill" type="button" data-minutes="10">10 min</button>
+            <button class="timer-pill" type="button" data-minutes="15">15 min</button>
+            <button class="timer-pill" type="button" data-minutes="20">20 min</button>
+            <button class="timer-pill selected" type="button" data-minutes="0">Engin</button>
           </div>
         </div>
+
         <input id="child-page-from" type="hidden" value="">
         <input id="child-page-to" type="hidden" value="">
         <p id="child-reading-preview" class="child-action-preview-text" hidden></p>
@@ -1593,10 +728,12 @@
         <div id="child-reading-result" class="child-modal-result">Vistað fyrir næsta lestur.</div>
       </section>
     </div>
+
+    <!-- Post-save popup -->
     <div id="post-save-overlay" class="post-save-overlay" aria-hidden="true">
       <section class="post-save-card" role="dialog" aria-modal="true" aria-labelledby="post-save-title">
-        <div class="post-save-icon" aria-hidden="true">✓</div>
-        <p id="post-save-tagline" class="post-save-tagline">Smá lestrarspor verða að stórri ferð.</p>
+        <div class="post-save-icon" aria-hidden="true">&#10003;</div>
+        <p id="post-save-tagline" class="post-save-tagline">Smá lestrarspor verða að stærri ferð.</p>
         <h2 id="post-save-title">Lestur vistaður</h2>
         <p class="post-save-intro">Bættu einu atriði við lestrarferðalagið.</p>
 
@@ -1639,75 +776,57 @@
         Ný bók
       </button>
     </nav>
-
   </main>
 
   <script>
     (function () {
+      // ── Child session data ──
       var childSession = (function () {
-        try {
-          var raw = localStorage.getItem("upphatt_child");
-          return raw ? JSON.parse(raw) : null;
-        } catch (e) {
-          return null;
-        }
+        try { var raw = localStorage.getItem("upphatt_child"); return raw ? JSON.parse(raw) : null; }
+        catch (e) { return null; }
       })();
       var childName = localStorage.getItem("childName") || (childSession && childSession.childName ? childSession.childName : null) || "Lesari";
       var childStorageKey = childSession && childSession.childKey ? String(childSession.childKey) : "unknown";
-      var greetingNameEl = document.getElementById("greeting-name");
-      greetingNameEl.textContent = childName;
 
+      document.getElementById("greeting-name").textContent = childName;
+
+      // ── DOM refs ──
       var homeBtn = document.getElementById("home-btn");
       var screenEl = document.querySelector(".screen");
-      var panelEl = document.querySelector(".panel");
-      var orbWrapEl = document.querySelector(".orb-wrap");
-      var auraReactiveEl = document.getElementById("aura-reactive");
       var recordBtn = document.getElementById("record-btn");
       var recordBtnLabel = document.getElementById("record-btn-label");
+      var recordBtnCountdown = document.getElementById("record-btn-countdown");
+      var micMarkEl = document.getElementById("mic-mark");
       var helperTextEl = document.getElementById("helper-text");
-      var saveSessionBtn = document.getElementById("save-session-btn");
-      var saveSessionStatus = document.getElementById("save-session-status");
+      var auraReactiveEl = document.getElementById("aura-reactive");
+      var bookPillEl = document.getElementById("book-pill");
+      var pillTitleEl = document.getElementById("pill-title");
+      var pillPageEl = document.getElementById("pill-page");
+      var pillArcEl = document.getElementById("pill-arc");
+      var progressRingEl = document.getElementById("progress-ring");
+      var progressRingFill = document.getElementById("progress-ring-fill");
+      var goalToastEl = document.getElementById("goal-toast");
+      var goalToastText = document.getElementById("goal-toast-text");
       var starEls = Array.prototype.slice.call(document.querySelectorAll(".star"));
       var frozenLinesEl = document.getElementById("frozen-lines");
       var listenLineEl = document.getElementById("listen-line");
       var toastEl = document.getElementById("listen-toast");
+
+      // ── Constants ──
       var LISTEN_STORAGE_KEY = "upphatt_listen_connections_v1_" + childStorageKey;
       var FROZEN_FULL_BRIGHT_MS = 5 * 1000;
       var FROZEN_FADE_MS = 24 * 60 * 60 * 1000;
       var CONNECTION_LIFETIME_MS = FROZEN_FULL_BRIGHT_MS + FROZEN_FADE_MS;
+      var GOAL_STORAGE_KEY = "upphatt_monthly_goal_achieved_" + childStorageKey;
+      var GOAL_VISIBLE_MS = 48 * 60 * 60 * 1000;
+      var PROGRESS_RING_CIRCUMFERENCE = 314.16;
+      var PILL_ARC_CIRCUMFERENCE = 100.53;
+
+      // ── State ──
+      var buttonState = "idle"; // idle | recording | saving | uploading
       var isRecording = false;
-
-      // ── Screen Wake Lock — keeps screen on while recording ──
-      var _wakeLock = null;
-
-      async function requestWakeLock() {
-        if (!('wakeLock' in navigator)) return;
-        try {
-          _wakeLock = await navigator.wakeLock.request('screen');
-          _wakeLock.addEventListener('release', function() {
-            if (isRecording) requestWakeLock();
-          });
-        } catch (e) {
-          console.warn('Wake Lock villa:', e.name, e.message);
-        }
-      }
-
-      function releaseWakeLock() {
-        if (_wakeLock && _wakeLock.released === false) {
-          _wakeLock.release().catch(function() {});
-        }
-        _wakeLock = null;
-      }
-
-      document.addEventListener('visibilitychange', function() {
-        if (document.visibilityState === 'visible' && isRecording) {
-          requestWakeLock();
-        }
-      });
-
       var glowLevel = 0;
       var smoothedInput = 0;
-
       var stream = null;
       var audioContext = null;
       var analyser = null;
@@ -1733,142 +852,90 @@
       var listenEventQueue = [];
       var listenAnimationRunning = false;
       var listenAnimationStartedAt = 0;
+      var timerMinutes = 0;
+      var timerInterval = null;
+      var timerEndMs = 0;
 
-      function triggerHaptic(pattern) {
+      // ── Wake Lock ──
+      var _wakeLock = null;
+      async function requestWakeLock() {
+        if (!("wakeLock" in navigator)) return;
         try {
-          if (navigator.vibrate) {
-            navigator.vibrate(pattern);
-          }
-        } catch (e) {
-          // no-op
-        }
+          _wakeLock = await navigator.wakeLock.request("screen");
+          _wakeLock.addEventListener("release", function () { if (isRecording) requestWakeLock(); });
+        } catch (e) { /* no-op */ }
+      }
+      function releaseWakeLock() {
+        if (_wakeLock && _wakeLock.released === false) _wakeLock.release().catch(function () {});
+        _wakeLock = null;
+      }
+      document.addEventListener("visibilitychange", function () {
+        if (document.visibilityState === "visible" && isRecording) requestWakeLock();
+      });
+
+      // ── Haptics & sound cues ──
+      function triggerHaptic(pattern) {
+        try { if (navigator.vibrate) navigator.vibrate(pattern); } catch (e) { /* no-op */ }
       }
 
       function playMicCue(kind) {
         try {
           var Ctx = window.AudioContext || window.webkitAudioContext;
-          if (!Ctx) {
-            return;
-          }
-
+          if (!Ctx) return;
           var ctx = new Ctx();
           var now = ctx.currentTime;
           if (kind === "on") {
-            [
-              { f: 620, t: 0.0, d: 0.055 },
-              { f: 880, t: 0.06, d: 0.075 }
-            ].forEach(function (tone) {
-              var oscOn = ctx.createOscillator();
-              var gainOn = ctx.createGain();
-              oscOn.type = "triangle";
-              oscOn.frequency.value = tone.f;
-              gainOn.gain.setValueAtTime(0.0001, now + tone.t);
-              gainOn.gain.exponentialRampToValueAtTime(0.024, now + tone.t + 0.01);
-              gainOn.gain.exponentialRampToValueAtTime(0.0001, now + tone.t + tone.d);
-              oscOn.connect(gainOn);
-              gainOn.connect(ctx.destination);
-              oscOn.start(now + tone.t);
-              oscOn.stop(now + tone.t + tone.d + 0.01);
+            [{ f: 620, t: 0.0, d: 0.055 }, { f: 880, t: 0.06, d: 0.075 }].forEach(function (tone) {
+              var osc = ctx.createOscillator(); var gain = ctx.createGain();
+              osc.type = "triangle"; osc.frequency.value = tone.f;
+              gain.gain.setValueAtTime(0.0001, now + tone.t);
+              gain.gain.exponentialRampToValueAtTime(0.024, now + tone.t + 0.01);
+              gain.gain.exponentialRampToValueAtTime(0.0001, now + tone.t + tone.d);
+              osc.connect(gain); gain.connect(ctx.destination);
+              osc.start(now + tone.t); osc.stop(now + tone.t + tone.d + 0.01);
             });
           } else {
-            // Softer descending two-note cue for mic-off.
-            [
-              { f0: 520, f1: 460, t: 0.0, d: 0.08, a: 0.015 },
-              { f0: 420, f1: 360, t: 0.085, d: 0.11, a: 0.013 }
-            ].forEach(function (tone) {
-              var oscOff = ctx.createOscillator();
-              var gainOff = ctx.createGain();
-              oscOff.type = "sine";
-              oscOff.frequency.setValueAtTime(tone.f0, now + tone.t);
-              oscOff.frequency.exponentialRampToValueAtTime(tone.f1, now + tone.t + tone.d);
-              gainOff.gain.setValueAtTime(0.0001, now + tone.t);
-              gainOff.gain.exponentialRampToValueAtTime(tone.a, now + tone.t + 0.016);
-              gainOff.gain.exponentialRampToValueAtTime(0.0001, now + tone.t + tone.d);
-              oscOff.connect(gainOff);
-              gainOff.connect(ctx.destination);
-              oscOff.start(now + tone.t);
-              oscOff.stop(now + tone.t + tone.d + 0.015);
+            [{ f0: 520, f1: 460, t: 0.0, d: 0.08, a: 0.015 }, { f0: 420, f1: 360, t: 0.085, d: 0.11, a: 0.013 }].forEach(function (tone) {
+              var osc = ctx.createOscillator(); var gain = ctx.createGain();
+              osc.type = "sine";
+              osc.frequency.setValueAtTime(tone.f0, now + tone.t);
+              osc.frequency.exponentialRampToValueAtTime(tone.f1, now + tone.t + tone.d);
+              gain.gain.setValueAtTime(0.0001, now + tone.t);
+              gain.gain.exponentialRampToValueAtTime(tone.a, now + tone.t + 0.016);
+              gain.gain.exponentialRampToValueAtTime(0.0001, now + tone.t + tone.d);
+              osc.connect(gain); gain.connect(ctx.destination);
+              osc.start(now + tone.t); osc.stop(now + tone.t + tone.d + 0.015);
             });
           }
-
-          setTimeout(function () {
-            ctx.close().catch(function () {});
-          }, 240);
-        } catch (e) {
-          // no-op
-        }
-      }
-
-      function triggerVisualTap(el, className) {
-        if (!el) {
-          return;
-        }
-        var name = className || "visual-tap";
-        el.classList.remove("visual-tap");
-        el.classList.remove("visual-stop");
-        // Force reflow to restart animation on repeated taps.
-        void el.offsetWidth;
-        el.classList.add(name);
-        setTimeout(function () {
-          el.classList.remove(name);
-        }, 320);
+          setTimeout(function () { ctx.close().catch(function () {}); }, 240);
+        } catch (e) { /* no-op */ }
       }
 
       function playListenImpactCue() {
         try {
           var Ctx = window.AudioContext || window.webkitAudioContext;
-          if (!Ctx) {
-            return;
-          }
-
-          var ctx = new Ctx();
-          var now = ctx.currentTime;
-
-          [
-            { f0: 740, f1: 980, t: 0.0, d: 0.06, a: 0.013 },
-            { f0: 920, f1: 1220, t: 0.05, d: 0.07, a: 0.011 },
-            { f0: 1080, f1: 1320, t: 0.11, d: 0.08, a: 0.009 }
-          ].forEach(function (tone) {
-            var osc = ctx.createOscillator();
-            var gain = ctx.createGain();
+          if (!Ctx) return;
+          var ctx = new Ctx(); var now = ctx.currentTime;
+          [{ f0: 740, f1: 980, t: 0.0, d: 0.06, a: 0.013 }, { f0: 920, f1: 1220, t: 0.05, d: 0.07, a: 0.011 }, { f0: 1080, f1: 1320, t: 0.11, d: 0.08, a: 0.009 }].forEach(function (tone) {
+            var osc = ctx.createOscillator(); var gain = ctx.createGain();
             osc.type = "triangle";
             osc.frequency.setValueAtTime(tone.f0, now + tone.t);
             osc.frequency.exponentialRampToValueAtTime(tone.f1, now + tone.t + tone.d);
             gain.gain.setValueAtTime(0.0001, now + tone.t);
             gain.gain.exponentialRampToValueAtTime(tone.a, now + tone.t + 0.012);
             gain.gain.exponentialRampToValueAtTime(0.0001, now + tone.t + tone.d);
-            osc.connect(gain);
-            gain.connect(ctx.destination);
-            osc.start(now + tone.t);
-            osc.stop(now + tone.t + tone.d + 0.015);
+            osc.connect(gain); gain.connect(ctx.destination);
+            osc.start(now + tone.t); osc.stop(now + tone.t + tone.d + 0.015);
           });
-
-          setTimeout(function () {
-            ctx.close().catch(function () {});
-          }, 320);
-        } catch (e) {
-          // no-op
-        }
+          setTimeout(function () { ctx.close().catch(function () {}); }, 320);
+        } catch (e) { /* no-op */ }
       }
 
-      function updateHelperVisibility() {
-        if (!helperTextEl) {
-          return;
-        }
-        var shouldHide = isRecording || !!pendingSavePayload || saveInFlight;
-        helperTextEl.hidden = shouldHide;
-      }
-
+      // ── Audio helpers ──
       function getSupportedMimeType() {
         var candidates = ["audio/mp4", "audio/aac", "audio/webm;codecs=opus", "audio/webm", "audio/ogg"];
-        for (var i = 0; i < candidates.length; i += 1) {
-          try {
-            if (MediaRecorder.isTypeSupported(candidates[i])) {
-              return candidates[i];
-            }
-          } catch (e) {
-            // no-op
-          }
+        for (var i = 0; i < candidates.length; i++) {
+          try { if (MediaRecorder.isTypeSupported(candidates[i])) return candidates[i]; } catch (e) { /* no-op */ }
         }
         return "";
       }
@@ -1879,412 +946,595 @@
       }
 
       function captureSnippet(label, durationMs) {
-        if (!stream) {
-          return;
-        }
-
+        if (!stream) return;
         var chunks = [];
         var mimeType = getSupportedMimeType();
         var recorder = null;
-
-        try {
-          recorder = mimeType ? new MediaRecorder(stream, { mimeType: mimeType }) : new MediaRecorder(stream);
-        } catch (e) {
-          try {
-            recorder = new MediaRecorder(stream);
-          } catch (e2) {
-            return;
-          }
-        }
+        try { recorder = mimeType ? new MediaRecorder(stream, { mimeType: mimeType }) : new MediaRecorder(stream); }
+        catch (e) { try { recorder = new MediaRecorder(stream); } catch (e2) { return; } }
 
         recorder.ondataavailable = function (event) {
-          if (event.data && event.data.size > 0) {
-            chunks.push(event.data);
-          }
+          if (event.data && event.data.size > 0) chunks.push(event.data);
         };
-
         recorder.onstop = function () {
-          snippetClips[label] = {
-            chunks: chunks,
-            mimeType: recorder.mimeType || mimeType || "audio/webm"
-          };
+          snippetClips[label] = { chunks: chunks, mimeType: recorder.mimeType || mimeType || "audio/webm" };
           activeSnippetRecorders = activeSnippetRecorders.filter(function (r) { return r !== recorder; });
         };
-
         recorder.start(1000);
         activeSnippetRecorders.push(recorder);
-
         setTimeout(function () {
-          if (recorder.state !== "inactive") {
-            try {
-              recorder.stop();
-            } catch (e) {
-              // no-op
-            }
-          }
+          if (recorder.state !== "inactive") try { recorder.stop(); } catch (e) { /* no-op */ }
         }, durationMs);
       }
 
       function scheduleSnippetCaptures() {
         clearSnippetTimers();
-
-        [
-          { label: "min1", atMs: 30 * 1000 },
-          { label: "min2", atMs: 2 * 60 * 1000 },
-          { label: "min5", atMs: 5 * 60 * 1000 },
-          { label: "min8", atMs: 8 * 60 * 1000 },
-          { label: "min10", atMs: 10 * 60 * 1000 }
-        ].forEach(function (item) {
-          var t = setTimeout(function () {
-            captureSnippet(item.label, 15 * 1000);
-          }, item.atMs);
+        [{ label: "min1", atMs: 30000 }, { label: "min2", atMs: 120000 }, { label: "min5", atMs: 300000 }, { label: "min8", atMs: 480000 }, { label: "min10", atMs: 600000 }].forEach(function (item) {
+          var t = setTimeout(function () { captureSnippet(item.label, 15000); }, item.atMs);
           snippetCaptureTimers.push(t);
         });
       }
 
-      function readFrozenConnections() {
-        try {
-          var raw = localStorage.getItem(LISTEN_STORAGE_KEY);
-          var parsed = raw ? JSON.parse(raw) : [];
-          return Array.isArray(parsed) ? parsed : [];
-        } catch (error) {
-          return [];
+      function cleanupAudio() {
+        if (rafId !== null) { cancelAnimationFrame(rafId); rafId = null; }
+        if (mediaRecorder && mediaRecorder.state !== "inactive") try { mediaRecorder.stop(); } catch (e) { /* no-op */ }
+        activeSnippetRecorders.forEach(function (r) { if (r && r.state !== "inactive") try { r.stop(); } catch (e) { /* no-op */ } });
+        activeSnippetRecorders = [];
+        clearSnippetTimers();
+        if (stream) { stream.getTracks().forEach(function (t) { t.stop(); }); stream = null; }
+        if (audioContext) { audioContext.close(); audioContext = null; }
+        analyser = null; mediaRecorder = null; smoothedInput = 0;
+      }
+
+      function monitorVoice() {
+        if (!analyser) return;
+        var pcm = new Uint8Array(analyser.frequencyBinCount);
+        function tick() {
+          if (!analyser) return;
+          analyser.getByteTimeDomainData(pcm);
+          var sum = 0;
+          for (var i = 0; i < pcm.length; i++) { var n = (pcm[i] - 128) / 128; sum += n * n; }
+          var rms = Math.sqrt(sum / pcm.length);
+          var mapped = Math.min(Math.max((rms - 0.01) * 6, 0), 1);
+          smoothedInput = smoothedInput * 0.9 + mapped * 0.1;
+          glowLevel = glowLevel * 0.88 + smoothedInput * 0.12;
+          renderButton();
+          if (isRecording) rafId = requestAnimationFrame(tick);
+        }
+        rafId = requestAnimationFrame(tick);
+      }
+
+      // ── Button rendering ──
+      function renderButton() {
+        var spread = 28 + glowLevel * 70;
+        var alpha = 0.25 + glowLevel * 0.40;
+        var scale = 1 + glowLevel * 0.05;
+        var auraScale = 1.02 + glowLevel * 0.36;
+        var auraOpacity = (isRecording ? 0.65 : 0.5) + glowLevel * 0.22;
+
+        if (buttonState !== "saving" && buttonState !== "uploading") {
+          recordBtn.style.transform = "scale(" + scale + ")";
+          recordBtn.style.boxShadow = "0 0 " + spread + "px rgba(36,214,223," + alpha + "), 0 0 0 12px rgba(36,214,223,0.06)";
+        }
+
+        auraReactiveEl.style.transform = "translate(-50%, -50%) scale(" + auraScale + ")";
+        auraReactiveEl.style.opacity = auraOpacity;
+      }
+
+      function stopSettleLoop() {
+        if (settleTimer !== null) { clearInterval(settleTimer); settleTimer = null; }
+      }
+      function startSettleLoop() {
+        stopSettleLoop();
+        settleTimer = setInterval(function () {
+          glowLevel = glowLevel * 0.9;
+          if (glowLevel < 0.01) glowLevel = 0;
+          renderButton();
+        }, 16);
+      }
+
+      // ── Button state machine ──
+      function updateButtonUI() {
+        recordBtn.classList.remove("rec-btn--saving", "rec-btn--uploading");
+        recordBtnCountdown.hidden = true;
+        micMarkEl.hidden = false;
+        recordBtnLabel.hidden = false;
+
+        if (buttonState === "idle") {
+          recordBtnLabel.textContent = "Byrja";
+          recordBtn.setAttribute("aria-label", "Byrja upptöku");
+          helperTextEl.textContent = "Ýttu á takkann til að byrja að lesa upphátt";
+          helperTextEl.hidden = false;
+          progressRingEl.classList.remove("active");
+          recordBtn.style.transform = "";
+          recordBtn.style.boxShadow = "";
+        } else if (buttonState === "recording") {
+          if (timerMinutes > 0) {
+            recordBtnLabel.hidden = true;
+            micMarkEl.hidden = true;
+            recordBtnCountdown.hidden = false;
+            progressRingEl.classList.add("active");
+          } else {
+            recordBtnLabel.textContent = "Stöðva";
+            progressRingEl.classList.remove("active");
+          }
+          recordBtn.setAttribute("aria-label", "Stöðva upptöku");
+          helperTextEl.hidden = true;
+        } else if (buttonState === "saving") {
+          recordBtn.classList.add("rec-btn--saving");
+          recordBtnLabel.textContent = "Vista";
+          recordBtn.setAttribute("aria-label", "Vista lotu");
+          helperTextEl.textContent = "Ýttu aftur til að vista";
+          helperTextEl.hidden = false;
+          progressRingEl.classList.remove("active");
+          recordBtn.style.transform = "scale(1)";
+        } else if (buttonState === "uploading") {
+          recordBtn.classList.add("rec-btn--uploading");
+          recordBtnLabel.textContent = "Vista...";
+          helperTextEl.textContent = "Vistar...";
+          helperTextEl.hidden = false;
+          progressRingEl.classList.remove("active");
         }
       }
 
-      function writeFrozenConnections(items) {
-        localStorage.setItem(LISTEN_STORAGE_KEY, JSON.stringify(items));
+      // ── Timer ──
+      function fmtCountdown(secs) {
+        var m = Math.floor(secs / 60);
+        var s = secs % 60;
+        return m + ":" + (s < 10 ? "0" : "") + s;
       }
 
-      function formatListenerMessage(listenerName, timestamp) {
-        var safeName = typeof listenerName === "string" ? listenerName.trim() : "";
-        var when = "";
-        if (timestamp) {
-          var tsDate = new Date(timestamp);
-          var today = new Date(); today.setHours(0,0,0,0);
-          var yesterday = new Date(today); yesterday.setDate(today.getDate() - 1);
-          tsDate.setHours(0,0,0,0);
-          when = tsDate >= today ? " í dag" : " í gær";
-        } else {
-          when = " í dag";
-        }
-        return (safeName || "Einhver") + " hlustaði" + when;
+      function startTimer() {
+        if (timerMinutes <= 0) return;
+        timerEndMs = Date.now() + timerMinutes * 60 * 1000;
+        updateTimerDisplay();
+        if (timerInterval) clearInterval(timerInterval);
+        timerInterval = setInterval(function () {
+          var remaining = Math.max(0, Math.ceil((timerEndMs - Date.now()) / 1000));
+          if (remaining <= 0) {
+            clearInterval(timerInterval);
+            timerInterval = null;
+            recordBtnCountdown.textContent = "0:00";
+            updateProgressRing(0);
+            triggerHaptic([20, 40, 20]);
+            playMicCue("off");
+            transitionToSaving();
+            return;
+          }
+          recordBtnCountdown.textContent = fmtCountdown(remaining);
+          var totalSecs = timerMinutes * 60;
+          var elapsed = totalSecs - remaining;
+          updateProgressRing(elapsed / totalSecs);
+        }, 500);
       }
 
-      function pruneFrozenConnections() {
-        var now = Date.now();
-        var items = readFrozenConnections().filter(function (item) {
-          return item && typeof item.starIndex === "number" && now - item.timestamp < CONNECTION_LIFETIME_MS;
+      function updateTimerDisplay() {
+        if (timerMinutes <= 0) return;
+        var remaining = Math.max(0, Math.ceil((timerEndMs - Date.now()) / 1000));
+        recordBtnCountdown.textContent = fmtCountdown(remaining);
+        updateProgressRing(0);
+      }
+
+      function updateProgressRing(fraction) {
+        var offset = PROGRESS_RING_CIRCUMFERENCE * (1 - fraction);
+        progressRingFill.style.strokeDashoffset = String(offset);
+      }
+
+      function stopTimer() {
+        if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+      }
+
+      // ── Recording flow ──
+      function startRecording() {
+        return navigator.mediaDevices.getUserMedia({ audio: true }).then(function (micStream) {
+          stream = micStream;
+          recordingStartedAt = Date.now();
+          pendingSavePayload = null;
+          saveInFlight = false;
+          snippetClips = { min1: { chunks: [], mimeType: "" }, min2: { chunks: [], mimeType: "" }, min5: { chunks: [], mimeType: "" }, min8: { chunks: [], mimeType: "" }, min10: { chunks: [], mimeType: "" } };
+          clearSnippetTimers();
+          activeSnippetRecorders = [];
+
+          audioContext = new (window.AudioContext || window.webkitAudioContext)();
+          analyser = audioContext.createAnalyser();
+          analyser.fftSize = 1024;
+          analyser.smoothingTimeConstant = 0.85;
+          var source = audioContext.createMediaStreamSource(stream);
+          source.connect(analyser);
+
+          mediaRecorder = new MediaRecorder(stream);
+          mediaRecorder.start(1000);
+          scheduleSnippetCaptures();
+
+          isRecording = true;
+          buttonState = "recording";
+          requestWakeLock();
+          playMicCue("on");
+          stopSettleLoop();
+          updateButtonUI();
+          renderButton();
+          monitorVoice();
+          startTimer();
         });
-        writeFrozenConnections(items);
-        return items;
       }
 
-      function getCenterRelativeToScreen(el) {
-        var screenRect = screenEl.getBoundingClientRect();
-        var rect = el.getBoundingClientRect();
-        return {
-          x: rect.left + rect.width / 2 - screenRect.left,
-          y: rect.top + rect.height / 2 - screenRect.top
+      function transitionToSaving() {
+        var elapsedSeconds = recordingStartedAt ? Math.floor((Date.now() - recordingStartedAt) / 1000) : 0;
+        isRecording = false;
+        releaseWakeLock();
+        stopTimer();
+        clearSnippetTimers();
+        cleanupAudio();
+        startSettleLoop();
+
+        pendingSavePayload = {
+          snippetClips: snippetClips,
+          elapsedSeconds: elapsedSeconds,
+          startedAt: recordingStartedAt || Date.now(),
+          childName: childName
         };
+
+        buttonState = "saving";
+        updateButtonUI();
+        renderButton();
       }
 
-      function positionOrbForMobileThirds() {
-        if (!panelEl || !orbWrapEl) {
+      function stopRecording() {
+        playMicCue("off");
+        transitionToSaving();
+      }
+
+      // ── Single button click handler ──
+      recordBtn.addEventListener("click", function () {
+        if (buttonState === "idle") {
+          triggerHaptic(12);
+          startRecording().catch(function () {
+            buttonState = "idle";
+            isRecording = false;
+            cleanupAudio();
+            startSettleLoop();
+            updateButtonUI();
+            renderButton();
+          });
+        } else if (buttonState === "recording") {
+          triggerHaptic([14, 26, 10]);
+          stopRecording();
+        } else if (buttonState === "saving") {
+          if (saveInFlight || !pendingSavePayload || typeof window.saveChildV2Session !== "function") return;
+          triggerHaptic([10, 24, 10]);
+          saveInFlight = true;
+          buttonState = "uploading";
+          updateButtonUI();
+
+          setTimeout(function () {
+            window.saveChildV2Session(pendingSavePayload).then(function (result) {
+              if (result && result.saved) {
+                pendingSavePayload = null;
+                openPostSavePopup();
+              } else {
+                helperTextEl.textContent = "Ekkert hljóð til vistunar enn.";
+              }
+              buttonState = "idle";
+              updateButtonUI();
+            }).catch(function () {
+              helperTextEl.textContent = "Villa. Reyndu aftur.";
+              buttonState = "saving";
+              updateButtonUI();
+            }).finally(function () {
+              saveInFlight = false;
+            });
+          }, 300);
+        }
+      });
+
+      // ── Book pill ──
+      function getChildReadingSetupKey() {
+        return "upphatt_child_reading_setup_" + childStorageKey;
+      }
+      function getChildReadingSetup() {
+        try {
+          var raw = localStorage.getItem(getChildReadingSetupKey());
+          return raw ? JSON.parse(raw) : null;
+        } catch (e) { return null; }
+      }
+
+      function renderBookPill() {
+        var setup = getChildReadingSetup();
+        var books = window._firestoreBooks || [];
+        var activeBook = null;
+
+        if (setup && setup.bookId) {
+          activeBook = books.find(function (b) { return b && String(b.id) === String(setup.bookId); });
+        }
+        if (!activeBook) {
+          activeBook = books.find(function (b) { return b && b.status === "reading"; });
+        }
+        if (!activeBook && books.length) {
+          activeBook = books.slice().sort(function (a, b) { return (b.lastReadAt || 0) - (a.lastReadAt || 0); })[0];
+        }
+
+        if (!activeBook) {
+          pillTitleEl.textContent = "Veldu bók";
+          pillPageEl.textContent = "Opnaðu bókahilluna";
+          setPillArc(0);
           return;
         }
 
-        var isMobile = window.matchMedia("(max-width: 720px)").matches;
-        // CSS handles mobile vertical rhythm to avoid text/circle overlap.
-        if (isMobile) {
-          orbWrapEl.style.transform = "";
-          return;
+        pillTitleEl.textContent = activeBook.title || "Bók";
+
+        var currentPage = (setup && setup.pageFrom) ? Number(setup.pageFrom) : (activeBook.currentPageTo ? Number(activeBook.currentPageTo) + 1 : Number(activeBook.currentPageFrom || 1));
+        var totalPages = Number(activeBook.totalPages || 0);
+
+        if (totalPages > 0) {
+          pillPageEl.textContent = "Síða " + currentPage + " af " + totalPages;
+        } else {
+          pillPageEl.textContent = "Síða " + currentPage;
         }
 
-        orbWrapEl.style.transform = "";
-      }
+        var pct = activeBook.progressPercent || (totalPages ? Math.round((currentPage / totalPages) * 100) : 0);
+        setPillArc(pct);
 
-      function buildListenPath(star) {
-        var center = getCenterRelativeToScreen(recordBtn);
-        var target = getCenterRelativeToScreen(star);
-        var dirX = target.x - center.x;
-        var dirY = target.y - center.y;
-        var distance = Math.hypot(dirX, dirY) || 1;
-        var perpX = -dirY / distance;
-        var perpY = dirX / distance;
-        var arc = Math.min(48, Math.max(18, distance * 0.16));
-
-        var c1x = center.x + dirX * 0.22 + perpX * arc;
-        var c1y = center.y + dirY * 0.22 + perpY * arc;
-        var c2x = center.x + dirX * 0.44 - perpX * arc * 0.78;
-        var c2y = center.y + dirY * 0.44 - perpY * arc * 0.78;
-        var midX = center.x + dirX * 0.58 + perpX * arc * 0.5;
-        var midY = center.y + dirY * 0.58 + perpY * arc * 0.5;
-        var c3x = center.x + dirX * 0.74 - perpX * arc * 0.68;
-        var c3y = center.y + dirY * 0.74 - perpY * arc * 0.68;
-        var c4x = center.x + dirX * 0.9 + perpX * arc * 0.34;
-        var c4y = center.y + dirY * 0.9 + perpY * arc * 0.34;
-
-        return "M " + center.x + " " + center.y +
-          " C " + c1x + " " + c1y + ", " + c2x + " " + c2y + ", " + midX + " " + midY +
-          " S " + c3x + " " + c3y + ", " + target.x + " " + target.y;
-      }
-
-      function resetStarStates() {
-        starEls.forEach(function (star) {
-          star.classList.remove("active");
-          star.classList.remove("frozen");
-          star.style.opacity = "";
-          star.style.transform = "";
-          star.style.boxShadow = "";
-        });
-      }
-
-      function getFrozenConnectionStrength(timestamp) {
-        var age = Date.now() - Number(timestamp || 0);
-        if (age < 0) age = 0;
-
-        if (age <= FROZEN_FULL_BRIGHT_MS) {
-          return 1;
+        // Load timer from setup
+        if (setup && typeof setup.timerMinutes === "number") {
+          timerMinutes = setup.timerMinutes;
         }
-
-        var fadeAge = age - FROZEN_FULL_BRIGHT_MS;
-        var t = 1 - fadeAge / FROZEN_FADE_MS;
-        t = Math.max(0, Math.min(1, t));
-        return 0.25 * t;
       }
 
-      function renderFrozenConnections() {
-        var items = pruneFrozenConnections();
-        frozenLinesEl.innerHTML = "";
-        resetStarStates();
+      function setPillArc(pct) {
+        var offset = PILL_ARC_CIRCUMFERENCE * (1 - Math.min(100, Math.max(0, pct)) / 100);
+        pillArcEl.style.strokeDashoffset = String(offset);
+      }
 
-        items.forEach(function (item) {
-          var star = starEls[item.starIndex];
-          if (!star) {
+      bookPillEl.addEventListener("click", function () {
+        openChildReadingModal();
+      });
+
+      window._onFirestoreBooksReady = function () {
+        renderBookPill();
+        populateChildBookListFromBookshelf();
+        checkMonthlyGoal();
+      };
+
+      // ── Monthly goal ──
+      function checkMonthlyGoal() {
+        if (!goalToastEl) return;
+        var books = window._firestoreBooks || [];
+        var now = Date.now();
+        var currentMonth = new Date().getMonth();
+        var currentYear = new Date().getFullYear();
+
+        var finishedThisMonth = books.filter(function (b) {
+          if (!b || b.status !== "finished" || !b.lastReadAt) return false;
+          var d = new Date(b.lastReadAt);
+          return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+        }).length;
+
+        var goalTarget = 3;
+        if (finishedThisMonth >= goalTarget) {
+          var stored = localStorage.getItem(GOAL_STORAGE_KEY);
+          var achievedAt = stored ? Number(stored) : 0;
+          if (!achievedAt) {
+            localStorage.setItem(GOAL_STORAGE_KEY, String(now));
+            achievedAt = now;
+          }
+          if (now - achievedAt < GOAL_VISIBLE_MS) {
+            goalToastEl.hidden = false;
+            goalToastText.textContent = finishedThisMonth + "/" + goalTarget + " bækur lesnar!";
+            var age = now - achievedAt;
+            goalToastEl.style.opacity = String(Math.max(0.4, 1 - (age / GOAL_VISIBLE_MS) * 0.6));
             return;
           }
-
-          var strength = getFrozenConnectionStrength(item.timestamp);
-          if (strength <= 0) {
-            return;
-          }
-
-          star.classList.add("active");
-          star.classList.add("frozen");
-          star.style.opacity = String(0.08 + strength * 0.92);
-          star.style.transform = "scale(" + (1 + strength * 0.42).toFixed(3) + ")";
-          star.style.boxShadow =
-            "0 0 " + (8 + strength * 18).toFixed(1) + "px rgba(170, 244, 255, " + (0.16 + strength * 0.56).toFixed(3) + "), " +
-            "0 0 " + (20 + strength * 40).toFixed(1) + "px rgba(120, 240, 255, " + (0.08 + strength * 0.34).toFixed(3) + ")";
-
-          var path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-          path.setAttribute("d", buildListenPath(star));
-          path.setAttribute("class", "listen-line frozen");
-          path.style.opacity = String(0.04 + strength * 0.96);
-          path.style.strokeWidth = String(1.4 + strength * 2.4);
-          path.style.stroke = "rgba(188, 245, 255, " + (0.1 + strength * 0.9).toFixed(3) + ")";
-          path.style.filter =
-            "drop-shadow(0 0 " + (2 + strength * 8).toFixed(1) + "px rgba(168, 245, 255, " + (0.12 + strength * 0.46).toFixed(3) + ")) " +
-            "drop-shadow(0 0 " + (6 + strength * 18).toFixed(1) + "px rgba(168, 245, 255, " + (0.06 + strength * 0.24).toFixed(3) + "))";
-          frozenLinesEl.appendChild(path);
-        });
-      }
-
-      function persistFrozenConnection(starIndex, listenerName) {
-        var items = pruneFrozenConnections().filter(function (item) {
-          return item.starIndex !== starIndex;
-        });
-        items.push({
-          starIndex: starIndex,
-          timestamp: Date.now(),
-          listenerName: typeof listenerName === "string" ? listenerName.trim() : ""
-        });
-        writeFrozenConnections(items);
-        renderFrozenConnections();
-      }
-
-      function getFrozenConnectionByStarIndex(starIndex) {
-        var items = pruneFrozenConnections();
-        for (var i = 0; i < items.length; i += 1) {
-          if (items[i].starIndex === starIndex) {
-            return items[i];
-          }
         }
-        return null;
+        goalToastEl.hidden = true;
       }
 
-      function pickRandomStarIndex() {
-        var center = getCenterRelativeToScreen(recordBtn);
-        var btnRect = recordBtn.getBoundingClientRect();
-        var minDistance = Math.max(btnRect.width * 1.35, window.matchMedia("(max-width: 720px)").matches ? 120 : 140);
+      // ── Home button ──
+      homeBtn.addEventListener("click", function () {
+        try {
+          sessionStorage.setItem("upphatt_skip_child_redirect_once", "1");
+          localStorage.setItem("upphatt_skip_child_redirect_once", "1");
+        } catch (e) { /* no-op */ }
+        window.location.href = "index.html?skipChild=1";
+      });
 
-        var perimeterIndexes = starEls
-          .map(function (star, index) {
-            var point = getCenterRelativeToScreen(star);
-            var dx = point.x - center.x;
-            var dy = point.y - center.y;
-            return { index: index, distance: Math.hypot(dx, dy) };
-          })
-          .filter(function (item) { return item.distance >= minDistance; })
-          .map(function (item) { return item.index; });
+      // ── Post-save popup ──
+      var postSaveOverlay = document.getElementById("post-save-overlay");
+      var postSaveCloseBtn = document.getElementById("post-save-close");
+      var postSaveJourneyBtn = document.getElementById("post-save-save-journey");
+      var postSaveNote = document.getElementById("post-save-note");
+      var postSaveTagline = document.getElementById("post-save-tagline");
+      var postSaveNoteInput = document.getElementById("post-save-note-input");
+      var postSaveEndPageInput = document.getElementById("post-save-end-page");
 
-        var candidateIndexes = perimeterIndexes.length
-          ? perimeterIndexes
-          : starEls.map(function (_star, index) { return index; });
+      var postSaveTaglines = [
+        "Smá lestrarspor verða að stærri ferð.",
+        "Ein setning í dag verður minning á morgun.",
+        "Bókin heldur áfram — og þú líka.",
+        "Það sem þú last í dag fer á hilluna þína.",
+        "Lestrarferðalagið stækkar með hverri lotu."
+      ];
 
-        var frozenIndexes = pruneFrozenConnections().map(function (item) {
-          return item.starIndex;
+      function openPostSavePopup() {
+        if (!postSaveOverlay) return;
+        var tagline = postSaveTaglines[Math.floor(Math.random() * postSaveTaglines.length)];
+        if (postSaveTagline) postSaveTagline.textContent = tagline;
+
+        var setup = getChildReadingSetup();
+        if (postSaveEndPageInput) {
+          postSaveEndPageInput.value = "";
+          postSaveEndPageInput.placeholder = setup && setup.pageFrom ? String(Number(setup.pageFrom) + 8) : "29";
+        }
+        if (postSaveNoteInput) postSaveNoteInput.value = "";
+        if (postSaveNote) postSaveNote.classList.remove("show");
+        if (postSaveJourneyBtn) { postSaveJourneyBtn.textContent = "Vista lestrarferðalag"; postSaveJourneyBtn.disabled = false; }
+
+        postSaveOverlay.classList.add("open");
+        postSaveOverlay.setAttribute("aria-hidden", "false");
+        setTimeout(function () { if (postSaveNoteInput) postSaveNoteInput.focus(); }, 80);
+      }
+
+      function closePostSavePopup() {
+        if (!postSaveOverlay) return;
+        postSaveOverlay.classList.remove("open");
+        postSaveOverlay.setAttribute("aria-hidden", "true");
+      }
+
+      if (postSaveCloseBtn) postSaveCloseBtn.addEventListener("click", closePostSavePopup);
+      if (postSaveOverlay) postSaveOverlay.addEventListener("click", function (e) { if (e.target === postSaveOverlay) closePostSavePopup(); });
+
+      function updateBookshelfBookAfterReading(note, endPage) {
+        try {
+          var setup = getChildReadingSetup();
+          if (!setup || !setup.bookId) return false;
+          var allBooks = window._firestoreBooks || [];
+          var book = allBooks.find(function (item) { return item && String(item.id) === String(setup.bookId); });
+          if (!book) return false;
+
+          var startPage = Number(setup.pageFrom || 0);
+          var finalPage = Number(endPage || 0);
+          var totalPages = Number(book.totalPages || 0);
+          var now = Date.now();
+          var pct = totalPages && finalPage ? Math.min(100, Math.max(0, Math.round((finalPage / totalPages) * 100))) : (book.progressPercent || 0);
+
+          var updateScript = document.createElement("script");
+          updateScript.type = "module";
+          updateScript.textContent = [
+            "import{getFirestore,doc,updateDoc,serverTimestamp}from'https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js';",
+            "import{initializeApp}from'https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js';",
+            "const app=initializeApp({apiKey:'AIzaSyAgTY3Uxd9_ZxixjqLj-sH8V3OhFAzg6DU',authDomain:'lesum-22e85.firebaseapp.com',projectId:'lesum-22e85',storageBucket:'lesum-22e85.firebasestorage.app',messagingSenderId:'204392598388',appId:'1:204392598388:web:2dbbe3f476cd78d2ffba21'});",
+            "const db=getFirestore(app);",
+            "const bookRef=doc(db,'books','" + setup.bookId + "');",
+            "const entries=" + JSON.stringify(book.journeyEntries || []) + ";",
+            "entries.unshift({date:'I dag',createdAt:Date.now(),pageFrom:" + (startPage || "null") + ",pageTo:" + (finalPage || "null") + ",note:" + JSON.stringify(note || "") + ",reactions:[]});",
+            "updateDoc(bookRef,{",
+            "  status:" + (pct >= 100 ? "'finished'" : "'reading'") + ",",
+            "  currentPageFrom:" + (startPage || "null") + ",",
+            "  currentPageTo:" + (finalPage || "null") + ",",
+            "  progressPercent:" + pct + ",",
+            "  lastReadAt:" + now + ",",
+            "  note:" + JSON.stringify(note || "") + ",",
+            "  journeyEntries:entries,",
+            "  updatedAt:serverTimestamp()",
+            "}).then(()=>console.log('Book updated')).catch(e=>console.warn('Book update failed:',e));"
+          ].join("\n");
+          document.head.appendChild(updateScript);
+          return true;
+        } catch (e) { return false; }
+      }
+
+      if (postSaveJourneyBtn) {
+        postSaveJourneyBtn.addEventListener("click", function () {
+          var note = postSaveNoteInput ? postSaveNoteInput.value.trim() : "";
+          var endPage = postSaveEndPageInput ? postSaveEndPageInput.value.trim() : "";
+          if (!note) { alert("Skrifaðu eina setningu um hvað gerðist í bókinni."); return; }
+          if (!endPage) { alert("Settu inn blaðsíðuna sem þú endaðir á."); return; }
+
+          updateBookshelfBookAfterReading(note, endPage);
+
+          try {
+            localStorage.setItem("upphatt_last_reading_journey_entry", JSON.stringify({
+              childKey: childStorageKey, childName: childName,
+              note: note, endPage: endPage, timestamp: Date.now(), source: "post-save-popup"
+            }));
+          } catch (e) { /* no-op */ }
+
+          triggerHaptic([8, 20, 8]);
+          postSaveJourneyBtn.textContent = "Vistað";
+          postSaveJourneyBtn.disabled = true;
+          if (postSaveNote) postSaveNote.classList.add("show");
+          setTimeout(closePostSavePopup, 850);
         });
-        var availableIndexes = candidateIndexes
-          .filter(function (index) { return frozenIndexes.indexOf(index) === -1; });
-
-        if (!availableIndexes.length) {
-          availableIndexes = candidateIndexes;
-        }
-
-        if (!availableIndexes.length) {
-          availableIndexes = starEls.map(function (_star, index) { return index; });
-        }
-
-        return availableIndexes[Math.floor(Math.random() * availableIndexes.length)];
       }
 
-
-      // Floating bookshelf/settings prototype hooks.
-      var bookshelfFloatBtn = document.getElementById("child-bookshelf-float");
+      // ── Book picker modal ──
       var readingSettingsFloatBtn = document.getElementById("child-reading-settings-float");
       var childReadingModal = document.getElementById("child-reading-modal");
       var childReadingModalClose = document.getElementById("child-reading-modal-close");
       var childBookList = document.getElementById("child-book-list");
-      var childBookOptions = Array.prototype.slice.call(document.querySelectorAll(".child-book-option"));
+      var childBookOptions = [];
       var childPageFrom = document.getElementById("child-page-from");
       var childPageTo = document.getElementById("child-page-to");
       var childReadingPreview = document.getElementById("child-reading-preview");
       var childReadingSave = document.getElementById("child-reading-save");
       var childReadingResult = document.getElementById("child-reading-result");
+      var timerPillsContainer = document.getElementById("timer-pills");
+      var timerPills = Array.prototype.slice.call(timerPillsContainer.querySelectorAll(".timer-pill"));
+      var selectedTimerMinutes = 0;
 
-      function getChildReadingSetupKey() {
-        return "upphatt_child_reading_setup_" + childStorageKey;
-      }
+      // Timer pill clicks
+      timerPills.forEach(function (pill) {
+        pill.addEventListener("click", function () {
+          timerPills.forEach(function (p) { p.classList.remove("selected"); });
+          pill.classList.add("selected");
+          selectedTimerMinutes = parseInt(pill.getAttribute("data-minutes"), 10) || 0;
+        });
+      });
 
       function getSelectedBookOption() {
-        for (var i = 0; i < childBookOptions.length; i += 1) {
-          if (childBookOptions[i].classList.contains("selected")) {
-            return childBookOptions[i];
-          }
+        for (var i = 0; i < childBookOptions.length; i++) {
+          if (childBookOptions[i].classList.contains("selected")) return childBookOptions[i];
         }
         return childBookOptions[0] || null;
       }
-
       function getSelectedBookTitle() {
-        var option = getSelectedBookOption();
-        return option ? (option.getAttribute("data-book-title") || option.textContent || "Bók") : "Bók";
+        var o = getSelectedBookOption();
+        return o ? (o.getAttribute("data-book-title") || o.textContent || "Bók") : "Bók";
       }
-
       function getSelectedBookId() {
-        var option = getSelectedBookOption();
-        return option ? (option.getAttribute("data-book-id") || "") : "";
+        var o = getSelectedBookOption();
+        return o ? (o.getAttribute("data-book-id") || "") : "";
       }
-
       function setSelectedBookById(bookId) {
         childBookOptions.forEach(function (btn) {
           var isSelected = btn.getAttribute("data-book-id") === bookId;
           btn.classList.toggle("selected", isSelected);
           btn.setAttribute("aria-selected", isSelected ? "true" : "false");
-
           if (isSelected) {
-            var inlineInput = btn.querySelector(".child-book-page-input");
-            if (inlineInput && childPageFrom) childPageFrom.value = inlineInput.value.trim();
+            var inp = btn.querySelector(".child-book-page-input");
+            if (inp && childPageFrom) childPageFrom.value = inp.value.trim();
             if (childPageTo) childPageTo.value = "";
           }
         });
       }
-
-      function updateChildReadingPreview() {
-        if (!childReadingPreview) return;
-        var title = getSelectedBookTitle();
-        var from = (childPageFrom && childPageFrom.value.trim()) || childPageFrom?.placeholder || "21";
-        childReadingPreview.textContent = title + " · byrjar á bls. " + from;
-      }
-
-
-      // ── Firestore book loading for child book picker ──
-      var firestoreBooks = [];
-      var firestoreBooksLoaded = false;
-
-      // Books are now loaded directly from the Firebase module script below.
-      // See onSnapshot on 'books' collection in the module block.
+      function updateChildReadingPreview() { /* kept for compat but hidden */ }
 
       function readBookshelfBooksForChildModal() {
         var allBooks = window._firestoreBooks || [];
         if (!allBooks.length) {
-          // Fallback: try localStorage for backwards compat
           try {
-            var rawBooks = localStorage.getItem("upphatt_bookshelf_local_v1");
-            var parsedBooks = rawBooks ? JSON.parse(rawBooks) : [];
-            if (Array.isArray(parsedBooks)) allBooks = parsedBooks;
-          } catch(e) {}
+            var raw = localStorage.getItem("upphatt_bookshelf_local_v1");
+            var parsed = raw ? JSON.parse(raw) : [];
+            if (Array.isArray(parsed)) allBooks = parsed;
+          } catch (e) { /* no-op */ }
         }
-        return allBooks
-          .filter(function(book) {
-            return book && book.id && book.title && book.status === "reading";
-          })
-          .map(function(book) {
-            return {
-              id: String(book.id),
-              title: String(book.title),
-              status: book.status || "shelf",
-              progressPercent: Number(book.progressPercent || 0),
-              totalPages: Number(book.totalPages || 0),
-              pageFrom: book.currentPageFrom || "",
-              pageTo: book.currentPageTo || ""
-            };
-          });
+        return allBooks.filter(function (b) { return b && b.id && b.title && b.status === "reading"; }).map(function (b) {
+          return {
+            id: String(b.id), title: String(b.title), status: b.status || "shelf",
+            progressPercent: Number(b.progressPercent || 0), totalPages: Number(b.totalPages || 0),
+            pageFrom: b.currentPageFrom || "", pageTo: b.currentPageTo || ""
+          };
+        });
       }
 
       function populateChildBookListFromBookshelf() {
         if (!childBookList) return;
-
         var storedBooks = readBookshelfBooksForChildModal();
         if (!storedBooks.length) {
-          childBookList.innerHTML = '<div class="child-book-empty">Engin bók merkt “Að lesa” enn. Farðu í bókahilluna og byrjaðu bók fyrst.</div>';
+          childBookList.innerHTML = '<div class="child-book-empty">Engin bók merkt "Að lesa" enn. Farðu í bókahilluna og byrjaðu bók fyrst.</div>';
           childBookOptions = [];
-          updateChildReadingPreview();
           return;
         }
 
-        var previousSelectedId = getSelectedBookId ? getSelectedBookId() : "";
-        var activeBook = storedBooks.find(function (book) {
-          return book.status === "reading";
-        }) || storedBooks[0];
+        var previousSelectedId = getSelectedBookId();
+        var activeBook = storedBooks.find(function (b) { return b.status === "reading"; }) || storedBooks[0];
 
         childBookList.innerHTML = storedBooks.map(function (book) {
           var isSelected = book.id === (previousSelectedId || activeBook.id);
-          var meta = book.status === "reading"
-            ? "Að lesa"
-            : book.status === "finished"
-              ? "Lokið"
-              : "Á hillunni";
-
+          var meta = book.status === "reading" ? "Að lesa" : book.status === "finished" ? "Lokið" : "Á hillunni";
           var suggestedStart = book.pageTo ? String(Number(book.pageTo) + 1) : (book.pageFrom ? String(book.pageFrom) : "");
-          return '' +
-            '<button class="child-book-option' + (isSelected ? ' selected' : '') + '" ' +
-            'type="button" ' +
-            'data-book-id="' + book.id.replace(/"/g, "&quot;") + '" ' +
-            'data-book-title="' + book.title.replace(/"/g, "&quot;") + '" ' +
-            'data-page-from="' + String(book.pageFrom).replace(/"/g, "&quot;") + '" ' +
-            'data-page-to="' + String(book.pageTo).replace(/"/g, "&quot;") + '" ' +
-            'aria-selected="' + (isSelected ? "true" : "false") + '">' +
-              '<span class="child-book-option-main">' +
-                '<span class="child-book-option-title">' + book.title + '</span>' +
-                '<span class="child-book-option-meta">' + meta + (book.progressPercent ? " · " + book.progressPercent + "%" : "") + '</span>' +
-              '</span>' +
-              '<span class="child-book-page-control">' +
-                '<span class="child-book-page-label">Bls.</span>' +
-                '<input class="child-book-page-input" inputmode="numeric" value="' + suggestedStart.replace(/"/g, "&quot;") + '" aria-label="Byrja á blaðsíðu">' +
-              '</span>' +
-            '</button>';
+          return '<button class="child-book-option' + (isSelected ? " selected" : "") + '" type="button" data-book-id="' + book.id.replace(/"/g, "&quot;") + '" data-book-title="' + book.title.replace(/"/g, "&quot;") + '" data-page-from="' + String(book.pageFrom).replace(/"/g, "&quot;") + '" data-page-to="' + String(book.pageTo).replace(/"/g, "&quot;") + '" aria-selected="' + (isSelected ? "true" : "false") + '">' +
+            '<span class="child-book-option-main"><span class="child-book-option-title">' + book.title + '</span><span class="child-book-option-meta">' + meta + (book.progressPercent ? " · " + book.progressPercent + "%" : "") + '</span></span>' +
+            '<span class="child-book-page-control"><span class="child-book-page-label">Bls.</span><input class="child-book-page-input" inputmode="numeric" value="' + suggestedStart.replace(/"/g, "&quot;") + '" aria-label="Byrja á blaðsíðu"></span></button>';
         }).join("");
 
         childBookOptions = Array.prototype.slice.call(document.querySelectorAll(".child-book-option"));
@@ -2293,47 +1543,37 @@
         if (activeBook && !previousSelectedId) {
           setSelectedBookById(activeBook.id);
           if (activeBook.pageFrom && childPageFrom && !childPageFrom.value) childPageFrom.value = activeBook.pageFrom;
-          if (activeBook.pageTo && childPageTo && !childPageTo.value) childPageTo.value = activeBook.pageTo;
         }
-
-        updateChildReadingPreview();
       }
 
       function bindChildBookOptionClicks() {
         childBookOptions.forEach(function (btn) {
           if (btn.dataset.bound === "1") return;
           btn.dataset.bound = "1";
-
           var inlineInput = btn.querySelector(".child-book-page-input");
-
           btn.addEventListener("click", function () {
             setSelectedBookById(btn.getAttribute("data-book-id") || "");
             if (inlineInput && childPageFrom) childPageFrom.value = inlineInput.value.trim();
             if (childPageTo) childPageTo.value = "";
-            updateChildReadingPreview();
           });
-
           if (inlineInput) {
-            inlineInput.addEventListener("click", function (event) {
-              event.stopPropagation();
+            inlineInput.addEventListener("click", function (e) {
+              e.stopPropagation();
               setSelectedBookById(btn.getAttribute("data-book-id") || "");
             });
-
             inlineInput.addEventListener("input", function () {
               setSelectedBookById(btn.getAttribute("data-book-id") || "");
               if (childPageFrom) childPageFrom.value = inlineInput.value.trim();
-              updateChildReadingPreview();
             });
           }
         });
       }
 
-
       function openChildReadingModal() {
         if (!childReadingModal) return;
-
         populateChildBookListFromBookshelf();
 
+        // Restore saved setup
         try {
           var rawSetup = localStorage.getItem(getChildReadingSetupKey());
           if (rawSetup) {
@@ -2341,12 +1581,16 @@
             if (setup && setup.bookId) setSelectedBookById(setup.bookId);
             if (setup && setup.pageFrom && childPageFrom) childPageFrom.value = setup.pageFrom;
             if (childPageTo) childPageTo.value = "";
+            // Restore timer selection
+            if (typeof setup.timerMinutes === "number") {
+              selectedTimerMinutes = setup.timerMinutes;
+              timerPills.forEach(function (p) {
+                p.classList.toggle("selected", parseInt(p.getAttribute("data-minutes"), 10) === selectedTimerMinutes);
+              });
+            }
           }
-        } catch (e) {
-          // no-op
-        }
+        } catch (e) { /* no-op */ }
 
-        updateChildReadingPreview();
         if (childReadingResult) childReadingResult.classList.remove("show");
         childReadingModal.classList.add("open");
         childReadingModal.setAttribute("aria-hidden", "false");
@@ -2362,45 +1606,21 @@
         childReadingModal.classList.remove("open");
         childReadingModal.setAttribute("aria-hidden", "true");
       }
-      // Bookshelf button is a plain <a href="bookshelf.html"> link now.
 
-
-      if (readingSettingsFloatBtn) {
-        readingSettingsFloatBtn.addEventListener("click", openChildReadingModal);
-      }
-
-      if (childReadingModalClose) {
-        childReadingModalClose.addEventListener("click", closeChildReadingModal);
-      }
-
-      if (childReadingModal) {
-        childReadingModal.addEventListener("click", function (event) {
-          if (event.target === childReadingModal) closeChildReadingModal();
-        });
-      }
-
-      bindChildBookOptionClicks();
-
-      [childPageFrom, childPageTo].forEach(function (el) {
-        if (el) el.addEventListener("input", updateChildReadingPreview);
-        if (el) el.addEventListener("change", updateChildReadingPreview);
-      });
+      if (readingSettingsFloatBtn) readingSettingsFloatBtn.addEventListener("click", openChildReadingModal);
+      if (childReadingModalClose) childReadingModalClose.addEventListener("click", closeChildReadingModal);
+      if (childReadingModal) childReadingModal.addEventListener("click", function (e) { if (e.target === childReadingModal) closeChildReadingModal(); });
 
       if (childReadingSave) {
         childReadingSave.addEventListener("click", function () {
           if (!getSelectedBookId()) {
-            alert("Engin bók er merkt “Að lesa” enn.");
+            alert('Engin bók er merkt "Að lesa" enn.');
             return;
           }
-
           var selectedOption = getSelectedBookOption();
           var selectedPageInput = selectedOption ? selectedOption.querySelector(".child-book-page-input") : null;
           var selectedStartPage = selectedPageInput ? selectedPageInput.value.trim() : "";
-
-          if (!selectedStartPage) {
-            alert("Settu inn blaðsíðu þar sem þú byrjar.");
-            return;
-          }
+          if (!selectedStartPage) { alert("Settu inn blaðsíðu þar sem þú byrjar."); return; }
 
           if (childPageFrom) childPageFrom.value = selectedStartPage;
           if (childPageTo) childPageTo.value = "";
@@ -2410,14 +1630,14 @@
             bookTitle: getSelectedBookTitle(),
             pageFrom: childPageFrom ? childPageFrom.value.trim() : "",
             pageTo: "",
+            timerMinutes: selectedTimerMinutes,
             updatedAt: Date.now()
           };
 
-          try {
-            localStorage.setItem(getChildReadingSetupKey(), JSON.stringify(setup));
-          } catch (e) {
-            // no-op
-          }
+          try { localStorage.setItem(getChildReadingSetupKey(), JSON.stringify(setup)); } catch (e) { /* no-op */ }
+
+          timerMinutes = selectedTimerMinutes;
+          renderBookPill();
 
           if (childReadingResult) childReadingResult.classList.add("show");
           triggerHaptic([8, 20, 8]);
@@ -2425,613 +1645,226 @@
         });
       }
 
+      // ── Constellation / listen system ──
+      function readFrozenConnections() {
+        try { var raw = localStorage.getItem(LISTEN_STORAGE_KEY); var p = raw ? JSON.parse(raw) : []; return Array.isArray(p) ? p : []; }
+        catch (e) { return []; }
+      }
+      function writeFrozenConnections(items) { localStorage.setItem(LISTEN_STORAGE_KEY, JSON.stringify(items)); }
 
-      homeBtn.addEventListener("click", function () {
-        try {
-          sessionStorage.setItem("upphatt_skip_child_redirect_once", "1");
-          localStorage.setItem("upphatt_skip_child_redirect_once", "1");
-        } catch (e) {
-          // no-op
-        }
-        window.location.href = "index.html?skipChild=1";
-      });
+      function formatListenerMessage(listenerName, timestamp) {
+        var safeName = typeof listenerName === "string" ? listenerName.trim() : "";
+        var when = "";
+        if (timestamp) {
+          var tsDate = new Date(timestamp); var today = new Date(); today.setHours(0,0,0,0);
+          var yesterday = new Date(today); yesterday.setDate(today.getDate() - 1);
+          tsDate.setHours(0,0,0,0);
+          when = tsDate >= today ? " í dag" : " í gær";
+        } else { when = " í dag"; }
+        return (safeName || "Einhver") + " hlustaði" + when;
+      }
+
+      function pruneFrozenConnections() {
+        var now = Date.now();
+        var items = readFrozenConnections().filter(function (item) {
+          return item && typeof item.starIndex === "number" && now - item.timestamp < CONNECTION_LIFETIME_MS;
+        });
+        writeFrozenConnections(items);
+        return items;
+      }
+
+      function getCenterRelativeToScreen(el) {
+        var sr = screenEl.getBoundingClientRect(); var r = el.getBoundingClientRect();
+        return { x: r.left + r.width / 2 - sr.left, y: r.top + r.height / 2 - sr.top };
+      }
+
+      function buildListenPath(star) {
+        var center = getCenterRelativeToScreen(recordBtn);
+        var target = getCenterRelativeToScreen(star);
+        var dirX = target.x - center.x; var dirY = target.y - center.y;
+        var distance = Math.hypot(dirX, dirY) || 1;
+        var perpX = -dirY / distance; var perpY = dirX / distance;
+        var arc = Math.min(48, Math.max(18, distance * 0.16));
+        var c1x = center.x + dirX * 0.22 + perpX * arc;
+        var c1y = center.y + dirY * 0.22 + perpY * arc;
+        var c2x = center.x + dirX * 0.44 - perpX * arc * 0.78;
+        var c2y = center.y + dirY * 0.44 - perpY * arc * 0.78;
+        var midX = center.x + dirX * 0.58 + perpX * arc * 0.5;
+        var midY = center.y + dirY * 0.58 + perpY * arc * 0.5;
+        var c3x = center.x + dirX * 0.74 - perpX * arc * 0.68;
+        var c3y = center.y + dirY * 0.74 - perpY * arc * 0.68;
+        return "M " + center.x + " " + center.y + " C " + c1x + " " + c1y + ", " + c2x + " " + c2y + ", " + midX + " " + midY + " S " + c3x + " " + c3y + ", " + target.x + " " + target.y;
+      }
+
+      function resetStarStates() {
+        starEls.forEach(function (s) { s.classList.remove("active", "frozen"); s.style.opacity = ""; s.style.transform = ""; s.style.boxShadow = ""; });
+      }
+
+      function getFrozenConnectionStrength(timestamp) {
+        var age = Date.now() - Number(timestamp || 0); if (age < 0) age = 0;
+        if (age <= FROZEN_FULL_BRIGHT_MS) return 1;
+        var fadeAge = age - FROZEN_FULL_BRIGHT_MS;
+        return Math.max(0, Math.min(1, 0.25 * (1 - fadeAge / FROZEN_FADE_MS)));
+      }
+
+      function renderFrozenConnections() {
+        var items = pruneFrozenConnections();
+        frozenLinesEl.innerHTML = "";
+        resetStarStates();
+        items.forEach(function (item) {
+          var star = starEls[item.starIndex]; if (!star) return;
+          var strength = getFrozenConnectionStrength(item.timestamp); if (strength <= 0) return;
+          star.classList.add("active", "frozen");
+          star.style.opacity = String(0.08 + strength * 0.92);
+          star.style.transform = "scale(" + (1 + strength * 0.42).toFixed(3) + ")";
+          star.style.boxShadow = "0 0 " + (8 + strength * 18).toFixed(1) + "px rgba(170,244,255," + (0.16 + strength * 0.56).toFixed(3) + "), 0 0 " + (20 + strength * 40).toFixed(1) + "px rgba(120,240,255," + (0.08 + strength * 0.34).toFixed(3) + ")";
+          var path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+          path.setAttribute("d", buildListenPath(star));
+          path.setAttribute("class", "listen-line frozen");
+          path.style.opacity = String(0.04 + strength * 0.96);
+          path.style.strokeWidth = String(1.4 + strength * 2.4);
+          path.style.stroke = "rgba(188,245,255," + (0.1 + strength * 0.9).toFixed(3) + ")";
+          path.style.filter = "drop-shadow(0 0 " + (2 + strength * 8).toFixed(1) + "px rgba(168,245,255," + (0.12 + strength * 0.46).toFixed(3) + ")) drop-shadow(0 0 " + (6 + strength * 18).toFixed(1) + "px rgba(168,245,255," + (0.06 + strength * 0.24).toFixed(3) + "))";
+          frozenLinesEl.appendChild(path);
+        });
+      }
+
+      function persistFrozenConnection(starIndex, listenerName) {
+        var items = pruneFrozenConnections().filter(function (i) { return i.starIndex !== starIndex; });
+        items.push({ starIndex: starIndex, timestamp: Date.now(), listenerName: typeof listenerName === "string" ? listenerName.trim() : "" });
+        writeFrozenConnections(items);
+        renderFrozenConnections();
+      }
+
+      function getFrozenConnectionByStarIndex(starIndex) {
+        var items = pruneFrozenConnections();
+        for (var i = 0; i < items.length; i++) { if (items[i].starIndex === starIndex) return items[i]; }
+        return null;
+      }
+
+      function pickRandomStarIndex() {
+        var center = getCenterRelativeToScreen(recordBtn);
+        var btnRect = recordBtn.getBoundingClientRect();
+        var minDistance = Math.max(btnRect.width * 1.35, 120);
+        var perimeterIndexes = starEls.map(function (s, i) {
+          var p = getCenterRelativeToScreen(s);
+          return { index: i, distance: Math.hypot(p.x - center.x, p.y - center.y) };
+        }).filter(function (i) { return i.distance >= minDistance; }).map(function (i) { return i.index; });
+        var candidateIndexes = perimeterIndexes.length ? perimeterIndexes : starEls.map(function (_, i) { return i; });
+        var frozenIndexes = pruneFrozenConnections().map(function (i) { return i.starIndex; });
+        var availableIndexes = candidateIndexes.filter(function (i) { return frozenIndexes.indexOf(i) === -1; });
+        if (!availableIndexes.length) availableIndexes = candidateIndexes;
+        if (!availableIndexes.length) availableIndexes = starEls.map(function (_, i) { return i; });
+        return availableIndexes[Math.floor(Math.random() * availableIndexes.length)];
+      }
 
       function showListenToastNearStar(star, listenerName, timestamp) {
-        var screenRect = screenEl.getBoundingClientRect();
-        var centerRect = recordBtn.getBoundingClientRect();
-        var starRect = star.getBoundingClientRect();
-        var centerX = centerRect.left + centerRect.width / 2 - screenRect.left;
-        var centerY = centerRect.top + centerRect.height / 2 - screenRect.top;
-        var starX = starRect.left + starRect.width / 2 - screenRect.left;
-        var starY = starRect.top + starRect.height / 2 - screenRect.top;
-        var dirX = starX - centerX;
-        var dirY = starY - centerY;
-        var distance = Math.hypot(dirX, dirY) || 1;
-        var unitX = dirX / distance;
-        var unitY = dirY / distance;
-        var offset = 26;
-        var toastWidth = toastEl.offsetWidth || 154;
-        var toastHeight = toastEl.offsetHeight || 40;
-        var margin = 14;
-
-        var left = starX + unitX * offset;
-        var top = starY + unitY * offset - toastHeight / 2;
-
-        if (unitX < 0) {
-          left -= toastWidth;
-        }
-
-        left = Math.max(margin, Math.min(left, screenRect.width - toastWidth - margin));
-        top = Math.max(margin, Math.min(top, screenRect.height - 44 - margin));
-
-        toastEl.style.left = left + "px";
-        toastEl.style.top = top + "px";
+        var sr = screenEl.getBoundingClientRect();
+        var cr = recordBtn.getBoundingClientRect();
+        var str = star.getBoundingClientRect();
+        var cx = cr.left + cr.width / 2 - sr.left; var cy = cr.top + cr.height / 2 - sr.top;
+        var sx = str.left + str.width / 2 - sr.left; var sy = str.top + str.height / 2 - sr.top;
+        var dx = sx - cx; var dy = sy - cy; var d = Math.hypot(dx, dy) || 1;
+        var ux = dx / d; var uy = dy / d; var off = 26;
+        var tw = toastEl.offsetWidth || 154; var th = toastEl.offsetHeight || 40; var margin = 14;
+        var left = sx + ux * off; var top = sy + uy * off - th / 2;
+        if (ux < 0) left -= tw;
+        left = Math.max(margin, Math.min(left, sr.width - tw - margin));
+        top = Math.max(margin, Math.min(top, sr.height - 44 - margin));
+        toastEl.style.left = left + "px"; toastEl.style.top = top + "px";
         toastEl.textContent = formatListenerMessage(listenerName, timestamp);
-
-        if (toastTimeout !== null) {
-          clearTimeout(toastTimeout);
-        }
+        if (toastTimeout !== null) clearTimeout(toastTimeout);
         toastEl.classList.add("show");
-        // Fade in, hold, then fade out (total ~3.2s)
-        toastTimeout = setTimeout(function () {
-          toastEl.classList.remove("show");
-        }, 3200);
+        toastTimeout = setTimeout(function () { toastEl.classList.remove("show"); }, 3200);
       }
 
       function animateListenToStar(star, onFlashComplete) {
-        if (!star || !listenLineEl || !screenEl) {
-          return;
-        }
-
+        if (!star || !listenLineEl || !screenEl) return;
         star.classList.add("active");
         var pathData = buildListenPath(star);
-
         listenLineEl.setAttribute("d", pathData);
         listenLineEl.classList.add("animating");
-
         listenLineEl.style.transition = "none";
-        listenLineEl.style.opacity = "0.2";
-        listenLineEl.style.strokeWidth = "2.1";
-        listenLineEl.style.stroke = "rgba(140, 226, 246, 0.34)";
-
+        listenLineEl.style.opacity = "0.2"; listenLineEl.style.strokeWidth = "2.1";
+        listenLineEl.style.stroke = "rgba(140,226,246,0.34)";
         var pathLength = listenLineEl.getTotalLength();
         listenLineEl.style.strokeDasharray = String(pathLength);
         listenLineEl.style.strokeDashoffset = String(pathLength);
         listenLineEl.getBoundingClientRect();
-
-        listenLineEl.style.transition = "stroke-dashoffset 2650ms cubic-bezier(0.17, 0.84, 0.23, 1), opacity 2650ms ease, stroke 2650ms ease";
+        listenLineEl.style.transition = "stroke-dashoffset 2650ms cubic-bezier(0.17,0.84,0.23,1), opacity 2650ms ease, stroke 2650ms ease";
         listenLineEl.style.strokeDashoffset = "0";
         listenLineEl.style.opacity = "0.56";
-        listenLineEl.style.stroke = "rgba(188, 244, 255, 0.76)";
-
-        if (flashTimeout !== null) {
-          clearTimeout(flashTimeout);
-        }
+        listenLineEl.style.stroke = "rgba(188,244,255,0.76)";
+        if (flashTimeout !== null) clearTimeout(flashTimeout);
         flashTimeout = setTimeout(function () {
           playListenImpactCue();
-          listenLineEl.classList.add("flash");
-          star.classList.add("flash");
+          listenLineEl.classList.add("flash"); star.classList.add("flash");
           setTimeout(function () {
-            listenLineEl.classList.remove("flash");
-            listenLineEl.classList.remove("animating");
-            star.classList.remove("flash");
-            listenLineEl.style.transition = "opacity 500ms ease";
-            listenLineEl.style.opacity = "0";
-            if (typeof onFlashComplete === "function") {
-              onFlashComplete();
-            }
+            listenLineEl.classList.remove("flash", "animating"); star.classList.remove("flash");
+            listenLineEl.style.transition = "opacity 500ms ease"; listenLineEl.style.opacity = "0";
+            if (typeof onFlashComplete === "function") onFlashComplete();
           }, 480);
         }, 2360);
-
         star.classList.add("listened");
-        if (listenTimeout !== null) {
-          clearTimeout(listenTimeout);
-        }
-        listenTimeout = setTimeout(function () {
-          star.classList.remove("listened");
-        }, 1700);
+        if (listenTimeout !== null) clearTimeout(listenTimeout);
+        listenTimeout = setTimeout(function () { star.classList.remove("listened"); }, 1700);
       }
-
-      function renderButton() {
-        var spread = 35 + glowLevel * 95;
-        var alpha = 0.28 + glowLevel * 0.42;
-        var scale = 1 + glowLevel * 0.06;
-        var auraScale = 1.02 + glowLevel * 0.46;
-        var auraOpacity = (isRecording ? 0.62 : 0.56) + glowLevel * 0.24;
-
-        recordBtn.style.transform = "scale(" + scale + ")";
-        recordBtn.style.boxShadow = "0 0 " + spread + "px rgba(77, 255, 232, " + alpha + ")";
-        recordBtn.style.filter = isRecording ? "saturate(1.05)" : "saturate(0.92)";
-        recordBtnLabel.textContent = isRecording ? "Stöðva" : "Byrja";
-        recordBtn.setAttribute("aria-label", isRecording ? "Stöðva upptöku" : "Byrja upptöku");
-
-        auraReactiveEl.style.transform = "translate(-50%, -50%) scale(" + auraScale + ")";
-        auraReactiveEl.style.opacity = auraOpacity;
-      }
-
-      function stopSettleLoop() {
-        if (settleTimer !== null) {
-          clearInterval(settleTimer);
-          settleTimer = null;
-        }
-      }
-
-      function startSettleLoop() {
-        stopSettleLoop();
-        settleTimer = setInterval(function () {
-          glowLevel = glowLevel * 0.9;
-          if (glowLevel < 0.01) {
-            glowLevel = 0;
-          }
-          renderButton();
-        }, 16);
-      }
-
-      function cleanupAudio() {
-        if (rafId !== null) {
-          cancelAnimationFrame(rafId);
-          rafId = null;
-        }
-
-        if (mediaRecorder && mediaRecorder.state !== "inactive") {
-          try {
-            mediaRecorder.stop();
-          } catch (e) {
-            // no-op
-          }
-        }
-
-        activeSnippetRecorders.forEach(function (recorder) {
-          if (recorder && recorder.state !== "inactive") {
-            try {
-              recorder.stop();
-            } catch (e) {
-              // no-op
-            }
-          }
-        });
-        activeSnippetRecorders = [];
-        clearSnippetTimers();
-
-        if (stream) {
-          stream.getTracks().forEach(function (track) { track.stop(); });
-          stream = null;
-        }
-
-        if (audioContext) {
-          audioContext.close();
-          audioContext = null;
-        }
-
-        analyser = null;
-        mediaRecorder = null;
-        smoothedInput = 0;
-      }
-
-      function monitorVoice() {
-        if (!analyser) {
-          return;
-        }
-
-        var pcm = new Uint8Array(analyser.frequencyBinCount);
-
-        function tick() {
-          if (!analyser) {
-            return;
-          }
-
-          analyser.getByteTimeDomainData(pcm);
-
-          var sum = 0;
-          for (var i = 0; i < pcm.length; i += 1) {
-            var normalized = (pcm[i] - 128) / 128;
-            sum += normalized * normalized;
-          }
-
-          var rms = Math.sqrt(sum / pcm.length);
-          var mapped = Math.min(Math.max((rms - 0.01) * 6, 0), 1);
-
-          smoothedInput = smoothedInput * 0.9 + mapped * 0.1;
-          glowLevel = glowLevel * 0.88 + smoothedInput * 0.12;
-          renderButton();
-
-          if (isRecording) {
-            rafId = requestAnimationFrame(tick);
-          }
-        }
-
-        rafId = requestAnimationFrame(tick);
-      }
-
-      function startRecording() {
-        return navigator.mediaDevices.getUserMedia({ audio: true }).then(function (micStream) {
-          stream = micStream;
-          recordingStartedAt = Date.now();
-          pendingSavePayload = null;
-          saveInFlight = false;
-          saveSessionBtn.hidden = true;
-          saveSessionStatus.textContent = "";
-          snippetClips = {
-            min1: { chunks: [], mimeType: "" },
-            min2: { chunks: [], mimeType: "" },
-            min5: { chunks: [], mimeType: "" },
-            min8: { chunks: [], mimeType: "" },
-            min10: { chunks: [], mimeType: "" }
-          };
-          clearSnippetTimers();
-          activeSnippetRecorders = [];
-
-          audioContext = new (window.AudioContext || window.webkitAudioContext)();
-          analyser = audioContext.createAnalyser();
-          analyser.fftSize = 1024;
-          analyser.smoothingTimeConstant = 0.85;
-
-          var source = audioContext.createMediaStreamSource(stream);
-          source.connect(analyser);
-
-          mediaRecorder = new MediaRecorder(stream);
-          mediaRecorder.start(1000);
-          scheduleSnippetCaptures();
-
-          isRecording = true;
-          requestWakeLock();
-          playMicCue("on");
-          updateHelperVisibility();
-          stopSettleLoop();
-          renderButton();
-          monitorVoice();
-        });
-      }
-
-      function stopRecording() {
-        var elapsedSeconds = recordingStartedAt ? Math.floor((Date.now() - recordingStartedAt) / 1000) : 0;
-        playMicCue("off");
-        isRecording = false;
-        releaseWakeLock();
-        clearSnippetTimers();
-        cleanupAudio();
-        startSettleLoop();
-        renderButton();
-        pendingSavePayload = {
-          snippetClips: snippetClips,
-          elapsedSeconds: elapsedSeconds,
-          startedAt: recordingStartedAt || Date.now(),
-          childName: childName
-        };
-        saveSessionBtn.hidden = false;
-        saveSessionStatus.textContent = "Upptöku lokið. Ýttu á 'Vista'.";
-        updateHelperVisibility();
-      }
-
-
-      var postSaveOverlay = document.getElementById("post-save-overlay");
-      var postSaveCloseBtn = document.getElementById("post-save-close");
-      var postSaveJourneyBtn = document.getElementById("post-save-save-journey");
-      var postSaveNote = document.getElementById("post-save-note");
-      var postSaveTagline = document.getElementById("post-save-tagline");
-      var postSaveNoteInput = document.getElementById("post-save-note-input");
-      var postSaveEndPageInput = document.getElementById("post-save-end-page");
-
-      var postSaveTaglines = [
-        "Smá lestrarspor verða að stórri ferð.",
-        "Ein setning í dag verður minning á morgun.",
-        "Bókin heldur áfram — og þú líka.",
-        "Það sem þú last í dag fer á hilluna þína.",
-        "Lestrarferðalagið stækkar með hverri lotu."
-      ];
-
-      function getChildReadingSetup() {
-        try {
-          var rawSetup = localStorage.getItem(getChildReadingSetupKey());
-          return rawSetup ? JSON.parse(rawSetup) : null;
-        } catch (e) {
-          return null;
-        }
-      }
-
-      function updateBookshelfBookAfterReading(note, endPage) {
-        try {
-          var setup = getChildReadingSetup();
-          if (!setup || !setup.bookId) return false;
-
-          var allBooks = window._firestoreBooks || [];
-          var book = allBooks.find(function(item) {
-            return item && String(item.id) === String(setup.bookId);
-          });
-          if (!book) return false;
-
-          var startPage = Number(setup.pageFrom || 0);
-          var finalPage = Number(endPage || 0);
-          var totalPages = Number(book.totalPages || 0);
-          var now = Date.now();
-          var pct = totalPages && finalPage ? Math.min(100, Math.max(0, Math.round((finalPage / totalPages) * 100))) : (book.progressPercent || 0);
-
-          // Update via Firestore module
-          var updateScript = document.createElement("script");
-          updateScript.type = "module";
-          updateScript.textContent = `
-            import{getFirestore,doc,updateDoc,serverTimestamp}from'https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js';
-            import{initializeApp}from'https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js';
-            const app=initializeApp({apiKey:'AIzaSyAgTY3Uxd9_ZxixjqLj-sH8V3OhFAzg6DU',authDomain:'lesum-22e85.firebaseapp.com',projectId:'lesum-22e85',storageBucket:'lesum-22e85.firebasestorage.app',messagingSenderId:'204392598388',appId:'1:204392598388:web:2dbbe3f476cd78d2ffba21'});
-            const db=getFirestore(app);
-            const bookRef=doc(db,'books','${setup.bookId}');
-            const entries=${JSON.stringify(book.journeyEntries||[])};
-            entries.unshift({date:"Í dag",createdAt:Date.now(),pageFrom:${startPage}||"",pageTo:${finalPage}||"",note:${JSON.stringify(note||"")},reactions:[]});
-            updateDoc(bookRef,{
-              status:${pct>=100?'"finished"':'"reading"'},
-              currentPageFrom:${startPage}||null,
-              currentPageTo:${finalPage}||null,
-              progressPercent:${pct},
-              lastReadAt:${now},
-              note:${JSON.stringify(note||"")},
-              journeyEntries:entries,
-              updatedAt:serverTimestamp()
-            }).then(()=>console.log("Book updated in Firestore"))
-              .catch(e=>console.warn("Book update failed:",e));
-          `;
-          document.head.appendChild(updateScript);
-          return true;
-        } catch (e) {
-          console.warn("Failed updating bookshelf book after reading:", e);
-          return false;
-        }
-      }
-
-      function openPostSavePopup() {
-        if (!postSaveOverlay) return;
-
-        var tagline = postSaveTaglines[Math.floor(Math.random() * postSaveTaglines.length)];
-        if (postSaveTagline) postSaveTagline.textContent = tagline;
-
-        var setup = getChildReadingSetup();
-        if (postSaveEndPageInput) {
-          postSaveEndPageInput.value = "";
-          postSaveEndPageInput.placeholder = setup && setup.pageFrom ? String(Number(setup.pageFrom) + 8) : "29";
-        }
-        if (postSaveNoteInput) postSaveNoteInput.value = "";
-        if (postSaveNote) postSaveNote.classList.remove("show");
-        if (postSaveJourneyBtn) {
-          postSaveJourneyBtn.textContent = "Vista lestrarferðalag";
-          postSaveJourneyBtn.disabled = false;
-        }
-
-        postSaveOverlay.classList.add("open");
-        postSaveOverlay.setAttribute("aria-hidden", "false");
-
-        setTimeout(function () {
-          if (postSaveNoteInput) postSaveNoteInput.focus();
-        }, 80);
-      }
-
-      function closePostSavePopup() {
-        if (!postSaveOverlay) return;
-        postSaveOverlay.classList.remove("open");
-        postSaveOverlay.setAttribute("aria-hidden", "true");
-      }
-
-      if (postSaveCloseBtn) {
-        postSaveCloseBtn.addEventListener("click", closePostSavePopup);
-      }
-
-      if (postSaveOverlay) {
-        postSaveOverlay.addEventListener("click", function (event) {
-          if (event.target === postSaveOverlay) closePostSavePopup();
-        });
-      }
-
-      if (postSaveJourneyBtn) {
-        postSaveJourneyBtn.addEventListener("click", function () {
-          var note = postSaveNoteInput ? postSaveNoteInput.value.trim() : "";
-          var endPage = postSaveEndPageInput ? postSaveEndPageInput.value.trim() : "";
-
-          if (!note) {
-            alert("Skrifaðu eina setningu um hvað gerðist í bókinni.");
-            return;
-          }
-
-          if (!endPage) {
-            alert("Settu inn blaðsíðuna sem þú endaðir á.");
-            return;
-          }
-
-          updateBookshelfBookAfterReading(note, endPage);
-
-          try {
-            localStorage.setItem("upphatt_last_reading_journey_entry", JSON.stringify({
-              childKey: childStorageKey,
-              childName: childName,
-              note: note,
-              endPage: endPage,
-              timestamp: Date.now(),
-              source: "post-save-popup"
-            }));
-          } catch (e) {
-            // no-op
-          }
-
-          triggerHaptic([8, 20, 8]);
-          postSaveJourneyBtn.textContent = "Vistað";
-          postSaveJourneyBtn.disabled = true;
-          if (postSaveNote) postSaveNote.classList.add("show");
-          setTimeout(closePostSavePopup, 850);
-        });
-      }
-
-      saveSessionBtn.addEventListener("click", function () {
-        if (saveInFlight || !pendingSavePayload || typeof window.saveChildV2Session !== "function") {
-          return;
-        }
-
-        triggerHaptic([10, 24, 10]);
-        triggerVisualTap(saveSessionBtn, "visual-tap");
-
-        saveInFlight = true;
-        saveSessionBtn.disabled = true;
-        saveSessionStatus.textContent = "Vista hljóðbrot...";
-        updateHelperVisibility();
-
-        // Small delay lets final snippet onstop handlers flush chunks.
-        setTimeout(function () {
-          window.saveChildV2Session(pendingSavePayload).then(function (result) {
-            if (result && result.saved) {
-              saveSessionStatus.textContent = "Lota vistuð.";
-              pendingSavePayload = null;
-              saveSessionBtn.hidden = true;
-              openPostSavePopup();
-            } else {
-              saveSessionStatus.textContent = "Engin hljóðbrot til vistunar enn.";
-            }
-          }).catch(function (e) {
-            console.warn("Failed saving child-v2 snippets:", e);
-            saveSessionStatus.textContent = "Villa við vistun. Reyndu aftur.";
-          }).finally(function () {
-            saveInFlight = false;
-            saveSessionBtn.disabled = false;
-            updateHelperVisibility();
-          });
-        }, 300);
-      });
-
-      recordBtn.addEventListener("click", function () {
-        if (isRecording) {
-          triggerHaptic([14, 26, 10]);
-          triggerVisualTap(recordBtn, "visual-stop");
-          stopRecording();
-          return;
-        }
-
-        triggerHaptic(12);
-        triggerVisualTap(recordBtn, "visual-tap");
-
-        startRecording().catch(function () {
-          isRecording = false;
-          cleanupAudio();
-          startSettleLoop();
-          renderButton();
-          updateHelperVisibility();
-        });
-      });
-
-      starEls.forEach(function (star, starIndex) {
-        star.addEventListener("click", function () {
-          if (!star.classList.contains("active") && !star.classList.contains("frozen")) {
-            return;
-          }
-          var connection = getFrozenConnectionByStarIndex(starIndex);
-          showListenToastNearStar(star, connection ? connection.listenerName : "");
-        });
-      });
 
       function triggerListenEvent(listenerName, timestamp) {
         var starIndex = pickRandomStarIndex();
         var star = starEls[starIndex] || starEls[0] || null;
-        if (!star) {
-          if (window.__listenDebug) window.__listenDebug.error("animate", "no-stars");
-          return;
-        }
-
+        if (!star) return;
         var committed = false;
         function commitFreeze() {
-          if (committed) return;
-          committed = true;
+          if (committed) return; committed = true;
           persistFrozenConnection(starIndex, listenerName);
           showListenToastNearStar(star, listenerName, timestamp);
         }
-
-        animateListenToStar(star, function () {
-          commitFreeze();
-        });
-
-        // Safety net: if animation callback is skipped for any reason, still persist freeze state.
-        setTimeout(function () {
-          commitFreeze();
-        }, 3300);
+        animateListenToStar(star, commitFreeze);
+        setTimeout(commitFreeze, 3300);
       }
 
       function runNextListenEvent() {
         var now = Date.now();
-
-        // Watchdog: if animation state got stuck, recover automatically.
-        if (listenAnimationRunning && now - listenAnimationStartedAt > 3600) {
-          listenAnimationRunning = false;
-          if (window.__listenDebug) window.__listenDebug.error("queue", "watchdog-reset");
-        }
-
-        if (listenAnimationRunning) {
-          if (window.__listenDebug) window.__listenDebug.queue(listenEventQueue.length, true);
-          return;
-        }
-
-        if (!listenEventQueue.length) {
-          if (window.__listenDebug) window.__listenDebug.queue(0, false);
-          return;
-        }
-
-        listenAnimationRunning = true;
-        listenAnimationStartedAt = now;
+        if (listenAnimationRunning && now - listenAnimationStartedAt > 3600) listenAnimationRunning = false;
+        if (listenAnimationRunning || !listenEventQueue.length) return;
+        listenAnimationRunning = true; listenAnimationStartedAt = now;
         var next = listenEventQueue.shift();
-        if (window.__listenDebug) window.__listenDebug.queue(listenEventQueue.length, true);
-        try {
-          triggerListenEvent(next.listenerName, next.timestamp);
-        } catch (e) {
-          listenAnimationRunning = false;
-          if (window.__listenDebug) {
-            window.__listenDebug.error("animate", e && e.message ? e.message : "trigger-failed");
-            window.__listenDebug.queue(listenEventQueue.length, false);
-          }
-          runNextListenEvent();
-          return;
-        }
-
-        setTimeout(function () {
-          if (window.__listenDebug) window.__listenDebug.rendered("animate", next.timestamp, listenEventQueue.length);
-          listenAnimationRunning = false;
-          if (window.__listenDebug) window.__listenDebug.queue(listenEventQueue.length, false);
-          runNextListenEvent();
-        }, 3400);
+        try { triggerListenEvent(next.listenerName, next.timestamp); }
+        catch (e) { listenAnimationRunning = false; runNextListenEvent(); return; }
+        setTimeout(function () { listenAnimationRunning = false; runNextListenEvent(); }, 3400);
       }
 
-      // External hook: call window.markListenEvent("Name", timestamp) when a parent listens.
       window.markListenEvent = function (listenerName, timestamp) {
-        listenEventQueue.push({
-          listenerName: listenerName || "Einhver",
-          timestamp: timestamp || Date.now()
-        });
-        if (window.__listenDebug) window.__listenDebug.enqueued("markListenEvent", timestamp || Date.now(), listenEventQueue.length);
+        listenEventQueue.push({ listenerName: listenerName || "Einhver", timestamp: timestamp || Date.now() });
         runNextListenEvent();
       };
 
-      window.addEventListener("resize", function () {
-        positionOrbForMobileThirds();
-        renderFrozenConnections();
-      });
-
-      window.addEventListener("beforeunload", function () {
-        cleanupAudio();
-      });
-
-      renderFrozenConnections();
-      positionOrbForMobileThirds();
-
       starEls.forEach(function (star, starIndex) {
+        star.addEventListener("click", function () {
+          if (!star.classList.contains("active") && !star.classList.contains("frozen")) return;
+          var conn = getFrozenConnectionByStarIndex(starIndex);
+          showListenToastNearStar(star, conn ? conn.listenerName : "");
+        });
         star.addEventListener("dblclick", function () {
-          var connection = getFrozenConnectionByStarIndex(starIndex);
-          showListenToastNearStar(star, connection ? connection.listenerName : "");
+          var conn = getFrozenConnectionByStarIndex(starIndex);
+          showListenToastNearStar(star, conn ? conn.listenerName : "");
         });
       });
 
-      // Temporary test hook: run this in console to simulate a listen event.
-      window.debugTriggerListen = function (listenerName) {
-        triggerListenEvent(listenerName || "Dad");
-      };
+      window.addEventListener("resize", function () { renderFrozenConnections(); });
+      window.addEventListener("beforeunload", function () { cleanupAudio(); });
+      document.addEventListener("keydown", function (e) { if (e.key === "Escape") closePostSavePopup(); });
 
-      document.addEventListener("keydown", function (event) {
-        if (event.key === "Escape") closePostSavePopup();
-      });
+      window.debugTriggerListen = function (name) { triggerListenEvent(name || "Dad"); };
 
-      updateHelperVisibility();
+      // ── Init ──
+      renderFrozenConnections();
+      renderBookPill();
+      checkMonthlyGoal();
       startSettleLoop();
       renderButton();
+      updateButtonUI();
     })();
   </script>
 
@@ -3057,33 +1890,19 @@
     const storage = getStorage(app);
     const useListenEventsStream = true;
 
-    // ── Ensure the user is authenticated with child claims ──
-    // Retries token refresh up to 3× with backoff (200ms / 500ms / 1000ms)
-    // to handle the propagation window after setCustomUserClaims fires.
-    // Redirects to index.html if claims never arrive or wrong role.
     function ensureAuth() {
       return new Promise((resolve, reject) => {
         const unsub = onAuthStateChanged(auth, async (user) => {
           unsub();
-          if (!user) {
-            window.location.href = 'index.html';
-            reject(new Error('not-authenticated'));
-            return;
-          }
+          if (!user) { window.location.href = 'index.html'; reject(new Error('not-authenticated')); return; }
           const delays = [0, 250, 750, 1500, 3000];
           for (let i = 0; i < delays.length; i++) {
             if (delays[i] > 0) await new Promise(r => setTimeout(r, delays[i]));
             try {
-              // Always force-refresh so a cached anonymous token without claims
-              // cannot bounce the child back to the front page.
               const token = await user.getIdTokenResult(true);
               if (token.claims.role === 'child') { resolve(user); return; }
             } catch (e) {
-              if (i === delays.length - 1) {
-                window.location.href = 'index.html';
-                reject(e);
-                return;
-              }
+              if (i === delays.length - 1) { window.location.href = 'index.html'; reject(e); return; }
             }
           }
           window.location.href = 'index.html';
@@ -3092,21 +1911,15 @@
       });
     }
 
-    // Wait for auth before starting any Firebase listeners or writes
     const _authReady = ensureAuth();
 
-    // ── Load books for child book picker (after auth) ──
     _authReady.then(() => {
       const childRaw = localStorage.getItem('upphatt_child');
       if (childRaw) {
         try {
           const ch = JSON.parse(childRaw);
           if (ch.familyId && ch.childKey) {
-            const booksQ = query(
-              collection(db, 'books'),
-              where('familyId', '==', ch.familyId),
-              where('childKey', '==', ch.childKey)
-            );
+            const booksQ = query(collection(db, 'books'), where('familyId', '==', ch.familyId), where('childKey', '==', ch.childKey));
             onSnapshot(booksQ, snap => {
               window._firestoreBooks = snap.docs.map(d => ({ id: d.id, ...d.data() }));
               window._firestoreBooksLoaded = true;
@@ -3128,19 +1941,14 @@
       await _authReady;
       const raw = localStorage.getItem('upphatt_child');
       if (!raw) return { saved: false, reason: 'no-child-session' };
-
       const childData = JSON.parse(raw);
-      if (!childData?.familyId || !childData?.childKey) {
-        return { saved: false, reason: 'missing-family-or-child' };
-      }
+      if (!childData?.familyId || !childData?.childKey) return { saved: false, reason: 'missing-family-or-child' };
 
       const snippetClips = payload?.snippetClips || {};
       const ts = payload?.startedAt || Date.now();
       const clipDefs = [
-        { key: 'min1', fileName: 'hljod_30s' },
-        { key: 'min2', fileName: 'hljod_2m' },
-        { key: 'min5', fileName: 'hljod_5m' },
-        { key: 'min8', fileName: 'hljod_8m' },
+        { key: 'min1', fileName: 'hljod_30s' }, { key: 'min2', fileName: 'hljod_2m' },
+        { key: 'min5', fileName: 'hljod_5m' }, { key: 'min8', fileName: 'hljod_8m' },
         { key: 'min10', fileName: 'hljod_10m' }
       ];
 
@@ -3150,40 +1958,27 @@
 
       for (const def of clipDefs) {
         const snippet = snippetClips[def.key];
-        if (!snippet?.chunks?.length) {
-          snippetResults[def.key] = { usable: false, reason: 'no_data' };
-          continue;
-        }
-
+        if (!snippet?.chunks?.length) { snippetResults[def.key] = { usable: false, reason: 'no_data' }; continue; }
         const mimeType = snippet.mimeType || 'audio/webm';
         const blob = new Blob(snippet.chunks, { type: mimeType });
 
-        // Run analysis on snippet
         try {
           const result = await analyzeSnippetBlob(blob);
           snippetResults[def.key] = {
-          usable: result.usable,
-          quality: result.quality,
-          reason: result.reason,
-          totalScore: result.totalScore,
-          profile: result.profile,
-          activeRatio: result.activeRatio,
-          praatSyllables: result.praatSyllables,
-          longestBurst: result.longestBurst,
-          fragmentationScore: Number(result.fragmentationScore ?? result.summary?.fragmentationScore ?? 0),
-          decodingPauseCount: Number(result.decodingPauseCount ?? result.summary?.decodingPauseCount ?? 0),
-          summary: result.summary || null
-        };
+            usable: result.usable, quality: result.quality, reason: result.reason,
+            totalScore: result.totalScore, profile: result.profile,
+            activeRatio: result.activeRatio, praatSyllables: result.praatSyllables,
+            longestBurst: result.longestBurst,
+            fragmentationScore: Number(result.fragmentationScore ?? result.summary?.fragmentationScore ?? 0),
+            decodingPauseCount: Number(result.decodingPauseCount ?? result.summary?.decodingPauseCount ?? 0),
+            summary: result.summary || null
+          };
         } catch (e) {
           console.warn('Snippet analysis failed for ' + def.key + ':', e);
           snippetResults[def.key] = { usable: true, quality: 'unknown', reason: null };
         }
 
-        // Only upload usable snippets
-        if (snippetResults[def.key].usable === false) {
-          audioPaths[def.key] = null;
-          continue;
-        }
+        if (snippetResults[def.key].usable === false) { audioPaths[def.key] = null; continue; }
 
         const ext = mimeType.includes('mp4') ? 'mp4' : mimeType.includes('ogg') ? 'ogg' : 'webm';
         const path = `recordings/${childData.familyId}/${childData.childKey}/${ts}/${def.fileName}.${ext}`;
@@ -3196,50 +1991,33 @@
         return { saved: false, reason: 'no-snippets' };
       }
 
-      // Build analysis object
       const usableSnippets = Object.values(snippetResults).filter(r => r.usable);
       const usableScores = usableSnippets.map(r => r.totalScore).filter(s => s != null && s > 0);
       const bestScore = usableScores.length ? Math.max(...usableScores) : 0;
-      const avgScore = usableScores.length
-        ? Number((usableScores.reduce((a, b) => a + b, 0) / usableScores.length).toFixed(1))
-        : 0;
+      const avgScore = usableScores.length ? Number((usableScores.reduce((a, b) => a + b, 0) / usableScores.length).toFixed(1)) : 0;
 
       const analysis = {
         session: null,
         snippets: snippetResults,
         overall: {
-          usableCount: usableSnippets.length,
-          totalSnippets: clipDefs.length,
-          bestScore,
-          avgScore,
-          readingQuality: usableSnippets.length >= 3 ? 'good'
-                        : usableSnippets.length >= 1 ? 'fair' : 'poor'
+          usableCount: usableSnippets.length, totalSnippets: clipDefs.length,
+          bestScore, avgScore,
+          readingQuality: usableSnippets.length >= 3 ? 'good' : usableSnippets.length >= 1 ? 'fair' : 'poor'
         }
       };
 
       await addDoc(collection(db, 'sessions'), {
-        familyId: childData.familyId,
-        childKey: childData.childKey,
+        familyId: childData.familyId, childKey: childData.childKey,
         childName: payload?.childName || childData.childName || 'Barn',
-        title: 'Lestur',
-        pageStart: null,
-        pageEnd: null,
-        pagesRead: null,
-        totalPages: null,
-        imagePath: null,
-        seconds: payload?.elapsedSeconds || 0,
-        timerMode: 'up',
+        title: 'Lestur', pageStart: null, pageEnd: null, pagesRead: null,
+        totalPages: null, imagePath: null,
+        seconds: payload?.elapsedSeconds || 0, timerMode: 'up',
         hasAudio: uploadCount > 0,
-        audioPath_min1: audioPaths.min1,
-        audioPath_min2: audioPaths.min2,
-        audioPath_min5: audioPaths.min5,
-        audioPath_min8: audioPaths.min8,
+        audioPath_min1: audioPaths.min1, audioPath_min2: audioPaths.min2,
+        audioPath_min5: audioPaths.min5, audioPath_min8: audioPaths.min8,
         audioPath_min10: audioPaths.min10,
         audioPath: audioPaths.min1 || audioPaths.min2 || audioPaths.min5 || audioPaths.min8 || audioPaths.min10,
-        analysis,
-        timestamp: ts,
-        date: makeDateKey(new Date(ts)),
-        createdAt: serverTimestamp()
+        analysis, timestamp: ts, date: makeDateKey(new Date(ts)), createdAt: serverTimestamp()
       });
 
       return { saved: true, uploadCount: uploadCount };
@@ -3247,195 +2025,84 @@
 
     function normalizeListenTimestamp(rawTs) {
       if (!rawTs) return 0;
-
-      if (typeof rawTs === 'number' && Number.isFinite(rawTs)) {
-        return rawTs < 1e12 ? rawTs * 1000 : rawTs;
-      }
-
-      if (typeof rawTs === 'string') {
-        var parsed = Number(rawTs);
-        if (Number.isFinite(parsed) && parsed > 0) {
-          return parsed < 1e12 ? parsed * 1000 : parsed;
-        }
-      }
-
-      if (rawTs instanceof Date) {
-        var dateMs = rawTs.getTime();
-        return Number.isFinite(dateMs) ? dateMs : 0;
-      }
-
-      if (typeof rawTs.toMillis === 'function') {
-        try {
-          var millis = rawTs.toMillis();
-          return Number.isFinite(millis) ? millis : 0;
-        } catch (e) {
-          // no-op
-        }
-      }
-
-      if (typeof rawTs.seconds === 'number') {
-        return rawTs.seconds * 1000;
-      }
-
+      if (typeof rawTs === 'number' && Number.isFinite(rawTs)) return rawTs < 1e12 ? rawTs * 1000 : rawTs;
+      if (typeof rawTs === 'string') { var p = Number(rawTs); if (Number.isFinite(p) && p > 0) return p < 1e12 ? p * 1000 : p; }
+      if (rawTs instanceof Date) { var dm = rawTs.getTime(); return Number.isFinite(dm) ? dm : 0; }
+      if (typeof rawTs.toMillis === 'function') { try { var m = rawTs.toMillis(); return Number.isFinite(m) ? m : 0; } catch (e) {} }
+      if (typeof rawTs.seconds === 'number') return rawTs.seconds * 1000;
       return 0;
     }
 
     function handleListenEventData(data, childKey, source) {
       if (!data) return;
-
       var now = Date.now();
       var ts = normalizeListenTimestamp(data.timestamp);
       var listenerName = data.listenerName || 'Einhver';
-
-      // Only show if within 48 hours
       if (!ts || now - ts > 48 * 60 * 60 * 1000) return;
-      if (ts > now + 10 * 60 * 1000) {
-        // Ignore clearly future-skewed events from device clock drift.
-        if (window.__listenDebug) window.__listenDebug.error(source || 'unknown', 'future-ts');
-        return;
-      }
-
-      // Only show once per newest listen event for this child.
+      if (ts > now + 10 * 60 * 1000) return;
       var shownKey = 'upphatt_listen_shown_' + childKey;
       var shownTs = parseInt(localStorage.getItem(shownKey) || '0', 10);
-      if (!Number.isFinite(shownTs) || shownTs > now + 10 * 60 * 1000) {
-        shownTs = 0;
-        localStorage.setItem(shownKey, '0');
-        if (window.__listenDebug) window.__listenDebug.error(source || 'unknown', 'reset-shown-ts');
-      }
+      if (!Number.isFinite(shownTs) || shownTs > now + 10 * 60 * 1000) { shownTs = 0; localStorage.setItem(shownKey, '0'); }
       if (ts <= shownTs) return;
-
       localStorage.setItem(shownKey, String(ts));
-
-      if (window.__listenDebug) {
-        window.__listenDebug.accepted(source || 'unknown', ts);
-      }
-
-      if (typeof window.markListenEvent === 'function') {
-        window.markListenEvent(listenerName, ts);
-      }
+      if (typeof window.markListenEvent === 'function') window.markListenEvent(listenerName, ts);
     }
 
     async function checkListenEventOnce() {
       try {
-        var raw = localStorage.getItem('upphatt_child');
-        if (!raw) return;
-        var childData = JSON.parse(raw);
-        if (!childData || !childData.familyId || !childData.childKey) return;
-
-        var familyId = childData.familyId;
-        var childKey = childData.childKey;
-
-        var snap = await getDoc(doc(db, 'listens', familyId + '_' + childKey));
+        var raw = localStorage.getItem('upphatt_child'); if (!raw) return;
+        var cd = JSON.parse(raw); if (!cd || !cd.familyId || !cd.childKey) return;
+        var snap = await getDoc(doc(db, 'listens', cd.familyId + '_' + cd.childKey));
         if (!snap.exists()) return;
-        handleListenEventData(snap.data(), childKey, 'legacy-doc-once');
-      } catch (e) {
-        console.warn('Listen check failed:', e);
-      }
+        handleListenEventData(snap.data(), cd.childKey, 'legacy-doc-once');
+      } catch (e) { console.warn('Listen check failed:', e); }
     }
 
     function startListenEventSubscription() {
       try {
-        var raw = localStorage.getItem('upphatt_child');
-        if (!raw) return;
-        var childData = JSON.parse(raw);
-        if (!childData || !childData.familyId || !childData.childKey) return;
-
-        var familyId = childData.familyId;
-        var childKey = childData.childKey;
-        onSnapshot(doc(db, 'listens', familyId + '_' + childKey), function (snap) {
+        var raw = localStorage.getItem('upphatt_child'); if (!raw) return;
+        var cd = JSON.parse(raw); if (!cd || !cd.familyId || !cd.childKey) return;
+        onSnapshot(doc(db, 'listens', cd.familyId + '_' + cd.childKey), function (snap) {
           if (!snap.exists()) return;
-          handleListenEventData(snap.data(), childKey, 'legacy-doc-sub');
-        }, function (e) {
-          console.warn('Listen subscription failed:', e);
-          if (window.__listenDebug) window.__listenDebug.error('legacy-doc-sub', e && e.message ? e.message : 'subscription failed');
-        });
-      } catch (e) {
-        console.warn('Listen subscription setup failed:', e);
-      }
+          handleListenEventData(snap.data(), cd.childKey, 'legacy-doc-sub');
+        }, function (e) { console.warn('Listen subscription failed:', e); });
+      } catch (e) { console.warn('Listen subscription setup failed:', e); }
     }
 
     function startSessionListenFallbackSubscription() {
       try {
-        var raw = localStorage.getItem('upphatt_child');
-        if (!raw) return;
-        var childData = JSON.parse(raw);
-        if (!childData || !childData.familyId || !childData.childKey) return;
-
-        var q = query(
-          collection(db, 'sessions'),
-          where('familyId', '==', childData.familyId),
-          where('childKey', '==', childData.childKey)
-        );
-
+        var raw = localStorage.getItem('upphatt_child'); if (!raw) return;
+        var cd = JSON.parse(raw); if (!cd || !cd.familyId || !cd.childKey) return;
+        var q = query(collection(db, 'sessions'), where('familyId', '==', cd.familyId), where('childKey', '==', cd.childKey));
         onSnapshot(q, function (snap) {
-          var latestTs = 0;
-          var latestName = 'Einhver';
-
+          var latestTs = 0; var latestName = 'Einhver';
           snap.forEach(function (d) {
-            var row = d.data();
-            var ts = row ? normalizeListenTimestamp(row.lastListenedAt) : 0;
-            if (ts > latestTs) {
-              latestTs = ts;
-              latestName = row.lastListenerName || 'Einhver';
-            }
+            var row = d.data(); var ts = row ? normalizeListenTimestamp(row.lastListenedAt) : 0;
+            if (ts > latestTs) { latestTs = ts; latestName = row.lastListenerName || 'Einhver'; }
           });
-
-          if (latestTs > 0) {
-            handleListenEventData({ listenerName: latestName, timestamp: latestTs }, childData.childKey, 'sessions-fallback');
-          }
-        }, function (e) {
-          console.warn('Session listen fallback failed:', e);
-          if (window.__listenDebug) window.__listenDebug.error('sessions-fallback', e && e.message ? e.message : 'fallback failed');
-        });
-      } catch (e) {
-        console.warn('Session listen fallback setup failed:', e);
-      }
+          if (latestTs > 0) handleListenEventData({ listenerName: latestName, timestamp: latestTs }, cd.childKey, 'sessions-fallback');
+        }, function (e) { console.warn('Session listen fallback failed:', e); });
+      } catch (e) { console.warn('Session listen fallback setup failed:', e); }
     }
 
     function startListenEventsSubscription() {
-      if (!useListenEventsStream) {
-        return;
-      }
+      if (!useListenEventsStream) return;
       try {
-        var raw = localStorage.getItem('upphatt_child');
-        if (!raw) return;
-        var childData = JSON.parse(raw);
-        if (!childData || !childData.familyId || !childData.childKey) return;
-        if (window.__listenDebug) {
-          window.__listenDebug.setChildKey(childData.childKey);
-        }
-
-        var q = query(
-          collection(db, 'listenEvents'),
-          where('familyId', '==', childData.familyId),
-          where('childKey', '==', childData.childKey)
-        );
-
+        var raw = localStorage.getItem('upphatt_child'); if (!raw) return;
+        var cd = JSON.parse(raw); if (!cd || !cd.familyId || !cd.childKey) return;
+        var q = query(collection(db, 'listenEvents'), where('familyId', '==', cd.familyId), where('childKey', '==', cd.childKey));
         onSnapshot(q, function (snap) {
           var events = [];
           snap.forEach(function (d) {
-            var row = d.data() || {};
-            var ts = normalizeListenTimestamp(row.timestamp);
+            var row = d.data() || {}; var ts = normalizeListenTimestamp(row.timestamp);
             if (!ts) return;
-            events.push({
-              timestamp: ts,
-              listenerName: row.listenerName || 'Einhver'
-            });
+            events.push({ timestamp: ts, listenerName: row.listenerName || 'Einhver' });
           });
-
-          events
-            .sort(function (a, b) { return a.timestamp - b.timestamp; })
-            .forEach(function (evt) {
-              handleListenEventData(evt, childData.childKey, 'listenEvents-stream');
-            });
-        }, function (e) {
-          console.warn('Listen events subscription failed:', e);
-          if (window.__listenDebug) window.__listenDebug.error('listenEvents-stream', e && e.message ? e.message : 'events failed');
-        });
-      } catch (e) {
-        console.warn('Listen events subscription setup failed:', e);
-      }
+          events.sort(function (a, b) { return a.timestamp - b.timestamp; }).forEach(function (evt) {
+            handleListenEventData(evt, cd.childKey, 'listenEvents-stream');
+          });
+        }, function (e) { console.warn('Listen events subscription failed:', e); });
+      } catch (e) { console.warn('Listen events subscription setup failed:', e); }
     }
 
     function startAllListenSubscriptions() {
@@ -3446,11 +2113,9 @@
     }
 
     _authReady.then(() => {
-      if (document.readyState === 'complete') {
-        startAllListenSubscriptions();
-      } else {
-        window.addEventListener('load', startAllListenSubscriptions);
-      }
+      if (document.readyState === 'complete') startAllListenSubscriptions();
+      else window.addEventListener('load', startAllListenSubscriptions);
     }).catch(() => {});
   </script>
+</body>
 </html>

@@ -392,7 +392,7 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
 </head>
 <body>
 
-<!-- ═══ Hidden DOM hooks for auth.js + parent-view.js ═══ -->
+<!-- ═══ Hidden DOM hooks for auth.js + parent-view.js (renderar hér, enginn sér) ═══ -->
 <div style="display:none">
   <div id="parent-pill">Foreldri</div>
   <div id="parent-hero">Góðan dag</div>
@@ -411,6 +411,23 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
   <input id="reg-name"><input id="reg-email"><input id="reg-pw"><div id="reg-error"></div>
   <div id="signup-children-list"></div>
   <input id="child-code-input"><div id="child-code-error"></div>
+  <!-- parent-view.js render targets (hidden, engin keppni) -->
+  <div id="ph-children-row"></div>
+  <div id="ph-now-reading"></div>
+  <div id="ph-week-grid"></div>
+  <div id="ph-journey-card"></div>
+  <div id="ph-goals-card"></div>
+  <div id="ph-bookshelf-link"></div>
+  <div id="ph-heatmap-content"></div>
+  <div id="ph-content-activity"></div>
+  <div id="ph-recordings-list"></div>
+  <div id="ph-stat-mins"></div>
+  <div id="ph-stat-sessions"></div>
+  <div id="ph-stat-clips"></div>
+  <div id="ph-hm-week"></div>
+  <div id="ph-hm-month"></div>
+  <div id="ph-hm-year"></div>
+  <div id="ph-rec-tile-header"></div>
 </div>
 
 <div class="shell" id="screen-parent-home">
@@ -425,7 +442,7 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
     </header>
     <div class="bod">
       <!-- Empty state: sýnist þegar engin börn eru skráð -->
-      <div id="ph-empty-state" style="display:none">
+      <div id="p-empty-state" style="display:none">
         <div style="text-align:center;padding:40px 20px 20px">
           <div style="width:64px;height:64px;border-radius:50%;background:var(--accent-soft);border:2px solid var(--border-hl);display:flex;align-items:center;justify-content:center;margin:0 auto 16px">
             <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
@@ -453,7 +470,7 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
         </div>
       </div>
 
-      <div class="cpills" id="ph-children-row" aria-label="Veldu barn">
+      <div class="cpills" id="p-children-row" aria-label="Veldu barn">
         <button class="cpill sel" type="button" onclick="pickChild(this,'hrafnkell')">
           <div class="cpill-av">HH</div>
           <div><div class="cpill-name">Hrafnkell</div><div class="cpill-meta">HRA78 · 4 mín</div></div>
@@ -466,11 +483,11 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
 
       <div class="streak">
         <div class="streak-fire">&#x1F525;</div>
-        <div class="streak-n" id="ph-streak">4</div>
+        <div class="streak-n" id="p-streak">4</div>
         <div class="streak-t">dagar<br>í röð</div>
       </div>
 
-      <div class="crd crd-glow" id="ph-now-reading">
+      <div class="crd crd-glow" id="p-now-reading">
         <div class="crd-head"><span class="crd-lbl">Að lesa</span><button class="crd-act" onclick="nav('bookshelf.html')">Bókasafn ›</button></div>
         <div class="rd-row">
           <div class="rd-cover"><span>F</span></div>
@@ -482,7 +499,7 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
         </div>
       </div>
 
-      <div class="crd" id="ph-week-grid">
+      <div class="crd" id="p-week-grid">
         <div class="crd-lbl" style="margin-bottom:6px">Síðustu 7 dagar</div>
         <div class="wk">
           <div class="wk-d"><div class="wk-l">M</div><div class="wk-dot hi">&#10003;</div><div class="wk-n">14</div></div>
@@ -495,7 +512,7 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
         </div>
       </div>
 
-      <div class="crd" id="ph-journey-card" onclick="go('journey')" style="cursor:pointer">
+      <div class="crd" id="p-journey-card" onclick="go('journey')" style="cursor:pointer">
         <div class="note-q">"Bókin er byrjuð."</div>
         <div class="note-from">Hrafnkell las bls. 1–10 í dag</div>
         <div class="note-cmt"><strong style="color:var(--accent)">Pétur:</strong> Hlakka til að heyra næsta kafla</div>
@@ -507,11 +524,11 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
       </div>
 
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-        <div class="crd" id="ph-goals-card" style="text-align:center;padding:14px 10px">
+        <div class="crd" id="p-goals-card" style="text-align:center;padding:14px 10px">
           <div style="font-size:22px;font-weight:600;color:var(--accent);font-family:Georgia,serif">25%</div>
           <div style="font-size:10px;color:var(--muted);margin-top:4px">Markmið · 1/4 daga</div>
         </div>
-        <div class="crd" id="ph-bookshelf-link" onclick="nav('bookshelf.html')" style="text-align:center;padding:14px 10px;cursor:pointer">
+        <div class="crd" id="p-bookshelf-link" onclick="nav('bookshelf.html')" style="text-align:center;padding:14px 10px;cursor:pointer">
           <div style="font-size:22px;font-weight:600;color:var(--accent);font-family:Georgia,serif">11</div>
           <div style="font-size:10px;color:var(--muted);margin-top:4px">bækur í safni ›</div>
         </div>
@@ -613,12 +630,12 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
       </div>
 
       <div class="hm-tabs">
-        <button class="hm-tab on" id="ph-hm-week" onclick="hmTab('week',this)">Vika</button>
-        <button class="hm-tab" id="ph-hm-month" onclick="hmTab('month',this)">Mánuður</button>
+        <button class="hm-tab on" id="p-hm-week" onclick="hmTab('week',this)">Vika</button>
+        <button class="hm-tab" id="p-hm-month" onclick="hmTab('month',this)">Mánuður</button>
       </div>
 
-      <div class="crd" id="ph-content-activity">
-        <div id="ph-heatmap-content">
+      <div class="crd" id="p-content-activity">
+        <div id="p-heatmap-content">
           <!-- Week view (default) -->
           <div id="hm-view-week">
             <div class="crd-lbl" style="margin-bottom:6px">Síðustu 7 dagar</div>
@@ -653,7 +670,7 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
             </div>
             <div class="hm-total">
               <div class="hm-total-l">Samtals í maí</div>
-              <div class="hm-total-v" id="ph-month-total">118 mín</div>
+              <div class="hm-total-v" id="p-month-total">118 mín</div>
             </div>
           </div>
         </div>
@@ -663,19 +680,19 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
       <div class="stats-4">
         <div class="stat">
           <div class="stat-icon">🔥</div>
-          <div class="stat-v" id="ph-stat-streak">4</div>
+          <div class="stat-v" id="p-stat-streak">4</div>
           <div class="stat-l">dagar í röð</div>
         </div>
         <div class="stat">
-          <div class="stat-v" id="ph-stat-pages">342</div>
+          <div class="stat-v" id="p-stat-pages">342</div>
           <div class="stat-l">blaðsíður lesnar</div>
         </div>
         <div class="stat">
-          <div class="stat-v" id="ph-stat-books">3</div>
+          <div class="stat-v" id="p-stat-books">3</div>
           <div class="stat-l">bækur kláraðar</div>
         </div>
         <div class="stat">
-          <div class="stat-v" id="ph-stat-days">5 / 7</div>
+          <div class="stat-v" id="p-stat-days">5 / 7</div>
           <div class="stat-l">lestrardagar</div>
         </div>
       </div>
@@ -722,7 +739,7 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
         <button class="rec-tab" onclick="recTab(this)">Uppáhalds</button>
       </div>
 
-      <div id="ph-recordings-list" style="display:flex;flex-direction:column">
+      <div id="p-recordings-list" style="display:flex;flex-direction:column">
         <div class="rec-item">
           <div class="rec-play-sm" onclick="toast('Spila')"><div class="play-tri"></div></div>
           <div class="rec-main"><div class="rec-t">Fuglabúrið — kafli 5</div><div class="rec-m">4 mín · í gær · 2 klippur</div></div>
@@ -1057,15 +1074,15 @@ function nav(url) { toast('Opna: ' + url); }
 let _childCount = 2; /* placeholder — auth.js setur þetta */
 
 function checkEmptyState() {
-  const empty = document.getElementById('ph-empty-state');
+  const empty = document.getElementById('p-empty-state');
   if (!empty) return;
   /* Sýna ef engin börn */
   if (_childCount === 0) {
     empty.style.display = '';
-    document.getElementById('ph-children-row').style.display = 'none';
+    document.getElementById('p-children-row').style.display = 'none';
   } else {
     empty.style.display = 'none';
-    document.getElementById('ph-children-row').style.display = '';
+    document.getElementById('p-children-row').style.display = '';
   }
 }
 
@@ -1110,10 +1127,9 @@ window._onChildAdded = function() {
      Engin parent-view.js dependency
      ═══════════════════════════════════ -->
 <script type="module">
-/* ── Block parent-view.js rendering via window stubs ── 
-   parent-view.js checks window.renderDashboard before its own.
-   These get called by startFamilyListener/startBooksListener
-   but do nothing — our listeners and render take over. ── */
+/* auth.js importar parent-view.js sem fyllir S. 
+   parent-view renderar í hidden ph-* elements.
+   Okkar render skrifar í sýnileg p-* elements. Engin keppni. */
 
 const authMod  = await import('./js/auth.js').catch(e => { console.error('auth.js:', e); return {}; });
 const stateMod = await import('./js/state.js').catch(e => { console.error('state.js:', e); return { S: {} }; });
@@ -1175,7 +1191,7 @@ function checkS() {
   _childCount = cc;
   checkEmptyState();
 
-  requestAnimationFrame(checkS);
+  setTimeout(checkS, 500);
 }
 
 /* ══════════════════════════════════════
@@ -1257,13 +1273,13 @@ function renderChildren(children) {
       <div><div class="cpill-name">${esc(c.name)}</div>${c.code?`<div class="cpill-meta">${c.code}</div>`:''}</div>
     </button>`;
   }).join('');
-  document.getElementById('ph-children-row').innerHTML = html;
+  document.getElementById('p-children-row').innerHTML = html;
   document.querySelectorAll('[data-child-row]').forEach(r => { r.innerHTML = html; });
 }
 
 /* ── Að lesa ── */
 function renderReading(books) {
-  const el = document.getElementById('ph-now-reading');
+  const el = document.getElementById('p-now-reading');
   if (!el) return;
   const hero = books.filter(b => b.status === 'reading').sort((a,b) => bTs(b,'lastReadAt') - bTs(a,'lastReadAt'))[0];
   if (!hero) {
@@ -1290,7 +1306,7 @@ function renderReading(books) {
 
 /* ── Vikugrid (Í dag) ── */
 function renderWeek(sessions) {
-  const el = document.getElementById('ph-week-grid');
+  const el = document.getElementById('p-week-grid');
   if (!el) return;
   const DAYS = ['S','M','Þ','M','F','F','L'];
   const today = new Date(); today.setHours(12,0,0,0);
@@ -1308,7 +1324,7 @@ function renderWeek(sessions) {
 
 /* ── Streak ── */
 function renderStreak(sessions) {
-  const el = document.getElementById('ph-streak');
+  const el = document.getElementById('p-streak');
   if (!el) return;
   let streak = 0;
   const today = new Date(); today.setHours(12,0,0,0);
@@ -1342,7 +1358,7 @@ function renderStats(sessions, books) {
   if (goalEl) goalEl.textContent = goalPct + '%';
 
   /* Samanburður — vikuleg framvinda */
-  const compEl = document.getElementById('ph-compare');
+  const compEl = document.getElementById('p-compare');
   if (compEl) {
     const thisWeek = weekMins(sessions, 0);
     const lastWeek = weekMins(sessions, 1);
@@ -1372,7 +1388,7 @@ function weekMins(sessions, weeksAgo) {
 
 /* ── Journey preview (Í dag flipi) ── */
 function renderJourneyPreview(sessions, books) {
-  const el = document.getElementById('ph-journey-card');
+  const el = document.getElementById('p-journey-card');
   if (!el) return;
   const hero = books.filter(b => b.status === 'reading').sort((a,b) => bTs(b,'lastReadAt') - bTs(a,'lastReadAt'))[0];
   if (!hero || !hero.journeyEntries || hero.journeyEntries.length === 0) {

@@ -8,56 +8,391 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="theme-color" content="#07101e">
 <meta name="apple-mobile-web-app-title" content="Upphátt">
-<title>Upphátt - Foreldri</title>
+<title>Upphátt — Foreldri</title>
 <link rel="icon" type="image/png" href="icon-teale.png">
 <link rel="apple-touch-icon" href="icon-teale.png">
 <link rel="stylesheet" href="styles.css">
 <style>
-  html, body { background-color:#07101e !important; min-height:100%; min-height:-webkit-fill-available; }
-  body.parent-shell-body { overflow:hidden; }
-  .parent-page-shell { width:min(430px,100%); height:100dvh; min-height:100dvh; margin:0 auto; display:grid; grid-template-rows:minmax(0,1fr) auto; background:var(--ph-bg,#07101e); color:var(--ph-text,#d9e5ef); box-shadow:0 0 0 1px rgba(29,205,211,.08); }
-  .parent-page-main { min-height:0; overflow:hidden; }
-  .parent-page-main .screen { min-height:100%; height:100%; }
-  .parent-page-main .ph-screen { padding-bottom:0; }
-  .parent-page-main .ph-topbar { padding:14px 14px 10px; }
-  .parent-page-main .ph-body { min-height:0; overflow:auto; padding:0 12px 18px; }
-  .parent-page-main .ph-tile { border-radius:16px; }
-  .parent-page-main .ph-stats-grid { grid-template-columns:1fr; gap:10px; }
-  .parent-page-main .ph-tile-split { grid-template-columns:1fr; }
-  .parent-page-main .ph-tile-right { min-height:auto; }
-  .parent-page-main .ph-children-row { overflow-x:auto; flex-wrap:nowrap; padding-bottom:2px; }
-  .parent-page-main .ph-child-card { min-width:142px; }
-  .parent-page-screen { display:none; height:100%; min-height:0; overflow:hidden; background:var(--ph-bg,#07101e); }
-  .parent-page-screen.active { display:flex; flex-direction:column; }
-  .parent-state-top { flex:0 0 auto; display:flex; align-items:center; justify-content:space-between; gap:12px; padding:14px 14px 10px; border-bottom:1px solid rgba(29,205,211,.08); }
-  .parent-state-title { min-width:0; }
-  .parent-state-kicker { color:var(--ph-accent,#1dcdd3); font-size:10px; font-weight:900; letter-spacing:.1em; text-transform:uppercase; }
-  .parent-state-title h1 { margin:2px 0 0; color:#fff; font-size:22px; line-height:1.05; font-weight:900; letter-spacing:0; }
-  .parent-state-title p { margin:4px 0 0; color:var(--ph-soft,#8fa1b4); font-size:12px; line-height:1.35; }
-  .parent-state-body { min-height:0; overflow:auto; padding:12px 12px 18px; display:grid; gap:10px; align-content:start; }
-  .parent-mini-card { border:1px solid rgba(29,205,211,.16); background:rgba(8,18,32,.82); border-radius:16px; padding:13px; box-shadow:0 14px 34px rgba(0,0,0,.18),inset 0 0 0 1px rgba(255,255,255,.02); }
-  button.parent-mini-card { width:100%; color:inherit; font:inherit; text-align:left; cursor:pointer; }
-  .parent-mini-card strong { display:block; color:#fff; font-size:16px; line-height:1.15; margin-bottom:5px; }
-  .parent-mini-card span { color:var(--ph-soft,#8fa1b4); font-size:12px; line-height:1.35; }
-  .parent-list-row { display:flex; align-items:center; justify-content:space-between; gap:10px; }
-  .parent-avatar { width:42px; height:42px; flex:0 0 auto; border-radius:50%; display:grid; place-items:center; color:var(--ph-accent,#1dcdd3); background:rgba(29,205,211,.12); border:1px solid rgba(29,205,211,.28); font-weight:900; }
-  .parent-row-main { min-width:0; flex:1; }
-  .parent-row-main strong { margin:0; }
-  .parent-row-action { color:var(--ph-accent,#1dcdd3); font-size:12px; font-weight:900; white-space:nowrap; }
-  .parent-compact-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
-  .parent-bottom-nav { height:calc(70px + env(safe-area-inset-bottom,0px)); padding-bottom:env(safe-area-inset-bottom,0px); display:grid; grid-template-columns:repeat(4,1fr); border-top:1px solid rgba(29,205,211,.16); background:rgba(5,11,20,.94); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); }
-  .parent-bottom-nav button { border:0; background:none; color:var(--ph-soft,#8fa1b4); font:inherit; font-size:11px; font-weight:850; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; position:relative; }
-  .parent-bottom-nav button svg { width:21px; height:21px; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
-  .parent-bottom-nav button.active { color:var(--ph-accent,#1dcdd3); }
-  .parent-bottom-nav button.active:after { content:""; position:absolute; bottom:5px; width:30px; height:3px; border-radius:999px; background:var(--ph-accent,#1dcdd3); box-shadow:0 0 12px rgba(29,205,211,.7); }
-  .parent-toast { position:fixed; left:50%; bottom:calc(82px + env(safe-area-inset-bottom,0px)); transform:translate(-50%,12px); opacity:0; pointer-events:none; background:#101d30; border:1px solid rgba(29,205,211,.28); color:#d9e5ef; border-radius:999px; padding:10px 13px; font-size:13px; font-weight:800; transition:opacity .18s ease,transform .18s ease; z-index:10000; }
-  .parent-toast.show { opacity:1; transform:translate(-50%,0); }
-  @media(max-width:720px){
-    .parent-page-shell { width:100%; box-shadow:none; }
-  }
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap');
+
+*,*::before,*::after{box-sizing:border-box}
+html,body{margin:0;padding:0;background:#07101e;min-height:100%;min-height:-webkit-fill-available;overflow:hidden}
+body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-font-smoothing:antialiased}
+
+:root{
+  --bg:#07101e;
+  --surface:rgba(13,24,42,.85);
+  --surface-2:rgba(18,32,52,.7);
+  --border:rgba(29,205,211,.1);
+  --border-hl:rgba(29,205,211,.25);
+  --text:#c8d8e8;
+  --text-bright:#e4edf5;
+  --muted:#5a7088;
+  --accent:#1dcdd3;
+  --accent-soft:rgba(29,205,211,.1);
+  --accent-glow:rgba(29,205,211,.06);
+  --danger:#e85656;
+  --gold:#d4a017;
+  --r:14px;
+  --r-sm:10px;
+}
+
+/* ── Shell ── */
+.shell{
+  width:min(430px,100%);height:100dvh;margin:0 auto;
+  display:grid;grid-template-rows:minmax(0,1fr) auto;
+  background:var(--bg);color:var(--text);
+  position:relative;overflow:hidden;
+}
+
+/* ── Screens ── */
+.scr{display:none;height:100%;flex-direction:column;min-height:0}
+.scr.on{display:flex}
+
+/* ── Topbar ── */
+.top{
+  flex:0 0 auto;padding:14px 16px 10px;
+  display:flex;align-items:center;justify-content:space-between;
+  border-bottom:1px solid var(--border);
+}
+.brand{font-size:19px;font-weight:600;letter-spacing:-.4px;color:var(--text-bright)}
+.brand b{color:var(--accent);font-weight:600}
+.top-sub{font-size:11px;color:var(--muted);font-weight:400}
+.top-title{font-size:17px;font-weight:500;color:var(--text-bright);letter-spacing:-.2px}
+
+/* ── Body scroll ── */
+.bod{
+  flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;
+  padding:10px 14px 80px;display:flex;flex-direction:column;gap:10px;
+  -webkit-overflow-scrolling:touch;scrollbar-width:none;
+}
+.bod::-webkit-scrollbar{display:none}
+
+/* ── Child pills ── */
+.cpills{display:flex;gap:6px;padding:2px 0 4px;overflow-x:auto;flex-shrink:0;scrollbar-width:none}
+.cpills::-webkit-scrollbar{display:none}
+.cpill{
+  flex:0 0 auto;display:flex;align-items:center;gap:6px;
+  background:var(--surface);border:1.5px solid var(--border);
+  border-radius:99px;padding:5px 12px 5px 5px;cursor:pointer;
+  transition:all .2s;-webkit-tap-highlight-color:transparent;
+}
+.cpill:hover{border-color:rgba(29,205,211,.2)}
+.cpill.sel{border-color:var(--accent);background:var(--accent-soft)}
+.cpill-av{
+  width:26px;height:26px;border-radius:50%;
+  background:rgba(255,255,255,.05);
+  display:flex;align-items:center;justify-content:center;
+  font-size:10px;font-weight:600;color:var(--muted);transition:all .2s;
+}
+.cpill.sel .cpill-av{background:var(--accent);color:#061018}
+.cpill-name{font-size:12px;font-weight:500;color:var(--text);white-space:nowrap}
+.cpill-meta{font-size:9px;color:var(--muted);white-space:nowrap}
+
+/* ── Cards ── */
+.crd{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:12px 14px}
+.crd-glow{border-color:var(--border-hl);background:linear-gradient(180deg,var(--accent-glow),var(--surface))}
+.crd-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.crd-lbl{font-size:10px;font-weight:500;color:var(--muted);letter-spacing:.04em;text-transform:uppercase}
+.crd-act{font-size:11px;font-weight:500;color:var(--accent);cursor:pointer;background:none;border:none;padding:0}
+
+/* ── Streak ── */
+.streak{display:flex;align-items:center;gap:8px;padding:4px 0}
+.streak-n{font-size:32px;font-weight:600;color:var(--accent);line-height:1;font-family:Georgia,'DM Sans',serif}
+.streak-t{font-size:12px;color:var(--muted);line-height:1.25}
+.streak-fire{font-size:26px;color:var(--accent);opacity:.7}
+
+/* ── Reading ── */
+.rd-row{display:grid;grid-template-columns:56px 1fr;gap:12px;align-items:center}
+.rd-cover{
+  width:56px;height:78px;border-radius:8px;
+  background:linear-gradient(145deg,#6a3140,#c08a36);
+  display:flex;align-items:center;justify-content:center;
+  color:#fff;font-size:20px;font-weight:600;
+  box-shadow:0 6px 18px rgba(0,0,0,.3),inset 1px 0 0 rgba(255,255,255,.08);
+}
+.rd-title{font-size:17px;font-weight:500;color:var(--text-bright);line-height:1.15}
+.rd-meta{font-size:11px;color:var(--muted);margin-top:3px}
+.rd-prog{display:flex;align-items:center;gap:8px;margin-top:6px}
+.rd-bar{flex:1;height:4px;border-radius:99px;background:rgba(148,164,180,.1);overflow:hidden}
+.rd-fill{height:100%;border-radius:inherit;background:var(--accent);transition:width .4s}
+.rd-pct{font-size:12px;font-weight:600;color:var(--accent);min-width:28px;text-align:right}
+
+/* ── Week dots ── */
+.wk{display:flex;gap:4px}
+.wk-d{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px}
+.wk-l{font-size:9px;font-weight:500;color:var(--muted)}
+.wk-l.now{color:var(--accent)}
+.wk-dot{
+  width:100%;aspect-ratio:1;border-radius:5px;
+  background:rgba(255,255,255,.04);transition:background .2s;
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;color:rgba(255,255,255,.8);
+}
+.wk-dot.lo{background:rgba(29,205,211,.2)}
+.wk-dot.md{background:rgba(29,205,211,.45)}
+.wk-dot.hi{background:#1dcdd3}
+.wk-dot.ring{outline:2px solid var(--accent);outline-offset:1px}
+.wk-n{font-size:10px;color:var(--muted);font-weight:500}
+.wk-n.now{color:var(--accent)}
+
+/* ── Note preview (Í dag) ── */
+.note-q{font-size:14px;font-weight:400;color:var(--text-bright);line-height:1.3;font-style:italic}
+.note-from{font-size:11px;color:var(--muted);margin-top:4px}
+.note-cmt{margin-top:6px;border-left:2px solid rgba(29,205,211,.4);padding-left:8px;font-size:12px;color:rgba(200,216,232,.8);line-height:1.35}
+
+/* ── Play card ── */
+.play-crd{display:flex;align-items:center;gap:10px}
+.play-btn{
+  width:40px;height:40px;border-radius:50%;flex:0 0 auto;
+  border:1.5px solid var(--border-hl);background:var(--accent-soft);
+  display:flex;align-items:center;justify-content:center;cursor:pointer;
+  transition:all .15s;
+}
+.play-btn:hover{background:rgba(29,205,211,.18)}
+.play-tri{width:0;height:0;border-left:10px solid var(--accent);border-top:6px solid transparent;border-bottom:6px solid transparent;margin-left:2px}
+.play-info{flex:1}
+.play-t{font-size:13px;font-weight:500;color:var(--text-bright)}
+.play-m{font-size:10px;color:var(--muted);margin-top:1px}
+
+/* ── Journey screen ── */
+.jn-hero{
+  display:flex;align-items:center;gap:12px;
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r);padding:12px;
+}
+.jn-hero-cover{flex:0 0 auto}
+.jn-hero-info{flex:1;min-width:0}
+.jn-author{font-size:12px;font-weight:600;color:var(--accent);margin-bottom:4px}
+.jn-ts{font-weight:400;color:var(--muted);font-size:10px;margin-left:4px}
+.jn-day{font-size:10px;font-weight:600;color:var(--accent);letter-spacing:.05em;text-transform:uppercase;padding:6px 0 2px}
+.jn-entry{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r);padding:11px 13px;
+}
+.jn-entry.fresh{border-color:rgba(29,205,211,.2);background:linear-gradient(180deg,var(--accent-glow),var(--surface))}
+.jn-text{font-size:14px;font-weight:400;color:var(--text-bright);line-height:1.3;font-style:italic}
+.jn-meta{font-size:10px;color:var(--muted);margin-top:4px}
+.jn-cmt{margin-top:8px;display:flex;flex-direction:column;gap:6px}
+.jn-cmt-item{border-left:2px solid rgba(29,205,211,.4);padding-left:8px;font-size:11px;color:rgba(200,216,232,.8);line-height:1.35}
+.jn-cmt-item strong{color:var(--accent);font-weight:500;margin-right:2px}
+.jn-cmt-ts{font-size:9px;color:var(--muted);font-weight:400;margin-left:2px}
+.jn-reply{display:flex;gap:6px;align-items:center;margin-top:8px}
+.jn-reply-input{
+  flex:1;border:1px solid var(--border);background:transparent;
+  border-radius:99px;padding:6px 12px;color:var(--text-bright);
+  font:inherit;font-size:12px;min-width:0;outline:0;
+  transition:border-color .15s;
+}
+.jn-reply-input:focus{border-color:var(--border-hl)}
+.jn-reply-input::placeholder{color:rgba(90,112,136,.5)}
+.jn-reply-btn{
+  width:30px;height:30px;border-radius:50%;flex:0 0 auto;
+  border:1px solid var(--border-hl);background:var(--accent-soft);
+  color:var(--accent);font-size:14px;font-weight:600;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:filter .15s;
+}
+.jn-reply-btn:hover{filter:brightness(1.15)}
+.jn-reply-toggle{
+  background:none;border:none;color:var(--accent);font:inherit;
+  font-size:11px;font-weight:500;cursor:pointer;padding:6px 0 0;
+  -webkit-tap-highlight-color:transparent;
+}
+.jn-reply-toggle:hover{text-decoration:underline}
+.jn-sent{text-align:center;font-size:11px;font-weight:500;color:var(--accent);padding:4px;opacity:0;transition:opacity .3s}
+.jn-sent.show{opacity:1}
+.jn-open-all{
+  display:block;width:100%;background:var(--surface);
+  border:1px dashed var(--border-hl);border-radius:var(--r);
+  padding:14px;text-align:center;cursor:pointer;
+  transition:all .15s;-webkit-tap-highlight-color:transparent;
+  font:inherit;
+}
+.jn-open-all:hover{background:var(--accent-soft);border-style:solid}
+.jn-open-all-text{font-size:13px;font-weight:500;color:var(--accent)}
+.jn-open-all-meta{font-size:10px;color:var(--muted);margin-top:3px}
+
+/* ── Heatmap / Framvinda ── */
+.hm-tabs{display:flex;gap:3px;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:var(--r-sm);padding:3px}
+.hm-tab{
+  flex:1;background:none;border:none;border-radius:7px;padding:7px 0;
+  font-size:11px;font-weight:500;color:var(--muted);cursor:pointer;
+  text-align:center;transition:all .15s;
+}
+.hm-tab.on{background:rgba(255,255,255,.06);color:var(--text-bright);border:1px solid rgba(29,205,211,.3)}
+.compare-row{display:flex;align-items:center;gap:8px;padding:6px 12px;border-radius:var(--r-sm);transition:all .2s}
+.compare-row.up{background:rgba(29,205,211,.08);border:1px solid rgba(29,205,211,.15)}
+.compare-row.up-strong{background:rgba(29,205,211,.14);border:1px solid rgba(29,205,211,.3)}
+.compare-row.down{background:rgba(232,86,86,.06);border:1px solid rgba(232,86,86,.12)}
+.compare-row.down-strong{background:rgba(232,86,86,.1);border:1px solid rgba(232,86,86,.2)}
+.compare-row.flat{background:var(--surface);border:1px solid var(--border)}
+.compare-icon{font-size:16px;flex:0 0 auto}
+.compare-txt{font-size:12px;font-weight:500;line-height:1.3}
+.compare-row.up .compare-txt,.compare-row.up-strong .compare-txt{color:var(--accent)}
+.compare-row.down .compare-txt,.compare-row.down-strong .compare-txt{color:var(--danger)}
+.compare-row.flat .compare-txt{color:var(--muted)}
+.hm-total{display:flex;align-items:center;justify-content:space-between;padding:6px 0;margin-top:4px;border-top:1px solid var(--border)}
+.hm-total-v{font-size:16px;font-weight:600;color:var(--accent);font-family:Georgia,'DM Sans',serif}
+.hm-total-l{font-size:10px;color:var(--muted)}
+.stats-4{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-sm);padding:12px;text-align:center}
+.stat-v{font-size:24px;font-weight:600;color:var(--accent);line-height:1;font-family:Georgia,'DM Sans',serif}
+.stat-icon{font-size:18px;margin-bottom:4px}
+.stat-l{font-size:10px;color:var(--muted);margin-top:5px;line-height:1.3}
+.hm-month{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.hm-month-lbl{font-size:8px;color:var(--muted);text-align:center;font-weight:500;padding-bottom:2px}
+.hm-month-cell{aspect-ratio:1;border-radius:4px;background:rgba(255,255,255,.03);cursor:pointer;position:relative;transition:background .15s}
+.hm-month-cell.c1{background:rgba(29,205,211,.2)}
+.hm-month-cell.c2{background:rgba(29,205,211,.45)}
+.hm-month-cell.c3{background:#1dcdd3}
+.hm-month-cell.today{outline:1.5px solid var(--accent);outline-offset:1px}
+.hm-month-cell.empty{background:transparent;cursor:default}
+.hm-month-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.hm-month-title{font-size:12px;font-weight:500;color:var(--text-bright)}
+.hm-nav-arrow{background:none;border:1px solid var(--border);border-radius:6px;width:28px;height:28px;color:var(--accent);font-size:14px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.hm-nav-arrow:hover:not(:disabled){border-color:var(--border-hl);background:var(--accent-soft)}
+.hm-nav-arrow:disabled{opacity:.3;cursor:default}
+.mc-num{font-size:9px;font-weight:500;color:rgba(200,216,232,.7)}
+.hm-month-cell.c1 .mc-num,.hm-month-cell.c2 .mc-num{color:rgba(200,216,232,.85)}
+.hm-month-cell.c3 .mc-num{color:rgba(6,16,24,.7);font-weight:600}
+.hm-month-cell{display:flex;align-items:center;justify-content:center}
+.goal-row{display:flex;align-items:center;gap:10px;padding:6px 0}
+.goal-ring{width:40px;height:40px;flex:0 0 auto;position:relative}
+.goal-ring svg{width:100%;height:100%}
+.goal-pct{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:var(--accent)}
+.goal-info{flex:1}
+.goal-name{font-size:12px;font-weight:500;color:var(--text-bright)}
+.goal-sub{font-size:10px;color:var(--muted);margin-top:1px}
+.hm-placeholder{
+  min-height:80px;display:flex;align-items:center;justify-content:center;
+  font-size:12px;color:var(--muted);
+}
+
+/* ── Recordings ── */
+.rec-tabs{display:flex;gap:3px;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:var(--r-sm);padding:3px}
+.rec-tab{
+  flex:1;background:none;border:none;border-radius:7px;padding:7px 0;
+  font-size:11px;font-weight:500;color:var(--muted);cursor:pointer;
+  text-align:center;transition:all .15s;
+}
+.rec-tab.on{background:rgba(255,255,255,.06);color:var(--text-bright);border:1px solid rgba(29,205,211,.3)}
+.rec-item{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 0;border-bottom:1px solid var(--border);
+}
+.rec-item:last-child{border:none}
+.rec-play-sm{
+  width:32px;height:32px;border-radius:50%;flex:0 0 auto;
+  border:1px solid var(--border-hl);background:var(--accent-soft);
+  display:flex;align-items:center;justify-content:center;cursor:pointer;
+}
+.rec-play-sm .play-tri{border-left-width:7px;border-top-width:4px;border-bottom-width:4px;margin-left:1px}
+.rec-main{flex:1;min-width:0}
+.rec-t{font-size:12px;font-weight:500;color:var(--text-bright);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rec-m{font-size:10px;color:var(--muted);margin-top:1px}
+.rec-fav{font-size:14px;color:rgba(255,255,255,.12);cursor:pointer;flex:0 0 auto;transition:color .2s;-webkit-tap-highlight-color:transparent}
+.rec-fav.on{color:var(--gold)}
+
+/* ── Settings ── */
+.st-sec{font-size:10px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;padding:10px 0 4px}
+.st-group{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.st-row{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:12px 14px;border-bottom:1px solid var(--border);
+  cursor:default;transition:background .15s;
+}
+.st-row:last-child{border:none}
+.st-row.tap{cursor:pointer;-webkit-tap-highlight-color:transparent}
+.st-row.tap:hover{background:rgba(29,205,211,.03)}
+.st-row.tap:active{background:rgba(29,205,211,.06)}
+.st-lbl{font-size:13px;font-weight:500;color:var(--text-bright)}
+.st-val{font-size:12px;color:var(--muted);text-align:right;min-width:0;overflow:hidden;text-overflow:ellipsis}
+.st-val.ac{color:var(--accent);font-weight:600;letter-spacing:1px}
+.st-act{font-size:11px;font-weight:500;color:var(--accent);flex:0 0 auto}
+.st-row.danger .st-lbl{color:var(--danger)}
+.st-sub{font-size:10px;color:var(--muted);margin-top:1px}
+
+/* ── Confirm popup ── */
+.confirm-overlay{
+  display:none;position:fixed;inset:0;z-index:200;
+  background:rgba(0,0,0,.7);backdrop-filter:blur(6px);
+  justify-content:center;align-items:center;padding:20px;
+}
+.confirm-overlay.show{display:flex}
+.confirm-card{
+  background:#0d1a2e;border:1.5px solid var(--border-hl);
+  border-radius:18px;padding:24px 20px 18px;width:min(340px,100%);
+  text-align:center;
+}
+.confirm-title{font-size:16px;font-weight:500;color:var(--text-bright);margin-bottom:6px}
+.confirm-desc{font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:18px}
+.confirm-btns{display:flex;gap:8px}
+.confirm-btns button{
+  flex:1;padding:10px;border-radius:var(--r-sm);font:inherit;font-size:13px;font-weight:500;cursor:pointer;
+  transition:all .15s;
+}
+.cbtn-cancel{background:var(--surface);border:1px solid var(--border);color:var(--text)}
+.cbtn-cancel:hover{border-color:var(--border-hl)}
+.cbtn-danger{background:rgba(232,86,86,.12);border:1px solid rgba(232,86,86,.3);color:var(--danger)}
+.cbtn-danger:hover{background:rgba(232,86,86,.2)}
+
+/* ── Bottom nav ── */
+.nav{
+  display:flex;background:rgba(5,11,22,.97);
+  border-top:1px solid var(--border);
+  padding:5px 2px calc(5px + env(safe-area-inset-bottom,0px));z-index:30;
+}
+.nav button{
+  flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;
+  background:none;border:none;color:var(--muted);
+  font-size:9.5px;font-weight:500;padding:5px 2px 2px;
+  cursor:pointer;position:relative;transition:color .2s;
+  -webkit-tap-highlight-color:transparent;
+  font-family:inherit;
+}
+.nav button svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.nav button.on{color:var(--accent)}
+.nav button.on::after{
+  content:'';position:absolute;bottom:0;left:50%;transform:translateX(-50%);
+  width:20px;height:2.5px;border-radius:99px;background:var(--accent);
+}
+
+/* ── Toast ── */
+.toast{
+  position:fixed;bottom:calc(68px + env(safe-area-inset-bottom,0px));
+  left:50%;transform:translateX(-50%) translateY(16px);
+  background:rgba(10,20,34,.94);border:1px solid var(--border-hl);
+  border-radius:var(--r-sm);padding:8px 18px;
+  font-size:12px;font-weight:500;color:var(--accent);
+  white-space:nowrap;pointer-events:none;
+  opacity:0;transition:all .25s;z-index:100;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ── Transitions ── */
+.scr{animation:fadeIn .2s ease}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
+/* ── Responsive ── */
+@media(max-width:390px){
+  .top{padding:12px 12px 8px}
+  .bod{padding:8px 10px 24px;gap:8px}
+  .cpill-av{width:24px;height:24px;font-size:9px}
+  .cpill-name{font-size:11px}
+  .rd-row{grid-template-columns:48px 1fr;gap:10px}
+  .rd-cover{width:48px;height:68px;font-size:16px}
+  .rd-title{font-size:15px}
+  .streak-n{font-size:28px}
+  .stat-v{font-size:22px}
+  .nav button{font-size:8.5px}
+  .nav button svg{width:17px;height:17px}
+}
 </style>
 </head>
-<body class="parent-shell-body">
+<body>
+
+<!-- ═══ Hidden DOM hooks for parent-view.js ═══ -->
 <div style="display:none">
   <div id="parent-pill">Foreldri</div>
   <div id="parent-hero">Góðan dag</div>
@@ -66,393 +401,805 @@
   <div id="parent-content"></div>
   <div id="ph-user-email">parent@example.test</div>
   <div id="ph-family-code">FAM0000AA</div>
+  <button id="ph-theme-btn" type="button"></button>
+  <button id="ph-add-child-btn" type="button"></button>
+  <button id="ph-tab-activity" class="ph-tab ph-tab-active" type="button"></button>
+  <button id="ph-tab-recordings" class="ph-tab" type="button"></button>
+  <div id="ph-content-recordings"></div>
 </div>
 
-<div class="parent-page-shell">
-  <main class="parent-page-main">
-    <section id="screen-parent-home" class="screen ph-screen active" data-parent-screen="home">
-      <div class="ph-topbar">
-        <div class="ph-topbar-left">
-          <div class="ph-brand"><span class="ph-brand-upp">Upp</span><span class="ph-brand-hatt">Hátt</span></div>
-        </div>
-        <div class="ph-topbar-right">
-          <div class="ph-account-wrap">
-            <button class="ph-account-btn" onclick="toggleAccountDD(event)" aria-label="Aðgangur">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-            </button>
-            <div class="ph-account-dd" id="account-dd" style="display:none">
-              <div class="acc-dd-email" id="acc-email-display">parent@example.test</div>
-              <div class="acc-dd-divider"></div>
-              <button class="acc-dd-theme" id="acc-theme-btn" onclick="event.stopPropagation();toggleParentTheme();_updateThemeIcon()">
-                <span id="acc-theme-icon"></span>
-                <span id="acc-theme-label">Ljóst þema</span>
-              </button>
-              <div class="acc-dd-divider"></div>
-              <div class="acc-dd-famcode-label">Fjölskyldulykill</div>
-              <div class="acc-dd-famcode" id="acc-famcode">FAM0000AA</div>
-              <div class="acc-dd-famhint">Gefðu öðrum fjölskyldumeðlimum</div>
-              <div class="acc-dd-divider"></div>
-              <button class="acc-dd-link" onclick="closeAccountDD();openSettingsPopup();">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-                Stillingar og börn
-              </button>
-              <button class="acc-dd-logout" onclick="parentPlaceholderLogout()">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-                Útskrá
-              </button>
-            </div>
+<div class="shell" id="screen-parent-home">
+
+  <!-- ══════════════════════════════════
+       1. Í DAG
+       ══════════════════════════════════ -->
+  <main class="scr on" data-parent-screen="today">
+    <header class="top">
+      <div class="brand"><b>Upp</b>Hátt</div>
+      <div class="top-sub">Foreldri</div>
+    </header>
+    <div class="bod">
+      <!-- Empty state: sýnist þegar engin börn eru skráð -->
+      <div id="ph-empty-state" style="display:none">
+        <div style="text-align:center;padding:40px 20px 20px">
+          <div style="width:64px;height:64px;border-radius:50%;background:var(--accent-soft);border:2px solid var(--border-hl);display:flex;align-items:center;justify-content:center;margin:0 auto 16px">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          </div>
+          <div style="font-size:18px;font-weight:500;color:var(--text-bright);margin-bottom:6px">Velkomin í UppHátt!</div>
+          <div style="font-size:13px;color:var(--muted);line-height:1.5;margin-bottom:20px">Til að byrja þarftu að skrá barn.<br>Barnið fær sinn eigin innskráningarkóða.</div>
+          <button type="button" onclick="addFirstChild()" style="background:var(--accent);color:#061018;border:none;border-radius:99px;padding:12px 28px;font:inherit;font-size:14px;font-weight:600;cursor:pointer;transition:filter .15s">+ Skrá fyrsta barn</button>
+          <div style="margin-top:20px;padding:14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);text-align:center">
+            <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px">Fjölskyldulykillinn þinn</div>
+            <div style="font-size:18px;font-weight:600;color:var(--accent);letter-spacing:2px;font-family:Georgia,serif" id="ph-welcome-fam-code">FAM0000AA</div>
+            <div style="font-size:10px;color:var(--muted);margin-top:6px">Deildu með fjölskyldu til að aðrir geti fylgst með</div>
           </div>
         </div>
       </div>
 
-      <div class="ph-body">
-        <div class="ph-tile ph-tile-split">
-          <div class="ph-tile-left">
-            <div class="ph-tile-header">
-              <div class="ph-tile-title">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                Börn þín
-              </div>
-              <button id="ph-add-child-btn" class="ph-add-btn" onclick="openAddChildPopup()">+ Bæta við barni</button>
-            </div>
-            <div class="ph-children-row" id="ph-children-row">
-              <div class="ph-child-card ph-child-selected">
-                <div class="ph-child-avatar ph-child-avatar-active">HH</div>
-                <div class="ph-child-name">Hrafnkell Hersir</div>
-                <div class="ph-child-code">HRA78</div>
-                <div class="ph-child-sessions">4 mín · 1/7 daga</div>
-              </div>
-              <div class="ph-child-card">
-                <div class="ph-child-avatar">KK</div>
-                <div class="ph-child-name">Kolbeinn Kvasir</div>
-                <div class="ph-child-code">KOL58</div>
-                <div class="ph-child-sessions">5 mín · 2/7 daga</div>
-              </div>
-            </div>
-          </div>
-          <div class="ph-tile-right">
-            <div class="ph-tile-label">Síðustu 7 dagar</div>
-            <div class="ph-week-grid" id="ph-week-grid">
-              <div class="ph-wday-cell"><div class="ph-wday-lbl">Mán</div><div class="ph-wdot ph-wdot-low"><span class="ph-wdot-check">✓</span></div><div class="ph-wday-num">10</div></div>
-              <div class="ph-wday-cell"><div class="ph-wday-lbl">Þri</div><div class="ph-wdot ph-wdot-empty"></div><div class="ph-wday-num">11</div></div>
-              <div class="ph-wday-cell"><div class="ph-wday-lbl">Mið</div><div class="ph-wdot ph-wdot-empty"></div><div class="ph-wday-num">12</div></div>
-              <div class="ph-wday-cell"><div class="ph-wday-lbl">Fim</div><div class="ph-wdot ph-wdot-mid"><span class="ph-wdot-check">✓</span></div><div class="ph-wday-num">13</div></div>
-              <div class="ph-wday-cell"><div class="ph-wday-lbl">Fös</div><div class="ph-wdot ph-wdot-empty"></div><div class="ph-wday-num">14</div></div>
-              <div class="ph-wday-cell"><div class="ph-wday-lbl ph-wday-today">Lau</div><div class="ph-wdot ph-wdot-today ph-wdot-full"><span class="ph-wdot-check">✓</span></div><div class="ph-wday-num ph-wday-today">15</div></div>
-              <div class="ph-wday-cell"><div class="ph-wday-lbl">Sun</div><div class="ph-wdot ph-wdot-empty"></div><div class="ph-wday-num">16</div></div>
-            </div>
-          </div>
-        </div>
-
-        <div class="ph-stats-grid">
-          <div class="ph-stat-card" id="ph-now-reading">
-            <div class="ph-nr-label">Að lesa</div>
-            <div class="ph-nr-row">
-              <div class="ph-nr-cover-ph"><span>F</span></div>
-              <div class="ph-nr-info">
-                <div class="ph-nr-title">Fuglabúrið</div>
-                <div class="ph-nr-meta">bls. 60 af 115</div>
-                <div class="ph-nr-progress"><div class="ph-nr-bar"><div class="ph-nr-fill" style="width:52%"></div></div><span class="ph-nr-pct">52%</span></div>
-              </div>
-            </div>
-          </div>
-          <div class="ph-stat-card" id="ph-journey-card">
-            <div class="ph-jn-label">Lestrarferðalag</div>
-            <div class="ph-jn-card-note">
-              <div class="ph-jn-card-pages">Bls. 1-10</div>
-              <div class="ph-jn-card-text">“Bókin er byrjuð.”</div>
-            </div>
-            <div class="ph-jn-last-comment"><strong>Pétur</strong> Hlakka til að heyra næsta kafla</div>
-            <div class="ph-jn-meira-row"><span class="ph-jn-meira-pill">Meira ›</span><span class="ph-jn-total-hint">3 færslur</span></div>
-          </div>
-          <div class="ph-stat-card" id="ph-goals-card">
-            <div class="ph-goals-label">Markmið</div>
-            <div class="ph-goals-rings">
-              <div class="ph-goals-ring-wrap">
-                <svg width="86" height="86" viewBox="0 0 86 86" class="ph-goals-svg"><circle cx="43" cy="43" r="36" fill="none" stroke="rgba(29,205,211,.14)" stroke-width="6"/><circle cx="43" cy="43" r="36" fill="none" stroke="#1dcdd3" stroke-width="6" stroke-linecap="round" stroke-dasharray="56 226" transform="rotate(-90 43 43)"/></svg>
-                <div class="ph-goals-ring-pct">25%</div>
-              </div>
-            </div>
-            <div class="ph-goals-labels"><div class="ph-goals-sub">Dagar<br><span>1 / 4 daga</span></div></div>
-          </div>
-          <div class="ph-stat-card" id="ph-bookshelf-link">
-            <a href="#" onclick="event.preventDefault();showParentPlaceholderToast('Bókasafn tengist seinna')" class="ph-bs-link-card" title="Opna bókasafn">
-              <div class="ph-bs-label">Bókasafn</div>
-              <div class="ph-bs-fan">
-                <div class="ph-nr-cover-ph ph-bs-fan-img ph-bs-fan-left"><span>S</span></div>
-                <div class="ph-nr-cover-ph ph-bs-fan-img ph-bs-fan-center"><span>H</span></div>
-                <div class="ph-nr-cover-ph ph-bs-fan-img ph-bs-fan-right"><span>F</span></div>
-              </div>
-              <div class="ph-bs-count">11 bækur</div>
-            </a>
-          </div>
-        </div>
-
-        <div class="ph-tabs">
-          <button class="ph-tab ph-tab-active" id="ph-tab-activity" onclick="switchTab('activity')">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-            Iðkun
-          </button>
-          <button class="ph-tab" id="ph-tab-recordings" onclick="switchTab('recordings')">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg>
-            Upptökur
-          </button>
-        </div>
-
-        <div class="ph-tab-content" id="ph-content-activity">
-          <div class="ph-tile">
-            <div class="ph-tile-header" style="margin-bottom:14px">
-              <div class="ph-tile-title">Lestarmynstur</div>
-              <div class="ph-hm-tabs">
-                <button class="ph-hm-tab ph-hm-tab-active" id="ph-hm-week" onclick="switchHeatmap('week')">Vika</button>
-                <button class="ph-hm-tab" id="ph-hm-month" onclick="switchHeatmap('month')">Mánuður</button>
-                <button class="ph-hm-tab" id="ph-hm-year" onclick="switchHeatmap('year')">Ár</button>
-              </div>
-            </div>
-            <div id="ph-heatmap-content">
-              <div class="ph-hm-wrap">
-                <div class="ph-rec-empty">Placeholder fyrir heatmap. Renderast úr parent-view.js þegar tengt verður.</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="ph-tab-content" id="ph-content-recordings" style="display:none">
-          <div class="ph-tile ph-rec-tile">
-            <div id="ph-rec-tile-header"><div class="ph-tile-title">Upptökur</div></div>
-            <div id="ph-recordings-list"><div class="ph-rec-empty">Engar klippingar enn.</div></div>
+      <!-- "Bæta öðru barni?" prompt eftir fyrstu skráningu -->
+      <div id="ph-add-another" class="confirm-overlay">
+        <div class="confirm-card">
+          <div class="confirm-title">Barn skráð!</div>
+          <div class="confirm-desc">Viltu bæta öðru barni við núna?</div>
+          <div class="confirm-btns">
+            <button class="cbtn-cancel" onclick="closeAddAnother(false)">Nei, seinna</button>
+            <button style="flex:1;padding:10px;border-radius:var(--r-sm);font:inherit;font-size:13px;font-weight:500;cursor:pointer;background:var(--accent-soft);border:1px solid var(--border-hl);color:var(--accent)" onclick="closeAddAnother(true)">+ Já, bæta við</button>
           </div>
         </div>
       </div>
-    </section>
 
-    <section class="parent-page-screen" data-parent-screen="children">
-      <div class="parent-state-top">
-        <div class="parent-state-title">
-          <div class="parent-state-kicker">Börn</div>
-          <h1>Börn og kóðar</h1>
-          <p>Velja barn, sjá kóða og bæta við.</p>
-        </div>
-        <button class="ph-add-btn" type="button" onclick="openAddChildPopup()">+ Barn</button>
-      </div>
-      <div class="parent-state-body">
-        <button class="parent-mini-card parent-list-row" type="button" onclick="showParentPlaceholderToast('Barnaval tengist seinna')">
-          <span class="parent-avatar">HH</span>
-          <span class="parent-row-main"><strong>Hrafnkell Hersir</strong><span>HRA78 · 4 mín · 1/7 daga</span></span>
-          <span class="parent-row-action">Velja</span>
+      <div class="cpills" id="ph-children-row" aria-label="Veldu barn">
+        <button class="cpill sel" type="button" onclick="pickChild(this,'hrafnkell')">
+          <div class="cpill-av">HH</div>
+          <div><div class="cpill-name">Hrafnkell</div><div class="cpill-meta">HRA78 · 4 mín</div></div>
         </button>
-        <button class="parent-mini-card parent-list-row" type="button" onclick="showParentPlaceholderToast('Barnaval tengist seinna')">
-          <span class="parent-avatar">KK</span>
-          <span class="parent-row-main"><strong>Kolbeinn Kvasir</strong><span>KOL58 · 5 mín · 2/7 daga</span></span>
-          <span class="parent-row-action">Velja</span>
-        </button>
-        <button class="parent-mini-card parent-list-row" type="button" onclick="openAddChildPopup()">
-          <span class="parent-avatar">+</span>
-          <span class="parent-row-main"><strong>Nýtt barn</strong><span>Tengjum seinna við núverandi add-child flæði.</span></span>
-          <span class="parent-row-action">Bæta við</span>
+        <button class="cpill" type="button" onclick="pickChild(this,'kolbeinn')">
+          <div class="cpill-av">KK</div>
+          <div><div class="cpill-name">Kolbeinn</div><div class="cpill-meta">KOL58 · 5 mín</div></div>
         </button>
       </div>
-    </section>
 
-    <section class="parent-page-screen" data-parent-screen="library">
-      <div class="parent-state-top">
-        <div class="parent-state-title">
-          <div class="parent-state-kicker">Bókasafn</div>
-          <h1>Bækur</h1>
-          <p>Parent-side bókasafn sem fær gögn seinna.</p>
-        </div>
-        <button class="ph-add-btn" type="button" onclick="showParentPlaceholderToast('Ný bók tengist seinna')">+ Bók</button>
+      <div class="streak">
+        <div class="streak-fire">&#x1F525;</div>
+        <div class="streak-n" id="ph-streak">4</div>
+        <div class="streak-t">dagar<br>í röð</div>
       </div>
-      <div class="parent-state-body">
-        <div class="parent-mini-card parent-list-row">
-          <span class="parent-avatar">F</span>
-          <span class="parent-row-main"><strong>Fuglabúrið</strong><span>Kolbeinn · 52% · í lestri</span></span>
-          <span class="parent-row-action">Opna</span>
-        </div>
-        <div class="parent-mini-card parent-list-row">
-          <span class="parent-avatar">V</span>
-          <span class="parent-row-main"><strong>Verðlaunabókin</strong><span>Hrafnkell · 18% · í lestri</span></span>
-          <span class="parent-row-action">Opna</span>
-        </div>
-        <div class="parent-compact-grid">
-          <div class="parent-mini-card"><strong>Lokið</strong><span>Placeholder fyrir kláraðar bækur.</span></div>
-          <div class="parent-mini-card"><strong>Ný bók</strong><span>Camera/Gemini flæði tengist seinna.</span></div>
-        </div>
-      </div>
-    </section>
 
-    <section class="parent-page-screen" data-parent-screen="settings">
-      <div class="parent-state-top">
-        <div class="parent-state-title">
-          <div class="parent-state-kicker">Stillingar</div>
-          <h1>Aðgangur</h1>
-          <p>Fjölskylda, þema og account.</p>
+      <div class="crd crd-glow" id="ph-now-reading">
+        <div class="crd-head"><span class="crd-lbl">Að lesa</span><button class="crd-act" onclick="nav('bookshelf.html')">Bókasafn ›</button></div>
+        <div class="rd-row">
+          <div class="rd-cover"><span>F</span></div>
+          <div>
+            <div class="rd-title">Fuglabúrið</div>
+            <div class="rd-meta">bls. 60 af 115</div>
+            <div class="rd-prog"><div class="rd-bar"><div class="rd-fill" style="width:52%"></div></div><div class="rd-pct">52%</div></div>
+          </div>
         </div>
       </div>
-      <div class="parent-state-body">
-        <div class="parent-mini-card"><strong>Fjölskyldulykill</strong><span id="settings-family-code">FAM0000AA</span></div>
-        <div class="parent-mini-card"><strong>Netfang</strong><span id="settings-email">parent@example.test</span></div>
-        <button class="parent-mini-card parent-list-row" type="button" onclick="toggleParentTheme()">
-          <span class="parent-row-main"><strong>Þema</strong><span>Dökkt/létt verður tengt við núverandi theme helper.</span></span>
-          <span class="parent-row-action">Skipta</span>
-        </button>
-        <button class="parent-mini-card parent-list-row" type="button" onclick="parentPlaceholderLogout()">
-          <span class="parent-row-main"><strong>Útskrá</strong><span>Seinna: hreinsa session og fara á index.html.</span></span>
-          <span class="parent-row-action">Út</span>
-        </button>
+
+      <div class="crd" id="ph-week-grid">
+        <div class="crd-lbl" style="margin-bottom:6px">Síðustu 7 dagar</div>
+        <div class="wk">
+          <div class="wk-d"><div class="wk-l">M</div><div class="wk-dot hi">&#10003;</div><div class="wk-n">14</div></div>
+          <div class="wk-d"><div class="wk-l">Þ</div><div class="wk-dot"></div><div class="wk-n">15</div></div>
+          <div class="wk-d"><div class="wk-l">M</div><div class="wk-dot md">&#10003;</div><div class="wk-n">16</div></div>
+          <div class="wk-d"><div class="wk-l">F</div><div class="wk-dot hi">&#10003;</div><div class="wk-n">17</div></div>
+          <div class="wk-d"><div class="wk-l">F</div><div class="wk-dot"></div><div class="wk-n">18</div></div>
+          <div class="wk-d"><div class="wk-l">L</div><div class="wk-dot lo">&#10003;</div><div class="wk-n">19</div></div>
+          <div class="wk-d"><div class="wk-l now">S</div><div class="wk-dot md ring">&#10003;</div><div class="wk-n now">20</div></div>
+        </div>
       </div>
-    </section>
+
+      <div class="crd" id="ph-journey-card" onclick="go('journey')" style="cursor:pointer">
+        <div class="note-q">"Bókin er byrjuð."</div>
+        <div class="note-from">Hrafnkell las bls. 1–10 í dag</div>
+        <div class="note-cmt"><strong style="color:var(--accent)">Pétur:</strong> Hlakka til að heyra næsta kafla</div>
+      </div>
+
+      <div class="crd play-crd" onclick="go('recordings')" style="cursor:pointer">
+        <div class="play-btn"><div class="play-tri"></div></div>
+        <div class="play-info"><div class="play-t">Nýjasta upptaka</div><div class="play-m">5 mín · í dag</div></div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <div class="crd" id="ph-goals-card" style="text-align:center;padding:14px 10px">
+          <div style="font-size:22px;font-weight:600;color:var(--accent);font-family:Georgia,serif">25%</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:4px">Markmið · 1/4 daga</div>
+        </div>
+        <div class="crd" id="ph-bookshelf-link" onclick="nav('bookshelf.html')" style="text-align:center;padding:14px 10px;cursor:pointer">
+          <div style="font-size:22px;font-weight:600;color:var(--accent);font-family:Georgia,serif">11</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:4px">bækur í safni ›</div>
+        </div>
+      </div>
+    </div>
   </main>
 
-  <nav class="parent-bottom-nav" aria-label="Foreldra valmynd">
-    <button class="active" type="button" data-parent-nav="home"><svg viewBox="0 0 24 24"><path d="M4 13h6V4H4v9Zm10 7h6V4h-6v16ZM4 20h6v-3H4v3Z"/></svg><span>Yfirlit</span></button>
-    <button type="button" data-parent-nav="children"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/></svg><span>Börn</span></button>
-    <button type="button" data-parent-nav="library"><svg viewBox="0 0 24 24"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v16H7a3 3 0 0 0-3 3z"/><path d="M4 5.5V22"/><path d="M8 7h8M8 11h6"/></svg><span>Bókasafn</span></button>
-    <button type="button" data-parent-nav="settings"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33"/></svg><span>Stillingar</span></button>
+
+  <!-- ══════════════════════════════════
+       2. FERÐALAG
+       ══════════════════════════════════ -->
+  <section class="scr" data-parent-screen="journey">
+    <header class="top"><div class="top-title">Ferðalag</div></header>
+    <div class="bod">
+      <div class="cpills" data-child-row aria-label="Veldu barn">
+        <button class="cpill sel" type="button" onclick="pickChild(this,'hrafnkell')"><div class="cpill-av">HH</div><div><div class="cpill-name">Hrafnkell</div></div></button>
+        <button class="cpill" type="button" onclick="pickChild(this,'kolbeinn')"><div class="cpill-av">KK</div><div><div class="cpill-name">Kolbeinn</div></div></button>
+      </div>
+
+      <!-- Book hero with cover -->
+      <div class="jn-hero" id="jm-book-hero">
+        <div class="jn-hero-cover" id="jm-book-cover-display">
+          <div class="rd-cover" style="width:48px;height:68px;font-size:18px;border-radius:7px"><span>F</span></div>
+        </div>
+        <div class="jn-hero-info">
+          <div class="rd-title" style="font-size:15px" id="jm-book-title">Fuglabúrið</div>
+          <div class="rd-meta">bls. 60 af 115</div>
+          <div class="rd-prog" style="margin-top:4px"><div class="rd-bar"><div class="rd-fill" style="width:52%"></div></div><div class="rd-pct">52%</div></div>
+        </div>
+      </div>
+
+      <!-- 3 newest entries (newest first), reply per entry -->
+      <div id="jm-feed" style="display:flex;flex-direction:column;gap:8px">
+        <div class="jn-entry fresh">
+          <div class="jn-author">Hrafnkell <span class="jn-ts">í dag · 16:42</span></div>
+          <div class="jn-text">"Bókin er byrjuð."</div>
+          <div class="jn-meta">Bls. 1–10 · 5 mín</div>
+          <div class="jn-cmt">
+            <div class="jn-cmt-item"><strong>Pétur</strong> <span class="jn-cmt-ts">í dag · 17:05</span><div>Hlakka til að heyra næsta kafla</div></div>
+          </div>
+          <div class="jn-reply">
+            <input class="jn-reply-input" placeholder="Skrifa svar..." maxlength="80" id="jm-input">
+            <button class="jn-reply-btn" type="button" id="jm-send" onclick="sendReply(this)">↑</button>
+          </div>
+        </div>
+
+        <div class="jn-entry">
+          <div class="jn-author">Hrafnkell <span class="jn-ts">20. maí · 15:20</span></div>
+          <div class="jn-text">"Þau fundu nýja vísbendingu."</div>
+          <div class="jn-meta">Bls. 50–60 · 4 mín</div>
+          <button class="jn-reply-toggle" onclick="openReply(this)">Svara</button>
+          <div class="jn-reply" style="display:none">
+            <input class="jn-reply-input" placeholder="Skrifa svar..." maxlength="80">
+            <button class="jn-reply-btn" type="button" onclick="sendReply(this)">↑</button>
+          </div>
+        </div>
+
+        <div class="jn-entry">
+          <div class="jn-author">Hrafnkell <span class="jn-ts">20. maí · 14:55</span></div>
+          <div class="jn-text">"Kaflinn endaði á leyndarmáli."</div>
+          <div class="jn-meta">Bls. 42–50 · 6 mín</div>
+          <div class="jn-cmt">
+            <div class="jn-cmt-item"><strong>Anna</strong> <span class="jn-cmt-ts">20. maí · 18:30</span><div>Spennandi!</div></div>
+          </div>
+          <button class="jn-reply-toggle" onclick="openReply(this)">Svara</button>
+          <div class="jn-reply" style="display:none">
+            <input class="jn-reply-input" placeholder="Skrifa svar..." maxlength="80">
+            <button class="jn-reply-btn" type="button" onclick="sendReply(this)">↑</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="jn-sent" id="jm-sent">Sent ✓</div>
+
+      <!-- Open full journey -->
+      <button class="jn-open-all" type="button" onclick="toast('Opna allt ferðalag — tengist seinna')">
+        <div class="jn-open-all-text">Opna allt ferðalag</div>
+        <div class="jn-open-all-meta">12 færslur · frá 8. maí</div>
+      </button>
+    </div>
+  </section>
+
+
+  <!-- ══════════════════════════════════
+       3. FRAMVINDA
+       ══════════════════════════════════ -->
+  <section class="scr" data-parent-screen="progress">
+    <header class="top"><div class="top-title">Framvinda</div></header>
+    <div class="bod">
+      <div class="cpills" data-child-row aria-label="Veldu barn">
+        <button class="cpill sel" type="button" onclick="pickChild(this,'hrafnkell')"><div class="cpill-av">HH</div><div><div class="cpill-name">Hrafnkell</div></div></button>
+        <button class="cpill" type="button" onclick="pickChild(this,'kolbeinn')"><div class="cpill-av">KK</div><div><div class="cpill-name">Kolbeinn</div></div></button>
+      </div>
+
+      <!-- Progress pill — dynamic based on week-over-week change -->
+      <div class="compare-row up" id="ph-progress-pill">
+        <div class="compare-icon">↑</div>
+        <div class="compare-txt">Hefur lesið meira þessa viku</div>
+      </div>
+
+      <div class="hm-tabs">
+        <button class="hm-tab on" id="ph-hm-week" onclick="hmTab('week',this)">Vika</button>
+        <button class="hm-tab" id="ph-hm-month" onclick="hmTab('month',this)">Mánuður</button>
+      </div>
+
+      <div class="crd" id="ph-content-activity">
+        <div id="ph-heatmap-content">
+          <!-- Week view (default) -->
+          <div id="hm-view-week">
+            <div class="crd-lbl" style="margin-bottom:6px">Síðustu 7 dagar</div>
+            <div class="wk">
+              <div class="wk-d" onclick="dayTip(this,8)"><div class="wk-l">M</div><div class="wk-dot hi">✓</div><div class="wk-n">14</div></div>
+              <div class="wk-d" onclick="dayTip(this,0)"><div class="wk-l">Þ</div><div class="wk-dot"></div><div class="wk-n">15</div></div>
+              <div class="wk-d" onclick="dayTip(this,4)"><div class="wk-l">M</div><div class="wk-dot md">✓</div><div class="wk-n">16</div></div>
+              <div class="wk-d" onclick="dayTip(this,12)"><div class="wk-l">F</div><div class="wk-dot hi">✓</div><div class="wk-n">17</div></div>
+              <div class="wk-d" onclick="dayTip(this,0)"><div class="wk-l">F</div><div class="wk-dot"></div><div class="wk-n">18</div></div>
+              <div class="wk-d" onclick="dayTip(this,3)"><div class="wk-l">L</div><div class="wk-dot lo">✓</div><div class="wk-n">19</div></div>
+              <div class="wk-d" onclick="dayTip(this,5)"><div class="wk-l now">S</div><div class="wk-dot md ring">✓</div><div class="wk-n now">20</div></div>
+            </div>
+            <div class="hm-total">
+              <div class="hm-total-l">Samtals þessa viku</div>
+              <div class="hm-total-v" id="ph-week-total">32 mín</div>
+            </div>
+          </div>
+          <!-- Month view (hidden by default) -->
+          <div id="hm-view-month" style="display:none">
+            <div class="hm-month-head">
+              <button class="hm-nav-arrow" onclick="toast('‹ Apríl')">‹</button>
+              <div class="hm-month-title">Maí 2026</div>
+              <button class="hm-nav-arrow" disabled>›</button>
+            </div>
+            <div class="hm-month">
+              <div class="hm-month-lbl">M</div><div class="hm-month-lbl">Þ</div><div class="hm-month-lbl">M</div><div class="hm-month-lbl">F</div><div class="hm-month-lbl">F</div><div class="hm-month-lbl">L</div><div class="hm-month-lbl">S</div>
+              <div class="hm-month-cell empty"></div><div class="hm-month-cell empty"></div><div class="hm-month-cell empty"></div><div class="hm-month-cell c1" onclick="dayTip(this,3)"><span class="mc-num">1</span></div><div class="hm-month-cell c3" onclick="dayTip(this,15)"><span class="mc-num">2</span></div><div class="hm-month-cell" onclick="dayTip(this,0)"><span class="mc-num">3</span></div><div class="hm-month-cell c1" onclick="dayTip(this,2)"><span class="mc-num">4</span></div>
+              <div class="hm-month-cell c3" onclick="dayTip(this,12)"><span class="mc-num">5</span></div><div class="hm-month-cell" onclick="dayTip(this,0)"><span class="mc-num">6</span></div><div class="hm-month-cell c2" onclick="dayTip(this,6)"><span class="mc-num">7</span></div><div class="hm-month-cell c1" onclick="dayTip(this,3)"><span class="mc-num">8</span></div><div class="hm-month-cell c3" onclick="dayTip(this,14)"><span class="mc-num">9</span></div><div class="hm-month-cell c2" onclick="dayTip(this,8)"><span class="mc-num">10</span></div><div class="hm-month-cell" onclick="dayTip(this,0)"><span class="mc-num">11</span></div>
+              <div class="hm-month-cell c3" onclick="dayTip(this,11)"><span class="mc-num">12</span></div><div class="hm-month-cell c3" onclick="dayTip(this,10)"><span class="mc-num">13</span></div><div class="hm-month-cell c2" onclick="dayTip(this,5)"><span class="mc-num">14</span></div><div class="hm-month-cell" onclick="dayTip(this,0)"><span class="mc-num">15</span></div><div class="hm-month-cell c1" onclick="dayTip(this,3)"><span class="mc-num">16</span></div><div class="hm-month-cell c2" onclick="dayTip(this,7)"><span class="mc-num">17</span></div><div class="hm-month-cell" onclick="dayTip(this,0)"><span class="mc-num">18</span></div>
+              <div class="hm-month-cell c1" onclick="dayTip(this,4)"><span class="mc-num">19</span></div><div class="hm-month-cell c3" onclick="dayTip(this,12)"><span class="mc-num">20</span></div><div class="hm-month-cell today c2" onclick="dayTip(this,5)"><span class="mc-num">21</span></div><div class="hm-month-cell" onclick="dayTip(this,0)"><span class="mc-num">22</span></div><div class="hm-month-cell" onclick="dayTip(this,0)"><span class="mc-num">23</span></div><div class="hm-month-cell" onclick="dayTip(this,0)"><span class="mc-num">24</span></div><div class="hm-month-cell" onclick="dayTip(this,0)"><span class="mc-num">25</span></div>
+              <div class="hm-month-cell" onclick="dayTip(this,0)"><span class="mc-num">26</span></div><div class="hm-month-cell" onclick="dayTip(this,0)"><span class="mc-num">27</span></div><div class="hm-month-cell" onclick="dayTip(this,0)"><span class="mc-num">28</span></div><div class="hm-month-cell" onclick="dayTip(this,0)"><span class="mc-num">29</span></div><div class="hm-month-cell" onclick="dayTip(this,0)"><span class="mc-num">30</span></div><div class="hm-month-cell" onclick="dayTip(this,0)"><span class="mc-num">31</span></div>
+            </div>
+            <div class="hm-total">
+              <div class="hm-total-l">Samtals í maí</div>
+              <div class="hm-total-v" id="ph-month-total">118 mín</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2×2 stats: streak, blaðsíður, bækur, lestrardagar -->
+      <div class="stats-4">
+        <div class="stat">
+          <div class="stat-icon">🔥</div>
+          <div class="stat-v" id="ph-stat-streak">4</div>
+          <div class="stat-l">dagar í röð</div>
+        </div>
+        <div class="stat">
+          <div class="stat-v" id="ph-stat-pages">342</div>
+          <div class="stat-l">blaðsíður lesnar</div>
+        </div>
+        <div class="stat">
+          <div class="stat-v" id="ph-stat-books">3</div>
+          <div class="stat-l">bækur kláraðar</div>
+        </div>
+        <div class="stat">
+          <div class="stat-v" id="ph-stat-days">5 / 7</div>
+          <div class="stat-l">lestrardagar</div>
+        </div>
+      </div>
+
+      <!-- Markmið -->
+      <div class="crd" id="ph-goals-progress">
+        <div class="crd-lbl" style="margin-bottom:8px">Markmið</div>
+        <div class="goal-row" style="padding:0">
+          <div class="goal-ring">
+            <svg viewBox="0 0 44 44"><circle cx="22" cy="22" r="17" fill="none" stroke="rgba(29,205,211,.1)" stroke-width="5"/><circle cx="22" cy="22" r="17" fill="none" stroke="var(--accent)" stroke-width="5" stroke-dasharray="107" stroke-dashoffset="27" stroke-linecap="round" transform="rotate(-90 22 22)"/></svg>
+            <div class="goal-pct">75%</div>
+          </div>
+          <div class="goal-info"><div class="goal-name">4 dagar / viku</div><div class="goal-sub">3 af 4 dögum náðir</div></div>
+        </div>
+      </div>
+
+      <!-- Bókasafn link -->
+      <div class="crd" onclick="nav('bookshelf.html')" style="cursor:pointer;display:flex;align-items:center;justify-content:space-between">
+        <div><div style="font-size:13px;font-weight:500;color:var(--text-bright)">Bókasafn</div><div style="font-size:10px;color:var(--muted);margin-top:2px">11 bækur · 3 kláraðar</div></div>
+        <div class="crd-act">Opna ›</div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ══════════════════════════════════
+       4. HLJÓÐ
+       ══════════════════════════════════ -->
+  <section class="scr" data-parent-screen="recordings">
+    <header class="top"><div class="top-title">Hljóð</div></header>
+    <div class="bod">
+      <div class="cpills" data-child-row aria-label="Veldu barn">
+        <button class="cpill sel" type="button" onclick="pickChild(this,'hrafnkell')"><div class="cpill-av">HH</div><div><div class="cpill-name">Hrafnkell</div></div></button>
+        <button class="cpill" type="button" onclick="pickChild(this,'kolbeinn')"><div class="cpill-av">KK</div><div><div class="cpill-name">Kolbeinn</div></div></button>
+      </div>
+
+      <div class="crd play-crd" style="padding:14px">
+        <div class="play-btn" style="width:48px;height:48px" onclick="toast('Spilun tengist seinna')"><div class="play-tri" style="border-left-width:12px;border-top-width:8px;border-bottom-width:8px"></div></div>
+        <div class="play-info"><div class="play-t" style="font-size:14px">Fuglabúrið — kafli 6</div><div class="play-m">5 mín · í dag · 3 klippur</div></div>
+      </div>
+
+      <div class="rec-tabs">
+        <button class="rec-tab on" onclick="recTab(this)">Nýlegt</button>
+        <button class="rec-tab" onclick="recTab(this)">Uppáhalds</button>
+      </div>
+
+      <div id="ph-recordings-list" style="display:flex;flex-direction:column">
+        <div class="rec-item">
+          <div class="rec-play-sm" onclick="toast('Spila')"><div class="play-tri"></div></div>
+          <div class="rec-main"><div class="rec-t">Fuglabúrið — kafli 5</div><div class="rec-m">4 mín · í gær · 2 klippur</div></div>
+          <div class="rec-fav on" onclick="this.classList.toggle('on')">★</div>
+        </div>
+        <div class="rec-item">
+          <div class="rec-play-sm" onclick="toast('Spila')"><div class="play-tri"></div></div>
+          <div class="rec-main"><div class="rec-t">Draugar á Djúpalóni</div><div class="rec-m">7 mín · 3 dögum síðan</div></div>
+          <div class="rec-fav" onclick="this.classList.toggle('on')">★</div>
+        </div>
+        <div class="rec-item">
+          <div class="rec-play-sm" onclick="toast('Spila')"><div class="play-tri"></div></div>
+          <div class="rec-main"><div class="rec-t">Fuglabúrið — kafli 4</div><div class="rec-m">6 mín · 4 dögum síðan</div></div>
+          <div class="rec-fav" onclick="this.classList.toggle('on')">★</div>
+        </div>
+        <div class="rec-item">
+          <div class="rec-play-sm" onclick="toast('Spila')"><div class="play-tri"></div></div>
+          <div class="rec-main"><div class="rec-t">Fuglabúrið — kafli 3</div><div class="rec-m">4 mín · 5 dögum síðan</div></div>
+          <div class="rec-fav on" onclick="this.classList.toggle('on')">★</div>
+        </div>
+        <div id="ph-rec-tile-header" style="display:none"></div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ══════════════════════════════════
+       5. STILLINGAR
+       ══════════════════════════════════ -->
+  <section class="scr" data-parent-screen="settings">
+    <header class="top"><div class="top-title">Stillingar</div></header>
+    <div class="bod">
+      <div class="st-sec">Aðgangur</div>
+      <div class="st-group">
+        <div class="st-row"><span class="st-lbl">Netfang</span><span class="st-val" id="settings-email">parent@example.test</span></div>
+        <div class="st-row"><span class="st-lbl">Fjölskyldulykill</span><span class="st-val ac" id="settings-family-code">FAM0000AA</span></div>
+        <div class="st-row tap" onclick="confirmAction('reset-key')"><span class="st-lbl">Endurnýja fjölskyldulykil</span><span class="st-act">›</span></div>
+      </div>
+
+      <div class="st-sec">Börn</div>
+      <div class="st-group" id="st-kids-list">
+        <div class="st-row">
+          <div><div class="st-lbl">Hrafnkell Hersir</div><div class="st-sub">HRA78 · 4 mín · 1/7 daga</div></div>
+          <div style="display:flex;gap:10px"><span class="st-act">Kóði</span><span class="st-act" style="color:var(--danger);cursor:pointer" onclick="confirmAction('delete-child','Hrafnkell')">Eyða</span></div>
+        </div>
+        <div class="st-row">
+          <div><div class="st-lbl">Kolbeinn Kvasir</div><div class="st-sub">KOL58 · 5 mín · 2/7 daga</div></div>
+          <div style="display:flex;gap:10px"><span class="st-act">Kóði</span><span class="st-act" style="color:var(--danger);cursor:pointer" onclick="confirmAction('delete-child','Kolbeinn')">Eyða</span></div>
+        </div>
+        <div class="st-row tap" onclick="if(typeof openAddChildPopup==='function')openAddChildPopup();else toast('openAddChildPopup tengist seinna')"><span class="st-lbl" style="color:var(--accent)">+ Bæta við barni</span></div>
+      </div>
+
+      <div class="st-sec">Gögn</div>
+      <div class="st-group">
+        <div class="st-row tap" onclick="confirmAction('delete-child-data')"><span class="st-lbl">Eyða gögnum barns</span><span class="st-act">›</span></div>
+        <div class="st-row tap" onclick="confirmAction('delete-all-data')"><span class="st-lbl">Eyða öllum gögnum</span><span class="st-act">›</span></div>
+      </div>
+
+      <div class="st-sec">App</div>
+      <div class="st-group">
+        <div class="st-row tap" onclick="toggleTheme()"><span class="st-lbl">Þema</span><span class="st-val" id="theme-label">Dökkt</span></div>
+        <div class="st-row tap" onclick="nav('bookshelf.html')"><span class="st-lbl">Bókasafn</span><span class="st-act">Opna ›</span></div>
+      </div>
+
+      <div class="st-sec">Hætta</div>
+      <div class="st-group">
+        <div class="st-row tap" onclick="toast('Útskráning tengist seinna')"><span class="st-lbl">Útskrá</span></div>
+        <div class="st-row tap danger" onclick="confirmAction('delete-account')"><span class="st-lbl">Eyða aðgangi og öllum gögnum</span></div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ══════════════════════════════════
+       BOTTOM NAV
+       ══════════════════════════════════ -->
+  <nav class="nav" aria-label="Aðalvalmynd">
+    <button class="on" type="button" data-nav="today">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+      <span>Í dag</span>
+    </button>
+    <button type="button" data-nav="journey">
+      <svg viewBox="0 0 24 24"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5Z"/><path d="M8 7h8M8 11h8M8 15h5"/></svg>
+      <span>Ferðalag</span>
+    </button>
+    <button type="button" data-nav="progress">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+      <span>Framvinda</span>
+    </button>
+    <button type="button" data-nav="recordings">
+      <svg viewBox="0 0 24 24"><path d="M12 2a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V5a3 3 0 0 1 3-3Z"/><path d="M19 10v1a7 7 0 0 1-14 0v-1"/><path d="M12 18v4M8 22h8"/></svg>
+      <span>Hljóð</span>
+    </button>
+    <button type="button" data-nav="settings">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg>
+      <span>Stillingar</span>
+    </button>
   </nav>
 </div>
 
-<div id="settings-modal" class="modal-overlay" style="display:none">
-  <div class="rg-popup-card">
-    <div class="rg-popup-glow-line"></div>
-    <button class="rg-popup-close" onclick="closeSettingsPopup()" aria-label="Loka">×</button>
-    <div class="rg-popup-header">
-      <div class="rg-popup-brand"><span class="rg-popup-brand-read">Upp</span><span class="rg-popup-brand-glow">Hátt</span></div>
-      <p class="rg-popup-subtitle">Stillingar</p>
-    </div>
-    <div class="rg-popup-body">
-      <div class="st-section">
-        <div class="st-section-title">Reikningur</div>
-        <div class="st-row"><div class="st-label">Netfang</div><div class="st-value" id="st-email">parent@example.test</div></div>
-        <div class="st-row"><div class="st-label">Fjölskyldulykill</div><div class="st-value st-fam" id="st-famcode">FAM0000AA</div></div>
-      </div>
-      <div class="st-section">
-        <div class="st-section-title">Börn mín</div>
-        <div id="st-kids-list"><div class="st-empty">Placeholder þar til parent init fyllir listann.</div></div>
-      </div>
-      <div class="st-section">
-        <div class="st-section-title">Hætta</div>
-        <div style="font-size:12px;color:rgba(148,164,180,0.6);margin-bottom:12px;line-height:1.5">Placeholder. Útskráning og eyðing verður tengd seinna.</div>
-        <button id="st-delete-account-btn" class="st-delete-account-btn" onclick="confirmDeleteAccount()">Eyða aðgangi og öllum gögnum</button>
-      </div>
+<!-- ═══ Journey modal (parent-view.js compat) ═══ -->
+<div id="journey-modal" style="display:none"></div>
+<div id="jm-book-cover" style="display:none"></div>
+
+<!-- ═══ Confirm popup ═══ -->
+<div class="confirm-overlay" id="confirm-popup">
+  <div class="confirm-card">
+    <div class="confirm-title" id="confirm-title">Ertu viss?</div>
+    <div class="confirm-desc" id="confirm-desc">Þessi aðgerð er óafturkræf.</div>
+    <div class="confirm-btns">
+      <button class="cbtn-cancel" onclick="closeConfirm()">Hætta við</button>
+      <button class="cbtn-danger" id="confirm-ok" onclick="doConfirm()">Eyða</button>
     </div>
   </div>
 </div>
 
-<div id="journey-modal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;width:100%;height:100%;background:rgba(0,0,0,0.8);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);z-index:9999;justify-content:center;align-items:center;padding:16px" onclick="closeJourneyModal(event)">
-  <div class="rg-popup-card jm-card" style="background:#0b1420;border:1.5px solid rgba(29,205,211,0.3);border-radius:18px;width:min(420px,94vw);max-height:85vh;padding:0;position:relative;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.7);color:#d9e5ef;display:flex;flex-direction:column">
-    <div class="rg-popup-glow-line"></div>
-    <div class="jm-header">
-      <div id="jm-book-cover"></div>
-      <div>
-        <div class="jm-label">Lestrarferðalag</div>
-        <div class="jm-book-title" id="jm-book-title">Fuglabúrið</div>
-      </div>
-      <button class="rg-popup-close jm-close" onclick="event.stopPropagation();closeJourneyModal()" aria-label="Loka">×</button>
-    </div>
-    <div class="jm-feed" id="jm-feed"><div class="ph-rec-empty">Placeholder fyrir færslur.</div></div>
-    <div class="jm-compose">
-      <div class="jm-input-row">
-        <input class="ph-jn-input jm-input" id="jm-input" placeholder="Skrifa hvatningu..." maxlength="80">
-        <button class="ph-jn-send" id="jm-send" title="Senda">↑</button>
-      </div>
-    </div>
-    <div class="ph-jn-sent" id="jm-sent">Sent ✓</div>
-  </div>
-</div>
+<!-- ═══ Toast ═══ -->
+<div class="toast" id="app-toast"></div>
 
-<div class="parent-toast" id="parent-placeholder-toast">Placeholder - tengjum seinna</div>
 
 <script>
-const _SVG_SUN = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#1dcdd3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>';
-const _SVG_MOON = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#1dcdd3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
+/* ═══════════════════════════════════
+   NAV
+   ═══════════════════════════════════ */
+function go(tab) {
+  document.querySelectorAll('[data-nav]').forEach(b => b.classList.toggle('on', b.dataset.nav === tab));
+  document.querySelectorAll('[data-parent-screen]').forEach(s => s.classList.toggle('on', s.dataset.parentScreen === tab));
+}
+document.querySelectorAll('[data-nav]').forEach(b => b.addEventListener('click', () => go(b.dataset.nav)));
 
-function showParentPlaceholderToast(text) {
-  const el = document.getElementById('parent-placeholder-toast');
+/* ── compat with old setParentScreen ── */
+function setParentScreen(t) { go(t); }
+
+/* ═══════════════════════════════════
+   CHILD PILLS (sticky)
+   ═══════════════════════════════════ */
+let _child = 'hrafnkell';
+function pickChild(el, key) {
+  _child = key;
+  document.querySelectorAll('.cpill').forEach(p => {
+    const match = p.getAttribute('onclick')?.includes("'" + key + "'");
+    p.classList.toggle('sel', !!match);
+  });
+  toast(key === 'hrafnkell' ? 'Hrafnkell valinn' : 'Kolbeinn valinn');
+}
+
+/* ═══════════════════════════════════
+   TABS
+   ═══════════════════════════════════ */
+function hmTab(v, el) {
+  el.closest('.hm-tabs').querySelectorAll('.hm-tab').forEach(t => t.classList.remove('on'));
+  el.classList.add('on');
+  const wk = document.getElementById('hm-view-week');
+  const mo = document.getElementById('hm-view-month');
+  if (wk) wk.style.display = v === 'week' ? '' : 'none';
+  if (mo) mo.style.display = v === 'month' ? '' : 'none';
+}
+
+/* Day tooltip — touch/click on heatmap cell */
+function dayTip(el, mins) {
+  const old = document.querySelector('.day-tip');
+  if (old) old.remove();
+  const tip = document.createElement('div');
+  tip.className = 'day-tip';
+  tip.textContent = mins > 0 ? mins + ' mín' : 'Ekki lesið';
+  tip.style.cssText = 'position:absolute;bottom:calc(100% + 4px);left:50%;transform:translateX(-50%);background:rgba(10,20,34,.95);border:1px solid var(--border-hl);border-radius:6px;padding:3px 8px;font-size:10px;font-weight:500;color:var(--accent);white-space:nowrap;z-index:10;pointer-events:none';
+  el.style.position = 'relative';
+  el.appendChild(tip);
+  setTimeout(() => tip.remove(), 1800);
+}
+
+/* ═══════════════════════════════════
+   PROGRESS PILL — week-over-week
+   ═══════════════════════════════════ */
+function updateProgressPill(diff) {
+  /* diff = mínútur þessa viku minus síðustu viku */
+  const pill = document.getElementById('ph-progress-pill');
+  if (!pill) return;
+  const icon = pill.querySelector('.compare-icon');
+  const txt = pill.querySelector('.compare-txt');
+
+  pill.className = 'compare-row';
+
+  if (diff > 20) {
+    pill.classList.add('up-strong');
+    icon.textContent = '🚀';
+    txt.textContent = 'Mikið meira lesið þessa viku!';
+  } else if (diff > 10) {
+    pill.classList.add('up');
+    icon.textContent = '↑';
+    txt.textContent = 'Nokkuð meira lesið þessa viku';
+  } else if (diff > 0) {
+    pill.classList.add('up');
+    icon.textContent = '↗';
+    txt.textContent = 'Hefur lesið meira þessa viku';
+  } else if (diff === 0) {
+    pill.classList.add('flat');
+    icon.textContent = '→';
+    txt.textContent = 'Svipað og síðustu viku';
+  } else if (diff > -10) {
+    pill.classList.add('down');
+    icon.textContent = '↘';
+    txt.textContent = 'Örlítið minna en síðustu viku';
+  } else {
+    pill.classList.add('down-strong');
+    icon.textContent = '↓';
+    txt.textContent = 'Minna lesið þessa viku — hvetjum!';
+  }
+}
+
+/* Demo: setja default pill */
+updateProgressPill(12);
+function recTab(el) {
+  el.closest('.rec-tabs').querySelectorAll('.rec-tab').forEach(t => t.classList.remove('on'));
+  el.classList.add('on');
+}
+
+/* ═══════════════════════════════════
+   JOURNEY REPLY
+   ═══════════════════════════════════ */
+function openReply(btn) {
+  const entry = btn.closest('.jn-entry');
+  const reply = entry.querySelector('.jn-reply');
+  if (reply) {
+    reply.style.display = 'flex';
+    btn.style.display = 'none';
+    reply.querySelector('.jn-reply-input')?.focus();
+  }
+}
+
+function sendReply(btn) {
+  const reply = btn.closest('.jn-reply');
+  const input = reply.querySelector('.jn-reply-input');
+  const text = input?.value?.trim();
+  if (!text) return;
+  input.value = '';
+  const entry = btn.closest('.jn-entry');
+  let cmtBox = entry.querySelector('.jn-cmt');
+  if (!cmtBox) {
+    cmtBox = document.createElement('div');
+    cmtBox.className = 'jn-cmt';
+    entry.querySelector('.jn-meta').after(cmtBox);
+  }
+  const now = new Date();
+  const ts = now.getHours() + ':' + String(now.getMinutes()).padStart(2,'0');
+  const item = document.createElement('div');
+  item.className = 'jn-cmt-item';
+  item.innerHTML = '<strong>Þú</strong> <span class="jn-cmt-ts">núna · ' + ts + '</span><div>' + text.replace(/</g,'&lt;') + '</div>';
+  cmtBox.appendChild(item);
+  toast('Sent ✓');
+}
+
+/* ═══════════════════════════════════
+   THEME
+   ═══════════════════════════════════ */
+function toggleTheme() {
+  const s = document.getElementById('screen-parent-home');
+  if (!s) return;
+  const light = s.classList.toggle('ph-light');
+  const lbl = document.getElementById('theme-label');
+  if (lbl) lbl.textContent = light ? 'Ljóst' : 'Dökkt';
+}
+
+/* ═══════════════════════════════════
+   CONFIRM ACTIONS
+   ═══════════════════════════════════ */
+let _confirmType = '';
+let _confirmArg = '';
+
+function confirmAction(type, arg) {
+  _confirmType = type;
+  _confirmArg = arg || '';
+  const t = document.getElementById('confirm-title');
+  const d = document.getElementById('confirm-desc');
+  const ok = document.getElementById('confirm-ok');
+
+  switch (type) {
+    case 'delete-child':
+      t.textContent = 'Eyða ' + arg + '?';
+      d.textContent = 'Barn verður fjarlægt og öll gögn þess eytt. Þetta er óafturkræft.';
+      ok.textContent = 'Eyða barni';
+      break;
+    case 'delete-child-data':
+      t.textContent = 'Eyða gögnum barns?';
+      d.textContent = 'Veldu barn og öll lesturgögn, upptökur og ferðalag verða eytt. Barnið sjálft helst.';
+      ok.textContent = 'Eyða gögnum';
+      break;
+    case 'delete-all-data':
+      t.textContent = 'Eyða öllum gögnum?';
+      d.textContent = 'Öll lestrargögn, upptökur og ferðalag allra barna verða eytt. Byrja upp á nýtt.';
+      ok.textContent = 'Eyða öllu';
+      break;
+    case 'reset-key':
+      t.textContent = 'Endurnýja fjölskyldulykil?';
+      d.textContent = 'Nýr lykill verður búinn til. Gamlir barnakóðar virka áfram. Deildu nýja lyklinum með fjölskyldu.';
+      ok.textContent = 'Endurnýja';
+      break;
+    case 'delete-account':
+      t.textContent = 'Eyða aðgangi?';
+      d.textContent = 'Allir aðgangar, gögn, börn og upptökur verða eytt varanlega. Þetta er óafturkræft.';
+      ok.textContent = 'Eyða aðgangi';
+      break;
+  }
+  document.getElementById('confirm-popup').classList.add('show');
+}
+
+function closeConfirm() {
+  document.getElementById('confirm-popup').classList.remove('show');
+}
+
+function doConfirm() {
+  closeConfirm();
+  toast(_confirmType + (_confirmArg ? ': ' + _confirmArg : '') + ' — tengist seinna');
+}
+
+/* ═══════════════════════════════════
+   HELPERS
+   ═══════════════════════════════════ */
+function toast(text) {
+  const el = document.getElementById('app-toast');
   if (!el) return;
-  el.textContent = text || 'Placeholder - tengjum seinna';
+  el.textContent = text;
   el.classList.add('show');
-  clearTimeout(showParentPlaceholderToast._timer);
-  showParentPlaceholderToast._timer = setTimeout(() => el.classList.remove('show'), 1600);
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => el.classList.remove('show'), 1600);
+}
+function nav(url) { toast('Opna: ' + url); }
+
+/* ═══════════════════════════════════
+   WELCOME / EMPTY STATE
+   ═══════════════════════════════════ */
+let _childCount = 2; /* placeholder — auth.js setur þetta */
+
+function checkEmptyState() {
+  const empty = document.getElementById('ph-empty-state');
+  if (!empty) return;
+  /* Sýna ef engin börn */
+  if (_childCount === 0) {
+    empty.style.display = '';
+    document.getElementById('ph-children-row').style.display = 'none';
+  } else {
+    empty.style.display = 'none';
+    document.getElementById('ph-children-row').style.display = '';
+  }
 }
 
-function setParentScreen(target) {
-  document.querySelectorAll('[data-parent-nav]').forEach(btn => btn.classList.toggle('active', btn.dataset.parentNav === target));
-  document.querySelectorAll('[data-parent-screen]').forEach(screen => {
-    const active = screen.dataset.parentScreen === target;
-    screen.classList.toggle('active', active);
-    if (screen.id === 'screen-parent-home') screen.classList.toggle('active', active);
+function addFirstChild() {
+  if (typeof openAddChildPopup === 'function') {
+    openAddChildPopup();
+  } else {
+    toast('openAddChildPopup tengist þegar auth.js hleðst');
+  }
+}
+
+/* ═══════════════════════════════════
+   "BÆTA ÖÐRU BARNI?" PROMPT
+   ═══════════════════════════════════ */
+function showAddAnother() {
+  document.getElementById('ph-add-another').classList.add('show');
+}
+
+function closeAddAnother(addMore) {
+  document.getElementById('ph-add-another').classList.remove('show');
+  if (addMore) {
+    if (typeof openAddChildPopup === 'function') openAddChildPopup();
+    else toast('openAddChildPopup tengist seinna');
+  } else {
+    toast('Þú getur alltaf bætt við börnum í Stillingar');
+  }
+}
+
+/* Hook: auth.js kallar þetta eftir submitAddChild */
+window._onChildAdded = function() {
+  _childCount++;
+  checkEmptyState();
+  if (_childCount === 1) {
+    /* Fyrsta barn — spyrja um annað */
+    setTimeout(showAddAnother, 600);
+  }
+};
+</script>
+
+<!-- ═══════════════════════════════════
+     MODULE BRIDGE — tengir auth.js og parent-view.js
+     ═══════════════════════════════════ -->
+<script type="module">
+import { initAuth, openAddChildPopup, closeAddChildPopup, submitAddChild, logout, toggleParentTheme, openSettingsPopup, closeSettingsPopup } from './js/auth.js';
+import { renderDashboard, selectChild, switchHeatmap, switchRecTab, openJourneyModal, closeJourneyModal, sendJourneyReaction } from './js/parent-view.js';
+import { S } from './js/state.js';
+import { goTo as originalGoTo } from './js/helpers.js';
+
+/* ── Map old screen IDs to new tab names ── */
+const SCREEN_MAP = {
+  'screen-parent-home': 'today',
+  'screen-parent-login': null,      /* handled by auth popup */
+  'screen-child-login': null,        /* redirect to index.html */
+};
+
+/* Override goTo so auth.js calls route correctly in parent.html */
+window.goTo = function(screenId) {
+  const mapped = SCREEN_MAP[screenId];
+  if (mapped) {
+    go(mapped);
+  } else if (screenId === 'screen-child-login' || screenId === 'screen-parent-login') {
+    /* Child/login screens don't exist here — redirect to index.html */
+    window.location.href = 'index.html';
+  } else {
+    /* Fallback: try original goTo for any other screen */
+    try { originalGoTo(screenId); } catch(e) { console.warn('goTo fallback:', screenId); }
+  }
+};
+
+/* ── Expose functions to window for inline onclick ── */
+window.selectChild = function(key) {
+  selectChild(key);
+  /* Also update our local pill UI */
+  document.querySelectorAll('.cpill').forEach(p => {
+    const match = p.getAttribute('onclick')?.includes("'" + key + "'");
+    p.classList.toggle('sel', !!match);
   });
+};
+window.openAddChildPopup = openAddChildPopup;
+window.closeAddChildPopup = closeAddChildPopup;
+window.submitAddChild = submitAddChild;
+window.openSettingsPopup = openSettingsPopup;
+window.closeSettingsPopup = closeSettingsPopup;
+window.openJourneyModal = openJourneyModal;
+window.closeJourneyModal = closeJourneyModal;
+window.sendJourneyReaction = sendJourneyReaction;
+window.switchHeatmap = switchHeatmap;
+window.switchRecTab = switchRecTab;
+
+window.logout = function() {
+  logout();
+};
+
+window.parentLogout = function() {
+  logout();
+};
+
+/* ── Re-render on tab switch ── */
+const _originalGo = window.go;
+window.go = function(tab) {
+  _originalGo(tab);
+  /* Trigger re-render for the active tab */
+  try {
+    if (tab === 'today' || tab === 'journey' || tab === 'progress' || tab === 'recordings') {
+      renderDashboard();
+    }
+  } catch(e) { /* parent-view not ready yet */ }
+};
+
+/* ── Update settings with live data ── */
+function updateSettingsUI() {
+  const emailEl = document.getElementById('settings-email');
+  const codeEl = document.getElementById('settings-family-code');
+  if (emailEl && S.parentEmail) emailEl.textContent = S.parentEmail;
+  if (codeEl && S.familyCode) codeEl.textContent = S.familyCode;
+  
+  const welcomeCode = document.getElementById('ph-welcome-fam-code');
+  if (welcomeCode && S.familyCode) welcomeCode.textContent = S.familyCode;
 }
 
-function toggleAccountDD(e) {
-  if (e) e.stopPropagation();
-  const dd = document.getElementById('account-dd');
-  if (!dd) return;
-  dd.style.display = dd.style.display === 'none' ? 'block' : 'none';
-  _updateThemeIcon();
+/* ── Watch for children count changes ── */
+let _lastChildCount = -1;
+function syncChildCount() {
+  const children = S.parentChildren || [];
+  if (children.length !== _lastChildCount) {
+    _lastChildCount = children.length;
+    _childCount = children.length;
+    checkEmptyState();
+    updateSettingsUI();
+  }
+  requestAnimationFrame(syncChildCount);
 }
 
-function closeAccountDD() {
-  const dd = document.getElementById('account-dd');
-  if (dd) dd.style.display = 'none';
-}
-
-function _updateThemeIcon() {
-  const screen = document.getElementById('screen-parent-home');
-  const icon = document.getElementById('acc-theme-icon');
-  const label = document.getElementById('acc-theme-label');
-  const isDark = !screen?.classList.contains('ph-light');
-  if (icon) icon.innerHTML = isDark ? _SVG_SUN : _SVG_MOON;
-  if (label) label.textContent = isDark ? 'Ljóst þema' : 'Dökkt þema';
-}
-
-function toggleParentTheme() {
-  document.getElementById('screen-parent-home')?.classList.toggle('ph-light');
-  _updateThemeIcon();
-}
-
-function switchTab(tab) {
-  ['activity','recordings'].forEach(name => {
-    document.getElementById('ph-tab-' + name)?.classList.toggle('ph-tab-active', name === tab);
-    const content = document.getElementById('ph-content-' + name);
-    if (content) content.style.display = name === tab ? '' : 'none';
-  });
-}
-
-function switchHeatmap(view) {
-  ['week','month','year'].forEach(name => document.getElementById('ph-hm-' + name)?.classList.toggle('ph-hm-tab-active', name === view));
-  showParentPlaceholderToast('Heatmap: ' + view);
-}
-
-function openSettingsPopup() {
-  const modal = document.getElementById('settings-modal');
-  if (modal) modal.style.display = 'grid';
-}
-
-function closeSettingsPopup() {
-  const modal = document.getElementById('settings-modal');
-  if (modal) modal.style.display = 'none';
-}
-
-function openAddChildPopup() { showParentPlaceholderToast('Bæta við barni tengist seinna'); }
-function confirmDeleteAccount() { showParentPlaceholderToast('Eyðing tengist seinna'); }
-function parentPlaceholderLogout() { showParentPlaceholderToast('Útskráning tengist seinna'); }
-
-function closeJourneyModal(event) {
-  if (event && event.target !== document.getElementById('journey-modal')) return;
-  const modal = document.getElementById('journey-modal');
-  if (modal) modal.style.display = 'none';
-}
-
-document.querySelectorAll('[data-parent-nav]').forEach(btn => {
-  btn.addEventListener('click', () => setParentScreen(btn.dataset.parentNav));
+/* ── Boot ── */
+document.addEventListener('DOMContentLoaded', () => {
+  initAuth();
+  requestAnimationFrame(syncChildCount);
+  console.log('🔗 parent.html tengd við auth.js + parent-view.js');
 });
-document.addEventListener('click', e => {
-  const wrap = document.querySelector('.ph-account-wrap');
-  if (wrap && !wrap.contains(e.target)) closeAccountDD();
-});
-document.addEventListener('DOMContentLoaded', _updateThemeIcon);
 </script>
 </body>
 </html>

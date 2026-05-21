@@ -757,7 +757,7 @@ export async function submitAddChild() {
     await setDoc(doc(db, 'codes', code), {
       familyId: S.familyId, childKey, childName: name, birthYear: parseInt(birthYear)
     });
-    const newChild = { name, key: childKey, code, birthYear: parseInt(birthYear) };
+    const newChild = { name, key: childKey, code, birthYear: parseInt(birthYear), totalPagesRead: 0 };
     const updatedChildren = [...(S.parentChildren || []), newChild];
     await setDoc(doc(db, 'users', auth.currentUser.uid), {
       children: updatedChildren

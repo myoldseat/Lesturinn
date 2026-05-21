@@ -1101,107 +1101,235 @@ window._onChildAdded = function() {
 </script>
 
 <!-- ═══════════════════════════════════
-     MODULE BRIDGE — tengir auth.js og parent-view.js
+     ENGINE — Firebase tenging + okkar render
      ═══════════════════════════════════ -->
 <script type="module">
-/* Dynamic imports so child-view.js crash doesn't block everything */
-const [authMod, pvMod, stateMod, helpersMod] = await Promise.all([
-  import('./js/auth.js').catch(e => { console.warn('auth.js import villa:', e); return {}; }),
-  import('./js/parent-view.js').catch(e => { console.warn('parent-view.js import villa:', e); return {}; }),
-  import('./js/state.js').catch(e => { console.warn('state.js import villa:', e); return { S: {} }; }),
-  import('./js/helpers.js').catch(e => { console.warn('helpers.js import villa:', e); return {}; }),
-]);
+/* ── Sækja bara það sem við þurfum ── */
+const authMod = await import('./js/auth.js').catch(e => { console.error('auth.js:', e); return {}; });
+const stateMod = await import('./js/state.js').catch(e => { console.error('state.js:', e); return { S: {} }; });
+const fbMod = await import('./js/firebase-config.js').catch(e => { console.error('firebase-config:', e); return {}; });
 
-const { initAuth, openAddChildPopup, closeAddChildPopup, submitAddChild, logout, toggleParentTheme, openSettingsPopup, closeSettingsPopup } = authMod;
-const { renderDashboard, selectChild, switchHeatmap, switchRecTab, openJourneyModal, closeJourneyModal } = pvMod;
+const { initAuth, openAddChildPopup, closeAddChildPopup, logout } = authMod;
 const S = stateMod.S || {};
+const { db, collection, onSnapshot, query, where } = fbMod;
 
-console.log('📦 Modules loaded:', { auth: !!initAuth, pv: !!renderDashboard, S: !!S });
+console.log('📦 Loaded:', { auth: !!initAuth, S: !!S, db: !!db });
 
-/* ── Map old screen IDs to new tab names ── */
-const SCREEN_MAP = {
-  'screen-parent-home': 'today',
-  'screen-parent-login': null,
-  'screen-child-login': null,
-};
-
-/* Override goTo so auth.js calls route correctly in parent.html */
+/* ── goTo bridge: auth.js kallar goTo() eftir login ── */
 window.goTo = function(screenId) {
-  const mapped = SCREEN_MAP[screenId];
-  if (mapped) {
-    go(mapped);
+  if (screenId === 'screen-parent-home') {
+    go('today');
+    startListeners();
   } else if (screenId === 'screen-child-login' || screenId === 'screen-parent-login') {
     window.location.href = 'index.html';
-  } else {
-    console.warn('goTo unmapped:', screenId);
   }
 };
 
-/* ── Expose functions to window for inline onclick ── */
-if (selectChild) {
-  window.selectChild = function(key) {
-    selectChild(key);
-    document.querySelectorAll('.cpill').forEach(p => {
-      const match = p.getAttribute('onclick')?.includes("'" + key + "'");
-      p.classList.toggle('sel', !!match);
-    });
-  };
-}
+/* ── Expose auth functions ── */
 if (openAddChildPopup) window.openAddChildPopup = openAddChildPopup;
 if (closeAddChildPopup) window.closeAddChildPopup = closeAddChildPopup;
-if (submitAddChild) window.submitAddChild = submitAddChild;
-if (openSettingsPopup) window.openSettingsPopup = openSettingsPopup;
-if (closeSettingsPopup) window.closeSettingsPopup = closeSettingsPopup;
-if (openJourneyModal) window.openJourneyModal = openJourneyModal;
-if (closeJourneyModal) window.closeJourneyModal = closeJourneyModal;
-if (switchHeatmap) window.switchHeatmap = switchHeatmap;
-if (switchRecTab) window.switchRecTab = switchRecTab;
-if (logout) {
-  window.logout = logout;
-  window.parentLogout = logout;
+if (logout) { window.logout = logout; window.parentLogout = logout; }
+
+/* ══════════════════════════════════════
+   FIREBASE LISTENERS — okkar eigin
+   ══════════════════════════════════════ */
+let _famUnsub = null;
+let _booksUnsub = null;
+
+function startListeners() {
+  if (!S.familyId || !db) { console.warn('Engin familyId eða db'); return; }
+  console.log('🔥 Starting listeners for family:', S.familyId);
+
+  /* Sessions listener */
+  if (_famUnsub) _famUnsub();
+  const sq = query(collection(db, 'sessions'), where('familyId', '==', S.familyId));
+  _famUnsub = onSnapshot(sq, snap => {
+    S.sessions = snap.docs
+      .map(d => ({ _docId: d.id, ...d.data() }))
+      .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+    console.log('📊 Sessions:', S.sessions.length);
+    render();
+  });
+
+  /* Books listener */
+  if (_booksUnsub) _booksUnsub();
+  const bq = query(collection(db, 'books'), where('familyId', '==', S.familyId));
+  _booksUnsub = onSnapshot(bq, snap => {
+    S.books = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    console.log('📚 Books:', S.books.length);
+    render();
+  });
 }
 
-/* ── Re-render on tab switch ── */
-const _originalGo = window.go;
-window.go = function(tab) {
-  _originalGo(tab);
-  try {
-    if (renderDashboard && (tab === 'today' || tab === 'journey' || tab === 'progress' || tab === 'recordings')) {
-      renderDashboard();
-    }
-  } catch(e) { console.warn('renderDashboard villa:', e); }
-};
+/* ══════════════════════════════════════
+   RENDER — allt okkar
+   ══════════════════════════════════════ */
+let _selectedChild = null;
 
-/* ── Update settings with live data ── */
-function updateSettingsUI() {
+function render() {
+  const children = S.parentChildren || [];
+  const sessions = S.sessions || [];
+  const books = S.books || [];
+
+  /* Velja fyrsta barn ef ekkert valið */
+  if (!_selectedChild && children.length > 0) {
+    _selectedChild = children[0].key;
+  }
+
+  /* Empty state */
+  _childCount = children.length;
+  checkEmptyState();
+
+  /* Settings */
   const emailEl = document.getElementById('settings-email');
   const codeEl = document.getElementById('settings-family-code');
   if (emailEl && S.parentEmail) emailEl.textContent = S.parentEmail;
   if (codeEl && S.familyCode) codeEl.textContent = S.familyCode;
-  
-  const welcomeCode = document.getElementById('ph-welcome-fam-code');
-  if (welcomeCode && S.familyCode) welcomeCode.textContent = S.familyCode;
+  const wcEl = document.getElementById('ph-welcome-fam-code');
+  if (wcEl && S.familyCode) wcEl.textContent = S.familyCode;
+
+  if (children.length === 0) return;
+
+  /* Filter by selected child */
+  const cs = sessions.filter(s => s.childKey === _selectedChild);
+  const cb = books.filter(b => b.childKey === _selectedChild);
+
+  renderChildren(children);
+  renderReading(cb, cs);
+  renderWeek(cs);
+  renderStreak(cs);
+  renderStats(cs, cb);
+
+  console.log('🎨 Rendered for:', _selectedChild);
 }
 
-/* ── Watch for children count changes ── */
-let _lastChildCount = -1;
-function syncChildCount() {
-  const children = S.parentChildren || [];
-  if (children.length !== _lastChildCount) {
-    _lastChildCount = children.length;
-    _childCount = children.length;
-    checkEmptyState();
-    updateSettingsUI();
-  }
-  requestAnimationFrame(syncChildCount);
+/* ── Barnapillur ── */
+function renderChildren(children) {
+  const row = document.getElementById('ph-children-row');
+  if (!row) return;
+  row.innerHTML = children.map(c => {
+    const sel = c.key === _selectedChild;
+    const initials = (c.name || '??').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+    return `<button class="cpill ${sel ? 'sel' : ''}" type="button" onclick="pickChild(this,'${c.key}')">
+      <div class="cpill-av">${initials}</div>
+      <div><div class="cpill-name">${esc(c.name)}</div>${c.code ? `<div class="cpill-meta">${c.code}</div>` : ''}</div>
+    </button>`;
+  }).join('');
+
+  /* Uppfæra líka pills á öðrum flipum */
+  document.querySelectorAll('[data-child-row]').forEach(r => { r.innerHTML = row.innerHTML; });
 }
+
+/* ── Að lesa ── */
+function renderReading(books, sessions) {
+  const el = document.getElementById('ph-now-reading');
+  if (!el) return;
+  const hero = books.filter(b => b.status === 'reading')
+    .sort((a, b) => bookTs(b, 'lastReadAt') - bookTs(a, 'lastReadAt'))[0];
+
+  if (!hero) {
+    el.innerHTML = `<div class="crd-head"><span class="crd-lbl">Að lesa</span></div>
+      <div style="text-align:center;padding:16px 0;color:var(--muted);font-size:13px">Ekkert verið að lesa</div>`;
+    return;
+  }
+  const pct = hero.progressPercent || 0;
+  const pages = hero.currentPageTo ? `bls. ${hero.currentPageTo} af ${hero.totalPages || '?'}` : '';
+  const c1 = hero.c1 || '#2b8f91', c2 = hero.c2 || '#0a2341';
+  const initial = (hero.title || '?')[0];
+
+  el.innerHTML = `<div class="crd-head"><span class="crd-lbl">Að lesa</span><button class="crd-act" onclick="nav('bookshelf.html')">Bókasafn ›</button></div>
+    <div class="rd-row">
+      <div class="rd-cover" style="background:linear-gradient(145deg,${c1},${c2})"><span>${esc(initial)}</span></div>
+      <div>
+        <div class="rd-title">${esc(hero.title)}</div>
+        <div class="rd-meta">${pages}</div>
+        <div class="rd-prog"><div class="rd-bar"><div class="rd-fill" style="width:${pct}%"></div></div><div class="rd-pct">${pct}%</div></div>
+      </div>
+    </div>`;
+}
+
+/* ── Vikugrid ── */
+function renderWeek(sessions) {
+  const grid = document.getElementById('ph-week-grid');
+  if (!grid) return;
+  const DAYS = ['S','M','Þ','M','F','F','L'];
+  const today = new Date(); today.setHours(12,0,0,0);
+  const todayKey = dateKey(today);
+  let html = '<div class="crd-lbl" style="margin-bottom:6px">Síðustu 7 dagar</div><div class="wk">';
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(today); d.setDate(today.getDate() - i);
+    const key = dateKey(d);
+    const isToday = key === todayKey;
+    const mins = sessions.filter(s => normDate(s.date) === key && (s.seconds||0) >= 60)
+      .reduce((a, s) => a + Math.floor((s.seconds||0) / 60), 0);
+    const dot = mins === 0 ? '' : mins < 10 ? 'lo' : mins < 20 ? 'md' : 'hi';
+    html += `<div class="wk-d" onclick="dayTip(this,${mins})">
+      <div class="wk-l ${isToday ? 'now' : ''}">${DAYS[d.getDay()]}</div>
+      <div class="wk-dot ${dot} ${isToday ? 'ring' : ''}">${mins > 0 ? '✓' : ''}</div>
+      <div class="wk-n ${isToday ? 'now' : ''}">${d.getDate()}</div></div>`;
+  }
+  html += '</div>';
+  grid.innerHTML = html;
+}
+
+/* ── Streak ── */
+function renderStreak(sessions) {
+  const el = document.getElementById('ph-streak');
+  if (!el) return;
+  let streak = 0;
+  const today = new Date(); today.setHours(12,0,0,0);
+  for (let i = 0; i < 365; i++) {
+    const d = new Date(today); d.setDate(today.getDate() - i);
+    const key = dateKey(d);
+    const read = sessions.some(s => normDate(s.date) === key && (s.seconds||0) >= 60);
+    if (read) streak++; else if (i > 0) break; /* í dag má vera tómt */
+  }
+  el.textContent = streak;
+}
+
+/* ── Stats ── */
+function renderStats(sessions, books) {
+  const pagesEl = document.getElementById('ph-stat-pages');
+  const booksEl = document.getElementById('ph-stat-books');
+  const daysEl = document.getElementById('ph-stat-days');
+  const pages = sessions.reduce((a, s) => a + (s.pagesRead || 0), 0);
+  const done = books.filter(b => b.status === 'finished').length;
+  const today = new Date(); today.setHours(12,0,0,0);
+  let daysRead = 0;
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(today); d.setDate(today.getDate() - i);
+    if (sessions.some(s => normDate(s.date) === dateKey(d) && (s.seconds||0) >= 60)) daysRead++;
+  }
+  if (pagesEl) pagesEl.textContent = pages;
+  if (booksEl) booksEl.textContent = done;
+  if (daysEl) daysEl.textContent = daysRead + ' / 7';
+}
+
+/* ── Helpers ── */
+function dateKey(d) { return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`; }
+function normDate(d) {
+  if (!d) return '';
+  const p = d.split('-'); if (p.length !== 3) return d;
+  return `${p[0]}-${parseInt(p[1])}-${parseInt(p[2])}`;
+}
+function bookTs(b, f) {
+  const v = b[f]; if (!v) return 0;
+  if (typeof v === 'number') return v;
+  if (v.toMillis) return v.toMillis();
+  if (v.seconds) return v.seconds * 1000;
+  return 0;
+}
+function esc(s) { return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+/* ── Child selection (override) ── */
+window.pickChild = function(el, key) {
+  _selectedChild = key;
+  render();
+};
 
 /* ── Boot ── */
-document.addEventListener('DOMContentLoaded', () => {
-  initAuth();
-  requestAnimationFrame(syncChildCount);
-  console.log('🔗 parent.html tengd við auth.js + parent-view.js');
-});
+initAuth();
+console.log('🚀 parent.html engine started');
 </script>
 </body>
 </html>

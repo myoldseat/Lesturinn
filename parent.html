@@ -394,6 +394,10 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
 
 <!-- ═══ Hidden DOM hooks for auth.js + parent-view.js (renderar hér, enginn sér) ═══ -->
 <div style="display:none">
+  <!-- Screens sem helpers.js goTo leitar að -->
+  <div id="screen-parent-login" class="screen"></div>
+  <div id="screen-child-login" class="screen"></div>
+  <div id="screen-parent-signup" class="screen"></div>
   <div id="parent-pill">Foreldri</div>
   <div id="parent-hero">Góðan dag</div>
   <div id="codes-panel"><div id="codes-list"></div></div>
@@ -1137,7 +1141,7 @@ const fbMod    = await import('./js/firebase-config.js').catch(e => { console.er
 
 const { initAuth, openAddChildPopup, closeAddChildPopup, logout } = authMod;
 const S = stateMod.S || {};
-const { db, collection, onSnapshot, query, where, doc, setDoc, auth } = fbMod;
+const { db, collection, onSnapshot, query, where, doc, setDoc, auth, storage, ref, getDownloadURL } = fbMod;
 
 console.log('📦 Loaded:', { auth: !!initAuth, S: !!S, db: !!db });
 
@@ -1258,6 +1262,7 @@ function render() {
   renderStats(cs, cb);
   renderJourneyPreview(cs, cb);
   renderJourney(cb);
+  renderRecordings(cs);
   renderSettingsChildren(children);
 
   console.log('🎨 Rendered:', _selectedChild, '| sessions:', cs.length, '| books:', cb.length);
@@ -1498,6 +1503,116 @@ function eTs(e) {
   if (v.toMillis) return v.toMillis();
   if (v.seconds) return v.seconds * 1000;
   return 0;
+}
+
+/* ── Hljóð flipi — recordings úr sessions ── */
+function renderRecordings(sessions) {
+  const el = document.getElementById('p-recordings-list');
+  if (!el) return;
+  
+  const withAudio = sessions.filter(s => s.hasAudio && (s.audioPath || s.audioPath_min1 || s.audioPath_min2 || s.audioPath_min5));
+  
+  if (withAudio.length === 0) {
+    el.innerHTML = '<div style="text-align:center;padding:24px;color:var(--muted);font-size:13px">Engar upptökur enn</div>';
+    return;
+  }
+
+  const books = (S.books || []).filter(b => b.childKey === _selectedChild);
+
+  el.innerHTML = withAudio.slice(0, 20).map((s, i) => {
+    const mins = Math.floor((s.seconds || 0) / 60);
+    const date = s.date ? fmtDateShort(s.date) : '';
+    const docId = s._docId || '';
+    const hasFav = s.favorites && Object.values(s.favorites).some(v => v);
+    
+    /* Finna bókaheiti — krossa við books eftir timestamp */
+    const sTime = s.timestamp || 0;
+    let bookTitle = '';
+    if (books.length > 0) {
+      const closest = books.filter(b => b.status === 'reading' || b.status === 'finished')
+        .sort((a, b) => Math.abs(bTs(a, 'lastReadAt') - sTime) - Math.abs(bTs(b, 'lastReadAt') - sTime))[0];
+      if (closest) bookTitle = closest.title || '';
+    }
+    const title = bookTitle || s.title || 'Lestur';
+    
+    /* Telja clips */
+    const clipKeys = ['audioPath_min1','audioPath_min2','audioPath_min5','audioPath_min8','audioPath_min10'];
+    const clipCount = clipKeys.filter(k => s[k]).length;
+    const clipText = clipCount > 0 ? clipCount + (clipCount === 1 ? ' klippa' : ' klippur') : '';
+
+    const isFirst = i === 0;
+    
+    if (isFirst) {
+      /* Hero: stór play takki fyrir nýjustu */
+      return `<div class="crd play-crd" style="padding:14px;margin-bottom:4px" data-doc="${docId}">
+        <div class="play-btn" style="width:48px;height:48px" onclick="playRecording('${docId}')"><div class="play-tri" style="border-left-width:12px;border-top-width:8px;border-bottom-width:8px"></div></div>
+        <div class="play-info">
+          <div class="play-t" style="font-size:14px">${esc(title)}</div>
+          <div class="play-m">${mins} mín · ${date}${clipText ? ' · ' + clipText : ''}</div>
+        </div>
+        <div class="rec-fav ${hasFav ? 'on' : ''}" onclick="toggleFav('${docId}',this)" style="font-size:18px">★</div>
+      </div>`;
+    }
+    
+    return `<div class="rec-item" data-doc="${docId}">
+      <div class="rec-play-sm" onclick="playRecording('${docId}')"><div class="play-tri"></div></div>
+      <div class="rec-main">
+        <div class="rec-t">${esc(title)}</div>
+        <div class="rec-m">${mins} mín · ${date}${clipText ? ' · ' + clipText : ''}</div>
+      </div>
+      <div class="rec-fav ${hasFav ? 'on' : ''}" onclick="toggleFav('${docId}',this)">★</div>
+    </div>`;
+  }).join('');
+}
+
+/* ── Play recording — sækja URL frá Storage ── */
+let _currentAudio = null;
+let _playingDocId = null;
+
+window.playRecording = async function(docId) {
+  const session = (S.sessions||[]).find(s => s._docId === docId);
+  if (!session) return;
+  
+  /* Ef sama session er að spila, pause */
+  if (_playingDocId === docId && _currentAudio && !_currentAudio.paused) {
+    _currentAudio.pause();
+    toast('Í pásu ⏸');
+    return;
+  }
+  
+  /* Velja besta clip — lengst fyrst */
+  const path = session.audioPath_min10 || session.audioPath_min8 || session.audioPath_min5 || session.audioPath_min2 || session.audioPath_min1 || session.audioPath;
+  if (!path) { toast('Engin hljóðskrá'); return; }
+
+  try {
+    if (_currentAudio) { _currentAudio.pause(); _currentAudio = null; }
+    _playingDocId = docId;
+    toast('Hleð upptöku...');
+    const url = await getDownloadURL(ref(storage, path));
+    _currentAudio = new Audio(url);
+    _currentAudio.play();
+    _currentAudio.onended = () => { _playingDocId = null; toast('Upptaka kláruð'); };
+    toast('Spilar ▶');
+  } catch(e) {
+    console.warn('Play villa:', e);
+    _playingDocId = null;
+    toast('Villa við spilun');
+  }
+};
+
+/* ── Toggle favorite ── */
+window.toggleFav = async function(docId, el) {
+  if (!docId) return;
+  el.classList.toggle('on');
+  /* TODO: vista í Firestore þegar tengt */
+  toast(el.classList.contains('on') ? 'Vistað ★' : 'Fjarlægt');
+};
+
+function fmtDateShort(d) {
+  if (!d) return '';
+  const p = d.split('-'); if (p.length !== 3) return d;
+  const MONTHS = ['jan','feb','mar','apr','maí','jún','júl','ág','sep','okt','nóv','des'];
+  return parseInt(p[2]) + '. ' + (MONTHS[parseInt(p[1])-1] || '');
 }
 
 /* ── Settings børn ── */

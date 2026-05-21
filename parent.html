@@ -1676,7 +1676,7 @@ window.pickChild = function(el, key) {
 };
 
 /* ── Login ── */
-const { signInWithEmailAndPassword: signInFn } = await import('https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js').catch(() => ({}));
+const { signInWithEmailAndPassword: signInFn } = fbMod;
 
 window.doLogin = async function() {
   const email = document.getElementById('p-login-email')?.value?.trim();

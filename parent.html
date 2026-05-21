@@ -1104,16 +1104,25 @@ window._onChildAdded = function() {
      MODULE BRIDGE — tengir auth.js og parent-view.js
      ═══════════════════════════════════ -->
 <script type="module">
-import { initAuth, openAddChildPopup, closeAddChildPopup, submitAddChild, logout, toggleParentTheme, openSettingsPopup, closeSettingsPopup } from './js/auth.js';
-import { renderDashboard, selectChild, switchHeatmap, switchRecTab, openJourneyModal, closeJourneyModal, sendJourneyReaction } from './js/parent-view.js';
-import { S } from './js/state.js';
-import { goTo as originalGoTo } from './js/helpers.js';
+/* Dynamic imports so child-view.js crash doesn't block everything */
+const [authMod, pvMod, stateMod, helpersMod] = await Promise.all([
+  import('./js/auth.js').catch(e => { console.warn('auth.js import villa:', e); return {}; }),
+  import('./js/parent-view.js').catch(e => { console.warn('parent-view.js import villa:', e); return {}; }),
+  import('./js/state.js').catch(e => { console.warn('state.js import villa:', e); return { S: {} }; }),
+  import('./js/helpers.js').catch(e => { console.warn('helpers.js import villa:', e); return {}; }),
+]);
+
+const { initAuth, openAddChildPopup, closeAddChildPopup, submitAddChild, logout, toggleParentTheme, openSettingsPopup, closeSettingsPopup } = authMod;
+const { renderDashboard, selectChild, switchHeatmap, switchRecTab, openJourneyModal, closeJourneyModal } = pvMod;
+const S = stateMod.S || {};
+
+console.log('📦 Modules loaded:', { auth: !!initAuth, pv: !!renderDashboard, S: !!S });
 
 /* ── Map old screen IDs to new tab names ── */
 const SCREEN_MAP = {
   'screen-parent-home': 'today',
-  'screen-parent-login': null,      /* handled by auth popup */
-  'screen-child-login': null,        /* redirect to index.html */
+  'screen-parent-login': null,
+  'screen-child-login': null,
 };
 
 /* Override goTo so auth.js calls route correctly in parent.html */
@@ -1122,52 +1131,45 @@ window.goTo = function(screenId) {
   if (mapped) {
     go(mapped);
   } else if (screenId === 'screen-child-login' || screenId === 'screen-parent-login') {
-    /* Child/login screens don't exist here — redirect to index.html */
     window.location.href = 'index.html';
   } else {
-    /* Fallback: try original goTo for any other screen */
-    try { originalGoTo(screenId); } catch(e) { console.warn('goTo fallback:', screenId); }
+    console.warn('goTo unmapped:', screenId);
   }
 };
 
 /* ── Expose functions to window for inline onclick ── */
-window.selectChild = function(key) {
-  selectChild(key);
-  /* Also update our local pill UI */
-  document.querySelectorAll('.cpill').forEach(p => {
-    const match = p.getAttribute('onclick')?.includes("'" + key + "'");
-    p.classList.toggle('sel', !!match);
-  });
-};
-window.openAddChildPopup = openAddChildPopup;
-window.closeAddChildPopup = closeAddChildPopup;
-window.submitAddChild = submitAddChild;
-window.openSettingsPopup = openSettingsPopup;
-window.closeSettingsPopup = closeSettingsPopup;
-window.openJourneyModal = openJourneyModal;
-window.closeJourneyModal = closeJourneyModal;
-window.sendJourneyReaction = sendJourneyReaction;
-window.switchHeatmap = switchHeatmap;
-window.switchRecTab = switchRecTab;
-
-window.logout = function() {
-  logout();
-};
-
-window.parentLogout = function() {
-  logout();
-};
+if (selectChild) {
+  window.selectChild = function(key) {
+    selectChild(key);
+    document.querySelectorAll('.cpill').forEach(p => {
+      const match = p.getAttribute('onclick')?.includes("'" + key + "'");
+      p.classList.toggle('sel', !!match);
+    });
+  };
+}
+if (openAddChildPopup) window.openAddChildPopup = openAddChildPopup;
+if (closeAddChildPopup) window.closeAddChildPopup = closeAddChildPopup;
+if (submitAddChild) window.submitAddChild = submitAddChild;
+if (openSettingsPopup) window.openSettingsPopup = openSettingsPopup;
+if (closeSettingsPopup) window.closeSettingsPopup = closeSettingsPopup;
+if (openJourneyModal) window.openJourneyModal = openJourneyModal;
+if (closeJourneyModal) window.closeJourneyModal = closeJourneyModal;
+if (switchHeatmap) window.switchHeatmap = switchHeatmap;
+if (switchRecTab) window.switchRecTab = switchRecTab;
+if (logout) {
+  window.logout = logout;
+  window.parentLogout = logout;
+}
 
 /* ── Re-render on tab switch ── */
 const _originalGo = window.go;
 window.go = function(tab) {
   _originalGo(tab);
-  /* Trigger re-render for the active tab */
   try {
-    if (tab === 'today' || tab === 'journey' || tab === 'progress' || tab === 'recordings') {
+    if (renderDashboard && (tab === 'today' || tab === 'journey' || tab === 'progress' || tab === 'recordings')) {
       renderDashboard();
     }
-  } catch(e) { /* parent-view not ready yet */ }
+  } catch(e) { console.warn('renderDashboard villa:', e); }
 };
 
 /* ── Update settings with live data ── */

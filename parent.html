@@ -392,7 +392,7 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
 </head>
 <body>
 
-<!-- ═══ Hidden DOM hooks for parent-view.js ═══ -->
+<!-- ═══ Hidden DOM hooks for auth.js + parent-view.js ═══ -->
 <div style="display:none">
   <div id="parent-pill">Foreldri</div>
   <div id="parent-hero">Góðan dag</div>
@@ -406,6 +406,11 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
   <button id="ph-tab-activity" class="ph-tab ph-tab-active" type="button"></button>
   <button id="ph-tab-recordings" class="ph-tab" type="button"></button>
   <div id="ph-content-recordings"></div>
+  <!-- auth.js login/signup form elements -->
+  <input id="login-email"><input id="login-pw"><div id="login-error"></div>
+  <input id="reg-name"><input id="reg-email"><input id="reg-pw"><div id="reg-error"></div>
+  <div id="signup-children-list"></div>
+  <input id="child-code-input"><div id="child-code-error"></div>
 </div>
 
 <div class="shell" id="screen-parent-home">

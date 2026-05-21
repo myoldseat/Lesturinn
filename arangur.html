@@ -3,96 +3,1908 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
-<title>UppHátt - Árangur</title>
+<title>UppHátt – Árangur</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#050b14;--teal:#39f6ee;--text:#eaf3ff;--muted:#91a3b8;--line:rgba(58,255,239,.22);--gold:#ffd56a;--purple:#b179ff;--pink:#ff7adf;--safe:env(safe-area-inset-bottom,0px)}
-*{box-sizing:border-box}html,body{min-height:100%;margin:0}body{background:radial-gradient(circle at 50% 26%,rgba(40,255,235,.14),transparent 34%),linear-gradient(180deg,#071321,#050b14 55%,#030711);color:var(--text);font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}a{color:inherit;text-decoration:none}button{font:inherit}
-.app{width:min(480px,100%);min-height:100dvh;margin:0 auto;padding:28px 18px calc(112px + var(--safe))}.svg-sprite{display:none}.u-icon{width:28px;height:28px;stroke:currentColor;stroke-width:2.2;fill:none;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 0 8px rgba(57,246,238,.35))}.u-icon.big{width:48px;height:48px}
-.top{display:flex;align-items:center;gap:18px;margin-bottom:26px}.home{width:54px;height:54px;border-radius:999px;display:grid;place-items:center;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.04);color:#dce9f7}.hello{font-size:31px;line-height:1.05;font-weight:900;letter-spacing:0}.hello span{color:var(--teal)}
-h1{margin:22px 0 6px;font-size:58px;line-height:.95;letter-spacing:0}.sub{margin:0 0 26px;color:#b7c4d3;font-size:20px}
-.card{border:1px solid var(--line);border-radius:28px;background:linear-gradient(180deg,rgba(13,31,49,.86),rgba(6,16,28,.82));box-shadow:0 20px 70px rgba(0,0,0,.28),inset 0 0 0 1px rgba(255,255,255,.025);padding:22px;margin:0 0 18px;overflow:hidden;position:relative}.card:before{content:"";position:absolute;inset:-60px;background:radial-gradient(circle at 72% 42%,rgba(57,246,238,.12),transparent 35%);pointer-events:none}.card>*{position:relative}.card h2{margin:0 0 8px;font-size:22px;color:var(--teal)}.card p{margin:0;color:#dce8f4;font-size:20px;line-height:1.35}
-.icon-disc{width:88px;height:88px;border-radius:28px;display:grid;place-items:center;color:var(--teal);background:radial-gradient(circle,rgba(57,246,238,.22),rgba(57,246,238,.05));border:1px solid rgba(57,246,238,.18);box-shadow:0 0 36px rgba(57,246,238,.12)}.week-card{display:grid;grid-template-columns:92px 1fr;gap:18px;align-items:center}.days{display:flex;gap:10px;margin-top:18px}.day{text-align:center;color:#8ea0b2;font-weight:800;flex:1}.day span{display:grid;place-items:center;width:38px;height:38px;margin:5px auto 0;border-radius:50%;background:rgba(255,255,255,.06);color:rgba(255,255,255,.18)}.day span svg{width:20px;height:20px}.day.done span{color:white;background:rgba(57,246,238,.14);border:1px solid rgba(57,246,238,.45);box-shadow:0 0 18px rgba(57,246,238,.38)}
-.journey{min-height:210px}.journey h2,.badges h2,.hearts h2{font-size:24px;margin-bottom:8px}.journey-grid{display:grid;grid-template-columns:1fr 1.2fr;gap:10px;align-items:center}.journey-text{color:#d9e5f2;font-size:20px;line-height:1.42}.path{position:relative;height:150px}.path>svg{position:absolute;inset:0;width:100%;height:100%;filter:drop-shadow(0 0 14px rgba(57,246,238,.35))}
-.node{position:absolute;width:48px;height:48px;border-radius:50%;display:grid;place-items:center;background:#0d2638;border:1px solid rgba(57,246,238,.55);color:var(--teal);box-shadow:0 0 22px rgba(57,246,238,.25)}.node.n1{left:12%;bottom:22%}.node.n2{left:43%;top:23%}.node.n3{right:7%;top:4%;color:var(--gold);border-color:rgba(255,213,106,.7);box-shadow:0 0 24px rgba(255,213,106,.35)}.book-start{position:absolute;left:0;bottom:0;width:52px;height:52px;display:grid;place-items:center;color:var(--teal);filter:drop-shadow(0 0 12px rgba(57,246,238,.35))}
-.badge-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:18px}.badge{text-align:center}.medal{width:72px;height:72px;margin:0 auto 10px;border-radius:50%;display:grid;place-items:center;color:var(--teal);background:rgba(255,255,255,.04);border:2px solid rgba(57,246,238,.45);box-shadow:0 0 24px rgba(57,246,238,.18);font-weight:900;font-size:30px}.medal svg{width:34px;height:34px}.medal.gold{border-color:rgba(255,213,106,.8);color:var(--gold);box-shadow:0 0 30px rgba(255,213,106,.22)}.medal.purple{border-color:rgba(177,121,255,.75);color:var(--purple);box-shadow:0 0 30px rgba(177,121,255,.22)}.badge div:last-child{font-size:15px;color:#cdd8e5;line-height:1.2}
-.hearts{display:grid;grid-template-columns:1.15fr .85fr;align-items:center;gap:14px}.hearts h2{margin:0 0 10px}.hearts .big{font-size:30px;font-weight:850;color:white;margin-bottom:6px}.hearts .small{color:#aebdcb;font-size:19px}.listen-art{position:relative;height:130px}.listen-art svg{position:absolute}.headphones{left:8%;top:7%;width:78px;height:78px;color:var(--teal);filter:drop-shadow(0 0 18px rgba(57,246,238,.35))}.listener{left:32%;top:38%;width:58px;height:58px;color:#cfe7ff;filter:drop-shadow(0 0 15px rgba(57,246,238,.24))}.heart{right:9%;top:10%;width:66px;height:66px;color:var(--pink);filter:drop-shadow(0 0 18px rgba(255,122,223,.35))}
-.bottom-nav{position:fixed;left:50%;bottom:0;transform:translateX(-50%);width:min(480px,100%);height:calc(78px + var(--safe));padding-bottom:var(--safe);display:grid;grid-template-columns:repeat(4,1fr);background:rgba(4,12,22,.94);border-top:1px solid rgba(57,246,238,.18);backdrop-filter:blur(14px);z-index:20}.nav-item{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:#7f8da0;font-weight:800;font-size:11px;position:relative;border:0;background:none}.nav-item svg{width:22px;height:22px;stroke:currentColor;stroke-width:2.1;fill:none;stroke-linecap:round;stroke-linejoin:round}.nav-item.active{color:var(--teal)}.nav-item.active:after{content:"";position:absolute;bottom:4px;width:32px;height:3px;border-radius:999px;background:var(--teal);box-shadow:0 0 14px rgba(57,246,238,.8)}
-@media(max-width:380px){.app{padding-left:14px;padding-right:14px}.hello{font-size:26px}h1{font-size:48px}.week-card{grid-template-columns:76px 1fr}.icon-disc{width:74px;height:74px}.days{gap:6px}.day span{width:32px;height:32px}.journey-grid{grid-template-columns:1fr}.path{height:130px}.card p,.journey-text{font-size:18px}}
+:root {
+  --bg: #050b14;
+  --bg-card: rgba(10, 22, 38, 0.85);
+  --teal: #24d6df;
+  --teal-2: #43f1ef;
+  --teal-glow: rgba(36,214,223,0.3);
+  --gold: #f0c94d;
+  --gold-glow: rgba(240,201,77,0.3);
+  --text: #e5edf6;
+  --text-soft: #9eacba;
+  --text-muted: rgba(148,164,180,0.7);
+  --line: rgba(36,214,223,0.22);
+  --safe: env(safe-area-inset-bottom, 0px);
+}
 
-/* Compact placeholder shell: match the existing app scale and reduce page scrolling. */
-.app{height:100dvh;overflow:hidden;padding:12px 14px calc(76px + var(--safe));display:grid;grid-template-rows:auto auto auto minmax(0,1fr) auto auto;gap:7px}
-.top{gap:10px;margin-bottom:0}.home{width:36px;height:36px}.home .u-icon{width:19px;height:19px}.hello{font-size:20px;line-height:1.05}
-h1{font-size:34px;line-height:1;margin:2px 0 0}.sub{font-size:13px;margin:0;color:#9eacba}
-.card{border-radius:16px;padding:10px 11px;margin:0;box-shadow:0 12px 34px rgba(0,0,0,.24),inset 0 0 0 1px rgba(255,255,255,.025)}
-.card h2{font-size:16px;margin-bottom:4px}.card p{font-size:13px;line-height:1.25}
-.week-card{grid-template-columns:48px 1fr;gap:10px}.icon-disc{width:48px;height:48px;border-radius:15px}.u-icon.big{width:28px;height:28px}
-.days{gap:5px;margin-top:8px}.day{font-size:11px}.day span{width:24px;height:24px;margin-top:3px}.day span svg{width:14px;height:14px}
-.journey{min-height:0}.journey h2,.badges h2,.hearts h2{font-size:16px;margin-bottom:4px}.journey-grid{grid-template-columns:1fr 1fr;gap:8px}.journey-text{font-size:12px;line-height:1.25}.path{height:76px}
-.node{width:28px;height:28px}.node .u-icon{width:16px;height:16px}.book-start{width:30px;height:30px}.book-start .u-icon{width:22px;height:22px}
-.badge-row{gap:8px;margin-top:8px}.medal{width:42px;height:42px;margin-bottom:5px;font-size:18px}.medal svg{width:21px;height:21px}.badge div:last-child{font-size:11px;line-height:1.1}
-.hearts{grid-template-columns:1.25fr .75fr;gap:8px}.hearts .big{font-size:18px;margin-bottom:2px}.hearts .small{font-size:12px}.listen-art{height:58px}.headphones{width:42px;height:42px}.listener{width:32px;height:32px}.heart{width:36px;height:36px}
-.bottom-nav{height:calc(68px + var(--safe))}.nav-item{font-size:10px}.nav-item svg{width:20px;height:20px}
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; min-height: 100%; }
+body {
+  background:
+    radial-gradient(circle at 50% 8%, rgba(36,214,223,0.1), transparent 36%),
+    linear-gradient(180deg, #071321, #050b14 55%, #030711);
+  color: var(--text);
+  font-family: "Manrope", system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+button { font: inherit; cursor: pointer; }
+a { color: inherit; text-decoration: none; }
+
+/* ── App shell ── */
+.app {
+  width: min(420px, 100%);
+  min-height: 100dvh;
+  margin: 0 auto;
+  padding: 14px 14px calc(76px + var(--safe));
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ── Top bar ── */
+.top-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.home-btn {
+  width: 36px; height: 36px; border-radius: 999px;
+  border: 1px solid rgba(122,187,218,0.28);
+  background: rgba(15,29,47,0.66); color: #c7d8e7;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.greeting { margin: 0; font-size: 1rem; font-weight: 900; line-height: 1.1; }
+.greeting-name { color: var(--teal); }
+
+/* ── Page title ── */
+.page-title {
+  margin: 0; font-size: 1.6rem; font-weight: 900;
+  letter-spacing: -0.5px; line-height: 1;
+}
+.page-sub { margin: 0; color: var(--text-soft); font-size: 0.82rem; font-weight: 600; }
+
+/* ── Week strip (hero) ── */
+.week-strip {
+  border-radius: 18px;
+  border: 1px solid var(--line);
+  background: var(--bg-card);
+  padding: 14px;
+  position: relative;
+  overflow: hidden;
+}
+.week-strip::before {
+  content: ""; position: absolute; inset: -60px;
+  background: radial-gradient(circle at 50% 20%, rgba(36,214,223,0.1), transparent 40%);
+  pointer-events: none;
+}
+.week-strip > * { position: relative; }
+.week-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 12px;
+}
+.week-title { font-size: 0.92rem; font-weight: 900; color: var(--text); }
+.week-streak {
+  font-size: 0.72rem; font-weight: 800; color: var(--teal);
+  background: rgba(36,214,223,0.1);
+  border: 1px solid rgba(36,214,223,0.25);
+  padding: 3px 10px; border-radius: 99px;
+}
+.days-row {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+}
+.day-cell {
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+}
+.day-label {
+  font-size: 0.68rem; font-weight: 800; color: var(--text-muted);
+  letter-spacing: 0.3px;
+}
+.day-dot {
+  width: 32px; height: 32px; border-radius: 50%;
+  display: grid; place-items: center;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(122,187,218,0.12);
+  transition: all 300ms ease;
+}
+.day-dot svg {
+  width: 14px; height: 14px;
+  stroke: rgba(255,255,255,0.15); fill: none;
+  stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round;
+}
+.day-cell.done .day-label { color: var(--teal); }
+.day-cell.done .day-dot {
+  background: rgba(36,214,223,0.14);
+  border-color: rgba(36,214,223,0.5);
+  box-shadow: 0 0 14px rgba(36,214,223,0.35);
+}
+.day-cell.done .day-dot svg { stroke: #fff; }
+.day-cell.today .day-dot {
+  border-color: rgba(36,214,223,0.6);
+  box-shadow: 0 0 8px rgba(36,214,223,0.2);
+}
+
+/* ── Milestone hero ── */
+.milestone-hero {
+  border-radius: 18px;
+  border: 1px solid var(--line);
+  background: var(--bg-card);
+  padding: 16px;
+  position: relative;
+  overflow: hidden;
+  min-height: 200px;
+}
+.milestone-hero::before {
+  content: ""; position: absolute; inset: -60px;
+  background: radial-gradient(circle at 30% 60%, rgba(36,214,223,0.08), transparent 40%);
+  pointer-events: none;
+}
+.milestone-hero > * { position: relative; }
+
+.milestone-current {
+  display: flex; align-items: flex-start; gap: 14px;
+  margin-bottom: 16px;
+}
+.milestone-icon {
+  width: 56px; height: 56px; border-radius: 16px;
+  display: grid; place-items: center; flex-shrink: 0;
+  background: radial-gradient(circle, rgba(36,214,223,0.2), rgba(36,214,223,0.05));
+  border: 1px solid rgba(36,214,223,0.3);
+  box-shadow: 0 0 20px rgba(36,214,223,0.12);
+  font-size: 1.6rem;
+}
+.milestone-info { flex: 1; min-width: 0; }
+.milestone-label {
+  font-size: 0.62rem; font-weight: 900; color: var(--teal);
+  letter-spacing: 1px; text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.milestone-name {
+  font-size: 1.1rem; font-weight: 900; line-height: 1.15;
+  letter-spacing: -0.3px;
+  margin-bottom: 4px;
+}
+.milestone-desc {
+  font-size: 0.78rem; color: var(--text-soft); font-weight: 600;
+  line-height: 1.3;
+}
+
+.milestone-progress {
+  margin-bottom: 10px;
+}
+.milestone-bar-bg {
+  width: 100%; height: 8px; border-radius: 99px;
+  background: rgba(122,187,218,0.12);
+  overflow: hidden;
+  position: relative;
+}
+.milestone-bar-fill {
+  height: 100%; border-radius: 99px;
+  background: linear-gradient(90deg, var(--teal), var(--teal-2));
+  box-shadow: 0 0 12px var(--teal-glow);
+  transition: width 800ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.milestone-bar-meta {
+  display: flex; justify-content: space-between;
+  margin-top: 6px;
+  font-size: 0.72rem; font-weight: 800;
+}
+.milestone-bar-meta .done-count { color: var(--teal); }
+.milestone-bar-meta .target-count { color: var(--text-muted); }
+
+.milestone-next {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(122,187,218,0.1);
+}
+.milestone-next-icon {
+  width: 32px; height: 32px; border-radius: 8px;
+  display: grid; place-items: center; flex-shrink: 0;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(122,187,218,0.12);
+  font-size: 1rem;
+  opacity: 0.6;
+}
+.milestone-next-info { flex: 1; min-width: 0; }
+.milestone-next-label {
+  font-size: 0.65rem; font-weight: 800; color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: 0.5px;
+}
+.milestone-next-name {
+  font-size: 0.82rem; font-weight: 800; color: var(--text-soft);
+}
+.milestone-next-pages {
+  font-size: 0.72rem; font-weight: 800; color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+/* ── Completed milestones ticker ── */
+.milestone-completed {
+  display: flex; gap: 8px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding: 2px 0;
+  margin-top: 12px;
+}
+.milestone-completed::-webkit-scrollbar { display: none; }
+.milestone-chip {
+  display: flex; align-items: center; gap: 5px;
+  padding: 5px 10px;
+  border-radius: 99px;
+  background: rgba(36,214,223,0.08);
+  border: 1px solid rgba(36,214,223,0.2);
+  white-space: nowrap;
+  font-size: 0.7rem; font-weight: 800; color: var(--teal);
+  flex-shrink: 0;
+}
+.milestone-chip .chip-icon { font-size: 0.85rem; }
+.milestone-chip.gold {
+  background: rgba(240,201,77,0.08);
+  border-color: rgba(240,201,77,0.25);
+  color: var(--gold);
+}
+
+/* ── Toggle stats panel ── */
+.stats-toggle {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(122,187,218,0.12);
+  background: rgba(7,18,32,0.5);
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.stats-toggle-left {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 0.82rem; font-weight: 800; color: var(--text-soft);
+}
+.stats-toggle-left svg {
+  width: 18px; height: 18px; stroke: var(--teal); fill: none;
+  stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round;
+}
+.stats-toggle-chevron {
+  width: 16px; height: 16px; stroke: var(--text-muted); fill: none;
+  stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round;
+  transition: transform 200ms ease;
+}
+.stats-toggle.open .stats-toggle-chevron { transform: rotate(180deg); }
+
+.stats-panel {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 300ms ease;
+}
+.stats-panel.open { grid-template-rows: 1fr; }
+.stats-panel-inner { overflow: hidden; }
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  padding-top: 10px;
+}
+.stat-card {
+  padding: 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(122,187,218,0.1);
+  background: rgba(7,18,32,0.5);
+}
+.stat-value {
+  font-size: 1.3rem; font-weight: 900; color: var(--text);
+  line-height: 1;
+  margin-bottom: 4px;
+}
+.stat-label {
+  font-size: 0.7rem; font-weight: 700; color: var(--text-muted);
+}
+
+/* ── Badge collection: two rows ── */
+.badge-section {
+  margin-top: 2px;
+}
+.badge-row-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 6px;
+}
+.badge-row-title {
+  font-size: 0.78rem; font-weight: 900; color: var(--text);
+}
+.badge-row-count {
+  font-size: 0.66rem; font-weight: 800; color: var(--text-muted);
+}
+/* Shared horizontal scroll row */
+.badge-scroll {
+  display: flex; gap: 8px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding: 2px 0 6px;
+}
+.badge-scroll::-webkit-scrollbar { display: none; }
+.badge-item {
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  cursor: pointer;
+  border: 0; background: none; padding: 0;
+  flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+.badge-disc {
+  width: 44px; height: 44px; border-radius: 50%;
+  display: grid; place-items: center;
+  font-size: 1.25rem;
+  background: rgba(36,214,223,0.1);
+  border: 1.5px solid rgba(36,214,223,0.35);
+  box-shadow: 0 0 14px rgba(36,214,223,0.12);
+  transition: transform 180ms ease;
+}
+.badge-item:active .badge-disc { transform: scale(0.92); }
+.badge-disc.gold {
+  background: rgba(240,201,77,0.1);
+  border-color: rgba(240,201,77,0.4);
+  box-shadow: 0 0 14px rgba(240,201,77,0.15);
+}
+.badge-disc.locked {
+  background: rgba(255,255,255,0.03);
+  border-color: rgba(122,187,218,0.12);
+  box-shadow: none;
+  opacity: 0.35;
+  filter: grayscale(1);
+}
+/* Latest achieved badge: gentle bounce + glow */
+.badge-disc.latest {
+  animation: badge-glow 2.6s ease-in-out infinite;
+  box-shadow: 0 0 18px rgba(36,214,223,0.3);
+}
+@keyframes badge-glow {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 14px rgba(36,214,223,0.2); }
+  50% { transform: scale(1.08); box-shadow: 0 0 22px rgba(36,214,223,0.45); }
+}
+.badge-disc.latest.gold {
+  animation: badge-glow-gold 2.6s ease-in-out infinite;
+}
+@keyframes badge-glow-gold {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 14px rgba(240,201,77,0.2); }
+  50% { transform: scale(1.08); box-shadow: 0 0 22px rgba(240,201,77,0.45); }
+}
+.badge-item-label {
+  font-size: 0.56rem; font-weight: 700;
+  color: var(--text-muted);
+  text-align: center;
+  line-height: 1.05;
+  max-width: 50px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── Stat cards: tappable, open modal ── */
+.stat-card {
+  padding: 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(122,187,218,0.1);
+  background: rgba(7,18,32,0.5);
+  transition: border-color 180ms ease;
+}
+.stat-card[data-expandable] {
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.stat-card[data-expandable]:active { border-color: rgba(36,214,223,0.3); }
+.stat-card .stat-header {
+  display: flex; align-items: center; justify-content: space-between;
+}
+.stat-card .stat-chevron {
+  width: 12px; height: 12px;
+  stroke: var(--text-muted); fill: none;
+  stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round;
+  flex-shrink: 0;
+}
+
+/* ── Stat detail modal (reuses badge-modal-overlay structure) ── */
+.stat-modal {
+  width: min(340px, 100%);
+  max-height: 70vh;
+  border-radius: 22px;
+  border: 1px solid var(--line);
+  background: linear-gradient(180deg, rgba(13,31,49,0.95), rgba(6,16,28,0.95));
+  box-shadow: 0 30px 80px rgba(0,0,0,0.5), 0 0 60px rgba(36,214,223,0.08);
+  padding: 22px;
+  transform: translateY(12px) scale(0.97);
+  transition: transform 250ms ease;
+  position: relative;
+  overflow-y: auto;
+}
+.stat-modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(3,7,13,0.85);
+  backdrop-filter: blur(10px);
+  z-index: 100;
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+  opacity: 0; pointer-events: none;
+  transition: opacity 250ms ease;
+}
+.stat-modal-overlay.open {
+  opacity: 1; pointer-events: auto;
+}
+.stat-modal-overlay.open .stat-modal {
+  transform: translateY(0) scale(1);
+}
+.stat-modal-close {
+  position: absolute; top: 12px; right: 14px;
+  width: 30px; height: 30px; border-radius: 50%;
+  border: 1px solid rgba(122,187,218,0.2);
+  background: rgba(7,18,32,0.6);
+  color: var(--text-soft);
+  font-size: 1.1rem; font-weight: 600;
+  display: grid; place-items: center;
+  cursor: pointer;
+}
+.stat-modal-title {
+  font-size: 1.05rem; font-weight: 900;
+  margin: 0 0 14px;
+  letter-spacing: -0.3px;
+}
+.stat-modal-list {
+  display: flex; flex-direction: column; gap: 2px;
+}
+.stat-detail-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(122,187,218,0.06);
+}
+.stat-detail-item:last-child { border-bottom: 0; }
+.stat-detail-icon {
+  width: 34px; height: 34px; border-radius: 8px;
+  display: grid; place-items: center;
+  font-size: 1rem; flex-shrink: 0;
+  background: rgba(36,214,223,0.08);
+  border: 1px solid rgba(36,214,223,0.15);
+}
+.stat-detail-text {
+  flex: 1; min-width: 0;
+  font-size: 0.88rem; font-weight: 800;
+  color: var(--text);
+}
+.stat-detail-sub {
+  font-size: 0.72rem; font-weight: 600;
+  color: var(--text-muted); display: block; margin-top: 1px;
+}
+.stat-detail-meta {
+  color: var(--text-muted); font-weight: 700;
+  font-size: 0.75rem; flex-shrink: 0;
+}
+
+/* ── Badge modal ── */
+.badge-modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(3,7,13,0.85);
+  backdrop-filter: blur(10px);
+  z-index: 100;
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+  opacity: 0; pointer-events: none;
+  transition: opacity 250ms ease;
+}
+.badge-modal-overlay.open {
+  opacity: 1; pointer-events: auto;
+}
+.badge-modal {
+  width: min(340px, 100%);
+  border-radius: 22px;
+  border: 1px solid var(--line);
+  background: linear-gradient(180deg, rgba(13,31,49,0.95), rgba(6,16,28,0.95));
+  box-shadow: 0 30px 80px rgba(0,0,0,0.5), 0 0 60px rgba(36,214,223,0.08);
+  padding: 28px 22px;
+  text-align: center;
+  transform: translateY(12px) scale(0.97);
+  transition: transform 250ms ease;
+  position: relative;
+}
+.badge-modal-overlay.open .badge-modal {
+  transform: translateY(0) scale(1);
+}
+.badge-modal-close {
+  position: absolute; top: 12px; right: 14px;
+  width: 30px; height: 30px; border-radius: 50%;
+  border: 1px solid rgba(122,187,218,0.2);
+  background: rgba(7,18,32,0.6);
+  color: var(--text-soft);
+  font-size: 1.1rem; font-weight: 600;
+  display: grid; place-items: center;
+  cursor: pointer;
+}
+.badge-modal-icon {
+  width: 92px; height: 92px; border-radius: 50%;
+  margin: 0 auto 14px;
+  display: grid; place-items: center;
+  font-size: 2.8rem;
+  background: radial-gradient(circle, rgba(36,214,223,0.18), rgba(36,214,223,0.04));
+  border: 2px solid rgba(36,214,223,0.4);
+  box-shadow: 0 0 30px rgba(36,214,223,0.2);
+}
+.badge-modal-icon.gold {
+  background: radial-gradient(circle, rgba(240,201,77,0.18), rgba(240,201,77,0.04));
+  border-color: rgba(240,201,77,0.45);
+  box-shadow: 0 0 30px rgba(240,201,77,0.2);
+}
+.badge-modal-icon.locked {
+  background: rgba(255,255,255,0.03);
+  border-color: rgba(122,187,218,0.15);
+  box-shadow: none;
+  filter: grayscale(1);
+  opacity: 0.4;
+}
+.badge-modal-name {
+  font-size: 1.2rem; font-weight: 900;
+  margin-bottom: 4px; letter-spacing: -0.3px;
+}
+.badge-modal-desc {
+  font-size: 0.85rem; color: var(--text-soft);
+  font-weight: 600; line-height: 1.35;
+  margin-bottom: 12px;
+}
+.badge-modal-pages {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 14px; border-radius: 99px;
+  background: rgba(36,214,223,0.08);
+  border: 1px solid rgba(36,214,223,0.2);
+  font-size: 0.78rem; font-weight: 800; color: var(--teal);
+}
+.badge-modal-pages.locked {
+  background: rgba(255,255,255,0.03);
+  border-color: rgba(122,187,218,0.12);
+  color: var(--text-muted);
+}
+.badge-modal-status {
+  margin-top: 10px;
+  font-size: 0.72rem; font-weight: 700;
+  color: var(--text-muted);
+}
+.badge-modal-date {
+  margin-top: 8px;
+  font-size: 0.78rem; font-weight: 700;
+  color: var(--text-soft);
+}
+.badge-modal-date strong {
+  color: var(--text); font-weight: 900;
+}
+
+/* ── Bottom nav ── */
+.bottom-nav {
+  position: fixed; left: 50%; bottom: 0;
+  transform: translateX(-50%);
+  width: min(420px, 100%);
+  height: calc(68px + var(--safe));
+  padding-bottom: var(--safe);
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  background: rgba(4,12,22,0.94);
+  border-top: 1px solid rgba(36,214,223,0.14);
+  backdrop-filter: blur(14px);
+  z-index: 20;
+}
+.nav-item {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 3px; color: rgba(148,164,180,0.7);
+  font-size: 10px; font-weight: 700;
+  border: 0; background: none; position: relative;
+}
+.nav-item svg {
+  width: 20px; height: 20px; stroke: currentColor; fill: none;
+  stroke-width: 2.1; stroke-linecap: round; stroke-linejoin: round;
+}
+.nav-item.active { color: var(--teal); }
+.nav-item.active::after {
+  content: ""; position: absolute; bottom: 4px;
+  width: 24px; height: 3px; border-radius: 99px;
+  background: var(--teal); box-shadow: 0 0 10px var(--teal-glow);
+}
+/* ── Journey pill (mini bar) ── */
+.journey-pill {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 14px;
+  border-radius: 16px;
+  border: 1px solid var(--line);
+  background: var(--bg-card);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  position: relative; overflow: hidden;
+  transition: border-color 180ms ease;
+}
+.journey-pill:active { border-color: rgba(36,214,223,0.45); }
+.journey-pill::before {
+  content: ""; position: absolute; inset: -60px;
+  background: radial-gradient(circle at 70% 40%, rgba(36,214,223,0.08), transparent 40%);
+  pointer-events: none;
+}
+.journey-pill > * { position: relative; }
+.journey-pill-icons {
+  display: flex; gap: 2px; flex-shrink: 0;
+}
+.journey-pip {
+  width: 24px; height: 24px; border-radius: 50%;
+  display: grid; place-items: center;
+  font-size: 0.7rem;
+  background: rgba(36,214,223,0.1);
+  border: 1px solid rgba(36,214,223,0.3);
+}
+.journey-pip.locked {
+  background: rgba(255,255,255,0.03);
+  border-color: rgba(122,187,218,0.12);
+  opacity: 0.3; filter: grayscale(1);
+}
+.journey-pill-info { flex: 1; min-width: 0; }
+.journey-pill-title {
+  font-size: 0.78rem; font-weight: 900; line-height: 1.15;
+  letter-spacing: -0.2px;
+}
+.journey-pill-sub {
+  font-size: 0.66rem; color: var(--text-soft); font-weight: 700; margin-top: 1px;
+}
+.journey-pill-chevron {
+  width: 14px; height: 14px;
+  stroke: var(--text-muted); fill: none;
+  stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round;
+  flex-shrink: 0;
+}
+
+/* ── Stats pill ── */
+.stats-pill {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(122,187,218,0.12);
+  background: rgba(7,18,32,0.5);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: border-color 180ms ease;
+}
+.stats-pill:active { border-color: rgba(36,214,223,0.3); }
+.stats-pill-icon {
+  width: 18px; height: 18px; stroke: var(--teal); fill: none;
+  stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round;
+  flex-shrink: 0;
+}
+.stats-pill-text {
+  flex: 1; font-size: 0.82rem; font-weight: 800; color: var(--text-soft);
+}
+.stats-pill-chevron {
+  width: 14px; height: 14px; stroke: var(--text-muted); fill: none;
+  stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round;
+  flex-shrink: 0;
+}
+
+/* ── Stats overview modal ── */
+.stats-modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(3,7,13,0.85);
+  backdrop-filter: blur(10px);
+  z-index: 100;
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+  opacity: 0; pointer-events: none;
+  transition: opacity 250ms ease;
+}
+.stats-modal-overlay.open { opacity: 1; pointer-events: auto; }
+.stats-modal {
+  width: min(340px, 100%);
+  border-radius: 22px;
+  border: 1px solid var(--line);
+  background: linear-gradient(180deg, rgba(13,31,49,0.95), rgba(6,16,28,0.95));
+  box-shadow: 0 30px 80px rgba(0,0,0,0.5), 0 0 60px rgba(36,214,223,0.08);
+  padding: 22px;
+  transform: translateY(12px) scale(0.97);
+  transition: transform 250ms ease;
+  position: relative;
+}
+.stats-modal-overlay.open .stats-modal { transform: translateY(0) scale(1); }
+.stats-modal-close {
+  position: absolute; top: 12px; right: 14px;
+  width: 30px; height: 30px; border-radius: 50%;
+  border: 1px solid rgba(122,187,218,0.2);
+  background: rgba(7,18,32,0.6);
+  color: var(--text-soft); font-size: 1.1rem; font-weight: 600;
+  display: grid; place-items: center; cursor: pointer;
+}
+.stats-modal-title {
+  font-size: 1.05rem; font-weight: 900; margin: 0 0 16px;
+  letter-spacing: -0.3px;
+}
+.stats-modal-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+}
+.stats-modal-card {
+  padding: 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(122,187,218,0.1);
+  background: rgba(7,18,32,0.5);
+  text-align: center;
+}
+.stats-modal-value {
+  font-size: 1.4rem; font-weight: 900; color: var(--text);
+  line-height: 1; margin-bottom: 4px;
+}
+.stats-modal-label {
+  font-size: 0.72rem; font-weight: 700; color: var(--text-muted);
+}
+
+/* ── Chart modal ── */
+.chart-overlay {
+  position: fixed; inset: 0;
+  background: rgba(3,7,13,0.88);
+  backdrop-filter: blur(12px);
+  z-index: 100;
+  display: flex; align-items: center; justify-content: center;
+  padding: 14px;
+  opacity: 0; pointer-events: none;
+  transition: opacity 250ms ease;
+}
+.chart-overlay.open { opacity: 1; pointer-events: auto; }
+.chart-box {
+  width: min(400px, 100%);
+  border-radius: 22px;
+  border: 1px solid var(--line);
+  background: linear-gradient(180deg, rgba(13,31,49,0.96), rgba(6,16,28,0.96));
+  box-shadow: 0 30px 80px rgba(0,0,0,0.5), 0 0 60px rgba(36,214,223,0.08);
+  padding: 18px 16px 24px;
+  transform: translateY(12px) scale(0.97);
+  transition: transform 250ms ease;
+  position: relative;
+}
+.chart-overlay.open .chart-box { transform: translateY(0) scale(1); }
+.chart-close {
+  position: absolute; top: 10px; right: 12px;
+  width: 28px; height: 28px; border-radius: 50%;
+  border: 1px solid rgba(122,187,218,0.2);
+  background: rgba(7,18,32,0.6);
+  color: var(--text-soft); font-size: 1rem; font-weight: 600;
+  display: grid; place-items: center; cursor: pointer;
+}
+.chart-title {
+  font-size: 0.95rem; font-weight: 900; margin: 0 0 2px; letter-spacing: -0.3px;
+}
+.chart-sub {
+  font-size: 0.7rem; color: var(--text-soft); font-weight: 600; margin: 0 0 14px;
+}
+.chart-area {
+  position: relative; width: 100%; padding-bottom: 60%;
+}
+.chart-area svg {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+}
+.chart-line-done {
+  fill: none; stroke: var(--teal); stroke-width: 2.5;
+  stroke-linecap: round; stroke-linejoin: round;
+  filter: drop-shadow(0 0 6px rgba(36,214,223,0.4));
+}
+.chart-line-done.animate {
+  stroke-dashoffset: var(--line-len);
+  stroke-dasharray: var(--line-len);
+  animation: draw-chart-line 1.6s cubic-bezier(0.22,1,0.36,1) forwards;
+}
+@keyframes draw-chart-line { to { stroke-dashoffset: 0; } }
+.chart-line-future {
+  fill: none; stroke: rgba(122,187,218,0.15);
+  stroke-width: 1.5; stroke-dasharray: 5 5; stroke-linecap: round;
+}
+.chart-grid { stroke: rgba(122,187,218,0.06); stroke-width: 1; }
+.chart-node-ring {
+  fill: var(--bg); stroke: var(--teal); stroke-width: 2;
+}
+.chart-node-ring.locked {
+  stroke: rgba(122,187,218,0.15); stroke-dasharray: 3 3;
+  opacity: 0.35;
+}
+.chart-node-ring.gold { stroke: var(--gold); }
+.chart-emoji { font-size: 10px; text-anchor: middle; dominant-baseline: central; }
+.chart-emoji.locked { opacity: 0.3; filter: grayscale(1); }
+.chart-label {
+  font-size: 7.5px; fill: var(--text-muted); font-weight: 700;
+  text-anchor: middle;
+}
+.chart-y-text {
+  font-size: 7.5px; fill: var(--text-muted); font-weight: 700;
+  text-anchor: end; dominant-baseline: middle;
+}
+.chart-x-text {
+  font-size: 7px; fill: var(--text-muted); font-weight: 700;
+  text-anchor: middle;
+}
+/* "Þú ert hér" pulse dot */
+.chart-here-dot {
+  fill: var(--teal);
+  filter: drop-shadow(0 0 6px rgba(36,214,223,0.7));
+}
+.chart-here-pulse {
+  fill: none; stroke: var(--teal); stroke-width: 1.5;
+  opacity: 0;
+  animation: chart-pulse 2.4s ease-in-out infinite;
+}
+@keyframes chart-pulse {
+  0% { r: 5; opacity: 0.6; }
+  100% { r: 16; opacity: 0; }
+}
+/* Zoom/pan container */
+.chart-area {
+  position: relative; width: 100%; padding-bottom: 65%;
+  overflow: hidden; touch-action: none;
+  border-radius: 8px;
+}
+.chart-area svg {
+  position: absolute; top: 0; left: 0;
+  transform-origin: 0 0;
+  transition: transform 120ms ease-out;
+}
+.chart-zoom-controls {
+  position: absolute; bottom: 8px; right: 8px;
+  display: flex; gap: 4px; z-index: 2;
+}
+.chart-zoom-btn {
+  width: 28px; height: 28px; border-radius: 8px;
+  border: 1px solid rgba(122,187,218,0.2);
+  background: rgba(7,18,32,0.8);
+  color: var(--text-soft); font-size: 1rem; font-weight: 700;
+  display: grid; place-items: center; cursor: pointer;
+}
+.chart-zoom-btn:active { background: rgba(36,214,223,0.15); }
 </style>
 </head>
 <body>
-<svg class="svg-sprite" xmlns="http://www.w3.org/2000/svg">
-<symbol id="i-home" viewBox="0 0 24 24"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10.5V20h13v-9.5"/><path d="M9.5 20v-6h5v6"/></symbol><symbol id="i-calendar-star" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="3"/><path d="M8 3v4M16 3v4M4 10h16"/><path d="M12 14l1 2 2.2.3-1.6 1.5.4 2.2-2-1-2 1 .4-2.2-1.6-1.5 2.2-.3z"/></symbol><symbol id="i-star" viewBox="0 0 24 24"><path d="M12 3.5 14.7 9l6 .9-4.3 4.2 1 6-5.4-2.9-5.4 2.9 1-6L3.3 9l6-.9z"/></symbol><symbol id="i-book" viewBox="0 0 24 24"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v16H7a3 3 0 0 0-3 3z"/><path d="M4 5.5V22"/><path d="M8 7h8M8 11h6"/></symbol><symbol id="i-mic" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 18v3M8 21h8"/></symbol><symbol id="i-trophy" viewBox="0 0 24 24"><path d="M8 4h8v5a4 4 0 0 1-8 0z"/><path d="M16 6h3v2a4 4 0 0 1-4 4"/><path d="M8 6H5v2a4 4 0 0 0 4 4"/><path d="M12 13v5"/><path d="M8 21h8"/></symbol><symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></symbol><symbol id="i-plus-square" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M12 8v8M8 12h8"/></symbol><symbol id="i-headphones" viewBox="0 0 24 24"><path d="M4 13a8 8 0 0 1 16 0"/><rect x="3" y="13" width="4" height="7" rx="2"/><rect x="17" y="13" width="4" height="7" rx="2"/></symbol><symbol id="i-heart" viewBox="0 0 24 24"><path d="M20.8 5.6a5.1 5.1 0 0 0-7.2 0L12 7.2l-1.6-1.6a5.1 5.1 0 1 0-7.2 7.2L12 21l8.8-8.2a5.1 5.1 0 0 0 0-7.2z"/></symbol><symbol id="i-listener" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4.5 21a7.5 7.5 0 0 1 15 0"/></symbol><symbol id="i-family" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="10" r="2.5"/><path d="M3.5 21a5.5 5.5 0 0 1 11 0"/><path d="M13.5 21a4.5 4.5 0 0 1 7 0"/></symbol>
-</svg>
-<main class="app">
-<div class="top"><a class="home" href="child-v2.html" aria-label="Til baka í lestur"><svg class="u-icon"><use href="#i-home"/></svg></a><div class="hello">Hæ, <span id="childName">Lesari!</span></div></div>
-<h1>Árangur</h1><p class="sub">Þú ert að gera frábæra hluti!</p>
-<section class="card week-card"><div class="icon-disc"><svg class="u-icon big"><use href="#i-calendar-star"/></svg></div><div><h2>Þessi vika</h2><p>Þú last <strong>4 daga</strong> í þessari viku</p><div class="days"><div class="day done">M<span><svg class="u-icon"><use href="#i-star"/></svg></span></div><div class="day done">Þ<span><svg class="u-icon"><use href="#i-star"/></svg></span></div><div class="day done">M<span><svg class="u-icon"><use href="#i-star"/></svg></span></div><div class="day done">F<span><svg class="u-icon"><use href="#i-star"/></svg></span></div><div class="day">F<span><svg class="u-icon"><use href="#i-star"/></svg></span></div><div class="day">L<span><svg class="u-icon"><use href="#i-star"/></svg></span></div><div class="day">S<span><svg class="u-icon"><use href="#i-star"/></svg></span></div></div></div></section>
-<section class="card journey"><div class="journey-grid"><div><h2>Lestrarferðalagið þitt</h2><div class="journey-text">Haldið áfram. Hvert stórt ævintýri byrjar á litlu skrefi!</div></div><div class="path"><svg viewBox="0 0 220 150" preserveAspectRatio="none"><path d="M18 122 C52 98,66 120,91 84 C118 45,138 86,162 42 C178 15,196 28,210 18" stroke="rgba(57,246,238,.85)" stroke-width="8" stroke-linecap="round" fill="none"/><path d="M18 122 C52 98,66 120,91 84 C118 45,138 86,162 42 C178 15,196 28,210 18" stroke="rgba(255,255,255,.45)" stroke-width="2" stroke-dasharray="3 12" stroke-linecap="round" fill="none"/></svg><div class="book-start"><svg class="u-icon big"><use href="#i-book"/></svg></div><div class="node n1"><svg class="u-icon"><use href="#i-mic"/></svg></div><div class="node n2"><svg class="u-icon"><use href="#i-book"/></svg></div><div class="node n3"><svg class="u-icon"><use href="#i-star"/></svg></div></div></div></section>
-<section class="card badges"><h2>Merki unnin</h2><p>Flott unnið!</p><div class="badge-row"><div class="badge"><div class="medal gold">4</div><div>4 lestrarlotur</div></div><div class="badge"><div class="medal purple"><svg class="u-icon"><use href="#i-mic"/></svg></div><div>Varðveitt<br>upptaka</div></div><div class="badge"><div class="medal"><svg class="u-icon"><use href="#i-family"/></svg></div><div>Mamma<br>hlustaði</div></div></div></section>
-<section class="card hearts"><div><h2>Hlustarar hjarta</h2><div class="big">2 hafa hlustað</div><div class="small">Amma sendi hjarta</div></div><div class="listen-art"><svg class="headphones"><use href="#i-headphones"/></svg><svg class="listener"><use href="#i-listener"/></svg><svg class="heart"><use href="#i-heart"/></svg></div></section>
+
+<main class="app" id="app">
+  <div class="top-bar">
+    <a class="home-btn" href="child-v2.html" aria-label="Til baka">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M4 11.5L12 5L20 11.5V19C20 19.5523 19.5523 20 19 20H15V14H9V20H5C4.44772 20 4 19.5523 4 19V11.5Z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </a>
+    <p class="greeting">Hæ, <span class="greeting-name" id="childName">Lesari</span>!</p>
+  </div>
+
+  <h1 class="page-title">Árangur</h1>
+  <p class="page-sub">Þú ert að gera frábæra hluti</p>
+
+  <!-- ── Week strip ── -->
+  <section class="week-strip" id="weekStrip">
+    <div class="week-header">
+      <span class="week-title">Þessi vika</span>
+      <span class="week-streak" id="weekStreak">4 dagar</span>
+    </div>
+    <div class="days-row" id="daysRow"></div>
+  </section>
+
+  <!-- ── Milestone hero ── -->
+  <section class="milestone-hero" id="milestoneHero">
+    <div class="milestone-current">
+      <div class="milestone-icon" id="msIcon">🏔️</div>
+      <div class="milestone-info">
+        <div class="milestone-label">Næsta áfangi</div>
+        <div class="milestone-name" id="msName">Hallgrímskirkjuturn</div>
+        <div class="milestone-desc" id="msDesc">74,5 metra hátt — þú ert að klifra!</div>
+      </div>
+    </div>
+    <div class="milestone-progress">
+      <div class="milestone-bar-bg">
+        <div class="milestone-bar-fill" id="msBarFill" style="width: 0%"></div>
+      </div>
+      <div class="milestone-bar-meta">
+        <span class="done-count" id="msDone">280 síður</span>
+        <span class="target-count" id="msTarget">373 síður</span>
+      </div>
+    </div>
+    <div class="milestone-next" id="msNext">
+      <div class="milestone-next-icon" id="msNextIcon">💡</div>
+      <div class="milestone-next-info">
+        <div class="milestone-next-label">Þar á eftir</div>
+        <div class="milestone-next-name" id="msNextName">Imagine Peace Tower</div>
+      </div>
+      <div class="milestone-next-pages" id="msNextPages">500 bls.</div>
+    </div>
+    <div class="milestone-completed" id="msCompleted"></div>
+  </section>
+
+  <!-- ── Badge collection ── -->
+  <section class="badge-section" id="badgeSection">
+    <div class="badge-row-header">
+      <span class="badge-row-title">Kláruð merki</span>
+      <span class="badge-row-count" id="badgeCount"></span>
+    </div>
+    <div class="badge-scroll" id="badgeUnlocked"></div>
+
+    <div class="badge-row-header" style="margin-top: 8px">
+      <span class="badge-row-title" style="color: var(--text-muted)">Næstu merki</span>
+    </div>
+    <div class="badge-scroll" id="badgeLocked"></div>
+  </section>
+
+  <!-- ── Journey pill (opens chart) — now at bottom ── -->
+  <div class="journey-pill" id="journeyPill">
+    <div class="journey-pill-icons" id="journeyPillIcons"></div>
+    <div class="journey-pill-info">
+      <div class="journey-pill-title" id="journeyPillTitle">Lestrarferðalagið þitt</div>
+      <div class="journey-pill-sub" id="journeyPillSub">Smelltu til að sjá grafið</div>
+    </div>
+    <svg class="journey-pill-chevron" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg>
+  </div>
+
+  <!-- ── Stats pill (opens overview modal) ── -->
+  <div class="stats-pill" id="statsPill">
+    <svg class="stats-pill-icon" viewBox="0 0 24 24"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><path d="M4 22v-7"/></svg>
+    <span class="stats-pill-text">Sjá yfirlit</span>
+    <svg class="stats-pill-chevron" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg>
+  </div>
 </main>
-<nav class="bottom-nav" aria-label="Aðalvalmynd"><a class="nav-item" href="child-v2.html"><svg viewBox="0 0 24 24"><use href="#i-book"/></svg><span>Lesa</span></a><a class="nav-item" href="bookshelf.html"><svg viewBox="0 0 24 24"><use href="#i-grid"/></svg><span>Bókahilla</span></a><a class="nav-item active" href="arangur.html"><svg viewBox="0 0 24 24"><use href="#i-trophy"/></svg><span>Árangur</span></a><a class="nav-item" href="bookshelf.html#add"><svg viewBox="0 0 24 24"><use href="#i-plus-square"/></svg><span>Ný bók</span></a></nav>
-<script type="module">
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js';
-import { getFirestore, collection, query, where, getDocs } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js';
 
-const firebaseConfig = {
-  apiKey: 'AIzaSyAgTY3Uxd9_ZxixjqLj-sH8V3OhFAzg6DU',
-  authDomain: 'lesum-22e85.firebaseapp.com',
-  projectId: 'lesum-22e85',
-  storageBucket: 'lesum-22e85.appspot.com',
-  messagingSenderId: '204392598388',
-  appId: '1:204392598388:web:2dbbe3f476cd78d2ffba21'
-};
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+<!-- ── Stats overview modal ── -->
+<div class="stats-modal-overlay" id="statsModalOverlay">
+  <div class="stats-modal">
+    <button class="stats-modal-close" id="statsModalClose" type="button">&times;</button>
+    <div class="stats-modal-title">Yfirlit</div>
+    <div class="stats-modal-grid">
+      <div class="stats-modal-card">
+        <div class="stats-modal-value" id="smTime">2k 14m</div>
+        <div class="stats-modal-label">Lestrartími</div>
+      </div>
+      <div class="stats-modal-card">
+        <div class="stats-modal-value" id="smPages">280</div>
+        <div class="stats-modal-label">Síður lesnar</div>
+      </div>
+      <div class="stats-modal-card">
+        <div class="stats-modal-value" id="smBooks">2</div>
+        <div class="stats-modal-label">Bækur kláraðar</div>
+      </div>
+      <div class="stats-modal-card">
+        <div class="stats-modal-value" id="smListens">12</div>
+        <div class="stats-modal-label">Hlustanir</div>
+      </div>
+    </div>
+  </div>
+</div>
 
-function getChildSession() {
-  try {
-    const raw = localStorage.getItem('upphatt_child');
-    return raw ? JSON.parse(raw) : null;
-  } catch (e) { return null; }
-}
-function getViewerSession() {
-  try {
-    const raw = localStorage.getItem('upphatt_viewer');
-    return raw ? JSON.parse(raw) : null;
-  } catch (e) { return null; }
-}
-const CS = getViewerSession() || getChildSession();
-const FID = CS?.familyId || 'PREVIEW';
-const CK = CS?.childKey || 'preview';
+<!-- ── Badge modal ── -->
+<div class="badge-modal-overlay" id="badgeModalOverlay">
+  <div class="badge-modal">
+    <button class="badge-modal-close" id="badgeModalClose" type="button">&times;</button>
+    <div class="badge-modal-icon" id="badgeModalIcon">🏔️</div>
+    <div class="badge-modal-name" id="badgeModalName">Hallgrímskirkjuturn</div>
+    <div class="badge-modal-desc" id="badgeModalDesc">74,5 metra hátt</div>
+    <div class="badge-modal-pages" id="badgeModalPages">373 síður</div>
+    <div class="badge-modal-date" id="badgeModalDate"></div>
+    <div class="badge-modal-status" id="badgeModalStatus"></div>
+  </div>
+</div>
 
-async function showTotalPagesRead() {
-  const q = query(collection(db, 'books'), where('familyId', '==', FID), where('childKey', '==', CK));
-  const snap = await getDocs(q);
-  let total = 0;
-  snap.forEach(doc => {
-    const data = doc.data();
-    if (typeof data.totalPagesRead === 'number') total += data.totalPagesRead;
-  });
-  const journeyText = document.querySelector('.journey-text');
-  if (journeyText) {
-    journeyText.innerHTML = `Þú hefur lesið <strong>${total}</strong> blaðsíður!` + '<br><span style="font-size:12px;color:#7a8fa0">(Samanlagt úr öllum bókum)</span>';
+<!-- ── Journey chart modal ── -->
+<div class="chart-overlay" id="chartOverlay">
+  <div class="chart-box">
+    <button class="chart-close" id="chartClose" type="button">&times;</button>
+    <div class="chart-title">Lestrarferðalagið þitt</div>
+    <div class="chart-sub" id="chartSub">Hæð × tími — hver síða er 20 cm</div>
+    <div class="chart-area" id="chartArea">
+      <div class="chart-tooltip" id="chartTooltip"></div>
+      <div class="chart-zoom-controls">
+        <button class="chart-zoom-btn" id="chartZoomIn" type="button">+</button>
+        <button class="chart-zoom-btn" id="chartZoomOut" type="button">−</button>
+        <button class="chart-zoom-btn" id="chartZoomReset" type="button" style="font-size:0.7rem">↺</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Bottom nav ── -->
+<nav class="bottom-nav">
+  <a class="nav-item" href="child-v2.html">
+    <svg viewBox="0 0 24 24"><path d="M4.5 5.5v13.2c0 .4.4.7.8.5 2.1-.9 4.4-.8 6.2.4.3.2.7 0 .7-.4V7.1c0-.5-.2-.9-.6-1.1-2-1.1-4.6-1.2-6.8-.2-.2.1-.3.3-.3.5Z"/><path d="M19.5 5.5v13.2c0 .4-.4.7-.8.5-2.1-.9-4.4-.8-6.2.4-.3.2-.7 0-.7-.4V7.1c0-.5.2-.9.6-1.1 2-1.1 4.6-1.2 6.8-.2.2.1.3.3.3.5Z"/></svg>
+    <span>Lesa</span>
+  </a>
+  <a class="nav-item" href="bookshelf.html">
+    <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+    <span>Bókahilla</span>
+  </a>
+  <a class="nav-item active" href="arangur.html">
+    <svg viewBox="0 0 24 24"><path d="M8 4h8v5a4 4 0 0 1-8 0z"/><path d="M16 6h3v2a4 4 0 0 1-4 4"/><path d="M8 6H5v2a4 4 0 0 0 4 4"/><path d="M12 13v5"/><path d="M8 21h8"/></svg>
+    <span>Árangur</span>
+  </a>
+  <a class="nav-item" href="bookshelf.html#add">
+    <svg viewBox="0 0 24 24"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5Z"/><path d="M12 8v8M8 12h8" stroke-width="1.6"/></svg>
+    <span>Ný bók</span>
+  </a>
+</nav>
+
+<script>
+(function () {
+  "use strict";
+
+  // ══════════════════════════════════════════════════════════════
+  // MILESTONE BANK
+  // 1 page = 20cm. Each tier has 3 options; one is picked at random
+  // per child (seeded by child name so it's stable).
+  // ══════════════════════════════════════════════════════════════
+
+  var MILESTONES = [
+    // ── Tier 1: 5 pages = 1m ──
+    { pages: 5, options: [
+      { name: "Rúmið þitt", icon: "🛏️", desc: "1 metri — hæð rúmsins þíns" },
+      { name: "Borðið í eldhúsinu", icon: "🍽️", desc: "1 metri — þú stendur við borðið" },
+      { name: "Hundurinn þinn", icon: "🐕", desc: "1 metri — hæð stórs hunds" }
+    ]},
+    // ── Tier 2: 15 pages = 3m ──
+    { pages: 15, options: [
+      { name: "Loft íbúðar", icon: "🏠", desc: "3 metrar — frá gólfi í loft" },
+      { name: "Körfuboltagrind", icon: "🏀", desc: "3 metrar — hæð NBA-grindar" },
+      { name: "Fíll", icon: "🐘", desc: "3 metrar — Afríkufíll á hæð" }
+    ]},
+    // ── Tier 3: 25 pages = 5m ──
+    { pages: 25, options: [
+      { name: "Tré í garði", icon: "🌳", desc: "5 metrar — gamalt birki" },
+      { name: "Fimleikahús", icon: "🤸", desc: "5 metrar — loft fimleikasalar" },
+      { name: "Grafírahreindýr", icon: "🦒", desc: "5 metrar — hæsta landspendýr" }
+    ]},
+    // ── Tier 4: 50 pages = 10m ──
+    { pages: 50, options: [
+      { name: "Sundlaugarrenna", icon: "🏊", desc: "10 metrar — stór renna í Laugardal" },
+      { name: "Þriggja hæða hús", icon: "🏢", desc: "10 metrar — yfir þökin" },
+      { name: "Vallarfótboltamark", icon: "⚽", desc: "10 metrar — þvert yfir marklínu" }
+    ]},
+    // ── Tier 5: 100 pages = 20m ──
+    { pages: 100, options: [
+      { name: "Ljósaturn", icon: "🗼", desc: "20 metrar — hærra en vitinn á Gróttunni" },
+      { name: "Bláhvali", icon: "🐋", desc: "20 metrar — lengd bláhvals" },
+      { name: "Sex hæða blokk", icon: "🏬", desc: "20 metrar — útsýni yfir hverfið" }
+    ]},
+    // ── Tier 6: 200 pages = 40m ──
+    { pages: 200, options: [
+      { name: "Sólfarið að toppi", icon: "⛵", desc: "40 metrar — hæð frá sjó" },
+      { name: "Frelsisgyðjan", icon: "🗽", desc: "46 metrar — frá fótum upp í krónu" },
+      { name: "Flugsveifla í Garðabæ", icon: "🎢", desc: "40 metrar — sveiflan hæst" }
+    ]},
+    // ── Tier 7: 373 pages = 74.5m ──
+    { pages: 373, options: [
+      { name: "Hallgrímskirkjuturn", icon: "⛪", desc: "74,5 metrar — hæsta kirkja Íslands" },
+      { name: "Big Ben klukkan", icon: "🕰️", desc: "74 metrar — klukkan sem allir þekkja" },
+      { name: "Níagara-foss", icon: "🌊", desc: "75 metrar — frá brún til botns" }
+    ]},
+    // ── Tier 8: 500 pages = 100m ──
+    { pages: 500, options: [
+      { name: "Imagine Peace Tower", icon: "💡", desc: "100 metrar — ljósgeisli Yoko Ono" },
+      { name: "Stór vindmylla", icon: "🌀", desc: "100 metrar — frá jörðu í topp blaðs" },
+      { name: "Fótboltavöllur á enda", icon: "🏟️", desc: "100 metrar — frá marki til marks" }
+    ]},
+    // ── Tier 9: 750 pages = 150m ──
+    { pages: 750, options: [
+      { name: "Skógafoss", icon: "💧", desc: "150 metrar — sá foss sem regnboginn stendur yfir" },
+      { name: "London Eye", icon: "🎡", desc: "135 metrar — risahjólið í London" },
+      { name: "Kheópsskírið", icon: "🔺", desc: "146 metrar — pýramídinn mikli" }
+    ]},
+    // ── Tier 10: 1000 pages = 200m ──
+    { pages: 1000, options: [
+      { name: "Esja – hlíðin", icon: "⛰️", desc: "200 metrar — upp hlíðina í Esjunni" },
+      { name: "Eiffelturninn", icon: "🗼", desc: "200 metrar — toppur turnsins" },
+      { name: "Geysir-gufustrókur", icon: "♨️", desc: "200 metrar — þegar Strokkur hvessir" }
+    ]},
+    // ── Tier 11: 1500 pages = 300m ──
+    { pages: 1500, options: [
+      { name: "Akrafjall", icon: "🏔️", desc: "300 metrar — útsýni yfir Hvalfjörð" },
+      { name: "Eiffel frá rætur", icon: "🗼", desc: "330 metrar — nú MED antennan" },
+      { name: "Helgafell", icon: "⛰️", desc: "300 metrar — helgur tindur" }
+    ]},
+    // ── Tier 12: 2500 pages = 500m ──
+    { pages: 2500, options: [
+      { name: "Snæfellsjökull", icon: "🌋", desc: "500 metrar — jökulinn sem Jules Verne skrifaði um" },
+      { name: "One World Trade", icon: "🏙️", desc: "541 metrar — hæsta bygging Vesturheims" },
+      { name: "CN Tower Toronto", icon: "📡", desc: "553 metrar — hæsti turn Norður-Ameríku" }
+    ]},
+    // ── Tier 13: 3500 pages = 700m ──
+    { pages: 3500, options: [
+      { name: "Hekla", icon: "🌋", desc: "700 metrar — hún er kyrr... í bili" },
+      { name: "Burj Khalifa", icon: "🏗️", desc: "828 metrar — hæsta mannvirki heims" },
+      { name: "Drekagil", icon: "🐉", desc: "700 metrar — í Öskjunni" }
+    ]},
+    // ── Tier 14: 5000 pages = 1000m = 1km ──
+    { pages: 5000, options: [
+      { name: "Eyjafjallajökull", icon: "🌋", desc: "1.000 metrar — 1 kílómetri! Jökulöskið 2010" },
+      { name: "Dalvík til topps", icon: "🎿", desc: "1.000 metrar — skíðasvæðið" },
+      { name: "Grand Canyon – dýpið", icon: "🏜️", desc: "1.000 metrar — dýpsta gil Norður-Ameríku" }
+    ]},
+    // ── Tier 15: 7500 pages = 1500m ──
+    { pages: 7500, options: [
+      { name: "Hvannadalshnjúkur", icon: "🏔️", desc: "1.500 metrar — hæsti tindur Íslands!" },
+      { name: "Mont Blanc base camp", icon: "🧗", desc: "1.500 metrar — grunnbúðirnar" },
+      { name: "Skýjaborgir", icon: "☁️", desc: "1.500 metrar — nú ertu í skýjunum" }
+    ]},
+    // ── Tier 16: 10000 pages = 2000m ──
+    { pages: 10000, options: [
+      { name: "Vesúvíus", icon: "🌋", desc: "2.000 metrar — eldfjallið sem huldi Pompeii" },
+      { name: "Þar sem snjórinn þiðnar ekki", icon: "❄️", desc: "2.000 metrar — eilífur snjór" },
+      { name: "Fallhlífarstökk", icon: "🪂", desc: "2.000 metrar — tími til að hoppa!" }
+    ]},
+    // ── Tier 17: 15000 pages = 3000m ──
+    { pages: 15000, options: [
+      { name: "Fuji-fjall", icon: "🗻", desc: "3.000 metrar — heilagt fjall í Japan" },
+      { name: "Þar sem flugvélar fljúga", icon: "✈️", desc: "3.000 metrar — lítil flugvél" },
+      { name: "Kili base camp", icon: "🏕️", desc: "3.000 metrar — grunnbúðir Kilimanjaro" }
+    ]},
+    // ── Tier 18: 22000 pages = 4400m ──
+    { pages: 22000, options: [
+      { name: "Mont Blanc", icon: "🏔️", desc: "4.400 metrar — hæsta fjall Evrópu" },
+      { name: "Matterhorn", icon: "🏔️", desc: "4.400 metrar — tindurinn á Toblerone-pakkanum" },
+      { name: "Þar sem loft verður þunnt", icon: "😮‍💨", desc: "4.400 metrar — erfitt að anda" }
+    ]},
+    // ── Tier 19: 25000 pages = 5000m ──
+    { pages: 25000, options: [
+      { name: "Kilimanjaro", icon: "🏔️", desc: "5.000 metrar — hæsta fjall Afríku" },
+      { name: "Everest base camp", icon: "🏕️", desc: "5.000 metrar — grunnbúðirnar" },
+      { name: "Hálfa leiðin í geim", icon: "🚀", desc: "5.000 metrar — hálfnað á leiðinni upp" }
+    ]},
+    // ── Tier 20: 35000 pages = 7000m ──
+    { pages: 35000, options: [
+      { name: "Dauðasvæðið", icon: "⚠️", desc: "7.000 metrar — þar sem enginn býr" },
+      { name: "Aconcagua", icon: "🏔️", desc: "6.961 metrar — hæst í S-Ameríku" },
+      { name: "Denali – Alaska", icon: "🏔️", desc: "6.190 metrar — kaldasta fjallið" }
+    ]},
+    // ── Tier 21: 44250 pages = 8849m ──
+    { pages: 44250, options: [
+      { name: "Mount Everest", icon: "🏔️", desc: "8.849 metrar — toppur heimsins" },
+      { name: "TOPPUR HEIMSINS", icon: "🌍", desc: "8.849 metrar — hærra kemst enginn á jörðu" },
+      { name: "Þak heimsins", icon: "👑", desc: "8.849 metrar — þú kláraðir allt" }
+    ]}
+  ];
+
+  // ══════════════════════════════════════════════════════════════
+  // DETERMINISTIC PICK: seed by child name so the journey is stable
+  // ══════════════════════════════════════════════════════════════
+  function seedHash(str) {
+    var h = 0;
+    for (var i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) | 0;
+    return Math.abs(h);
   }
-}
-showTotalPagesRead();
+
+  function pickOption(tier, seed) {
+    return tier.options[(seed + tier.pages) % tier.options.length];
+  }
+
+  // ══════════════════════════════════════════════════════════════
+  // LOAD CHILD DATA
+  // ══════════════════════════════════════════════════════════════
+  var childName = "Lesari";
+  try {
+    var raw = localStorage.getItem("upphatt_child");
+    var child = raw ? JSON.parse(raw) : null;
+    childName = localStorage.getItem("childName") || (child && child.childName) || "Lesari";
+  } catch (e) {}
+  document.getElementById("childName").textContent = childName + "!";
+
+  var seed = seedHash(childName);
+
+  // ── Total pages read (from Firestore books) ──
+  var totalPagesRead = 0;
+  // Firebase imports
+  import('https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js').then(({ initializeApp }) => {
+    import('https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js').then(({ getFirestore, collection, query, where, getDocs }) => {
+      const firebaseConfig = {
+        apiKey: 'AIzaSyAgTY3Uxd9_ZxixjqLj-sH8V3OhFAzg6DU',
+        authDomain: 'lesum-22e85.firebaseapp.com',
+        projectId: 'lesum-22e85',
+        storageBucket: 'lesum-22e85.appspot.com',
+        messagingSenderId: '204392598388',
+        appId: '1:204392598388:web:2dbbe3f476cd78d2ffba21'
+      };
+      const app = initializeApp(firebaseConfig);
+      const db = getFirestore(app);
+
+      // Sækja session info
+      function getChildSession() {
+        try {
+          const raw = localStorage.getItem('upphatt_child');
+          return raw ? JSON.parse(raw) : null;
+        } catch (e) { return null; }
+      }
+      function getViewerSession() {
+        try {
+          const raw = localStorage.getItem('upphatt_viewer');
+          return raw ? JSON.parse(raw) : null;
+        } catch (e) { return null; }
+      }
+      const CS = getViewerSession() || getChildSession();
+      const FID = CS?.familyId || 'PREVIEW';
+      const CK = CS?.childKey || 'preview';
+
+      async function fetchTotalPagesRead() {
+        const q = query(collection(db, 'books'), where('familyId', '==', FID), where('childKey', '==', CK));
+        const snap = await getDocs(q);
+        let total = 0;
+        snap.forEach(doc => {
+          const data = doc.data();
+          if (typeof data.totalPagesRead === 'number') total += data.totalPagesRead;
+        });
+        // Uppfæra breytu og UI
+        totalPagesRead = total;
+        // Milestone bar
+        const msDone = document.getElementById('msDone');
+        if (msDone) msDone.textContent = total + ' síður';
+        // Stats modal
+        const smPages = document.getElementById('smPages');
+        if (smPages) smPages.textContent = total;
+      }
+      fetchTotalPagesRead();
+    });
+  });
+
+  // ══════════════════════════════════════════════════════════════
+  // RENDER WEEK STRIP
+  // ══════════════════════════════════════════════════════════════
+  var DAY_NAMES = ["S", "M", "Þ", "M", "F", "F", "L"];
+  var daysRow = document.getElementById("daysRow");
+  var today = new Date();
+  var dow = today.getDay(); // 0=Sun
+  // Start week on Monday
+  var mondayOffset = (dow === 0 ? -6 : 1 - dow);
+
+  // Demo: simulate some reading days
+  var readDays = {};
+  try {
+    var sessionsRaw = localStorage.getItem("upphatt_sessions_log");
+    var sessions = sessionsRaw ? JSON.parse(sessionsRaw) : [];
+    if (Array.isArray(sessions)) {
+      sessions.forEach(function (s) {
+        if (s && s.date) {
+          var d = new Date(s.date);
+          readDays[d.getFullYear() + "-" + d.getMonth() + "-" + d.getDate()] = true;
+        }
+      });
+    }
+  } catch (e) {}
+  // Fallback demo days
+  if (Object.keys(readDays).length === 0) {
+    for (var dd = 0; dd < 4; dd++) {
+      var demo = new Date(today);
+      demo.setDate(demo.getDate() + mondayOffset + dd);
+      readDays[demo.getFullYear() + "-" + demo.getMonth() + "-" + demo.getDate()] = true;
+    }
+  }
+
+  var streakCount = 0;
+  var html = "";
+  for (var i = 0; i < 7; i++) {
+    var d = new Date(today);
+    d.setDate(d.getDate() + mondayOffset + i);
+    var key = d.getFullYear() + "-" + d.getMonth() + "-" + d.getDate();
+    var done = !!readDays[key];
+    var isToday = d.toDateString() === today.toDateString();
+    if (done) streakCount++;
+    var cls = "day-cell" + (done ? " done" : "") + (isToday ? " today" : "");
+    var dayIdx = d.getDay();
+    html += '<div class="' + cls + '">' +
+      '<span class="day-label">' + DAY_NAMES[dayIdx] + '</span>' +
+      '<div class="day-dot"><svg viewBox="0 0 24 24"><path d="M12 3.5 14.7 9l6 .9-4.3 4.2 1 6-5.4-2.9-5.4 2.9 1-6L3.3 9l6-.9z"/></svg></div>' +
+      '</div>';
+  }
+  daysRow.innerHTML = html;
+  document.getElementById("weekStreak").textContent = streakCount + (streakCount === 1 ? " dagur" : " dagar");
+
+  // ══════════════════════════════════════════════════════════════
+  // RENDER MILESTONES
+  // ══════════════════════════════════════════════════════════════
+  // Find current milestone (first one not yet completed)
+  var currentTierIdx = -1;
+  var completedTiers = [];
+  for (var t = 0; t < MILESTONES.length; t++) {
+    if (totalPagesRead >= MILESTONES[t].pages) {
+      completedTiers.push(t);
+    } else {
+      if (currentTierIdx === -1) currentTierIdx = t;
+    }
+  }
+  if (currentTierIdx === -1) currentTierIdx = MILESTONES.length - 1; // all done!
+
+  var currentTier = MILESTONES[currentTierIdx];
+  var currentMs = pickOption(currentTier, seed);
+  var prevPages = currentTierIdx > 0 ? MILESTONES[currentTierIdx - 1].pages : 0;
+  var progress = Math.min(100, Math.round(((totalPagesRead - prevPages) / (currentTier.pages - prevPages)) * 100));
+
+  document.getElementById("msIcon").textContent = currentMs.icon;
+  document.getElementById("msName").textContent = currentMs.name;
+  document.getElementById("msDesc").textContent = currentMs.desc;
+  document.getElementById("msDone").textContent = totalPagesRead + " síður";
+  document.getElementById("msTarget").textContent = currentTier.pages + " síður";
+
+  // Animate bar
+  setTimeout(function () {
+    document.getElementById("msBarFill").style.width = progress + "%";
+  }, 100);
+
+  // Next milestone
+  if (currentTierIdx + 1 < MILESTONES.length) {
+    var nextTier = MILESTONES[currentTierIdx + 1];
+    var nextMs = pickOption(nextTier, seed);
+    document.getElementById("msNextIcon").textContent = nextMs.icon;
+    document.getElementById("msNextName").textContent = nextMs.name;
+    document.getElementById("msNextPages").textContent = nextTier.pages + " bls.";
+  } else {
+    document.getElementById("msNext").style.display = "none";
+  }
+
+  // Completed milestone chips
+  var chipsHtml = "";
+  for (var c = completedTiers.length - 1; c >= 0 && c >= completedTiers.length - 6; c--) {
+    var ct = MILESTONES[completedTiers[c]];
+    var cm = pickOption(ct, seed);
+    var isGold = ct.pages >= 7500;
+    chipsHtml += '<div class="milestone-chip' + (isGold ? " gold" : "") + '">' +
+      '<span class="chip-icon">' + cm.icon + '</span>' + cm.name + '</div>';
+  }
+  if (chipsHtml) document.getElementById("msCompleted").innerHTML = chipsHtml;
+
+  // ══════════════════════════════════════════════════════════════
+  // STATS OVERVIEW PILL + MODAL
+  // ══════════════════════════════════════════════════════════════
+  var statsModalOverlay = document.getElementById("statsModalOverlay");
+  var statsModalClose = document.getElementById("statsModalClose");
+
+  document.getElementById("statsPill").addEventListener("click", function () {
+    // Fill in values
+    document.getElementById("smPages").textContent = totalPagesRead;
+    // In production: fill smTime, smBooks, smListens from Firestore
+    statsModalOverlay.classList.add("open");
+  });
+  statsModalClose.addEventListener("click", function () { statsModalOverlay.classList.remove("open"); });
+  statsModalOverlay.addEventListener("click", function (e) {
+    if (e.target === statsModalOverlay) statsModalOverlay.classList.remove("open");
+  });
+
+  // ══════════════════════════════════════════════════════════════
+  // BADGE COLLECTION: unlocked scroll + locked teaser row
+  // ══════════════════════════════════════════════════════════════
+  var badgeUnlocked = document.getElementById("badgeUnlocked");
+  var badgeLocked = document.getElementById("badgeLocked");
+  var badgeCountEl = document.getElementById("badgeCount");
+  var unlockedCount = 0;
+  var unlockedHtml = "";
+  var lockedHtml = "";
+  var lockedShown = 0;
+  var MAX_LOCKED_SHOWN = 5;
+
+  // Find highest unlocked tier index
+  var highestUnlockedIdx = -1;
+  for (var bu = 0; bu < MILESTONES.length; bu++) {
+    if (totalPagesRead >= MILESTONES[bu].pages) highestUnlockedIdx = bu;
+  }
+
+  for (var b = 0; b < MILESTONES.length; b++) {
+    var tier = MILESTONES[b];
+    var ms = pickOption(tier, seed);
+    var unlocked = totalPagesRead >= tier.pages;
+    var isGold = tier.pages >= 7500;
+    var isLatest = (b === highestUnlockedIdx);
+
+    if (unlocked) {
+      unlockedCount++;
+      var discCls = "badge-disc" + (isGold ? " gold" : "") + (isLatest ? " latest" : "");
+      unlockedHtml += '<button class="badge-item" type="button" data-tier="' + b + '">' +
+        '<div class="' + discCls + '">' + ms.icon + '</div>' +
+        '</button>';
+    } else if (lockedShown < MAX_LOCKED_SHOWN) {
+      lockedShown++;
+      lockedHtml += '<button class="badge-item" type="button" data-tier="' + b + '">' +
+        '<div class="badge-disc locked">' + ms.icon + '</div>' +
+        '</button>';
+    }
+  }
+
+  if (unlockedHtml) {
+    badgeUnlocked.innerHTML = unlockedHtml;
+  } else {
+    badgeUnlocked.innerHTML = '<span style="font-size:0.75rem;color:var(--text-muted);font-weight:700;padding:4px 0">Lestu áfram til að vinna þitt fyrsta merki!</span>';
+  }
+  badgeLocked.innerHTML = lockedHtml;
+  badgeCountEl.textContent = unlockedCount + " / " + MILESTONES.length;
+
+  // Hide "Næstu merki" header if none to show
+  if (!lockedHtml) {
+    badgeLocked.previousElementSibling.style.display = "none";
+  }
+
+  // ══════════════════════════════════════════════════════════════
+  // BADGE MODAL
+  // ══════════════════════════════════════════════════════════════
+  var modalOverlay = document.getElementById("badgeModalOverlay");
+  var modalClose = document.getElementById("badgeModalClose");
+  var modalIcon = document.getElementById("badgeModalIcon");
+  var modalName = document.getElementById("badgeModalName");
+  var modalDesc = document.getElementById("badgeModalDesc");
+  var modalPages = document.getElementById("badgeModalPages");
+  var modalDate = document.getElementById("badgeModalDate");
+  var modalStatus = document.getElementById("badgeModalStatus");
+
+  function openBadgeModal(tierIdx) {
+    var tier = MILESTONES[tierIdx];
+    if (!tier) return;
+    var ms = pickOption(tier, seed);
+    var isUnlocked = totalPagesRead >= tier.pages;
+    var isGold = tier.pages >= 7500;
+    var heightM = (tier.pages * 0.2).toFixed(1).replace(/\.0$/, "");
+
+    modalIcon.textContent = ms.icon;
+    modalIcon.className = "badge-modal-icon" + (isUnlocked ? (isGold ? " gold" : "") : " locked");
+    modalName.textContent = isUnlocked ? ms.name : "???";
+    modalDesc.textContent = isUnlocked ? ms.desc : "Þú hefur ekki náð þessu marki ennþá";
+    modalPages.textContent = tier.pages + " síður · " + heightM + " metrar";
+    modalPages.className = "badge-modal-pages" + (isUnlocked ? "" : " locked");
+
+    // Find date when this milestone was reached
+    if (isUnlocked && readingHistory && readingHistory.length) {
+      var reachedDate = null;
+      for (var rdi = 0; rdi < readingHistory.length; rdi++) {
+        if (readingHistory[rdi].totalPages >= tier.pages) {
+          reachedDate = readingHistory[rdi].date;
+          break;
+        }
+      }
+      if (reachedDate) {
+        var d = new Date(reachedDate);
+        modalDate.innerHTML = "Náð <strong>" + d.getDate() + "/" + (d.getMonth() + 1) + "</strong>";
+      } else {
+        modalDate.textContent = "";
+      }
+      modalStatus.textContent = "✓ Náð!";
+      modalStatus.style.color = "var(--teal)";
+    } else {
+      modalDate.textContent = "";
+      var remaining = tier.pages - totalPagesRead;
+      modalStatus.textContent = remaining + " síður eftir";
+      modalStatus.style.color = "var(--text-muted)";
+    }
+    modalOverlay.classList.add("open");
+  }
+
+  function closeBadgeModal() {
+    modalOverlay.classList.remove("open");
+  }
+
+  // Delegate clicks from both scroll rows
+  document.getElementById("badgeSection").addEventListener("click", function (e) {
+    var item = e.target.closest(".badge-item");
+    if (!item) return;
+    var tierIdx = parseInt(item.getAttribute("data-tier"), 10);
+    openBadgeModal(tierIdx);
+  });
+
+  modalClose.addEventListener("click", closeBadgeModal);
+  modalOverlay.addEventListener("click", function (e) {
+    if (e.target === modalOverlay) closeBadgeModal();
+  });
+
+  // ══════════════════════════════════════════════════════════════
+  // JOURNEY PILL + CHART
+  // Pilot: first 6 tiers (max 200 pages = 40m)
+  // ══════════════════════════════════════════════════════════════
+  var PILOT_MAX_TIER = 5; // index into MILESTONES (0-based), tier 6 = 200 pages
+  var pilotTiers = MILESTONES.slice(0, PILOT_MAX_TIER + 1);
+
+  // Render pill icons (completed + next few locked)
+  var pillIconsEl = document.getElementById("journeyPillIcons");
+  var pillTitleEl2 = document.getElementById("journeyPillTitle");
+  var pillSubEl = document.getElementById("journeyPillSub");
+  var pillIconsHtml = "";
+  var pillNextName = "";
+  for (var pi = 0; pi <= PILOT_MAX_TIER; pi++) {
+    var ptier = MILESTONES[pi];
+    var pms = pickOption(ptier, seed);
+    var punlocked = totalPagesRead >= ptier.pages;
+    if (!punlocked && !pillNextName) pillNextName = pms.name;
+    pillIconsHtml += '<div class="journey-pip' + (punlocked ? '' : ' locked') + '">' + pms.icon + '</div>';
+  }
+  pillIconsEl.innerHTML = pillIconsHtml;
+  if (pillNextName) {
+    pillTitleEl2.textContent = "Næst: " + pillNextName;
+  } else {
+    pillTitleEl2.textContent = "Öllum áföngum náð!";
+  }
+  pillSubEl.textContent = totalPagesRead + " síður · smelltu til að sjá ferðalagið";
+
+  // Chart modal open/close
+  var chartOverlay = document.getElementById("chartOverlay");
+  var chartClose = document.getElementById("chartClose");
+  var chartArea = document.getElementById("chartArea");
+  var chartSvgEl = null; // set after first render
+
+  document.getElementById("journeyPill").addEventListener("click", function () {
+    renderChart();
+    chartOverlay.classList.add("open");
+  });
+  chartClose.addEventListener("click", function () { chartOverlay.classList.remove("open"); resetZoom(); });
+  chartOverlay.addEventListener("click", function (e) {
+    if (e.target === chartOverlay) { chartOverlay.classList.remove("open"); resetZoom(); }
+  });
+
+  // ── Build demo reading history (in production: from session log) ──
+  var readingHistory = [];
+  try {
+    var sessRaw = localStorage.getItem("upphatt_sessions_log");
+    var sessions2 = sessRaw ? JSON.parse(sessRaw) : [];
+    if (Array.isArray(sessions2) && sessions2.length) {
+      var cumulative = 0;
+      sessions2.forEach(function (s) {
+        if (s && s.pagesRead) {
+          cumulative += Number(s.pagesRead);
+          readingHistory.push({ date: new Date(s.date || Date.now()), totalPages: cumulative });
+        }
+      });
+    }
+  } catch (e) {}
+
+  // Fallback demo data
+  if (readingHistory.length === 0) {
+    var demoStart = new Date();
+    demoStart.setDate(demoStart.getDate() - 13);
+    var cumPages = 0;
+    var demoReadings = [8, 12, 0, 15, 0, 20, 18, 0, 0, 25, 30, 22, 35, 15];
+    for (var dr = 0; dr < demoReadings.length; dr++) {
+      if (demoReadings[dr] > 0) {
+        cumPages += demoReadings[dr];
+        var dd2 = new Date(demoStart);
+        dd2.setDate(dd2.getDate() + dr);
+        readingHistory.push({ date: dd2, totalPages: cumPages });
+      }
+    }
+  }
+
+  // ── Smooth bezier helper ──
+  function smoothPath(pts) {
+    if (pts.length < 2) return "";
+    var d = "M " + pts[0].x.toFixed(1) + " " + pts[0].y.toFixed(1);
+    if (pts.length === 2) {
+      d += " L " + pts[1].x.toFixed(1) + " " + pts[1].y.toFixed(1);
+      return d;
+    }
+    for (var i = 1; i < pts.length; i++) {
+      var p0 = pts[i - 1];
+      var p1 = pts[i];
+      var cpx = (p0.x + p1.x) / 2;
+      d += " C " + cpx.toFixed(1) + " " + p0.y.toFixed(1) + ", " +
+                    cpx.toFixed(1) + " " + p1.y.toFixed(1) + ", " +
+                    p1.x.toFixed(1) + " " + p1.y.toFixed(1);
+    }
+    return d;
+  }
+
+  // ── Approximate SVG path length for stroke animation ──
+  function approxPathLen(pts) {
+    var len = 0;
+    for (var i = 1; i < pts.length; i++) {
+      var dx = pts[i].x - pts[i-1].x;
+      var dy = pts[i].y - pts[i-1].y;
+      len += Math.sqrt(dx*dx + dy*dy);
+    }
+    return Math.round(len * 1.3); // bezier is ~30% longer than straight
+  }
+
+  // ── Date formatter: "9/5" ──
+  function fmtDate(d) {
+    return d.getDate() + "/" + (d.getMonth() + 1);
+  }
+
+  // ── Snap date to start of day ──
+  function dayStart(d) {
+    return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  }
+
+  function renderChart() {
+    var W = 380, H = 248;
+    var PAD = { top: 18, right: 20, bottom: 28, left: 36 };
+    var plotW = W - PAD.left - PAD.right;
+    var plotH = H - PAD.top - PAD.bottom;
+
+    var maxPages = pilotTiers[pilotTiers.length - 1].pages;
+    var maxHeight = maxPages * 0.2;
+
+    // X axis: whole days from first reading to today
+    var now = dayStart(new Date());
+    var firstDay = readingHistory.length ? dayStart(readingHistory[0].date) : new Date(now.getTime() - 14 * 86400000);
+    var totalDays = Math.max(1, Math.round((now.getTime() - firstDay.getTime()) / 86400000));
+    // Add 1-2 days of future space for next milestone teaser
+    var xDays = totalDays + 2;
+
+    function xPos(date) {
+      var dayNum = Math.round((dayStart(date).getTime() - firstDay.getTime()) / 86400000);
+      return PAD.left + (dayNum / xDays) * plotW;
+    }
+    function xPosDay(dayNum) {
+      return PAD.left + (dayNum / xDays) * plotW;
+    }
+    function yPos(pages) {
+      var frac = (pages * 0.2) / maxHeight;
+      return PAD.top + plotH - frac * plotH;
+    }
+
+    var svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" xmlns="http://www.w3.org/2000/svg" id="chartSvg">';
+
+    // Y grid + labels (even: 0, 10, 20, 30, 40)
+    var ySteps = [0, 10, 20, 30, 40];
+    for (var yi = 0; yi < ySteps.length; yi++) {
+      var gy = yPos(ySteps[yi] / 0.2);
+      svg += '<line class="chart-grid" x1="' + PAD.left + '" y1="' + gy + '" x2="' + (W - PAD.right) + '" y2="' + gy + '"/>';
+      svg += '<text class="chart-y-text" x="' + (PAD.left - 4) + '" y="' + gy + '">' + ySteps[yi] + 'm</text>';
+    }
+
+    // X axis labels: whole days, format "9/5"
+    // Show 4-6 labels evenly spaced
+    var xLabelCount = Math.min(6, totalDays);
+    if (xLabelCount < 2) xLabelCount = 2;
+    for (var xi = 0; xi <= xLabelCount; xi++) {
+      var dayNum = Math.round((xi / xLabelCount) * totalDays);
+      var xd = new Date(firstDay.getTime() + dayNum * 86400000);
+      var xx = xPosDay(dayNum);
+      svg += '<text class="chart-x-text" x="' + xx.toFixed(1) + '" y="' + (H - 6) + '">' + fmtDate(xd) + '</text>';
+    }
+
+    // ── Build line points ──
+    var linePoints = [{ x: xPos(firstDay), y: yPos(0) }];
+    for (var li = 0; li < readingHistory.length; li++) {
+      var rh = readingHistory[li];
+      linePoints.push({ x: xPos(rh.date), y: yPos(Math.min(rh.totalPages, maxPages)) });
+    }
+    var lastPages = readingHistory.length ? readingHistory[readingHistory.length - 1].totalPages : 0;
+    // "Þú ert hér" at today
+    var hereX = xPosDay(totalDays);
+    var hereY = yPos(Math.min(lastPages, maxPages));
+    linePoints.push({ x: hereX, y: hereY });
+
+    // Draw smooth bezier line with animation
+    if (linePoints.length > 1) {
+      var pathD = smoothPath(linePoints);
+      var pathLen = approxPathLen(linePoints);
+      svg += '<path class="chart-line-done animate" d="' + pathD + '" style="--line-len:' + pathLen + '"/>';
+    }
+
+    // "Þú ert hér" pulse dot
+    svg += '<circle class="chart-here-pulse" cx="' + hereX.toFixed(1) + '" cy="' + hereY.toFixed(1) + '" r="5"/>';
+    svg += '<circle class="chart-here-dot" cx="' + hereX.toFixed(1) + '" cy="' + hereY.toFixed(1) + '" r="4"/>';
+
+    // Future dashed line to next milestone
+    var nextUnlockedTier = null;
+    for (var nt2 = 0; nt2 < pilotTiers.length; nt2++) {
+      if (totalPagesRead < pilotTiers[nt2].pages) { nextUnlockedTier = pilotTiers[nt2]; break; }
+    }
+    if (nextUnlockedTier) {
+      var futureX = xPosDay(totalDays + 2);
+      var futureY = yPos(Math.min(nextUnlockedTier.pages, maxPages));
+      var futurePath = smoothPath([
+        { x: hereX, y: hereY },
+        { x: futureX, y: futureY }
+      ]);
+      svg += '<path class="chart-line-future" d="' + futurePath + '"/>';
+    }
+
+    // ── Milestone nodes ──
+    // Determine which get labels (last completed + next locked only)
+    var lastCompletedIdx = -1;
+    var nextLockedIdx = -1;
+    for (var ci = 0; ci < pilotTiers.length; ci++) {
+      if (totalPagesRead >= pilotTiers[ci].pages) lastCompletedIdx = ci;
+      else if (nextLockedIdx === -1) nextLockedIdx = ci;
+    }
+
+    // Check for clustered nodes (too close together)
+    var nodePositions = [];
+
+    for (var mi = 0; mi < pilotTiers.length; mi++) {
+      var mt = pilotTiers[mi];
+      var mms = pickOption(mt, seed);
+      var mUnlocked = totalPagesRead >= mt.pages;
+      var isGold2 = mt.pages >= 7500;
+
+      var mDate = null;
+      if (mUnlocked) {
+        for (var rhi = 0; rhi < readingHistory.length; rhi++) {
+          if (readingHistory[rhi].totalPages >= mt.pages) {
+            mDate = readingHistory[rhi].date;
+            break;
+          }
+        }
+      }
+
+      var mx, my;
+      if (mUnlocked && mDate) {
+        mx = xPos(mDate);
+        my = yPos(mt.pages);
+      } else if (mi === nextLockedIdx && nextUnlockedTier) {
+        mx = xPosDay(totalDays + 2);
+        my = yPos(mt.pages);
+      } else {
+        // Further future: stack at right edge
+        mx = W - PAD.right - (pilotTiers.length - mi) * 6;
+        my = yPos(mt.pages);
+      }
+
+      nodePositions.push({ x: mx, y: my, idx: mi, unlocked: mUnlocked, name: mms.name, desc: mms.desc, icon: mms.icon, pages: mt.pages });
+
+      var nodeR = 10;
+      var ringCls = mUnlocked ? (isGold2 ? "chart-node-ring gold" : "chart-node-ring") : "chart-node-ring locked";
+      var emojiCls = mUnlocked ? "chart-emoji" : "chart-emoji locked";
+
+      // Wrap node in clickable group
+      svg += '<g class="chart-node-tap" data-node="' + mi + '" style="cursor:pointer">';
+      // Invisible larger hit area
+      svg += '<circle cx="' + mx.toFixed(1) + '" cy="' + my.toFixed(1) + '" r="18" fill="transparent"/>';
+      svg += '<circle class="' + ringCls + '" cx="' + mx.toFixed(1) + '" cy="' + my.toFixed(1) + '" r="' + nodeR + '"/>';
+      svg += '<text class="' + emojiCls + '" x="' + mx.toFixed(1) + '" y="' + my.toFixed(1) + '">' + mms.icon + '</text>';
+      svg += '</g>';
+      // No labels — name only shown on tap
+    }
+
+    // Crosshair lines group (rendered empty, filled on tap)
+    svg += '<line id="chartCrossX" x1="0" y1="0" x2="0" y2="0" stroke="rgba(36,214,223,0.3)" stroke-width="1" stroke-dasharray="3 3" style="display:none"/>';
+    svg += '<line id="chartCrossY" x1="0" y1="0" x2="0" y2="0" stroke="rgba(36,214,223,0.3)" stroke-width="1" stroke-dasharray="3 3" style="display:none"/>';
+
+    svg += '</svg>';
+
+    // Insert SVG (keep zoom controls and tooltip)
+    var existingSvg = chartArea.querySelector("svg");
+    if (existingSvg) existingSvg.remove();
+    chartArea.insertAdjacentHTML("afterbegin", svg);
+    chartSvgEl = document.getElementById("chartSvg");
+
+    // Update subtitle
+    var heightNow = (totalPagesRead * 0.2).toFixed(1);
+    document.getElementById("chartSub").textContent = totalPagesRead + " síður · " + heightNow + " metrar";
+
+    // ── Node tap: show crosshair + mini tooltip ──
+    var crossX = document.getElementById("chartCrossX");
+    var crossY = document.getElementById("chartCrossY");
+    var chartTooltip = document.getElementById("chartTooltip");
+
+    chartSvgEl.addEventListener("click", function (e) {
+      var tap = e.target.closest(".chart-node-tap");
+      if (!tap) {
+        // Tap on empty area: hide crosshair + tooltip
+        crossX.style.display = "none";
+        crossY.style.display = "none";
+        if (chartTooltip) chartTooltip.classList.remove("show");
+        return;
+      }
+      var ni2 = parseInt(tap.getAttribute("data-node"), 10);
+      var nd = nodePositions[ni2];
+      if (!nd) return;
+
+      // Draw crosshair from node to axes
+      crossX.setAttribute("x1", String(PAD.left));
+      crossX.setAttribute("y1", nd.y.toFixed(1));
+      crossX.setAttribute("x2", nd.x.toFixed(1));
+      crossX.setAttribute("y2", nd.y.toFixed(1));
+      crossX.style.display = "";
+
+      crossY.setAttribute("x1", nd.x.toFixed(1));
+      crossY.setAttribute("y1", nd.y.toFixed(1));
+      crossY.setAttribute("x2", nd.x.toFixed(1));
+      crossY.setAttribute("y2", String(H - PAD.bottom));
+      crossY.style.display = "";
+
+      // Tooltip
+      if (chartTooltip) {
+        var htM = (nd.pages * 0.2).toFixed(1).replace(/\.0$/, "");
+        chartTooltip.innerHTML = '<span class="tt-name">' + nd.icon + " " + (nd.unlocked ? nd.name : "???") + '</span>' +
+          '<span class="tt-height">' + nd.pages + ' síður · ' + htM + ' m</span>';
+        chartTooltip.classList.add("show");
+
+        // Position tooltip above node
+        var areaRect = chartArea.getBoundingClientRect();
+        var svgRect = chartSvgEl.getBoundingClientRect();
+        var scaleX = svgRect.width / W;
+        var scaleY = svgRect.height / H;
+        var tipX = nd.x * scaleX + svgRect.left - areaRect.left;
+        var tipY = nd.y * scaleY + svgRect.top - areaRect.top - 40;
+        if (tipY < 0) tipY = nd.y * scaleY + svgRect.top - areaRect.top + 20;
+        chartTooltip.style.left = Math.max(4, Math.min(tipX - 50, areaRect.width - 120)) + "px";
+        chartTooltip.style.top = tipY + "px";
+      }
+    });
+
+    // Reset zoom
+    resetZoom();
+  }
+
+  // ══════════════════════════════════════════════════════════════
+  // ZOOM & PAN
+  // ══════════════════════════════════════════════════════════════
+  var zoomLevel = 1;
+  var panX = 0, panY = 0;
+  var isDragging = false;
+  var dragStartX = 0, dragStartY = 0;
+  var panStartX = 0, panStartY = 0;
+
+  function applyTransform() {
+    if (!chartSvgEl) return;
+    chartSvgEl.style.width = (zoomLevel * 100) + "%";
+    chartSvgEl.style.height = (zoomLevel * 100) + "%";
+    chartSvgEl.style.transform = "translate(" + panX + "px, " + panY + "px)";
+  }
+
+  function clampPan() {
+    var areaRect = chartArea.getBoundingClientRect();
+    var maxPanX = Math.max(0, areaRect.width * (zoomLevel - 1));
+    var maxPanY = Math.max(0, areaRect.height * (zoomLevel - 1));
+    panX = Math.max(-maxPanX, Math.min(0, panX));
+    panY = Math.max(-maxPanY, Math.min(0, panY));
+  }
+
+  function resetZoom() {
+    zoomLevel = 1; panX = 0; panY = 0;
+    applyTransform();
+  }
+
+  document.getElementById("chartZoomIn").addEventListener("click", function (e) {
+    e.stopPropagation();
+    zoomLevel = Math.min(3, zoomLevel + 0.5);
+    clampPan();
+    applyTransform();
+  });
+  document.getElementById("chartZoomOut").addEventListener("click", function (e) {
+    e.stopPropagation();
+    zoomLevel = Math.max(1, zoomLevel - 0.5);
+    clampPan();
+    applyTransform();
+  });
+  document.getElementById("chartZoomReset").addEventListener("click", function (e) {
+    e.stopPropagation();
+    resetZoom();
+  });
+
+  // Touch/mouse drag to pan
+  chartArea.addEventListener("pointerdown", function (e) {
+    if (zoomLevel <= 1) return;
+    isDragging = true;
+    dragStartX = e.clientX;
+    dragStartY = e.clientY;
+    panStartX = panX;
+    panStartY = panY;
+    chartArea.setPointerCapture(e.pointerId);
+    e.preventDefault();
+  });
+  chartArea.addEventListener("pointermove", function (e) {
+    if (!isDragging) return;
+    panX = panStartX + (e.clientX - dragStartX);
+    panY = panStartY + (e.clientY - dragStartY);
+    clampPan();
+    applyTransform();
+  });
+  chartArea.addEventListener("pointerup", function () { isDragging = false; });
+  chartArea.addEventListener("pointercancel", function () { isDragging = false; });
+
+  // Pinch-to-zoom
+  var lastPinchDist = 0;
+  chartArea.addEventListener("touchstart", function (e) {
+    if (e.touches.length === 2) {
+      var dx = e.touches[0].clientX - e.touches[1].clientX;
+      var dy = e.touches[0].clientY - e.touches[1].clientY;
+      lastPinchDist = Math.sqrt(dx*dx + dy*dy);
+    }
+  }, { passive: true });
+  chartArea.addEventListener("touchmove", function (e) {
+    if (e.touches.length === 2) {
+      var dx = e.touches[0].clientX - e.touches[1].clientX;
+      var dy = e.touches[0].clientY - e.touches[1].clientY;
+      var dist = Math.sqrt(dx*dx + dy*dy);
+      if (lastPinchDist > 0) {
+        var ratio = dist / lastPinchDist;
+        zoomLevel = Math.max(1, Math.min(3, zoomLevel * ratio));
+        clampPan();
+        applyTransform();
+      }
+      lastPinchDist = dist;
+    }
+  }, { passive: true });
+  chartArea.addEventListener("touchend", function () { lastPinchDist = 0; }, { passive: true });
+
+})();
 </script>
-<script>(function(){try{var raw=localStorage.getItem("upphatt_child");var child=raw?JSON.parse(raw):null;var name=localStorage.getItem("childName")||(child&&child.childName)||"Lesari";document.getElementById("childName").textContent=name+"!"}catch(e){}})();</script>
 </body>
 </html>

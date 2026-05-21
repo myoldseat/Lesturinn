@@ -73,15 +73,15 @@
     .star.listened { opacity: 0.96; transform: scale(1.35); box-shadow: 0 0 14px rgba(120,240,255,0.65), 0 0 32px rgba(120,240,255,0.35); }
     .star.flash { opacity: 1; transform: scale(1.8); box-shadow: 0 0 28px rgba(255,255,255,1), 0 0 60px rgba(168,245,255,1); }
 
-    .star-1 { top: 8%; left: 14%; }
-    .star-2 { top: 14%; left: 78%; }
-    .star-3 { top: 22%; left: 42%; }
-    .star-4 { top: 32%; left: 88%; }
-    .star-5 { top: 48%; left: 12%; }
-    .star-6 { top: 52%; left: 86%; }
-    .star-7 { top: 76%; left: 8%; }
-    .star-8 { top: 82%; left: 48%; }
-    .star-9 { top: 78%; left: 84%; }
+    .star-1 { top: 12%; left: 18%; }
+    .star-2 { top: 18%; left: 72%; }
+    .star-3 { top: 28%; left: 44%; }
+    .star-4 { top: 40%; left: 82%; }
+    .star-5 { top: 54%; left: 26%; }
+    .star-6 { top: 61%; left: 67%; }
+    .star-7 { top: 72%; left: 13%; }
+    .star-8 { top: 78%; left: 54%; }
+    .star-9 { top: 84%; left: 86%; }
 
     .constellation-lines {
       position: absolute; inset: 0; z-index: 7;
@@ -123,9 +123,9 @@
       flex: 1;
       display: flex;
       flex-direction: column;
-      align-items: stretch;
+      align-items: center;
       justify-content: flex-start;
-      gap: 10px;
+      gap: 12px;
       position: relative;
       z-index: 3;
       padding-top: max(8px, env(safe-area-inset-top));
@@ -137,9 +137,6 @@
       display: flex;
       align-items: center;
       gap: 10px;
-      flex: 0 0 auto;
-      position: relative;
-      z-index: 10;
     }
     .home-btn {
       width: 36px; height: 36px;
@@ -162,174 +159,91 @@
     }
     .greeting-name { color: var(--teal); }
 
-    /* ── Resume card (replaces book pill - hero with cover) ── */
-    .resume-card {
+    /* ── Book pill ── */
+    .book-pill {
       width: 100%;
-      border-radius: 18px;
-      background:
-        linear-gradient(180deg, rgba(36,214,223,0.08), rgba(36,214,223,0)),
-        rgba(7,18,32,0.85);
-      border: 1px solid rgba(36,214,223,0.25);
-      padding: 13px 14px;
+      height: 56px;
+      display: grid;
+      grid-template-columns: 40px 1fr auto;
+      gap: 10px;
+      align-items: center;
+      border-radius: 16px;
+      border: 1px solid rgba(122,187,218,0.18);
+      background: rgba(7,18,32,0.64);
+      padding: 0 14px;
       cursor: pointer;
+      transition: border-color 180ms ease, box-shadow 180ms ease;
       font-family: inherit;
       color: inherit;
       text-align: left;
-      position: relative;
-      overflow: hidden;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.3), 0 0 24px rgba(36,214,223,0.06);
-      transition: border-color 180ms ease, box-shadow 220ms ease, transform 180ms ease;
-      z-index: 6;
     }
-    .resume-card:active { transform: scale(0.99); }
-    .resume-card::before {
-      content: ""; position: absolute; top: 0; left: 14%; right: 14%; height: 1px;
-      background: linear-gradient(90deg, rgba(36,214,223,0), rgba(36,214,223,0.6), rgba(36,214,223,0));
+    .book-pill:active {
+      border-color: rgba(29,205,211,0.5);
+      box-shadow: 0 0 18px rgba(29,205,211,0.15);
     }
-    .resume-tag {
-      font-size: 0.62rem; font-weight: 900; color: var(--teal);
-      letter-spacing: 1px; text-transform: uppercase;
-      display: flex; align-items: center; gap: 6px;
-      margin-bottom: 10px;
+    .book-pill-progress {
+      width: 36px; height: 36px;
+      display: grid; place-items: center;
     }
-    .resume-tag::before {
-      content: ""; width: 6px; height: 6px; border-radius: 50%;
-      background: var(--teal); box-shadow: 0 0 8px var(--teal);
-      animation: resume-pulse 2.4s ease-in-out infinite;
+    .book-pill-progress svg {
+      width: 36px; height: 36px;
     }
-    @keyframes resume-pulse {
-      0%, 100% { opacity: 0.5; transform: scale(1); }
-      50% { opacity: 1; transform: scale(1.3); }
+    .book-pill-progress .arc-bg {
+      stroke: rgba(122,187,218,0.14);
+      fill: none; stroke-width: 3;
     }
-    .resume-row {
-      display: grid;
-      grid-template-columns: 68px 1fr auto;
-      gap: 12px;
-      align-items: center;
+    .book-pill-progress .arc-fill {
+      stroke: var(--teal);
+      fill: none; stroke-width: 3;
+      stroke-linecap: round;
+      transition: stroke-dashoffset 400ms ease;
     }
-    .resume-cover {
-      width: 68px; height: 94px;
-      border-radius: 8px;
-      background: linear-gradient(135deg, #5a2d6b, #3d1a52);
-      box-shadow: 0 6px 14px rgba(0,0,0,0.4), inset 2px 0 0 rgba(255,255,255,0.12);
-      position: relative;
-      overflow: hidden;
-      display: grid;
-      place-items: center;
-      flex-shrink: 0;
-    }
-    .resume-cover-img {
-      position: absolute; inset: 0;
-      width: 100%; height: 100%;
-      object-fit: cover;
-    }
-    .resume-cover-fallback {
-      position: relative;
-      font-size: 0.62rem; font-weight: 900; color: #fff;
-      text-align: center; padding: 0 5px; line-height: 1.1;
-      text-shadow: 0 1px 4px rgba(0,0,0,0.5);
-      letter-spacing: 0.2px;
-    }
-    .resume-cover-art {
-      position: absolute; inset: 0;
-      background: radial-gradient(circle at 40% 30%, rgba(240,201,77,0.3), transparent 50%);
-      pointer-events: none;
-    }
-    .resume-info {
-      display: flex; flex-direction: column; gap: 4px;
+    .book-pill-info {
       min-width: 0;
+      display: flex; flex-direction: column; gap: 2px;
     }
-    .resume-title {
-      font-size: 0.98rem; font-weight: 900;
-      letter-spacing: -0.25px; line-height: 1.1;
+    .book-pill-title {
+      font-size: 0.88rem; font-weight: 800;
       color: var(--text-strong);
+      line-height: 1.1;
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
-    .resume-page {
-      font-size: 0.76rem; color: var(--text-soft); font-weight: 700;
+    .book-pill-page {
+      font-size: 0.72rem; font-weight: 700;
+      color: var(--text-soft);
     }
-    .resume-page strong {
-      color: var(--text-strong); font-weight: 900; font-size: 0.9rem;
-    }
-    .resume-progress {
-      margin-top: 4px;
-      display: flex; align-items: center; gap: 6px;
-      font-size: 0.64rem; color: var(--text-muted); font-weight: 700;
-    }
-    .resume-bar {
-      flex: 1; height: 4px; border-radius: 99px;
-      background: rgba(122,187,218,0.14);
-      overflow: hidden;
-    }
-    .resume-bar-fill {
-      height: 100%;
-      background: linear-gradient(90deg, var(--teal), #43f1ef);
-      border-radius: 99px;
-      transition: width 600ms ease;
-      width: 0%;
-    }
-    .resume-action {
-      background: transparent;
-      border: 1px solid rgba(36,214,223,0.4);
+    .book-pill-action {
+      font-size: 0.68rem; font-weight: 800;
       color: var(--teal);
-      font: inherit; font-weight: 800; font-size: 0.68rem;
-      padding: 6px 11px;
-      border-radius: 99px;
-      cursor: pointer;
-      letter-spacing: 0.4px;
       text-transform: uppercase;
-      flex-shrink: 0;
-      font-family: inherit;
-    }
-    .resume-action:active { background: rgba(36,214,223,0.1); }
-
-    /* Empty state when no "reading" book exists */
-    .resume-card.empty .resume-row { grid-template-columns: 1fr auto; }
-    .resume-card.empty .resume-cover,
-    .resume-card.empty .resume-progress { display: none; }
-    .resume-card.empty .resume-page { color: var(--text-muted); }
-
-    /* Star field container - holds the existing stars but positioned in the dead-zone */
-    .star-field {
-      position: absolute;
-      top: 190px;
-      left: 0; right: 0; bottom: 64px;
-      z-index: 6;
-      pointer-events: none;
-      overflow: hidden;
-    }
-
-    /* ── Legacy book pill kept hidden for backwards compat (in case anything else references it) ── */
-    .book-pill {
-      display: none;
+      letter-spacing: 0.5px;
+      flex: 0 0 auto;
     }
 
     /* ── Recording area ── */
     .rec-area {
       position: relative;
-      width: 180px; height: 180px;
+      width: 160px; height: 160px;
       display: grid;
       place-items: center;
-      margin: auto auto 0;
-      flex: 0 0 180px;
-      min-height: 180px;
-      max-height: 180px;
-      z-index: 5;
+      margin: 0 auto;
+      flex: 1 0 auto;
+      min-height: 140px;
+      max-height: 200px;
     }
     .aura-reactive {
       position: absolute;
       top: 50%; left: 50%;
-      width: 150px; height: 150px;
+      width: 140px; height: 140px;
       transform: translate(-50%, -50%) scale(1);
       opacity: 0.7;
       transition: opacity 260ms ease;
       pointer-events: none;
-      z-index: 5;
     }
     .aura-breathe {
       width: 100%; height: 100%;
       border-radius: 50%;
-      background: radial-gradient(circle, rgba(36,214,223,0.28) 0%, rgba(36,214,223,0.12) 38%, rgba(36,214,223,0.04) 63%, transparent 74%);
+      background: radial-gradient(circle, rgba(36,214,223,0.22) 0%, rgba(36,214,223,0.10) 38%, rgba(36,214,223,0.03) 63%, transparent 74%);
       animation: breathe 6.8s ease-in-out infinite;
     }
     @keyframes breathe {
@@ -338,7 +252,7 @@
     }
 
     .rec-btn {
-      width: 100px; height: 100px;
+      width: 96px; height: 96px;
       border: 2px solid rgba(215,255,255,0.6);
       border-radius: 50%;
       background: radial-gradient(circle at 35% 25%, #43f1ef, #26d3dc 50%, #18bfc8);
@@ -349,40 +263,12 @@
       display: flex; flex-direction: column;
       align-items: center; justify-content: center;
       gap: 4px;
-      position: relative; z-index: 9;
+      position: relative; z-index: 2;
       transition: transform 240ms ease, box-shadow 300ms ease, background 400ms ease, border-color 400ms ease;
       -webkit-tap-highlight-color: transparent;
       font-family: inherit;
     }
     .rec-btn:active { transform: scale(0.95); }
-
-    /* Voice-reactive glow ring layer behind the button - amplifies feedback when child is reading */
-    .rec-glow-ring {
-      position: absolute;
-      top: 50%; left: 50%;
-      width: 100px; height: 100px;
-      transform: translate(-50%, -50%) scale(1);
-      border-radius: 50%;
-      pointer-events: none;
-      z-index: 4;
-      opacity: 0;
-      background: radial-gradient(circle, rgba(67,241,239,0.5) 0%, rgba(36,214,223,0.25) 35%, rgba(36,214,223,0.08) 60%, transparent 78%);
-      transition: opacity 280ms ease;
-      filter: blur(2px);
-    }
-    .rec-glow-ring.active { opacity: 1; }
-
-    /* Button mask: hides stars behind button so they don't show through */
-    .rec-btn-mask {
-      position: absolute;
-      top: 50%; left: 50%;
-      width: 180px; height: 180px;
-      transform: translate(-50%, -50%);
-      border-radius: 50%;
-      pointer-events: none;
-      z-index: 4;
-      background: radial-gradient(circle, var(--bg) 32%, rgba(7,13,22,0.85) 50%, rgba(7,13,22,0) 72%);
-    }
 
     .rec-btn--saving {
       background: radial-gradient(circle at 35% 25%, #f5d96b, #d4a422 50%, #b8901a) !important;
@@ -436,52 +322,32 @@
 
     /* ── Helper text ── */
     .helper {
-      margin: 10px 0 auto;
+      margin: 0;
       text-align: center;
       color: rgba(221,231,239,0.7);
       font-size: 0.82rem;
       min-height: 18px;
     }
-    .helper[hidden] {
-      display: block;
-      visibility: hidden;
-    }
 
-    /* ── Goal toast - floats above bottom nav, fades in then out ── */
+    /* ── Goal toast ── */
     .goal-toast {
-      position: fixed;
-      left: 50%;
-      bottom: calc(76px + env(safe-area-inset-bottom, 0px));
-      transform: translateX(-50%) translateY(8px);
       display: flex;
       align-items: center;
       gap: 8px;
-      padding: 10px 18px;
+      margin: 0 auto;
+      padding: 8px 16px;
       border-radius: 99px;
-      border: 1px solid rgba(240,201,77,0.4);
-      background: linear-gradient(180deg, rgba(240,201,77,0.18), rgba(240,201,77,0.08)), rgba(7,13,22,0.96);
-      box-shadow: 0 8px 24px rgba(0,0,0,0.4), 0 0 30px rgba(240,201,77,0.2);
+      border: 1px solid rgba(29,205,211,0.22);
+      background: rgba(29,205,211,0.06);
       font-size: 0.82rem; font-weight: 800;
-      color: var(--gold);
-      white-space: nowrap;
-      opacity: 0;
-      z-index: 150;
-      pointer-events: none;
-      transition: opacity 600ms ease, transform 600ms ease;
-    }
-    .goal-toast.show {
-      opacity: 1;
-      transform: translateX(-50%) translateY(0);
+      color: var(--teal);
+      animation: goalSlideIn 400ms ease-out;
     }
     .goal-toast[hidden] { display: none; }
-    .goal-toast-icon { font-size: 1rem; filter: drop-shadow(0 0 6px rgba(240,201,77,0.5)); }
-    .goal-toast.teal {
-      border-color: rgba(36,214,223,0.4);
-      background: linear-gradient(180deg, rgba(36,214,223,0.18), rgba(36,214,223,0.08)), rgba(7,13,22,0.96);
-      color: var(--teal);
-      box-shadow: 0 8px 24px rgba(0,0,0,0.4), 0 0 30px rgba(36,214,223,0.25);
+    @keyframes goalSlideIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
     }
-    .goal-toast.teal .goal-toast-icon { filter: drop-shadow(0 0 6px rgba(36,214,223,0.5)); }
 
     /* ── Bottom nav ── */
     .child-bottom-nav {
@@ -759,20 +625,15 @@
 <body>
   <main class="screen">
     <div class="constellation" aria-hidden="true"></div>
-
-    <!-- Star field: stars positioned within this dead-zone between resume-card and bottom-nav -->
-    <div class="star-field" id="star-field" aria-hidden="true">
-      <button class="star star-1" type="button" aria-label="Star"></button>
-      <button class="star star-2" type="button" aria-label="Star"></button>
-      <button class="star star-3" type="button" aria-label="Star"></button>
-      <button class="star star-4" type="button" aria-label="Star"></button>
-      <button class="star star-5" type="button" aria-label="Star"></button>
-      <button class="star star-6" type="button" aria-label="Star"></button>
-      <button class="star star-7" type="button" aria-label="Star"></button>
-      <button class="star star-8" type="button" aria-label="Star"></button>
-      <button class="star star-9" type="button" aria-label="Star"></button>
-    </div>
-
+    <button class="star star-1" type="button" aria-label="Star"></button>
+    <button class="star star-2" type="button" aria-label="Star"></button>
+    <button class="star star-3" type="button" aria-label="Star"></button>
+    <button class="star star-4" type="button" aria-label="Star"></button>
+    <button class="star star-5" type="button" aria-label="Star"></button>
+    <button class="star star-6" type="button" aria-label="Star"></button>
+    <button class="star star-7" type="button" aria-label="Star"></button>
+    <button class="star star-8" type="button" aria-label="Star"></button>
+    <button class="star star-9" type="button" aria-label="Star"></button>
     <svg class="constellation-lines" width="100%" height="100%" aria-hidden="true">
       <g id="frozen-lines"></g>
       <path id="listen-line" class="listen-line" d="M 0 0 L 0 0"></path>
@@ -788,29 +649,7 @@
         <p class="greeting">Hæ, <span id="greeting-name" class="greeting-name">Lesari</span>!</p>
       </div>
 
-      <!-- Resume card: hero book display with cover, replaces old book-pill -->
-      <button id="resume-card" class="resume-card empty" type="button" aria-label="Velja bók">
-        <div class="resume-tag" id="resume-tag">Veldu bók</div>
-        <div class="resume-row">
-          <div class="resume-cover" id="resume-cover" hidden>
-            <div class="resume-cover-art"></div>
-            <div class="resume-cover-fallback" id="resume-cover-fallback">Bók</div>
-          </div>
-          <div class="resume-info">
-            <div class="resume-title" id="resume-title">Veldu bók</div>
-            <div class="resume-page" id="resume-page">Opnaðu bókahilluna</div>
-            <div class="resume-progress" id="resume-progress" hidden>
-              <span id="resume-percent">0%</span>
-              <div class="resume-bar"><div class="resume-bar-fill" id="resume-bar-fill"></div></div>
-              <span id="resume-total"></span>
-            </div>
-          </div>
-          <span class="resume-action">Breyta</span>
-        </div>
-      </button>
-
-      <!-- Hidden legacy book-pill (kept for backward compat with any external references) -->
-      <button id="book-pill" class="book-pill" type="button" aria-label="Velja bók" hidden>
+      <button id="book-pill" class="book-pill" type="button" aria-label="Velja bók">
         <span class="book-pill-progress">
           <svg viewBox="0 0 40 40">
             <circle class="arc-bg" cx="20" cy="20" r="16"/>
@@ -827,14 +666,9 @@
       </button>
 
       <div class="rec-area">
-        <div class="rec-btn-mask" aria-hidden="true"></div>
-
         <div id="aura-reactive" class="aura-reactive" aria-hidden="true">
           <div class="aura-breathe"></div>
         </div>
-
-        <!-- Extra reactive glow ring: intensifies when child is reading -->
-        <div id="rec-glow-ring" class="rec-glow-ring" aria-hidden="true"></div>
 
         <svg id="progress-ring" class="progress-ring" viewBox="0 0 104 104">
           <circle class="progress-ring-bg" cx="52" cy="52" r="50"/>
@@ -856,12 +690,11 @@
       </div>
 
       <p id="helper-text" class="helper">Ýttu á takkann til að byrja að lesa upphátt</p>
-    </section>
 
-    <!-- Goal toast: floats above bottom-nav, timer-controlled fade in/out -->
-    <section id="goal-toast" class="goal-toast" hidden>
-      <span class="goal-toast-icon">&#127942;</span>
-      <span id="goal-toast-text" class="goal-toast-text"></span>
+      <section id="goal-toast" class="goal-toast" hidden>
+        <span class="goal-toast-icon">&#127942;</span>
+        <span id="goal-toast-text" class="goal-toast-text"></span>
+      </section>
     </section>
 
     <!-- Book picker modal -->
@@ -954,27 +787,6 @@
       })();
       var childName = localStorage.getItem("childName") || (childSession && childSession.childName ? childSession.childName : null) || "Lesari";
       var childStorageKey = childSession && childSession.childKey ? String(childSession.childKey) : "unknown";
-      var childBooksCacheKey = childSession && childSession.familyId && childSession.childKey
-        ? "upphatt_child_books_cache_" + childSession.familyId + "_" + childSession.childKey
-        : null;
-
-      function readChildBooksCache() {
-        if (!childBooksCacheKey) return [];
-        try {
-          var raw = localStorage.getItem(childBooksCacheKey);
-          var parsed = raw ? JSON.parse(raw) : null;
-          return parsed && Array.isArray(parsed.books) ? parsed.books : [];
-        } catch (e) { return []; }
-      }
-
-      window.cacheChildBooks = function (books) {
-        if (!childBooksCacheKey || !Array.isArray(books)) return;
-        try { localStorage.setItem(childBooksCacheKey, JSON.stringify({ savedAt: Date.now(), books: books })); }
-        catch (e) { /* no-op */ }
-      };
-
-      var cachedChildBooks = readChildBooksCache();
-      if (cachedChildBooks.length && !window._firestoreBooks) window._firestoreBooks = cachedChildBooks;
 
       document.getElementById("greeting-name").textContent = childName;
 
@@ -991,21 +803,6 @@
       var pillTitleEl = document.getElementById("pill-title");
       var pillPageEl = document.getElementById("pill-page");
       var pillArcEl = document.getElementById("pill-arc");
-
-      // Resume card refs (new hero)
-      var resumeCardEl = document.getElementById("resume-card");
-      var resumeTagEl = document.getElementById("resume-tag");
-      var resumeCoverEl = document.getElementById("resume-cover");
-      var resumeCoverFallbackEl = document.getElementById("resume-cover-fallback");
-      var resumeTitleEl = document.getElementById("resume-title");
-      var resumePageEl = document.getElementById("resume-page");
-      var resumeProgressEl = document.getElementById("resume-progress");
-      var resumePercentEl = document.getElementById("resume-percent");
-      var resumeBarFillEl = document.getElementById("resume-bar-fill");
-      var resumeTotalEl = document.getElementById("resume-total");
-
-      // Reactive glow ring (audio response amplifier)
-      var recGlowRingEl = document.getElementById("rec-glow-ring");
       var progressRingEl = document.getElementById("progress-ring");
       var progressRingFill = document.getElementById("progress-ring-fill");
       var goalToastEl = document.getElementById("goal-toast");
@@ -1209,34 +1006,19 @@
 
       // ── Button rendering ──
       function renderButton() {
-        // Amplified response: larger spread, more saturation, stronger scale when child reads
-        var spread = 28 + glowLevel * 110;          // was 70
-        var alpha = 0.25 + glowLevel * 0.55;        // was 0.40
-        var scale = 1 + glowLevel * 0.09;           // was 0.05
-        var ringAlpha = 0.20 + glowLevel * 0.45;
-        var auraScale = 1.02 + glowLevel * 0.50;    // was 0.36
-        var auraOpacity = (isRecording ? 0.7 : 0.5) + glowLevel * 0.32;  // was 0.65/0.22
+        var spread = 28 + glowLevel * 70;
+        var alpha = 0.25 + glowLevel * 0.40;
+        var scale = 1 + glowLevel * 0.05;
+        var auraScale = 1.02 + glowLevel * 0.36;
+        var auraOpacity = (isRecording ? 0.65 : 0.5) + glowLevel * 0.22;
 
         if (buttonState !== "saving" && buttonState !== "uploading") {
           recordBtn.style.transform = "scale(" + scale + ")";
-          recordBtn.style.boxShadow = "0 0 " + spread + "px rgba(36,214,223," + alpha + "), 0 0 0 " + (12 + glowLevel * 14) + "px rgba(36,214,223," + ringAlpha.toFixed(3) + ")";
+          recordBtn.style.boxShadow = "0 0 " + spread + "px rgba(36,214,223," + alpha + "), 0 0 0 12px rgba(36,214,223,0.06)";
         }
 
         auraReactiveEl.style.transform = "translate(-50%, -50%) scale(" + auraScale + ")";
         auraReactiveEl.style.opacity = auraOpacity;
-
-        // Reactive glow ring: amplifies feedback as the child reads louder
-        if (recGlowRingEl) {
-          if (isRecording && glowLevel > 0.02) {
-            recGlowRingEl.classList.add("active");
-            var ringScale = 1.2 + glowLevel * 1.4;
-            recGlowRingEl.style.transform = "translate(-50%, -50%) scale(" + ringScale + ")";
-            recGlowRingEl.style.opacity = String(0.4 + glowLevel * 0.6);
-          } else {
-            recGlowRingEl.classList.remove("active");
-            recGlowRingEl.style.opacity = "0";
-          }
-        }
       }
 
       function stopSettleLoop() {
@@ -1472,29 +1254,15 @@
         }
 
         if (!activeBook) {
-          var isLoadingBooks = !window._firestoreBooksLoaded && !books.length;
-          pillTitleEl.textContent = isLoadingBooks ? "Sæki bókahillu..." : "Veldu bók";
-          pillPageEl.textContent = isLoadingBooks ? "Augnablik" : "Opnaðu bókahilluna";
+          pillTitleEl.textContent = "Veldu bók";
+          pillPageEl.textContent = "Opnaðu bókahilluna";
           setPillArc(0);
-          renderResumeCard(null, null);
-          if (isLoadingBooks) {
-            if (resumeTagEl) resumeTagEl.textContent = "Bókahilla";
-            if (resumeTitleEl) resumeTitleEl.textContent = "Sæki bókahillu...";
-            if (resumePageEl) resumePageEl.textContent = "Augnablik";
-          }
           return;
         }
 
         pillTitleEl.textContent = activeBook.title || "Bók";
 
-        // ── Bookmark fix ──
-        // Always prefer the REAL last-read page (currentPageTo + 1) from Firestore,
-        // not the user's last input. setup.pageFrom is only honored as a same-session
-        // hint immediately after a Save in the modal (within 5 minutes), so the page
-        // input doesn't get stuck across sessions or device reloads.
-        var realResumePage = activeBook.currentPageTo ? Number(activeBook.currentPageTo) + 1 : Number(activeBook.currentPageFrom || 1);
-        var setupIsFresh = setup && setup.bookId === activeBook.id && setup.pageFrom && setup.savedAt && (Date.now() - Number(setup.savedAt) < 5 * 60 * 1000);
-        var currentPage = setupIsFresh ? Number(setup.pageFrom) : realResumePage;
+        var currentPage = (setup && setup.pageFrom) ? Number(setup.pageFrom) : (activeBook.currentPageTo ? Number(activeBook.currentPageTo) + 1 : Number(activeBook.currentPageFrom || 1));
         var totalPages = Number(activeBook.totalPages || 0);
 
         if (totalPages > 0) {
@@ -1510,103 +1278,6 @@
         if (setup && typeof setup.timerMinutes === "number") {
           timerMinutes = setup.timerMinutes;
         }
-
-        renderResumeCard(activeBook, { currentPage: currentPage, totalPages: totalPages, pct: pct });
-      }
-
-      // ── Resume card (hero) renderer ──
-      function makeCoverFallback(title) {
-        if (!title) return "Bók";
-        var trimmed = String(title).trim();
-        if (trimmed.length <= 10) return trimmed;
-        // Split on spaces, try to balance two lines
-        var words = trimmed.split(/\s+/);
-        if (words.length === 1) return trimmed.slice(0, 10);
-        var line1 = words[0];
-        var line2 = words.slice(1).join(" ");
-        return line1 + "\n" + line2;
-      }
-
-      // Stable palette of cover gradients used when book has no coverUrl
-      var COVER_PALETTES = [
-        "linear-gradient(135deg, #5a2d6b, #3d1a52)",  // purple
-        "linear-gradient(135deg, #1a3d5f, #0f4a52)",  // teal-blue
-        "linear-gradient(135deg, #d96d8a, #a13d5e)",  // rose
-        "linear-gradient(135deg, #4eb29b, #1f6b5f)",  // emerald
-        "linear-gradient(135deg, #e6a04e, #a06420)",  // amber
-        "linear-gradient(135deg, #6274aa, #3d4a72)"   // indigo
-      ];
-      function pickCoverPalette(book) {
-        if (!book) return COVER_PALETTES[0];
-        var key = String(book.id || book.title || "x");
-        var hash = 0;
-        for (var i = 0; i < key.length; i++) hash = (hash * 31 + key.charCodeAt(i)) | 0;
-        return COVER_PALETTES[Math.abs(hash) % COVER_PALETTES.length];
-      }
-
-      function renderResumeCard(book, info) {
-        if (!resumeCardEl) return;
-
-        if (!book) {
-          resumeCardEl.classList.add("empty");
-          if (resumeTagEl) resumeTagEl.textContent = "Veldu bók";
-          if (resumeTitleEl) resumeTitleEl.textContent = "Veldu bók";
-          if (resumePageEl) resumePageEl.textContent = "Opnaðu bókahilluna";
-          if (resumeCoverEl) resumeCoverEl.hidden = true;
-          if (resumeProgressEl) resumeProgressEl.hidden = true;
-          return;
-        }
-
-        resumeCardEl.classList.remove("empty");
-        if (resumeTagEl) resumeTagEl.textContent = "Þú varst hér síðast";
-
-        if (resumeTitleEl) resumeTitleEl.textContent = book.title || "Bók";
-
-        // Page display
-        if (resumePageEl) {
-          var pageHTML = "Þú átt að byrja á <strong>bls. " + info.currentPage + "</strong>";
-          resumePageEl.innerHTML = pageHTML;
-        }
-
-        // Cover: image if available, otherwise styled fallback with title
-        if (resumeCoverEl) {
-          resumeCoverEl.hidden = false;
-          resumeCoverEl.style.background = pickCoverPalette(book);
-
-          // Remove any previous <img> we added
-          var existingImg = resumeCoverEl.querySelector(".resume-cover-img");
-          if (existingImg) existingImg.remove();
-
-          var coverUrl = book.coverUrl || book.coverImage || book.imagePath || book.imageUrl || null;
-          if (coverUrl) {
-            var img = document.createElement("img");
-            img.className = "resume-cover-img";
-            img.src = coverUrl;
-            img.alt = "";
-            img.loading = "lazy";
-            img.onerror = function () { img.remove(); };
-            resumeCoverEl.insertBefore(img, resumeCoverEl.firstChild);
-            if (resumeCoverFallbackEl) resumeCoverFallbackEl.style.opacity = "0";
-          } else if (resumeCoverFallbackEl) {
-            resumeCoverFallbackEl.style.opacity = "1";
-            // \n in textContent renders as line break thanks to white-space: pre-line if needed
-            // We use innerHTML with <br> for simplicity
-            var label = makeCoverFallback(book.title);
-            resumeCoverFallbackEl.innerHTML = label.replace(/\n/g, "<br>");
-          }
-        }
-
-        // Progress bar
-        if (resumeProgressEl) {
-          if (info.totalPages > 0) {
-            resumeProgressEl.hidden = false;
-            if (resumePercentEl) resumePercentEl.textContent = info.pct + "%";
-            if (resumeBarFillEl) resumeBarFillEl.style.width = Math.min(100, info.pct) + "%";
-            if (resumeTotalEl) resumeTotalEl.textContent = info.totalPages + " bls.";
-          } else {
-            resumeProgressEl.hidden = true;
-          }
-        }
       }
 
       function setPillArc(pct) {
@@ -1618,45 +1289,13 @@
         openChildReadingModal();
       });
 
-      // Resume card opens the same modal
-      if (resumeCardEl) {
-        resumeCardEl.addEventListener("click", function () {
-          openChildReadingModal();
-        });
-      }
-
       window._onFirestoreBooksReady = function () {
         renderBookPill();
         populateChildBookListFromBookshelf();
         checkMonthlyGoal();
       };
 
-      // ── Monthly goal toast (fade in, hold, fade out) ──
-      var goalToastTimer = null;
-      var goalToastHideTimer = null;
-
-      function showGoalToast(text, kind) {
-        if (!goalToastEl) return;
-        if (goalToastText) goalToastText.textContent = text;
-        goalToastEl.classList.remove("teal");
-        if (kind === "teal") goalToastEl.classList.add("teal");
-        goalToastEl.hidden = false;
-        // Force reflow so transition triggers
-        void goalToastEl.offsetWidth;
-        goalToastEl.classList.add("show");
-
-        if (goalToastTimer) clearTimeout(goalToastTimer);
-        if (goalToastHideTimer) clearTimeout(goalToastHideTimer);
-        goalToastTimer = setTimeout(function () {
-          goalToastEl.classList.remove("show");
-          goalToastHideTimer = setTimeout(function () {
-            goalToastEl.hidden = true;
-          }, 700);
-        }, 5000);
-      }
-      // Expose for other goals (streaks, personal bests, etc.) to call
-      window.showGoalToast = showGoalToast;
-
+      // ── Monthly goal ──
       function checkMonthlyGoal() {
         if (!goalToastEl) return;
         var books = window._firestoreBooks || [];
@@ -1679,9 +1318,14 @@
             achievedAt = now;
           }
           if (now - achievedAt < GOAL_VISIBLE_MS) {
-            showGoalToast(finishedThisMonth + "/" + goalTarget + " bækur lesnar!");
+            goalToastEl.hidden = false;
+            goalToastText.textContent = finishedThisMonth + "/" + goalTarget + " bækur lesnar!";
+            var age = now - achievedAt;
+            goalToastEl.style.opacity = String(Math.max(0.4, 1 - (age / GOAL_VISIBLE_MS) * 0.6));
+            return;
           }
         }
+        goalToastEl.hidden = true;
       }
 
       // ── Home button ──
@@ -1749,8 +1393,11 @@
           var startPage = Number(setup.pageFrom || 0);
           var finalPage = Number(endPage || 0);
           var totalPages = Number(book.totalPages || 0);
+          var pagesRead = (startPage && finalPage && finalPage >= startPage) ? (finalPage - startPage + 1) : null;
           var now = Date.now();
           var pct = totalPages && finalPage ? Math.min(100, Math.max(0, Math.round((finalPage / totalPages) * 100))) : (book.progressPercent || 0);
+          var totalPagesRead = Number(book.totalPagesRead || 0);
+          if (pagesRead) totalPagesRead += pagesRead;
 
           var updateScript = document.createElement("script");
           updateScript.type = "module";
@@ -1761,12 +1408,13 @@
             "const db=getFirestore(app);",
             "const bookRef=doc(db,'books','" + setup.bookId + "');",
             "const entries=" + JSON.stringify(book.journeyEntries || []) + ";",
-            "entries.unshift({date:'I dag',createdAt:Date.now(),pageFrom:" + (startPage || "null") + ",pageTo:" + (finalPage || "null") + ",note:" + JSON.stringify(note || "") + ",reactions:[]});",
+            "entries.unshift({date:'I dag',createdAt:Date.now(),pageFrom:" + (startPage || "null") + ",pageTo:" + (finalPage || "null") + ",pagesRead:" + (pagesRead || "null") + ",note:" + JSON.stringify(note || "") + ",reactions:[]});",
             "updateDoc(bookRef,{",
             "  status:" + (pct >= 100 ? "'finished'" : "'reading'") + ",",
             "  currentPageFrom:" + (startPage || "null") + ",",
             "  currentPageTo:" + (finalPage || "null") + ",",
             "  progressPercent:" + pct + ",",
+            "  totalPagesRead:" + totalPagesRead + ",",
             "  lastReadAt:" + now + ",",
             "  note:" + JSON.stringify(note || "") + ",",
             "  journeyEntries:entries,",
@@ -1867,8 +1515,7 @@
           return {
             id: String(b.id), title: String(b.title), status: b.status || "shelf",
             progressPercent: Number(b.progressPercent || 0), totalPages: Number(b.totalPages || 0),
-            pageFrom: b.currentPageFrom || "", pageTo: b.currentPageTo || "",
-            coverUrl: b.coverUrl || b.coverImage || b.imagePath || b.imageUrl || null
+            pageFrom: b.currentPageFrom || "", pageTo: b.currentPageTo || ""
           };
         });
       }
@@ -1988,8 +1635,7 @@
             pageFrom: childPageFrom ? childPageFrom.value.trim() : "",
             pageTo: "",
             timerMinutes: selectedTimerMinutes,
-            updatedAt: Date.now(),
-            savedAt: Date.now()
+            updatedAt: Date.now()
           };
 
           try { localStorage.setItem(getChildReadingSetupKey(), JSON.stringify(setup)); } catch (e) { /* no-op */ }
@@ -2280,11 +1926,6 @@
             const booksQ = query(collection(db, 'books'), where('familyId', '==', ch.familyId), where('childKey', '==', ch.childKey));
             onSnapshot(booksQ, snap => {
               window._firestoreBooks = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-              if (window.cacheChildBooks) window.cacheChildBooks(window._firestoreBooks);
-              window._firestoreBooksLoaded = true;
-              if (window._onFirestoreBooksReady) window._onFirestoreBooksReady();
-            }, e => {
-              console.warn('Books listener failed:', e);
               window._firestoreBooksLoaded = true;
               if (window._onFirestoreBooksReady) window._onFirestoreBooksReady();
             });

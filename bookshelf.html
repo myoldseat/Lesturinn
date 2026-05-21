@@ -1456,7 +1456,7 @@ document.getElementById('saveBook').addEventListener('click',async()=>{
   saving=true;if(btn){btn.disabled=true;btn.textContent='Vista...'}
   const st=document.getElementById('bookStatus').value,now=Date.now();
   const pals=[['#2b8f91','#0a2341'],['#23814b','#0d2b23'],['#7c23df','#1d1537'],['#c4523a','#2a1418'],['#3a7bd5','#0f1f3d'],['#d4a03c','#2b1e0e']];const pk=pals[Math.floor(Math.random()*pals.length)];
-  const d={familyId:FID,childKey:CK,childName:CN,title,author:document.getElementById('bookAuthor').value.trim(),status:st,totalPages:pages,currentPageFrom:st==='reading'?1:null,currentPageTo:st==='reading'?Math.min(10,pages):null,progressPercent:st==='finished'?100:st==='reading'?Math.min(10,Math.round((10/pages)*100)):0,coverBase64:curCov||null,c1:curCov?null:pk[0],c2:curCov?null:pk[1],note:st==='reading'?'Bókin er byrjuð.':null,lastReadAt:st==='reading'?now:null,journeyEntries:st==='reading'?[{date:'Í dag',createdAt:now,pageFrom:1,pageTo:Math.min(10,pages),note:'Bókin er byrjuð.',reactions:[]}]:[],createdAt:now,updatedAt:now};
+  const d={familyId:FID,childKey:CK,childName:CN,title,author:document.getElementById('bookAuthor').value.trim(),status:st,totalPages:pages,currentPageFrom:null,currentPageTo:null,progressPercent:st==='finished'?100:0,coverBase64:curCov||null,c1:curCov?null:pk[0],c2:curCov?null:pk[1],note:st==='reading'?'Bókin er tilbúin til að byrja að lesa.':null,lastReadAt:null,journeyEntries:[],createdAt:now,updatedAt:now};
   try{
     if(previewMode){
       d.id='local_'+now+'_'+Math.random().toString(36).slice(2,6);

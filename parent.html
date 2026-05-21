@@ -860,6 +860,26 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
   </div>
 </div>
 
+<!-- ═══ Login popup ═══ -->
+<div class="confirm-overlay show" id="p-login-overlay" style="z-index:300">
+  <div class="confirm-card" style="max-width:340px;text-align:left;padding:28px 24px">
+    <div style="text-align:center;margin-bottom:16px">
+      <div style="font-size:22px;font-weight:600;color:var(--text-bright)"><span style="color:var(--accent)">Upp</span>Hátt</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:4px">Skráðu þig inn sem foreldri</div>
+    </div>
+    <div style="margin-bottom:12px">
+      <label style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;display:block;margin-bottom:4px">Netfang</label>
+      <input id="p-login-email" type="email" autocomplete="email" style="width:100%;padding:10px 12px;border:1px solid var(--border);background:rgba(0,0,0,.3);color:var(--text-bright);border-radius:var(--r-sm);font:inherit;font-size:14px;outline:0" placeholder="foreldri@dæmi.is">
+    </div>
+    <div style="margin-bottom:16px">
+      <label style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;display:block;margin-bottom:4px">Lykilorð</label>
+      <input id="p-login-pw" type="password" autocomplete="current-password" style="width:100%;padding:10px 12px;border:1px solid var(--border);background:rgba(0,0,0,.3);color:var(--text-bright);border-radius:var(--r-sm);font:inherit;font-size:14px;outline:0" placeholder="••••••">
+    </div>
+    <div id="p-login-error" style="font-size:12px;color:var(--danger);margin-bottom:10px;min-height:16px"></div>
+    <button id="p-login-btn" type="button" onclick="doLogin()" style="width:100%;padding:12px;border-radius:var(--r-sm);border:none;background:var(--accent);color:#061018;font:inherit;font-size:14px;font-weight:600;cursor:pointer;transition:filter .15s">Skrá inn</button>
+  </div>
+</div>
+
 <!-- ═══ Toast ═══ -->
 <div class="toast" id="app-toast"></div>
 
@@ -1148,12 +1168,12 @@ console.log('📦 Loaded:', { auth: !!initAuth, S: !!S, db: !!db });
 /* ── goTo bridge: auth.js kallar þetta eftir login ── */
 window.goTo = function(screenId) {
   if (screenId === 'screen-parent-home') {
+    document.getElementById('p-login-overlay')?.classList.remove('show');
     go('today');
-    /* parent-view.js listeners fylla S.sessions og S.books
-       Við watchum S og renderum okkar leið */
     startWatching();
-  } else if (screenId === 'screen-child-login' || screenId === 'screen-parent-login') {
-    window.location.href = 'index.html';
+  } else if (screenId === 'screen-parent-login' || screenId === 'screen-child-login') {
+    /* Sýna login popup á parent.html */
+    document.getElementById('p-login-overlay')?.classList.add('show');
   }
 };
 
@@ -1161,6 +1181,12 @@ window.goTo = function(screenId) {
 if (openAddChildPopup) window.openAddChildPopup = openAddChildPopup;
 if (closeAddChildPopup) window.closeAddChildPopup = closeAddChildPopup;
 if (logout) { window.logout = logout; window.parentLogout = logout; }
+
+/* ── Login functions ── */
+const { parentLoginFromPopup, openParentLoginPopup, closeParentLoginPopup } = authMod;
+if (parentLoginFromPopup) window.parentLoginFromPopup = parentLoginFromPopup;
+if (openParentLoginPopup) window.openParentLoginPopup = openParentLoginPopup;
+if (closeParentLoginPopup) window.closeParentLoginPopup = closeParentLoginPopup;
 
 /* ══════════════════════════════════════
    WATCH S — parent-view.js listeners fylla
@@ -1648,6 +1674,30 @@ window.pickChild = function(el, key) {
   _selectedChild = key;
   render();
 };
+
+/* ── Login ── */
+const { signInWithEmailAndPassword: signInFn } = await import('https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js').catch(() => ({}));
+
+window.doLogin = async function() {
+  const email = document.getElementById('p-login-email')?.value?.trim();
+  const pw = document.getElementById('p-login-pw')?.value;
+  const err = document.getElementById('p-login-error');
+  const btn = document.getElementById('p-login-btn');
+  if (err) err.textContent = '';
+  if (!email || !pw) { if (err) err.textContent = 'Sláðu inn netfang og lykilorð.'; return; }
+  if (btn) { btn.textContent = 'Skrá inn...'; btn.disabled = true; }
+  try {
+    await signInFn(auth, email, pw);
+    /* onAuthStateChanged í auth.js tekur við héðan */
+  } catch(e) {
+    if (err) err.textContent = 'Innskráning mistókst — athugaðu netfang og lykilorð.';
+    if (btn) { btn.textContent = 'Skrá inn'; btn.disabled = false; }
+  }
+};
+
+/* Enter til að logga inn */
+document.getElementById('p-login-pw')?.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+document.getElementById('p-login-email')?.addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('p-login-pw')?.focus(); });
 
 /* ── Boot ── */
 initAuth();

@@ -73,15 +73,15 @@
     .star.listened { opacity: 0.96; transform: scale(1.35); box-shadow: 0 0 14px rgba(120,240,255,0.65), 0 0 32px rgba(120,240,255,0.35); }
     .star.flash { opacity: 1; transform: scale(1.8); box-shadow: 0 0 28px rgba(255,255,255,1), 0 0 60px rgba(168,245,255,1); }
 
-    .star-1 { top: 12%; left: 18%; }
-    .star-2 { top: 18%; left: 72%; }
-    .star-3 { top: 28%; left: 44%; }
-    .star-4 { top: 40%; left: 82%; }
-    .star-5 { top: 54%; left: 26%; }
-    .star-6 { top: 61%; left: 67%; }
-    .star-7 { top: 72%; left: 13%; }
-    .star-8 { top: 78%; left: 54%; }
-    .star-9 { top: 84%; left: 86%; }
+    .star-1 { top: 8%; left: 14%; }
+    .star-2 { top: 14%; left: 78%; }
+    .star-3 { top: 22%; left: 42%; }
+    .star-4 { top: 32%; left: 88%; }
+    .star-5 { top: 48%; left: 12%; }
+    .star-6 { top: 52%; left: 86%; }
+    .star-7 { top: 76%; left: 8%; }
+    .star-8 { top: 82%; left: 48%; }
+    .star-9 { top: 78%; left: 84%; }
 
     .constellation-lines {
       position: absolute; inset: 0; z-index: 7;
@@ -123,9 +123,9 @@
       flex: 1;
       display: flex;
       flex-direction: column;
-      align-items: center;
+      align-items: stretch;
       justify-content: flex-start;
-      gap: 12px;
+      gap: 10px;
       position: relative;
       z-index: 3;
       padding-top: max(8px, env(safe-area-inset-top));
@@ -137,6 +137,9 @@
       display: flex;
       align-items: center;
       gap: 10px;
+      flex: 0 0 auto;
+      position: relative;
+      z-index: 10;
     }
     .home-btn {
       width: 36px; height: 36px;
@@ -159,91 +162,174 @@
     }
     .greeting-name { color: var(--teal); }
 
-    /* ── Book pill ── */
-    .book-pill {
+    /* ── Resume card (replaces book pill - hero with cover) ── */
+    .resume-card {
       width: 100%;
-      height: 56px;
-      display: grid;
-      grid-template-columns: 40px 1fr auto;
-      gap: 10px;
-      align-items: center;
-      border-radius: 16px;
-      border: 1px solid rgba(122,187,218,0.18);
-      background: rgba(7,18,32,0.64);
-      padding: 0 14px;
+      border-radius: 18px;
+      background:
+        linear-gradient(180deg, rgba(36,214,223,0.08), rgba(36,214,223,0)),
+        rgba(7,18,32,0.85);
+      border: 1px solid rgba(36,214,223,0.25);
+      padding: 13px 14px;
       cursor: pointer;
-      transition: border-color 180ms ease, box-shadow 180ms ease;
       font-family: inherit;
       color: inherit;
       text-align: left;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.3), 0 0 24px rgba(36,214,223,0.06);
+      transition: border-color 180ms ease, box-shadow 220ms ease, transform 180ms ease;
+      z-index: 6;
     }
-    .book-pill:active {
-      border-color: rgba(29,205,211,0.5);
-      box-shadow: 0 0 18px rgba(29,205,211,0.15);
+    .resume-card:active { transform: scale(0.99); }
+    .resume-card::before {
+      content: ""; position: absolute; top: 0; left: 14%; right: 14%; height: 1px;
+      background: linear-gradient(90deg, rgba(36,214,223,0), rgba(36,214,223,0.6), rgba(36,214,223,0));
     }
-    .book-pill-progress {
-      width: 36px; height: 36px;
-      display: grid; place-items: center;
+    .resume-tag {
+      font-size: 0.62rem; font-weight: 900; color: var(--teal);
+      letter-spacing: 1px; text-transform: uppercase;
+      display: flex; align-items: center; gap: 6px;
+      margin-bottom: 10px;
     }
-    .book-pill-progress svg {
-      width: 36px; height: 36px;
+    .resume-tag::before {
+      content: ""; width: 6px; height: 6px; border-radius: 50%;
+      background: var(--teal); box-shadow: 0 0 8px var(--teal);
+      animation: resume-pulse 2.4s ease-in-out infinite;
     }
-    .book-pill-progress .arc-bg {
-      stroke: rgba(122,187,218,0.14);
-      fill: none; stroke-width: 3;
+    @keyframes resume-pulse {
+      0%, 100% { opacity: 0.5; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.3); }
     }
-    .book-pill-progress .arc-fill {
-      stroke: var(--teal);
-      fill: none; stroke-width: 3;
-      stroke-linecap: round;
-      transition: stroke-dashoffset 400ms ease;
+    .resume-row {
+      display: grid;
+      grid-template-columns: 68px 1fr auto;
+      gap: 12px;
+      align-items: center;
     }
-    .book-pill-info {
+    .resume-cover {
+      width: 68px; height: 94px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #5a2d6b, #3d1a52);
+      box-shadow: 0 6px 14px rgba(0,0,0,0.4), inset 2px 0 0 rgba(255,255,255,0.12);
+      position: relative;
+      overflow: hidden;
+      display: grid;
+      place-items: center;
+      flex-shrink: 0;
+    }
+    .resume-cover-img {
+      position: absolute; inset: 0;
+      width: 100%; height: 100%;
+      object-fit: cover;
+    }
+    .resume-cover-fallback {
+      position: relative;
+      font-size: 0.62rem; font-weight: 900; color: #fff;
+      text-align: center; padding: 0 5px; line-height: 1.1;
+      text-shadow: 0 1px 4px rgba(0,0,0,0.5);
+      letter-spacing: 0.2px;
+    }
+    .resume-cover-art {
+      position: absolute; inset: 0;
+      background: radial-gradient(circle at 40% 30%, rgba(240,201,77,0.3), transparent 50%);
+      pointer-events: none;
+    }
+    .resume-info {
+      display: flex; flex-direction: column; gap: 4px;
       min-width: 0;
-      display: flex; flex-direction: column; gap: 2px;
     }
-    .book-pill-title {
-      font-size: 0.88rem; font-weight: 800;
+    .resume-title {
+      font-size: 0.98rem; font-weight: 900;
+      letter-spacing: -0.25px; line-height: 1.1;
       color: var(--text-strong);
-      line-height: 1.1;
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
-    .book-pill-page {
-      font-size: 0.72rem; font-weight: 700;
-      color: var(--text-soft);
+    .resume-page {
+      font-size: 0.76rem; color: var(--text-soft); font-weight: 700;
     }
-    .book-pill-action {
-      font-size: 0.68rem; font-weight: 800;
+    .resume-page strong {
+      color: var(--text-strong); font-weight: 900; font-size: 0.9rem;
+    }
+    .resume-progress {
+      margin-top: 4px;
+      display: flex; align-items: center; gap: 6px;
+      font-size: 0.64rem; color: var(--text-muted); font-weight: 700;
+    }
+    .resume-bar {
+      flex: 1; height: 4px; border-radius: 99px;
+      background: rgba(122,187,218,0.14);
+      overflow: hidden;
+    }
+    .resume-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--teal), #43f1ef);
+      border-radius: 99px;
+      transition: width 600ms ease;
+      width: 0%;
+    }
+    .resume-action {
+      background: transparent;
+      border: 1px solid rgba(36,214,223,0.4);
       color: var(--teal);
+      font: inherit; font-weight: 800; font-size: 0.68rem;
+      padding: 6px 11px;
+      border-radius: 99px;
+      cursor: pointer;
+      letter-spacing: 0.4px;
       text-transform: uppercase;
-      letter-spacing: 0.5px;
-      flex: 0 0 auto;
+      flex-shrink: 0;
+      font-family: inherit;
+    }
+    .resume-action:active { background: rgba(36,214,223,0.1); }
+
+    /* Empty state when no "reading" book exists */
+    .resume-card.empty .resume-row { grid-template-columns: 1fr auto; }
+    .resume-card.empty .resume-cover,
+    .resume-card.empty .resume-progress { display: none; }
+    .resume-card.empty .resume-page { color: var(--text-muted); }
+
+    /* Star field container - holds the existing stars but positioned in the dead-zone */
+    .star-field {
+      position: absolute;
+      top: 190px;
+      left: 0; right: 0; bottom: 64px;
+      z-index: 6;
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    /* ── Legacy book pill kept hidden for backwards compat (in case anything else references it) ── */
+    .book-pill {
+      display: none;
     }
 
     /* ── Recording area ── */
     .rec-area {
       position: relative;
-      width: 160px; height: 160px;
+      width: 180px; height: 180px;
       display: grid;
       place-items: center;
-      margin: 0 auto;
-      flex: 1 0 auto;
-      min-height: 140px;
-      max-height: 200px;
+      margin: auto auto 0;
+      flex: 0 0 180px;
+      min-height: 180px;
+      max-height: 180px;
+      z-index: 5;
     }
     .aura-reactive {
       position: absolute;
       top: 50%; left: 50%;
-      width: 140px; height: 140px;
+      width: 150px; height: 150px;
       transform: translate(-50%, -50%) scale(1);
       opacity: 0.7;
       transition: opacity 260ms ease;
       pointer-events: none;
+      z-index: 5;
     }
     .aura-breathe {
       width: 100%; height: 100%;
       border-radius: 50%;
-      background: radial-gradient(circle, rgba(36,214,223,0.22) 0%, rgba(36,214,223,0.10) 38%, rgba(36,214,223,0.03) 63%, transparent 74%);
+      background: radial-gradient(circle, rgba(36,214,223,0.28) 0%, rgba(36,214,223,0.12) 38%, rgba(36,214,223,0.04) 63%, transparent 74%);
       animation: breathe 6.8s ease-in-out infinite;
     }
     @keyframes breathe {
@@ -252,23 +338,51 @@
     }
 
     .rec-btn {
-      width: 96px; height: 96px;
+      width: 108px; height: 108px;
       border: 2px solid rgba(215,255,255,0.6);
       border-radius: 50%;
       background: radial-gradient(circle at 35% 25%, #43f1ef, #26d3dc 50%, #18bfc8);
       color: #081012;
-      font-size: 1rem; font-weight: 950;
+      font-size: 1.05rem; font-weight: 950;
       cursor: pointer; outline: none;
-      box-shadow: 0 0 32px var(--teal-glow), 0 0 0 12px rgba(36,214,223,0.06);
+      box-shadow: 0 0 36px var(--teal-glow), 0 0 0 14px rgba(36,214,223,0.06);
       display: flex; flex-direction: column;
       align-items: center; justify-content: center;
       gap: 4px;
-      position: relative; z-index: 2;
+      position: relative; z-index: 9;
       transition: transform 240ms ease, box-shadow 300ms ease, background 400ms ease, border-color 400ms ease;
       -webkit-tap-highlight-color: transparent;
       font-family: inherit;
     }
     .rec-btn:active { transform: scale(0.95); }
+
+    /* Voice-reactive glow ring layer behind the button - amplifies feedback when child is reading */
+    .rec-glow-ring {
+      position: absolute;
+      top: 50%; left: 50%;
+      width: 100px; height: 100px;
+      transform: translate(-50%, -50%) scale(1);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 4;
+      opacity: 0;
+      background: radial-gradient(circle, rgba(67,241,239,0.5) 0%, rgba(36,214,223,0.25) 35%, rgba(36,214,223,0.08) 60%, transparent 78%);
+      transition: opacity 280ms ease;
+      filter: blur(2px);
+    }
+    .rec-glow-ring.active { opacity: 1; }
+
+    /* Button mask: hides stars behind button so they don't show through */
+    .rec-btn-mask {
+      position: absolute;
+      top: 50%; left: 50%;
+      width: 180px; height: 180px;
+      transform: translate(-50%, -50%);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 4;
+      background: radial-gradient(circle, var(--bg) 32%, rgba(7,13,22,0.85) 50%, rgba(7,13,22,0) 72%);
+    }
 
     .rec-btn--saving {
       background: radial-gradient(circle at 35% 25%, #f5d96b, #d4a422 50%, #b8901a) !important;
@@ -301,7 +415,7 @@
     .progress-ring {
       position: absolute;
       top: 50%; left: 50%;
-      width: 104px; height: 104px;
+      width: 130px; height: 130px;
       transform: translate(-50%, -50%) rotate(-90deg);
       pointer-events: none;
       z-index: 3;
@@ -322,32 +436,52 @@
 
     /* ── Helper text ── */
     .helper {
-      margin: 0;
+      margin: 10px 0 auto;
       text-align: center;
       color: rgba(221,231,239,0.7);
       font-size: 0.82rem;
       min-height: 18px;
     }
+    .helper[hidden] {
+      display: block;
+      visibility: hidden;
+    }
 
-    /* ── Goal toast ── */
+    /* ── Goal toast - floats above bottom nav, fades in then out ── */
     .goal-toast {
+      position: fixed;
+      left: 50%;
+      bottom: calc(76px + env(safe-area-inset-bottom, 0px));
+      transform: translateX(-50%) translateY(8px);
       display: flex;
       align-items: center;
       gap: 8px;
-      margin: 0 auto;
-      padding: 8px 16px;
+      padding: 10px 18px;
       border-radius: 99px;
-      border: 1px solid rgba(29,205,211,0.22);
-      background: rgba(29,205,211,0.06);
+      border: 1px solid rgba(240,201,77,0.4);
+      background: linear-gradient(180deg, rgba(240,201,77,0.18), rgba(240,201,77,0.08)), rgba(7,13,22,0.96);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4), 0 0 30px rgba(240,201,77,0.2);
       font-size: 0.82rem; font-weight: 800;
-      color: var(--teal);
-      animation: goalSlideIn 400ms ease-out;
+      color: var(--gold);
+      white-space: nowrap;
+      opacity: 0;
+      z-index: 150;
+      pointer-events: none;
+      transition: opacity 600ms ease, transform 600ms ease;
+    }
+    .goal-toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
     }
     .goal-toast[hidden] { display: none; }
-    @keyframes goalSlideIn {
-      from { opacity: 0; transform: translateY(8px); }
-      to   { opacity: 1; transform: translateY(0); }
+    .goal-toast-icon { font-size: 1rem; filter: drop-shadow(0 0 6px rgba(240,201,77,0.5)); }
+    .goal-toast.teal {
+      border-color: rgba(36,214,223,0.4);
+      background: linear-gradient(180deg, rgba(36,214,223,0.18), rgba(36,214,223,0.08)), rgba(7,13,22,0.96);
+      color: var(--teal);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4), 0 0 30px rgba(36,214,223,0.25);
     }
+    .goal-toast.teal .goal-toast-icon { filter: drop-shadow(0 0 6px rgba(36,214,223,0.5)); }
 
     /* ── Bottom nav ── */
     .child-bottom-nav {
@@ -516,6 +650,30 @@
       display: block; margin-bottom: 8px;
       color: #d9e5ef; font-size: 11px; font-weight: 800; letter-spacing: 0.25px;
     }
+    .timer-mode-toggle {
+      display: flex; gap: 6px; margin-bottom: 10px;
+    }
+    .timer-mode-btn {
+      flex: 1; padding: 8px 12px; border-radius: 10px;
+      border: 1px solid rgba(122,187,218,0.22);
+      background: rgba(7,18,32,0.6);
+      color: var(--text-soft);
+      font: inherit; font-size: 0.76rem; font-weight: 700;
+      cursor: pointer; transition: all 180ms ease;
+      text-align: center;
+    }
+    .timer-mode-btn.selected {
+      border-color: rgba(36,214,223,0.5);
+      background: rgba(36,214,223,0.12);
+      color: var(--teal);
+      box-shadow: 0 0 12px rgba(36,214,223,0.15);
+    }
+    .timer-mode-btn .mode-title {
+      display: block; font-weight: 800; font-size: 0.8rem; margin-bottom: 2px;
+    }
+    .timer-mode-btn .mode-desc {
+      display: block; font-size: 0.68rem; opacity: 0.8; font-weight: 600;
+    }
     .timer-pills {
       display: flex; gap: 6px; flex-wrap: wrap;
     }
@@ -625,15 +783,20 @@
 <body>
   <main class="screen">
     <div class="constellation" aria-hidden="true"></div>
-    <button class="star star-1" type="button" aria-label="Star"></button>
-    <button class="star star-2" type="button" aria-label="Star"></button>
-    <button class="star star-3" type="button" aria-label="Star"></button>
-    <button class="star star-4" type="button" aria-label="Star"></button>
-    <button class="star star-5" type="button" aria-label="Star"></button>
-    <button class="star star-6" type="button" aria-label="Star"></button>
-    <button class="star star-7" type="button" aria-label="Star"></button>
-    <button class="star star-8" type="button" aria-label="Star"></button>
-    <button class="star star-9" type="button" aria-label="Star"></button>
+
+    <!-- Star field: stars positioned within this dead-zone between resume-card and bottom-nav -->
+    <div class="star-field" id="star-field" aria-hidden="true">
+      <button class="star star-1" type="button" aria-label="Star"></button>
+      <button class="star star-2" type="button" aria-label="Star"></button>
+      <button class="star star-3" type="button" aria-label="Star"></button>
+      <button class="star star-4" type="button" aria-label="Star"></button>
+      <button class="star star-5" type="button" aria-label="Star"></button>
+      <button class="star star-6" type="button" aria-label="Star"></button>
+      <button class="star star-7" type="button" aria-label="Star"></button>
+      <button class="star star-8" type="button" aria-label="Star"></button>
+      <button class="star star-9" type="button" aria-label="Star"></button>
+    </div>
+
     <svg class="constellation-lines" width="100%" height="100%" aria-hidden="true">
       <g id="frozen-lines"></g>
       <path id="listen-line" class="listen-line" d="M 0 0 L 0 0"></path>
@@ -649,7 +812,29 @@
         <p class="greeting">Hæ, <span id="greeting-name" class="greeting-name">Lesari</span>!</p>
       </div>
 
-      <button id="book-pill" class="book-pill" type="button" aria-label="Velja bók">
+      <!-- Resume card: hero book display with cover, replaces old book-pill -->
+      <button id="resume-card" class="resume-card empty" type="button" aria-label="Velja bók">
+        <div class="resume-tag" id="resume-tag">Veldu bók</div>
+        <div class="resume-row">
+          <div class="resume-cover" id="resume-cover" hidden>
+            <div class="resume-cover-art"></div>
+            <div class="resume-cover-fallback" id="resume-cover-fallback">Bók</div>
+          </div>
+          <div class="resume-info">
+            <div class="resume-title" id="resume-title">Veldu bók</div>
+            <div class="resume-page" id="resume-page">Opnaðu bókahilluna</div>
+            <div class="resume-progress" id="resume-progress" hidden>
+              <span id="resume-percent">0%</span>
+              <div class="resume-bar"><div class="resume-bar-fill" id="resume-bar-fill"></div></div>
+              <span id="resume-total"></span>
+            </div>
+          </div>
+          <span class="resume-action">Breyta</span>
+        </div>
+      </button>
+
+      <!-- Hidden legacy book-pill (kept for backward compat with any external references) -->
+      <button id="book-pill" class="book-pill" type="button" aria-label="Velja bók" hidden>
         <span class="book-pill-progress">
           <svg viewBox="0 0 40 40">
             <circle class="arc-bg" cx="20" cy="20" r="16"/>
@@ -666,14 +851,19 @@
       </button>
 
       <div class="rec-area">
+        <div class="rec-btn-mask" aria-hidden="true"></div>
+
         <div id="aura-reactive" class="aura-reactive" aria-hidden="true">
           <div class="aura-breathe"></div>
         </div>
 
-        <svg id="progress-ring" class="progress-ring" viewBox="0 0 104 104">
-          <circle class="progress-ring-bg" cx="52" cy="52" r="50"/>
-          <circle id="progress-ring-fill" class="progress-ring-fill" cx="52" cy="52" r="50"
-                  stroke-dasharray="314.16" stroke-dashoffset="0"/>
+        <!-- Extra reactive glow ring: intensifies when child is reading -->
+        <div id="rec-glow-ring" class="rec-glow-ring" aria-hidden="true"></div>
+
+        <svg id="progress-ring" class="progress-ring" viewBox="0 0 130 130">
+          <circle class="progress-ring-bg" cx="65" cy="65" r="62.5"/>
+          <circle id="progress-ring-fill" class="progress-ring-fill" cx="65" cy="65" r="62.5"
+                  stroke-dasharray="392.7" stroke-dashoffset="0"/>
         </svg>
 
         <button id="record-btn" class="rec-btn" type="button" aria-label="Byrja upptoku">
@@ -690,11 +880,12 @@
       </div>
 
       <p id="helper-text" class="helper">Ýttu á takkann til að byrja að lesa upphátt</p>
+    </section>
 
-      <section id="goal-toast" class="goal-toast" hidden>
-        <span class="goal-toast-icon">&#127942;</span>
-        <span id="goal-toast-text" class="goal-toast-text"></span>
-      </section>
+    <!-- Goal toast: floats above bottom-nav, timer-controlled fade in/out -->
+    <section id="goal-toast" class="goal-toast" hidden>
+      <span class="goal-toast-icon">&#127942;</span>
+      <span id="goal-toast-text" class="goal-toast-text"></span>
     </section>
 
     <!-- Book picker modal -->
@@ -711,6 +902,16 @@
 
         <div class="timer-selector">
           <label>Tími</label>
+          <div class="timer-mode-toggle" id="timer-mode-toggle">
+            <button class="timer-mode-btn" type="button" data-mode="countdown">
+              <span class="mode-title">Niðurtalning</span>
+              <span class="mode-desc">Sjá mínútur eftir</span>
+            </button>
+            <button class="timer-mode-btn selected" type="button" data-mode="ring">
+              <span class="mode-title">Soft ring</span>
+              <span class="mode-desc">Rólegur hringur</span>
+            </button>
+          </div>
           <div id="timer-pills" class="timer-pills">
             <button class="timer-pill" type="button" data-minutes="5">5 min</button>
             <button class="timer-pill" type="button" data-minutes="10">10 min</button>
@@ -787,6 +988,27 @@
       })();
       var childName = localStorage.getItem("childName") || (childSession && childSession.childName ? childSession.childName : null) || "Lesari";
       var childStorageKey = childSession && childSession.childKey ? String(childSession.childKey) : "unknown";
+      var childBooksCacheKey = childSession && childSession.familyId && childSession.childKey
+        ? "upphatt_child_books_cache_" + childSession.familyId + "_" + childSession.childKey
+        : null;
+
+      function readChildBooksCache() {
+        if (!childBooksCacheKey) return [];
+        try {
+          var raw = localStorage.getItem(childBooksCacheKey);
+          var parsed = raw ? JSON.parse(raw) : null;
+          return parsed && Array.isArray(parsed.books) ? parsed.books : [];
+        } catch (e) { return []; }
+      }
+
+      window.cacheChildBooks = function (books) {
+        if (!childBooksCacheKey || !Array.isArray(books)) return;
+        try { localStorage.setItem(childBooksCacheKey, JSON.stringify({ savedAt: Date.now(), books: books })); }
+        catch (e) { /* no-op */ }
+      };
+
+      var cachedChildBooks = readChildBooksCache();
+      if (cachedChildBooks.length && !window._firestoreBooks) window._firestoreBooks = cachedChildBooks;
 
       document.getElementById("greeting-name").textContent = childName;
 
@@ -803,6 +1025,21 @@
       var pillTitleEl = document.getElementById("pill-title");
       var pillPageEl = document.getElementById("pill-page");
       var pillArcEl = document.getElementById("pill-arc");
+
+      // Resume card refs (new hero)
+      var resumeCardEl = document.getElementById("resume-card");
+      var resumeTagEl = document.getElementById("resume-tag");
+      var resumeCoverEl = document.getElementById("resume-cover");
+      var resumeCoverFallbackEl = document.getElementById("resume-cover-fallback");
+      var resumeTitleEl = document.getElementById("resume-title");
+      var resumePageEl = document.getElementById("resume-page");
+      var resumeProgressEl = document.getElementById("resume-progress");
+      var resumePercentEl = document.getElementById("resume-percent");
+      var resumeBarFillEl = document.getElementById("resume-bar-fill");
+      var resumeTotalEl = document.getElementById("resume-total");
+
+      // Reactive glow ring (audio response amplifier)
+      var recGlowRingEl = document.getElementById("rec-glow-ring");
       var progressRingEl = document.getElementById("progress-ring");
       var progressRingFill = document.getElementById("progress-ring-fill");
       var goalToastEl = document.getElementById("goal-toast");
@@ -819,7 +1056,7 @@
       var CONNECTION_LIFETIME_MS = FROZEN_FULL_BRIGHT_MS + FROZEN_FADE_MS;
       var GOAL_STORAGE_KEY = "upphatt_monthly_goal_achieved_" + childStorageKey;
       var GOAL_VISIBLE_MS = 48 * 60 * 60 * 1000;
-      var PROGRESS_RING_CIRCUMFERENCE = 314.16;
+      var PROGRESS_RING_CIRCUMFERENCE = 392.7;
       var PILL_ARC_CIRCUMFERENCE = 100.53;
 
       // ── State ──
@@ -853,6 +1090,7 @@
       var listenAnimationRunning = false;
       var listenAnimationStartedAt = 0;
       var timerMinutes = 0;
+      var timerMode = "ring"; // "countdown" | "ring"
       var timerInterval = null;
       var timerEndMs = 0;
 
@@ -1006,19 +1244,34 @@
 
       // ── Button rendering ──
       function renderButton() {
-        var spread = 28 + glowLevel * 70;
-        var alpha = 0.25 + glowLevel * 0.40;
-        var scale = 1 + glowLevel * 0.05;
-        var auraScale = 1.02 + glowLevel * 0.36;
-        var auraOpacity = (isRecording ? 0.65 : 0.5) + glowLevel * 0.22;
+        // MAXIMUM amplified response: child reads = button EXPLODES with feedback
+        var spread = 32 + glowLevel * 160;          // was 110, now 160 = mun stærri ljósbjarmi
+        var alpha = 0.28 + glowLevel * 0.68;        // was 0.55, now 0.68 = meira saturation
+        var scale = 1 + glowLevel * 0.14;           // was 0.09, now 0.14 = mun sýnilegri pulse
+        var ringAlpha = 0.22 + glowLevel * 0.55;    // was 0.45, now 0.55
+        var auraScale = 1.02 + glowLevel * 0.70;    // was 0.50, now 0.70 = öflugri aura-stækkun
+        var auraOpacity = (isRecording ? 0.75 : 0.5) + glowLevel * 0.40;  // was 0.32, now 0.40
 
         if (buttonState !== "saving" && buttonState !== "uploading") {
           recordBtn.style.transform = "scale(" + scale + ")";
-          recordBtn.style.boxShadow = "0 0 " + spread + "px rgba(36,214,223," + alpha + "), 0 0 0 12px rgba(36,214,223,0.06)";
+          recordBtn.style.boxShadow = "0 0 " + spread + "px rgba(36,214,223," + alpha + "), 0 0 0 " + (14 + glowLevel * 20) + "px rgba(36,214,223," + ringAlpha.toFixed(3) + ")";
         }
 
         auraReactiveEl.style.transform = "translate(-50%, -50%) scale(" + auraScale + ")";
         auraReactiveEl.style.opacity = auraOpacity;
+
+        // Reactive glow ring: INTENSIFIES dramatically as the child reads louder
+        if (recGlowRingEl) {
+          if (isRecording && glowLevel > 0.02) {
+            recGlowRingEl.classList.add("active");
+            var ringScale = 1.3 + glowLevel * 1.8;  // was 1.2 + 1.4, now 1.3 + 1.8 = explodes further
+            recGlowRingEl.style.transform = "translate(-50%, -50%) scale(" + ringScale + ")";
+            recGlowRingEl.style.opacity = String(0.5 + glowLevel * 0.7);  // was 0.4 + 0.6, now 0.5 + 0.7
+          } else {
+            recGlowRingEl.classList.remove("active");
+            recGlowRingEl.style.opacity = "0";
+          }
+        }
       }
 
       function stopSettleLoop() {
@@ -1050,10 +1303,17 @@
           recordBtn.style.boxShadow = "";
         } else if (buttonState === "recording") {
           if (timerMinutes > 0) {
-            recordBtnLabel.hidden = true;
-            micMarkEl.hidden = true;
-            recordBtnCountdown.hidden = false;
             progressRingEl.classList.add("active");
+            // Show countdown text only if mode is "countdown"
+            if (timerMode === "countdown") {
+              recordBtnLabel.hidden = true;
+              micMarkEl.hidden = true;
+              recordBtnCountdown.hidden = false;
+            } else {
+              // "ring" mode: hide countdown text, show only progress ring
+              recordBtnLabel.textContent = "Stöðva";
+              recordBtnCountdown.hidden = true;
+            }
           } else {
             recordBtnLabel.textContent = "Stöðva";
             progressRingEl.classList.remove("active");
@@ -1094,14 +1354,16 @@
           if (remaining <= 0) {
             clearInterval(timerInterval);
             timerInterval = null;
-            recordBtnCountdown.textContent = "0:00";
+            if (timerMode === "countdown") recordBtnCountdown.textContent = "0:00";
             updateProgressRing(0);
             triggerHaptic([20, 40, 20]);
             playMicCue("off");
             transitionToSaving();
             return;
           }
-          recordBtnCountdown.textContent = fmtCountdown(remaining);
+          if (timerMode === "countdown") {
+            recordBtnCountdown.textContent = fmtCountdown(remaining);
+          }
           var totalSecs = timerMinutes * 60;
           var elapsed = totalSecs - remaining;
           updateProgressRing(elapsed / totalSecs);
@@ -1111,7 +1373,9 @@
       function updateTimerDisplay() {
         if (timerMinutes <= 0) return;
         var remaining = Math.max(0, Math.ceil((timerEndMs - Date.now()) / 1000));
-        recordBtnCountdown.textContent = fmtCountdown(remaining);
+        if (timerMode === "countdown") {
+          recordBtnCountdown.textContent = fmtCountdown(remaining);
+        }
         updateProgressRing(0);
       }
 
@@ -1254,15 +1518,29 @@
         }
 
         if (!activeBook) {
-          pillTitleEl.textContent = "Veldu bók";
-          pillPageEl.textContent = "Opnaðu bókahilluna";
+          var isLoadingBooks = !window._firestoreBooksLoaded && !books.length;
+          pillTitleEl.textContent = isLoadingBooks ? "Sæki bókahillu..." : "Veldu bók";
+          pillPageEl.textContent = isLoadingBooks ? "Augnablik" : "Opnaðu bókahilluna";
           setPillArc(0);
+          renderResumeCard(null, null);
+          if (isLoadingBooks) {
+            if (resumeTagEl) resumeTagEl.textContent = "Bókahilla";
+            if (resumeTitleEl) resumeTitleEl.textContent = "Sæki bókahillu...";
+            if (resumePageEl) resumePageEl.textContent = "Augnablik";
+          }
           return;
         }
 
         pillTitleEl.textContent = activeBook.title || "Bók";
 
-        var currentPage = (setup && setup.pageFrom) ? Number(setup.pageFrom) : (activeBook.currentPageTo ? Number(activeBook.currentPageTo) + 1 : Number(activeBook.currentPageFrom || 1));
+        // ── Bookmark fix ──
+        // Always prefer the REAL last-read page (currentPageTo + 1) from Firestore,
+        // not the user's last input. setup.pageFrom is only honored as a same-session
+        // hint immediately after a Save in the modal (within 5 minutes), so the page
+        // input doesn't get stuck across sessions or device reloads.
+        var realResumePage = activeBook.currentPageTo ? Number(activeBook.currentPageTo) + 1 : Number(activeBook.currentPageFrom || 1);
+        var setupIsFresh = setup && setup.bookId === activeBook.id && setup.pageFrom && setup.savedAt && (Date.now() - Number(setup.savedAt) < 5 * 60 * 1000);
+        var currentPage = setupIsFresh ? Number(setup.pageFrom) : realResumePage;
         var totalPages = Number(activeBook.totalPages || 0);
 
         if (totalPages > 0) {
@@ -1278,6 +1556,106 @@
         if (setup && typeof setup.timerMinutes === "number") {
           timerMinutes = setup.timerMinutes;
         }
+        if (setup && setup.timerMode) {
+          timerMode = setup.timerMode;
+        }
+
+        renderResumeCard(activeBook, { currentPage: currentPage, totalPages: totalPages, pct: pct });
+      }
+
+      // ── Resume card (hero) renderer ──
+      function makeCoverFallback(title) {
+        if (!title) return "Bók";
+        var trimmed = String(title).trim();
+        if (trimmed.length <= 10) return trimmed;
+        // Split on spaces, try to balance two lines
+        var words = trimmed.split(/\s+/);
+        if (words.length === 1) return trimmed.slice(0, 10);
+        var line1 = words[0];
+        var line2 = words.slice(1).join(" ");
+        return line1 + "\n" + line2;
+      }
+
+      // Stable palette of cover gradients used when book has no coverUrl
+      var COVER_PALETTES = [
+        "linear-gradient(135deg, #5a2d6b, #3d1a52)",  // purple
+        "linear-gradient(135deg, #1a3d5f, #0f4a52)",  // teal-blue
+        "linear-gradient(135deg, #d96d8a, #a13d5e)",  // rose
+        "linear-gradient(135deg, #4eb29b, #1f6b5f)",  // emerald
+        "linear-gradient(135deg, #e6a04e, #a06420)",  // amber
+        "linear-gradient(135deg, #6274aa, #3d4a72)"   // indigo
+      ];
+      function pickCoverPalette(book) {
+        if (!book) return COVER_PALETTES[0];
+        var key = String(book.id || book.title || "x");
+        var hash = 0;
+        for (var i = 0; i < key.length; i++) hash = (hash * 31 + key.charCodeAt(i)) | 0;
+        return COVER_PALETTES[Math.abs(hash) % COVER_PALETTES.length];
+      }
+
+      function renderResumeCard(book, info) {
+        if (!resumeCardEl) return;
+
+        if (!book) {
+          resumeCardEl.classList.add("empty");
+          if (resumeTagEl) resumeTagEl.textContent = "Veldu bók";
+          if (resumeTitleEl) resumeTitleEl.textContent = "Veldu bók";
+          if (resumePageEl) resumePageEl.textContent = "Opnaðu bókahilluna";
+          if (resumeCoverEl) resumeCoverEl.hidden = true;
+          if (resumeProgressEl) resumeProgressEl.hidden = true;
+          return;
+        }
+
+        resumeCardEl.classList.remove("empty");
+        if (resumeTagEl) resumeTagEl.textContent = "Þú varst hér síðast";
+
+        if (resumeTitleEl) resumeTitleEl.textContent = book.title || "Bók";
+
+        // Page display
+        if (resumePageEl) {
+          var pageHTML = "Þú átt að byrja á <strong>bls. " + info.currentPage + "</strong>";
+          resumePageEl.innerHTML = pageHTML;
+        }
+
+        // Cover: image if available, otherwise styled fallback with title
+        if (resumeCoverEl) {
+          resumeCoverEl.hidden = false;
+          resumeCoverEl.style.background = pickCoverPalette(book);
+
+          // Remove any previous <img> we added
+          var existingImg = resumeCoverEl.querySelector(".resume-cover-img");
+          if (existingImg) existingImg.remove();
+
+          var coverUrl = book.coverUrl || book.coverImage || book.imagePath || book.imageUrl || null;
+          if (coverUrl) {
+            var img = document.createElement("img");
+            img.className = "resume-cover-img";
+            img.src = coverUrl;
+            img.alt = "";
+            img.loading = "lazy";
+            img.onerror = function () { img.remove(); };
+            resumeCoverEl.insertBefore(img, resumeCoverEl.firstChild);
+            if (resumeCoverFallbackEl) resumeCoverFallbackEl.style.opacity = "0";
+          } else if (resumeCoverFallbackEl) {
+            resumeCoverFallbackEl.style.opacity = "1";
+            // \n in textContent renders as line break thanks to white-space: pre-line if needed
+            // We use innerHTML with <br> for simplicity
+            var label = makeCoverFallback(book.title);
+            resumeCoverFallbackEl.innerHTML = label.replace(/\n/g, "<br>");
+          }
+        }
+
+        // Progress bar
+        if (resumeProgressEl) {
+          if (info.totalPages > 0) {
+            resumeProgressEl.hidden = false;
+            if (resumePercentEl) resumePercentEl.textContent = info.pct + "%";
+            if (resumeBarFillEl) resumeBarFillEl.style.width = Math.min(100, info.pct) + "%";
+            if (resumeTotalEl) resumeTotalEl.textContent = info.totalPages + " bls.";
+          } else {
+            resumeProgressEl.hidden = true;
+          }
+        }
       }
 
       function setPillArc(pct) {
@@ -1289,13 +1667,45 @@
         openChildReadingModal();
       });
 
+      // Resume card opens the same modal
+      if (resumeCardEl) {
+        resumeCardEl.addEventListener("click", function () {
+          openChildReadingModal();
+        });
+      }
+
       window._onFirestoreBooksReady = function () {
         renderBookPill();
         populateChildBookListFromBookshelf();
         checkMonthlyGoal();
       };
 
-      // ── Monthly goal ──
+      // ── Monthly goal toast (fade in, hold, fade out) ──
+      var goalToastTimer = null;
+      var goalToastHideTimer = null;
+
+      function showGoalToast(text, kind) {
+        if (!goalToastEl) return;
+        if (goalToastText) goalToastText.textContent = text;
+        goalToastEl.classList.remove("teal");
+        if (kind === "teal") goalToastEl.classList.add("teal");
+        goalToastEl.hidden = false;
+        // Force reflow so transition triggers
+        void goalToastEl.offsetWidth;
+        goalToastEl.classList.add("show");
+
+        if (goalToastTimer) clearTimeout(goalToastTimer);
+        if (goalToastHideTimer) clearTimeout(goalToastHideTimer);
+        goalToastTimer = setTimeout(function () {
+          goalToastEl.classList.remove("show");
+          goalToastHideTimer = setTimeout(function () {
+            goalToastEl.hidden = true;
+          }, 700);
+        }, 5000);
+      }
+      // Expose for other goals (streaks, personal bests, etc.) to call
+      window.showGoalToast = showGoalToast;
+
       function checkMonthlyGoal() {
         if (!goalToastEl) return;
         var books = window._firestoreBooks || [];
@@ -1318,14 +1728,9 @@
             achievedAt = now;
           }
           if (now - achievedAt < GOAL_VISIBLE_MS) {
-            goalToastEl.hidden = false;
-            goalToastText.textContent = finishedThisMonth + "/" + goalTarget + " bækur lesnar!";
-            var age = now - achievedAt;
-            goalToastEl.style.opacity = String(Math.max(0.4, 1 - (age / GOAL_VISIBLE_MS) * 0.6));
-            return;
+            showGoalToast(finishedThisMonth + "/" + goalTarget + " bækur lesnar!");
           }
         }
-        goalToastEl.hidden = true;
       }
 
       // ── Home button ──
@@ -1465,6 +1870,19 @@
       var timerPills = Array.prototype.slice.call(timerPillsContainer.querySelectorAll(".timer-pill"));
       var selectedTimerMinutes = 0;
 
+      // Timer mode toggle
+      var timerModeToggle = document.getElementById("timer-mode-toggle");
+      var timerModeBtns = timerModeToggle ? Array.prototype.slice.call(timerModeToggle.querySelectorAll(".timer-mode-btn")) : [];
+      var selectedTimerMode = "ring"; // default
+
+      timerModeBtns.forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          timerModeBtns.forEach(function (b) { b.classList.remove("selected"); });
+          btn.classList.add("selected");
+          selectedTimerMode = btn.getAttribute("data-mode") || "ring";
+        });
+      });
+
       // Timer pill clicks
       timerPills.forEach(function (pill) {
         pill.addEventListener("click", function () {
@@ -1515,7 +1933,8 @@
           return {
             id: String(b.id), title: String(b.title), status: b.status || "shelf",
             progressPercent: Number(b.progressPercent || 0), totalPages: Number(b.totalPages || 0),
-            pageFrom: b.currentPageFrom || "", pageTo: b.currentPageTo || ""
+            pageFrom: b.currentPageFrom || "", pageTo: b.currentPageTo || "",
+            coverUrl: b.coverUrl || b.coverImage || b.imagePath || b.imageUrl || null
           };
         });
       }
@@ -1592,6 +2011,13 @@
                 p.classList.toggle("selected", parseInt(p.getAttribute("data-minutes"), 10) === selectedTimerMinutes);
               });
             }
+            // Restore timer mode selection
+            if (setup.timerMode) {
+              selectedTimerMode = setup.timerMode;
+              timerModeBtns.forEach(function (b) {
+                b.classList.toggle("selected", b.getAttribute("data-mode") === selectedTimerMode);
+              });
+            }
           }
         } catch (e) { /* no-op */ }
 
@@ -1635,12 +2061,15 @@
             pageFrom: childPageFrom ? childPageFrom.value.trim() : "",
             pageTo: "",
             timerMinutes: selectedTimerMinutes,
-            updatedAt: Date.now()
+            timerMode: selectedTimerMode,
+            updatedAt: Date.now(),
+            savedAt: Date.now()
           };
 
           try { localStorage.setItem(getChildReadingSetupKey(), JSON.stringify(setup)); } catch (e) { /* no-op */ }
 
           timerMinutes = selectedTimerMinutes;
+          timerMode = selectedTimerMode;
           renderBookPill();
 
           if (childReadingResult) childReadingResult.classList.add("show");
@@ -1926,6 +2355,11 @@
             const booksQ = query(collection(db, 'books'), where('familyId', '==', ch.familyId), where('childKey', '==', ch.childKey));
             onSnapshot(booksQ, snap => {
               window._firestoreBooks = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+              if (window.cacheChildBooks) window.cacheChildBooks(window._firestoreBooks);
+              window._firestoreBooksLoaded = true;
+              if (window._onFirestoreBooksReady) window._onFirestoreBooksReady();
+            }, e => {
+              console.warn('Books listener failed:', e);
               window._firestoreBooksLoaded = true;
               if (window._onFirestoreBooksReady) window._onFirestoreBooksReady();
             });

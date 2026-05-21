@@ -1105,6 +1105,11 @@ window._onChildAdded = function() {
      Engin parent-view.js dependency
      ═══════════════════════════════════ -->
 <script type="module">
+/* ── Block parent-view.js rendering via window stubs ── 
+   parent-view.js checks window.renderDashboard before its own.
+   These get called by startFamilyListener/startBooksListener
+   but do nothing — our listeners and render take over. ── */
+
 const authMod  = await import('./js/auth.js').catch(e => { console.error('auth.js:', e); return {}; });
 const stateMod = await import('./js/state.js').catch(e => { console.error('state.js:', e); return { S: {} }; });
 const fbMod    = await import('./js/firebase-config.js').catch(e => { console.error('firebase-config:', e); return {}; });
@@ -1119,7 +1124,9 @@ console.log('📦 Loaded:', { auth: !!initAuth, S: !!S, db: !!db });
 window.goTo = function(screenId) {
   if (screenId === 'screen-parent-home') {
     go('today');
-    startListeners();
+    /* parent-view.js listeners fylla S.sessions og S.books
+       Við watchum S og renderum okkar leið */
+    startWatching();
   } else if (screenId === 'screen-child-login' || screenId === 'screen-parent-login') {
     window.location.href = 'index.html';
   }
@@ -1131,31 +1138,39 @@ if (closeAddChildPopup) window.closeAddChildPopup = closeAddChildPopup;
 if (logout) { window.logout = logout; window.parentLogout = logout; }
 
 /* ══════════════════════════════════════
-   FIREBASE LISTENERS
+   WATCH S — parent-view.js listeners fylla
+   S.sessions og S.books. Við watchum breytingar
+   og renderum okkar leið.
    ══════════════════════════════════════ */
-let _famUnsub = null;
-let _booksUnsub = null;
+let _lastSessionCount = -1;
+let _lastBookCount = -1;
+let _watching = false;
 
-function startListeners() {
-  if (!S.familyId || !db) { console.warn('Engin familyId eða db'); return; }
-  console.log('🔥 Starting listeners for:', S.familyId);
+function startWatching() {
+  if (_watching) return;
+  _watching = true;
+  console.log('👀 Watching S for changes...');
+  checkS();
+}
 
-  if (_famUnsub) _famUnsub();
-  const sq = query(collection(db, 'sessions'), where('familyId', '==', S.familyId));
-  _famUnsub = onSnapshot(sq, snap => {
-    S.sessions = snap.docs.map(d => ({ _docId: d.id, ...d.data() })).sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
-    console.log('📊 Sessions:', S.sessions.length);
-    render();
-  });
+function checkS() {
+  if (!_watching) return;
+  const sc = (S.sessions || []).length;
+  const bc = (S.books || []).length;
+  const cc = (S.parentChildren || []).length;
 
-  if (_booksUnsub) _booksUnsub();
-  const bq = query(collection(db, 'books'), where('familyId', '==', S.familyId));
-  _booksUnsub = onSnapshot(bq, snap => {
-    S.books = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    console.log('📚 Books:', S.books.length);
+  if (sc !== _lastSessionCount || bc !== _lastBookCount) {
+    _lastSessionCount = sc;
+    _lastBookCount = bc;
+    console.log('🔄 S changed — sessions:', sc, 'books:', bc);
     saveTotalPagesRead();
     render();
-  });
+  }
+
+  _childCount = cc;
+  checkEmptyState();
+
+  requestAnimationFrame(checkS);
 }
 
 /* ══════════════════════════════════════

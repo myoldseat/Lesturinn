@@ -397,8 +397,21 @@ button{font:inherit;cursor:pointer;border:0;background:none;color:inherit}a{colo
   </div>
   <div id="pageWppDisplay" style="font-size:13px;color:#c8d8e8"></div>
 </div>
+<!-- Birtist ef needsReview eða confidence != high -->
+<div id="pageReviewWarning" style="display:none;background:rgba(255,180,0,.08);border:1px solid rgba(255,180,0,.25);border-radius:10px;padding:10px 12px;margin:6px 0;font-size:12px;color:#f0c060;line-height:1.4">
+  Við erum ekki alveg viss um þessa tölu. Prófaðu að taka aðra mynd — eða sláðu inn fjöldann handvirkt.
+</div>
+<!-- Handtalið -->
+<div id="pageManualEntry" style="display:none;margin:6px 0">
+  <div style="font-size:11px;color:#7a8fa0;margin-bottom:4px">Orð á síðu (handtalið)</div>
+  <div style="display:flex;gap:8px;align-items:center">
+    <input id="pageManualCount" type="number" inputmode="numeric" min="1" max="600" placeholder="t.d. 43" style="flex:1;padding:6px 10px;border-radius:8px;border:1px solid rgba(29,205,211,.3);background:rgba(29,205,211,.05);color:#e4edf5;font-size:14px">
+    <button class="dialog-btn" style="flex:0 0 auto;padding:6px 14px;margin:0" onclick="applyManualCount()">Nota</button>
+  </div>
+</div>
 <input id="pageInput" type="file" accept="image/*" style="display:none">
 <button class="dialog-btn" id="takePagePhotoBtn" onclick="triggerPagePhoto()">📷 Taka mynd af síðu</button>
+<button class="dialog-btn secondary" id="retryPagePhotoBtn" style="display:none" onclick="retryPagePhoto()">📷 Taka aðra mynd</button>
 <button class="dialog-btn" id="saveBookAfterAnalysis" style="display:none" onclick="_doSaveBook()">Vista bók</button>
 <button class="dialog-btn secondary" id="skipPagePhotoBtn" onclick="skipPagePhoto()">Sleppa — áætla sjálfkrafa</button>
 <div id="skipPageInfo" style="font-size:11px;color:#5a7088;text-align:center;margin-top:6px;display:none"></div>
@@ -1514,18 +1527,30 @@ document.getElementById('pageInput').addEventListener('change', async e => {
       method: info.method || 'exact_transcription',
       readingLoadKey: info.readingLoadKey,
       readingLoadLabel: info.readingLoadLabel,
-      wordCountSource: 'gemini'
+      wordCountSource: info.wordCountSource || 'gemini_hybrid'
     };
 
+    const needsReview = info.needsReview || info.confidenceLevel !== 'high';
     const estimateTag = _pageAnalysis.isEstimate ? ' (áætlað)' : '';
     document.getElementById('pageDifficultyBadge').textContent = (_pageAnalysis.readingLoadLabel || 'Les') + estimateTag;
     document.getElementById('pageWppDisplay').textContent = 'Um ' + _pageAnalysis.wordsPerPage + ' orð á síðu · ' + (_pageAnalysis.method === 'exact_transcription' ? 'nákvæm talning' : 'áætlað');
     document.getElementById('pageAnalysisResult').style.display = '';
 
-    /* Fela takePagePhotoBtn og sleppa — sýna Vista takka */
-    document.getElementById('takePagePhotoBtn').style.display = 'none';
-    document.getElementById('skipPagePhotoBtn').style.display = 'none';
-    document.getElementById('saveBookAfterAnalysis').style.display = '';
+    if (needsReview) {
+      document.getElementById('pageReviewWarning').style.display = '';
+      document.getElementById('pageManualEntry').style.display = '';
+      document.getElementById('retryPagePhotoBtn').style.display = '';
+      document.getElementById('takePagePhotoBtn').style.display = 'none';
+      document.getElementById('skipPagePhotoBtn').style.display = 'none';
+      document.getElementById('saveBookAfterAnalysis').style.display = '';
+    } else {
+      document.getElementById('pageReviewWarning').style.display = 'none';
+      document.getElementById('pageManualEntry').style.display = 'none';
+      document.getElementById('retryPagePhotoBtn').style.display = 'none';
+      document.getElementById('takePagePhotoBtn').style.display = 'none';
+      document.getElementById('skipPagePhotoBtn').style.display = 'none';
+      document.getElementById('saveBookAfterAnalysis').style.display = '';
+    }
 
   } catch(e) {
     console.warn('Page analysis failed:', e);
@@ -1546,6 +1571,40 @@ document.getElementById('pageInput').addEventListener('change', async e => {
   }
 });
 
+window.retryPagePhoto = function() {
+  document.getElementById('pageImgPreview').style.display = 'none';
+  document.getElementById('pageAnalysisResult').style.display = 'none';
+  document.getElementById('pageReviewWarning').style.display = 'none';
+  document.getElementById('pageManualEntry').style.display = 'none';
+  document.getElementById('retryPagePhotoBtn').style.display = 'none';
+  document.getElementById('saveBookAfterAnalysis').style.display = 'none';
+  document.getElementById('takePagePhotoBtn').style.display = '';
+  document.getElementById('skipPagePhotoBtn').style.display = '';
+  document.getElementById('pageInput').value = '';
+  _pageAnalysis = null;
+};
+
+window.applyManualCount = function() {
+  const val = parseInt(document.getElementById('pageManualCount').value);
+  if (!val || val < 1) return;
+  const pages = Number(document.getElementById('bookPages').value || 0);
+  const cl = classifyReadingLoad(val, pages);
+  _pageAnalysis = {
+    wordsPerPage: val,
+    isEstimate: false,
+    confidenceLevel: 'high',
+    method: 'manual',
+    readingLoadKey: cl.readingLoadKey,
+    readingLoadLabel: cl.readingLoadLabel,
+    wordCountSource: 'manual'
+  };
+  document.getElementById('pageDifficultyBadge').textContent = cl.readingLoadLabel;
+  document.getElementById('pageWppDisplay').textContent = val + ' orð á síðu · handtalið';
+  document.getElementById('pageReviewWarning').style.display = 'none';
+  document.getElementById('pageManualEntry').style.display = 'none';
+  document.getElementById('retryPagePhotoBtn').style.display = 'none';
+  document.getElementById('saveBookAfterAnalysis').style.display = '';
+};
 window.skipPagePhoto = function() {
   _pageAnalysis = null;
   const pages = Number(document.getElementById('bookPages').value || 0);
@@ -1586,7 +1645,7 @@ window._doSaveBook = async function _doSaveBook() {
       isEstimate: _pageAnalysis.isEstimate || false,
       confidenceLevel: _pageAnalysis.confidenceLevel || 'medium',
       method: _pageAnalysis.method || 'exact_transcription',
-      wordCountSource: 'gemini'
+      wordCountSource: _pageAnalysis.wordCountSource || 'gemini_hybrid'
     };
   } else {
     /* Fallback — engin Gemini greining */
@@ -1707,6 +1766,9 @@ document.getElementById('saveBook').addEventListener('click', async () => {
   _pageAnalysis = null;
   document.getElementById('pageImgPreview').style.display = 'none';
   document.getElementById('pageAnalysisResult').style.display = 'none';
+  document.getElementById('pageReviewWarning').style.display = 'none';
+  document.getElementById('pageManualEntry').style.display = 'none';
+  document.getElementById('retryPagePhotoBtn').style.display = 'none';
   document.getElementById('pageInput').value = '';
   document.getElementById('takePagePhotoBtn').style.display = '';
   document.getElementById('skipPagePhotoBtn').style.display = '';

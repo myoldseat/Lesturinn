@@ -628,7 +628,7 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
       </div>
 
       <!-- Progress pill — dynamic based on week-over-week change -->
-      <div class="compare-row up" id="ph-progress-pill">
+      <div class="compare-row up" id="p-progress-pill">
         <div class="compare-icon">↑</div>
         <div class="compare-txt">Hefur lesið meira þessa viku</div>
       </div>
@@ -940,7 +940,7 @@ function dayTip(el, mins) {
    ═══════════════════════════════════ */
 function updateProgressPill(diff) {
   /* diff = mínútur þessa viku minus síðustu viku */
-  const pill = document.getElementById('ph-progress-pill');
+  const pill = document.getElementById('p-progress-pill');
   if (!pill) return;
   const icon = pill.querySelector('.compare-icon');
   const txt = pill.querySelector('.compare-txt');
@@ -1379,32 +1379,28 @@ function renderStats(sessions, books) {
   const today = new Date(); today.setHours(12,0,0,0);
   let dr = 0;
   for (let i = 0; i < 7; i++) { const d = new Date(today); d.setDate(today.getDate()-i); if (sessions.some(s => nd(s.date)===dk(d) && (s.seconds||0)>=60)) dr++; }
-  set('ph-stat-pages', pages);
-  set('ph-stat-books', done);
-  set('ph-stat-days', dr + ' / 7');
+  set('p-stat-pages', pages);
+  set('p-stat-books', done);
+  set('p-stat-days', dr + ' / 7');
 
-  /* Markmið ring (75% placeholder — tengist seinna við raunveruleg goals) */
+  /* Streak í stats grid */
+  let streak = 0;
+  for (let i = 0; i < 365; i++) {
+    const d = new Date(today); d.setDate(today.getDate() - i);
+    const read = sessions.some(s => nd(s.date) === dk(d) && (s.seconds||0) >= 60);
+    if (read) streak++; else if (i > 0) break;
+  }
+  set('p-stat-streak', streak);
+
+  /* Markmið ring */
   const goalPct = dr > 0 ? Math.round((dr / 7) * 100) : 0;
   const goalEl = document.querySelector('.goal-pct');
   if (goalEl) goalEl.textContent = goalPct + '%';
 
   /* Samanburður — vikuleg framvinda */
-  const compEl = document.getElementById('p-compare');
-  if (compEl) {
-    const thisWeek = weekMins(sessions, 0);
-    const lastWeek = weekMins(sessions, 1);
-    const diff = thisWeek - lastWeek;
-    if (diff > 0) {
-      compEl.parentElement.querySelector('.compare-arrow').textContent = '↑';
-      compEl.textContent = diff + ' mínútur meira en síðustu viku';
-    } else if (diff < 0) {
-      compEl.parentElement.querySelector('.compare-arrow').textContent = '↓';
-      compEl.textContent = Math.abs(diff) + ' mínútur minna en síðustu viku';
-    } else {
-      compEl.parentElement.querySelector('.compare-arrow').textContent = '→';
-      compEl.textContent = 'Svipað og síðustu viku';
-    }
-  }
+  const thisWeek = weekMins(sessions, 0);
+  const lastWeek = weekMins(sessions, 1);
+  updateProgressPill(thisWeek - lastWeek);
 }
 
 function weekMins(sessions, weeksAgo) {

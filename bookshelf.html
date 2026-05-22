@@ -1449,25 +1449,27 @@ async function handleCoverFile(file){
   }
 }
 
-/* ── Difficulty fallback ── */
-function calcDifficulty(pages, birthYear) {
-  const age = birthYear ? (new Date().getFullYear() - parseInt(birthYear)) : null;
-  let d = 'medium';
-  if (age !== null) {
-    if (age < 9)  d = 'light';
-    else if (age < 12) d = 'medium';
-    else d = 'heavy';
-  }
-  /* Blaðsíður geta hnekkt aldri */
-  if (pages < 80)  d = 'light';
-  if (pages > 200) d = 'heavy';
-  const wpp = { light: 80, medium: 150, heavy: 250 };
-  const labels = { light: 'Létt', medium: 'Miðlungs', heavy: 'Þungt' };
-  return { difficulty: d, wordsPerPage: wpp[d], difficultySource: 'calculated', label: labels[d] };
+/* ── classifyReadingLoad — fallback þegar Gemini er ekki til staðar ── */
+function classifyReadingLoad(wordsPerPage, totalPages) {
+  const totalWords = (wordsPerPage || 150) * (totalPages || 100);
+  const scale = [
+    { key: 'seedling', label: 'Spíra', max: 800 },
+    { key: 'growing',  label: 'Vex',   max: 3500 },
+    { key: 'reading',  label: 'Les',   max: 12000 },
+    { key: 'flowing',  label: 'Flæðir', max: 35000 },
+    { key: 'soaring',  label: 'Flýgur', max: Infinity },
+  ];
+  const entry = scale.find(s => totalWords <= s.max) || scale[scale.length - 1];
+  return {
+    totalWords,
+    readingLoadKey: entry.key,
+    readingLoadLabel: entry.label,
+    wordCountSource: 'calculated'
+  };
 }
 
 /* ── Page photo — greining með Gemini ── */
-let _pageAnalysis = null; /* {wordsPerPage, difficulty, difficultySource} */
+let _pageAnalysis = null; /* {wordsPerPage, isEstimate, confidenceLevel, method, readingLoadKey, readingLoadLabel, wordCountSource} */
 let _pendingPageGsPath = null;
 
 window.triggerPagePhoto = function() {
@@ -1496,21 +1498,26 @@ document.getElementById('pageInput').addEventListener('change', async e => {
   try {
     const compressed = await compress(file, 360, 540, 0.55);
     const base64Data = compressed.split(',')[1];
+    const totalPages = Number(document.getElementById('bookPages').value || 0);
 
     const analyze = httpsCallable(functions, 'analyzePageText');
-    const result = await analyze({ base64: base64Data, mimeType: 'image/jpeg' });
+    const result = await analyze({ base64: base64Data, mimeType: 'image/jpeg', totalPages });
     const info = result.data;
     console.log('Page analysis:', info);
 
     _pageAnalysis = {
       wordsPerPage: info.wordsPerPage || 150,
-      difficulty: info.difficulty || 'medium',
-      difficultySource: 'gemini'
+      isEstimate: info.isEstimate || false,
+      confidenceLevel: info.confidenceLevel || 'medium',
+      method: info.method || 'exact_transcription',
+      readingLoadKey: info.readingLoadKey,
+      readingLoadLabel: info.readingLoadLabel,
+      wordCountSource: 'gemini'
     };
 
-    const labels = { light: 'Létt', medium: 'Miðlungs', heavy: 'Þungt' };
-    document.getElementById('pageDifficultyBadge').textContent = labels[_pageAnalysis.difficulty] || 'Miðlungs';
-    document.getElementById('pageWppDisplay').textContent = 'Um ' + _pageAnalysis.wordsPerPage + ' orð á síðu';
+    const estimateTag = _pageAnalysis.isEstimate ? ' (áætlað)' : '';
+    document.getElementById('pageDifficultyBadge').textContent = (_pageAnalysis.readingLoadLabel || 'Les') + estimateTag;
+    document.getElementById('pageWppDisplay').textContent = 'Um ' + _pageAnalysis.wordsPerPage + ' orð á síðu · ' + (_pageAnalysis.method === 'exact_transcription' ? 'nákvæm talning' : 'áætlað');
     document.getElementById('pageAnalysisResult').style.display = '';
 
     /* Fela takePagePhotoBtn og sleppa — sýna Vista takka */
@@ -1521,13 +1528,10 @@ document.getElementById('pageInput').addEventListener('change', async e => {
   } catch(e) {
     console.warn('Page analysis failed:', e);
     _pageAnalysis = null;
-    /* Sýna fallback og Vista takka */
-    const birthYear = CS?.birthYear || null;
     const pages = Number(document.getElementById('bookPages').value || 0);
-    const fb = calcDifficulty(pages, birthYear);
-    const labels = { light: 'Létt', medium: 'Miðlungs', heavy: 'Þungt' };
-    document.getElementById('pageDifficultyBadge').textContent = labels[fb.difficulty] + ' (áætlað)';
-    document.getElementById('pageWppDisplay').textContent = 'Um ' + fb.wordsPerPage + ' orð á síðu';
+    const fb = classifyReadingLoad(150, pages);
+    document.getElementById('pageDifficultyBadge').textContent = fb.readingLoadLabel + ' (áætlað)';
+    document.getElementById('pageWppDisplay').textContent = 'Um 150 orð á síðu · áætlað';
     document.getElementById('pageAnalysisResult').style.display = '';
     document.getElementById('takePagePhotoBtn').style.display = 'none';
     document.getElementById('skipPagePhotoBtn').style.display = 'none';
@@ -1543,11 +1547,9 @@ document.getElementById('pageInput').addEventListener('change', async e => {
 window.skipPagePhoto = function() {
   _pageAnalysis = null;
   const pages = Number(document.getElementById('bookPages').value || 0);
-  const birthYear = CS?.birthYear || null;
-  const fb = calcDifficulty(pages, birthYear);
-  const labels = { light: 'Létt', medium: 'Miðlungs', heavy: 'Þungt' };
-  document.getElementById('pageDifficultyBadge').textContent = labels[fb.difficulty] + ' (áætlað)';
-  document.getElementById('pageWppDisplay').textContent = 'Um ' + fb.wordsPerPage + ' orð á síðu';
+  const fb = classifyReadingLoad(150, pages);
+  document.getElementById('pageDifficultyBadge').textContent = fb.readingLoadLabel + ' (áætlað)';
+  document.getElementById('pageWppDisplay').textContent = 'Um 150 orð á síðu · áætlað';
   document.getElementById('pageAnalysisResult').style.display = '';
   document.getElementById('takePagePhotoBtn').style.display = 'none';
   document.getElementById('skipPagePhotoBtn').style.display = 'none';
@@ -1556,7 +1558,7 @@ window.skipPagePhoto = function() {
 
 let _saving = false;
 
-async function _doSaveBook() {
+window._doSaveBook = async function _doSaveBook() {
   if (_saving) return;
   _saving = true;
   const btn = document.getElementById('saveBook');
@@ -1569,10 +1571,36 @@ async function _doSaveBook() {
   const pals = [['#2b8f91','#0a2341'],['#23814b','#0d2b23'],['#7c23df','#1d1537'],['#c4523a','#2a1418'],['#3a7bd5','#0f1f3d'],['#d4a03c','#2b1e0e']];
   const pk = pals[Math.floor(Math.random() * pals.length)];
 
-  /* Þyngd — Gemini eða fallback */
-  const birthYear = CS?.birthYear || null;
-  const diffData = _pageAnalysis || calcDifficulty(pages, birthYear);
-  console.log('💾 _doSaveBook — diffData:', diffData);
+  /* readingLoad — Gemini eða fallback */
+  let loadData;
+  if (_pageAnalysis) {
+    /* Gemini skilaði wordsPerPage — við reiknum readingLoad */
+    const cl = classifyReadingLoad(_pageAnalysis.wordsPerPage, pages);
+    loadData = {
+      wordsPerPage: _pageAnalysis.wordsPerPage,
+      totalWords: cl.totalWords,
+      readingLoadKey: _pageAnalysis.readingLoadKey || cl.readingLoadKey,
+      readingLoadLabel: _pageAnalysis.readingLoadLabel || cl.readingLoadLabel,
+      isEstimate: _pageAnalysis.isEstimate || false,
+      confidenceLevel: _pageAnalysis.confidenceLevel || 'medium',
+      method: _pageAnalysis.method || 'exact_transcription',
+      wordCountSource: 'gemini'
+    };
+  } else {
+    /* Fallback — engin Gemini greining */
+    const cl = classifyReadingLoad(150, pages);
+    loadData = {
+      wordsPerPage: 150,
+      totalWords: cl.totalWords,
+      readingLoadKey: cl.readingLoadKey,
+      readingLoadLabel: cl.readingLoadLabel,
+      isEstimate: true,
+      confidenceLevel: 'low',
+      method: 'line_sampling_estimate',
+      wordCountSource: 'calculated'
+    };
+  }
+  console.log('💾 _doSaveBook — loadData:', loadData);
 
   const d = {
     familyId: FID, childKey: CK, childName: CN,
@@ -1584,10 +1612,14 @@ async function _doSaveBook() {
     c1: curCov ? null : pk[0], c2: curCov ? null : pk[1],
     note: st === 'reading' ? 'Bókin er tilbúin til að byrja að lesa.' : null,
     lastReadAt: null, journeyEntries: [],
-    /* Nýtt — þyngd og orðafjöldi */
-    wordsPerPage: diffData.wordsPerPage,
-    difficulty: diffData.difficulty,
-    difficultySource: diffData.difficultySource,
+    /* readingLoad */
+    wordsPerPage: loadData.wordsPerPage,
+    totalWords: loadData.totalWords,
+    readingLoadKey: loadData.readingLoadKey,
+    readingLoadLabel: loadData.readingLoadLabel,
+    isEstimate: loadData.isEstimate,
+    confidenceLevel: loadData.confidenceLevel,
+    wordCountSource: loadData.wordCountSource,
     createdAt: now, updatedAt: now
   };
 
@@ -1662,12 +1694,11 @@ document.getElementById('saveBook').addEventListener('click', async () => {
   if (!title) { alert('Settu inn nafn bókar.'); return; }
   if (!pages || pages < 1) { alert('Settu inn blaðsíðufjölda.'); return; }
 
-  /* Reikna fallback þyngd til að sýna í skip-texta */
+  /* Reikna fallback til að sýna í skip-texta */
   const birthYear = CS?.birthYear || null;
-  const fb = calcDifficulty(pages, birthYear);
-  const labels = { light: 'Létt', medium: 'Miðlungs', heavy: 'Þungt' };
+  const fb = classifyReadingLoad(150, pages);
   document.getElementById('skipPageInfo').textContent =
-    'Áætlað: ' + labels[fb.difficulty] + ' · ~' + fb.wordsPerPage + ' orð/síðu';
+    'Áætlað: ' + fb.readingLoadLabel + ' · ~150 orð/síðu';
   document.getElementById('skipPageInfo').style.display = '';
 
   /* Fara í síðumynd-step */
@@ -1799,8 +1830,8 @@ document.getElementById('openAdd').addEventListener('click',openAddM);
 if(location.hash==='#add')setTimeout(openAddM,120);
 document.getElementById('closeAdd').addEventListener('click',()=>{resetF();closeOv('addModal')});
 document.getElementById('closeAdd2').addEventListener('click',()=>{resetF();closeOv('addModal')});
-document.getElementById('backToCamera').addEventListener('click',()=>{closeOv('addModal');resetF();setTimeout(()=>document.getElementById('coverInput').click(),200)});
-document.getElementById('addAnotherBook').addEventListener('click',()=>{closeOv('addModal');resetF();setTimeout(()=>document.getElementById('coverInput').click(),200)});
+document.getElementById('backToCamera').addEventListener('click',()=>{ resetF(); });
+document.getElementById('addAnotherBook').addEventListener('click',()=>{ closeOv('addModal'); resetF(); openAddM(); });
 document.getElementById('goToBookshelf').addEventListener('click',()=>{resetF();closeOv('addModal')});
 document.getElementById('closeJourney').addEventListener('click',()=>closeOv('journeyModal'));
 document.getElementById('closeJourney2').addEventListener('click',()=>closeOv('journeyModal'));

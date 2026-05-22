@@ -1487,18 +1487,13 @@ document.getElementById('pageInput').addEventListener('change', async e => {
   try {
     /* Þjappa — Gemini les texta vel á lágri upplausn */
     const compressed = await compress(file, 360, 540, 0.55);
-    /* Senda base64 beint — engin Storage round-trip */
     const base64Data = compressed.split(',')[1];
 
-    document.getElementById('pageAnalysisStatus').textContent = '🔍 Greini textann...';
-    document.getElementById('pageAnalysisResult').style.display = 'none';
-    document.getElementById('takePagePhotoBtn').disabled = true;
-
-    try {
-      const analyze = httpsCallable(functions, 'analyzePageText');
-      const result = await analyze({ base64: base64Data, mimeType: 'image/jpeg' });
-      const info = result.data;
-      console.log('Page analysis:', info);
+    /* Kalla Gemini beint með base64 — engin Storage round-trip */
+    const analyze = httpsCallable(functions, 'analyzePageText');
+    const result = await analyze({ base64: base64Data, mimeType: 'image/jpeg' });
+    const info = result.data;
+    console.log('Page analysis:', info);
 
     _pageAnalysis = {
       wordsPerPage: info.wordsPerPage || 150,

@@ -1042,8 +1042,9 @@ function recTab(el) {
    JOURNEY REPLY
    ═══════════════════════════════════ */
 function openReply(btn) {
-  const entry = btn.closest('.jn-entry');
-  const reply = entry.querySelector('.jn-reply');
+  /* Leita að næsta jn-reply innan sama bubble eða foreldra-container */
+  const bubble = btn.closest('.jn-bubble') || btn.closest('[style*="display:flex"]');
+  const reply = bubble ? bubble.querySelector('.jn-reply') : null;
   if (reply) {
     reply.style.display = 'flex';
     btn.style.display = 'none';
@@ -1061,7 +1062,6 @@ function sendReply(btn) {
   const now = new Date();
   const ts = now.getHours() + ':' + String(now.getMinutes()).padStart(2,'0');
 
-  /* Finna foreldranafn */
   const parentName = S.parentEmail ? S.parentEmail.split('@')[0] : 'Þú';
   const initials = parentName.slice(0,2).toUpperCase();
 
@@ -1075,19 +1075,27 @@ function sendReply(btn) {
       <div class="jn-bubble-text">${text.replace(/</g,'&lt;')}</div>
     </div>`;
 
-  /* Setja bubble á eftir þeirri .jn-bubble sem reply tilheyrir */
-  const parentBubbleWrap = reply.closest('[style*="display:flex"]') || reply.closest('.jn-bubble')?.parentElement;
-  if (parentBubbleWrap) {
-    parentBubbleWrap.after(bubble);
+  /* Finna rétta foreldra-row — þ.e. flex-row sem inniheldur reply */
+  /* Chat rows eru display:flex divs með avatar + bubble */
+  let insertAfter = null;
+  let el = reply.parentElement;
+  while (el) {
+    if (el.style && el.style.display === 'flex' && el.querySelector('.jn-av')) {
+      insertAfter = el;
+      break;
+    }
+    el = el.parentElement;
+  }
+
+  if (insertAfter) {
+    insertAfter.after(bubble);
   } else {
-    /* Fallback — setja í feed */
-    const feed = document.getElementById('jm-feed');
+    /* Fallback — setja í næsta feed container */
+    const feed = document.getElementById('jm-feed') || document.getElementById('p-journey-card');
     if (feed) feed.appendChild(bubble);
   }
 
-  /* Fela reply input */
   reply.style.display = 'none';
-
   toast('Sent ✓');
 }
 
@@ -1537,6 +1545,19 @@ function renderJourneyPreview(sessions, books) {
   const famText = lastReaction?.text || lastReaction?.comment || lastReaction?.message || lastReaction?.body || (typeof lastReaction === 'string' ? lastReaction : '');
   const famTs = lastReaction?.date || lastReaction?.createdAt || lastReaction?.ts || lastReaction?.time || '';
 
+  /* Snið timestamp ef það er tala */
+  function fmtReactionTs(v) {
+    if (!v) return '';
+    if (typeof v === 'number' || (typeof v === 'string' && /^\d{10,}$/.test(v))) {
+      const d = new Date(typeof v === 'string' ? parseInt(v) : v);
+      return d.getHours() + ':' + String(d.getMinutes()).padStart(2,'0');
+    }
+    if (v?.toMillis) { const d = new Date(v.toMillis()); return d.getHours() + ':' + String(d.getMinutes()).padStart(2,'0'); }
+    if (v?.seconds)  { const d = new Date(v.seconds*1000); return d.getHours() + ':' + String(d.getMinutes()).padStart(2,'0'); }
+    return String(v);
+  }
+  const famTsFormatted = fmtReactionTs(famTs);
+
   let html = `<div class="crd-head" style="margin-bottom:10px"><span class="crd-lbl">Ferðalag</span><span class="crd-act">Meira ›</span></div>`;
 
   /* Child bubble */
@@ -1554,7 +1575,7 @@ function renderJourneyPreview(sessions, books) {
     html += `<div style="display:flex;gap:8px;align-items:flex-start">
       <div style="flex:0 0 26px;width:26px;height:26px;border-radius:50%;background:rgba(148,164,180,.15);border:1px solid rgba(148,164,180,.2);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;color:#8aa0b4;margin-top:1px">${famInitials}</div>
       <div style="flex:1;background:rgba(148,164,180,.05);border:1px solid rgba(148,164,180,.1);border-radius:10px;padding:7px 10px;min-width:0">
-        <div style="font-size:10px;font-weight:600;color:#8aa0b4;margin-bottom:3px">${esc(famName)} <span style="font-weight:400;color:var(--muted)">${esc(famTs)}</span></div>
+        <div style="font-size:10px;font-weight:600;color:#8aa0b4;margin-bottom:3px">${esc(famName)} <span style="font-weight:400;color:var(--muted)">${famTsFormatted}</span></div>
         <div style="font-size:13px;color:var(--text-bright);line-height:1.3">${esc(famText)}</div>
       </div>
     </div>`;
@@ -1639,7 +1660,17 @@ function renderJourney(books) {
     reactions.forEach((r, ri) => {
       const rName = typeof r === 'string' ? '' : (r.name || r.author || r.parentName || r.from || '');
       const rText = typeof r === 'string' ? r : (r.text || r.comment || r.message || r.body || '');
-      const rTs = typeof r === 'object' ? (r.date || r.createdAt || r.ts || r.time || '') : '';
+      const rTsRaw = typeof r === 'object' ? (r.date || r.createdAt || r.ts || r.time || '') : '';
+      /* Snið timestamp */
+      let rTs = '';
+      if (rTsRaw) {
+        if (typeof rTsRaw === 'number' || (typeof rTsRaw === 'string' && /^\d{10,}$/.test(rTsRaw))) {
+          const d = new Date(typeof rTsRaw === 'string' ? parseInt(rTsRaw) : rTsRaw);
+          rTs = d.getHours() + ':' + String(d.getMinutes()).padStart(2,'0');
+        } else if (rTsRaw?.toMillis) { const d = new Date(rTsRaw.toMillis()); rTs = d.getHours() + ':' + String(d.getMinutes()).padStart(2,'0'); }
+        else if (rTsRaw?.seconds) { const d = new Date(rTsRaw.seconds*1000); rTs = d.getHours() + ':' + String(d.getMinutes()).padStart(2,'0'); }
+        else rTs = String(rTsRaw);
+      }
       const rInitials = rName.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase() || '??';
       const isLast = ri === reactions.length - 1 && i === 0;
       html += `<div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:${isLast ? '0' : '6px'}">

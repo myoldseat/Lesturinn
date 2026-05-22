@@ -1485,8 +1485,8 @@ document.getElementById('pageInput').addEventListener('change', async e => {
   document.getElementById('takePagePhotoBtn').disabled = true;
 
   try {
-    /* Þjappa og hlaða upp */
-    const compressed = await compress(file, 400, 600, 0.75);
+    /* Þjappa — Gemini les texta vel á lágri upplausn */
+    const compressed = await compress(file, 360, 540, 0.55);
     const blob = base64ToBlob(compressed);
     const ts = Date.now();
     const path = 'pagescans/' + FID + '/' + CK + '/' + ts + '.jpg';

@@ -54,11 +54,12 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
   flex:0 0 auto;padding:14px 16px 10px;
   display:flex;align-items:center;justify-content:space-between;
   border-bottom:1px solid var(--border);
+  position:relative;
 }
 .brand{font-size:19px;font-weight:600;letter-spacing:-.4px;color:var(--text-bright)}
 .brand b{color:var(--accent);font-weight:600}
 .top-sub{font-size:11px;color:var(--muted);font-weight:400}
-.top-title{font-size:17px;font-weight:500;color:var(--text-bright);letter-spacing:-.2px}
+.top-title{font-size:15px;font-weight:500;color:var(--text-bright);letter-spacing:-.2px;position:absolute;left:50%;transform:translateX(-50%);white-space:nowrap}
 
 /* ── Body scroll ── */
 .bod{
@@ -458,6 +459,7 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
   <main class="scr on" data-parent-screen="today">
     <header class="top">
       <div class="brand"><b>Upp</b>Hátt</div>
+      <div class="top-title">Yfirlit</div>
       <div class="top-sub">Foreldri</div>
     </header>
     <div class="bod">
@@ -598,7 +600,7 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
        2. FERÐALAG
        ══════════════════════════════════ -->
   <section class="scr" data-parent-screen="journey">
-    <header class="top"><div class="top-title">Ferðalag</div></header>
+    <header class="top"><div class="brand"><b>Upp</b>Hátt</div><div class="top-title">Ferðalag</div><div class="top-sub"></div></header>
     <div class="bod">
       <div class="cpills" data-child-row aria-label="Veldu barn">
         <button class="cpill sel" type="button" onclick="pickChild(this,'hrafnkell')"><div class="cpill-av">HH</div><div><div class="cpill-name">Hrafnkell</div></div></button>
@@ -698,7 +700,7 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
        3. FRAMVINDA
        ══════════════════════════════════ -->
   <section class="scr" data-parent-screen="progress">
-    <header class="top"><div class="top-title">Framvinda</div></header>
+    <header class="top"><div class="brand"><b>Upp</b>Hátt</div><div class="top-title">Framvinda</div><div class="top-sub"></div></header>
     <div class="bod">
       <div class="cpills" data-child-row aria-label="Veldu barn">
         <button class="cpill sel" type="button" onclick="pickChild(this,'hrafnkell')"><div class="cpill-av">HH</div><div><div class="cpill-name">Hrafnkell</div></div></button>
@@ -804,17 +806,15 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
        4. HLJÓÐ
        ══════════════════════════════════ -->
   <section class="scr" data-parent-screen="recordings">
-    <header class="top"><div class="top-title">Hljóð</div></header>
+    <header class="top"><div class="brand"><b>Upp</b>Hátt</div><div class="top-title">Hljóð</div><div class="top-sub"></div></header>
     <div class="bod">
       <div class="cpills" data-child-row aria-label="Veldu barn">
         <button class="cpill sel" type="button" onclick="pickChild(this,'hrafnkell')"><div class="cpill-av">HH</div><div><div class="cpill-name">Hrafnkell</div></div></button>
         <button class="cpill" type="button" onclick="pickChild(this,'kolbeinn')"><div class="cpill-av">KK</div><div><div class="cpill-name">Kolbeinn</div></div></button>
       </div>
 
-      <div class="crd play-crd" style="padding:14px">
-        <div class="play-btn" style="width:48px;height:48px" onclick="toast('Spilun tengist seinna')"><div class="play-tri" style="border-left-width:12px;border-top-width:8px;border-bottom-width:8px"></div></div>
-        <div class="play-info"><div class="play-t" style="font-size:14px">Fuglabúrið — kafli 6</div><div class="play-m">5 mín · í dag · 3 klippur</div></div>
-      </div>
+      <!-- Hero — renderRecordings fyllir þetta -->
+      <div id="p-rec-hero"></div>
 
       <div class="rec-tabs">
         <button class="rec-tab on" onclick="recTab(this)">Nýlegt</button>
@@ -822,27 +822,6 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
       </div>
 
       <div id="p-recordings-list" style="display:flex;flex-direction:column">
-        <div class="rec-item">
-          <div class="rec-play-sm" onclick="toast('Spila')"><div class="play-tri"></div></div>
-          <div class="rec-main"><div class="rec-t">Fuglabúrið — kafli 5</div><div class="rec-m">4 mín · í gær · 2 klippur</div></div>
-          <div class="rec-fav on" onclick="this.classList.toggle('on')">★</div>
-        </div>
-        <div class="rec-item">
-          <div class="rec-play-sm" onclick="toast('Spila')"><div class="play-tri"></div></div>
-          <div class="rec-main"><div class="rec-t">Draugar á Djúpalóni</div><div class="rec-m">7 mín · 3 dögum síðan</div></div>
-          <div class="rec-fav" onclick="this.classList.toggle('on')">★</div>
-        </div>
-        <div class="rec-item">
-          <div class="rec-play-sm" onclick="toast('Spila')"><div class="play-tri"></div></div>
-          <div class="rec-main"><div class="rec-t">Fuglabúrið — kafli 4</div><div class="rec-m">6 mín · 4 dögum síðan</div></div>
-          <div class="rec-fav" onclick="this.classList.toggle('on')">★</div>
-        </div>
-        <div class="rec-item">
-          <div class="rec-play-sm" onclick="toast('Spila')"><div class="play-tri"></div></div>
-          <div class="rec-main"><div class="rec-t">Fuglabúrið — kafli 3</div><div class="rec-m">4 mín · 5 dögum síðan</div></div>
-          <div class="rec-fav on" onclick="this.classList.toggle('on')">★</div>
-        </div>
-        <div id="ph-rec-tile-header" style="display:none"></div>
       </div>
     </div>
   </section>
@@ -852,7 +831,7 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
        5. STILLINGAR
        ══════════════════════════════════ -->
   <section class="scr" data-parent-screen="settings">
-    <header class="top"><div class="top-title">Stillingar</div></header>
+    <header class="top"><div class="brand"><b>Upp</b>Hátt</div><div class="top-title">Stillingar</div><div class="top-sub"></div></header>
     <div class="bod">
       <div class="st-sec">Aðgangur</div>
       <div class="st-group">
@@ -1078,19 +1057,37 @@ function sendReply(btn) {
   const text = input?.value?.trim();
   if (!text) return;
   input.value = '';
-  const entry = btn.closest('.jn-entry');
-  let cmtBox = entry.querySelector('.jn-cmt');
-  if (!cmtBox) {
-    cmtBox = document.createElement('div');
-    cmtBox.className = 'jn-cmt';
-    entry.querySelector('.jn-meta').after(cmtBox);
-  }
+
   const now = new Date();
   const ts = now.getHours() + ':' + String(now.getMinutes()).padStart(2,'0');
-  const item = document.createElement('div');
-  item.className = 'jn-cmt-item';
-  item.innerHTML = '<strong>Þú</strong> <span class="jn-cmt-ts">núna · ' + ts + '</span><div>' + text.replace(/</g,'&lt;') + '</div>';
-  cmtBox.appendChild(item);
+
+  /* Finna foreldranafn */
+  const parentName = S.parentEmail ? S.parentEmail.split('@')[0] : 'Þú';
+  const initials = parentName.slice(0,2).toUpperCase();
+
+  /* Búa til nýtt family bubble */
+  const bubble = document.createElement('div');
+  bubble.style.cssText = 'display:flex;gap:8px;align-items:flex-start;margin-top:6px';
+  bubble.innerHTML = `
+    <div class="jn-av jn-av-fam">${initials}</div>
+    <div class="jn-bubble jn-bubble-fam">
+      <div class="jn-bubble-name jn-bubble-name-fam">${parentName} <span class="jn-bubble-ts">${ts}</span></div>
+      <div class="jn-bubble-text">${text.replace(/</g,'&lt;')}</div>
+    </div>`;
+
+  /* Setja bubble á eftir þeirri .jn-bubble sem reply tilheyrir */
+  const parentBubbleWrap = reply.closest('[style*="display:flex"]') || reply.closest('.jn-bubble')?.parentElement;
+  if (parentBubbleWrap) {
+    parentBubbleWrap.after(bubble);
+  } else {
+    /* Fallback — setja í feed */
+    const feed = document.getElementById('jm-feed');
+    if (feed) feed.appendChild(bubble);
+  }
+
+  /* Fela reply input */
+  reply.style.display = 'none';
+
   toast('Sent ✓');
 }
 
@@ -1523,19 +1520,22 @@ function renderJourneyPreview(sessions, books) {
   const initials = childName.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
   const entries = [...hero.journeyEntries].sort((a,b) => eTs(b) - eTs(a));
 
+  /* Debug — sjá nákvæma uppbyggingu gagna */
+  if (entries.length > 0) console.log('🗒️ journeyEntry[0]:', JSON.stringify(entries[0]).slice(0, 300));
+
   /* Síðasta barnafærsla */
   const lastChild = entries[0];
   const childNote = lastChild ? (lastChild.note || lastChild.text || '') : '';
   const childMeta = lastChild ? [lastChild.pageFrom && lastChild.pageTo ? `bls. ${lastChild.pageFrom}–${lastChild.pageTo}` : '', lastChild.seconds ? Math.floor(lastChild.seconds/60)+' mín' : ''].filter(Boolean).join(' · ') : '';
   const childTs = lastChild?.date || '';
 
-  /* Síðasta fjölskyldukomment */
-  const reactions = lastChild?.reactions || [];
+  /* Síðasta fjölskyldukomment — þola mismunandi fieldnöfn */
+  const reactions = lastChild?.reactions || lastChild?.comments || lastChild?.replies || [];
   const lastReaction = reactions.length > 0 ? reactions[reactions.length - 1] : null;
-  const famName = lastReaction?.name || '';
-  const famInitials = famName.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase() || 'FF';
-  const famText = lastReaction?.text || '';
-  const famTs = lastReaction?.date || '';
+  const famName = lastReaction?.name || lastReaction?.author || lastReaction?.parentName || lastReaction?.from || '';
+  const famInitials = famName.split(' ').filter(Boolean).map(w=>w[0]).join('').slice(0,2).toUpperCase() || 'FF';
+  const famText = lastReaction?.text || lastReaction?.comment || lastReaction?.message || lastReaction?.body || (typeof lastReaction === 'string' ? lastReaction : '');
+  const famTs = lastReaction?.date || lastReaction?.createdAt || lastReaction?.ts || lastReaction?.time || '';
 
   let html = `<div class="crd-head" style="margin-bottom:10px"><span class="crd-lbl">Ferðalag</span><span class="crd-act">Meira ›</span></div>`;
 
@@ -1637,9 +1637,9 @@ function renderJourney(books) {
 
     /* Reactions sem family bubbles */
     reactions.forEach((r, ri) => {
-      const rName = typeof r === 'string' ? '' : (r.name || '');
-      const rText = typeof r === 'string' ? r : (r.text || '');
-      const rTs = typeof r === 'object' ? (r.date || '') : '';
+      const rName = typeof r === 'string' ? '' : (r.name || r.author || r.parentName || r.from || '');
+      const rText = typeof r === 'string' ? r : (r.text || r.comment || r.message || r.body || '');
+      const rTs = typeof r === 'object' ? (r.date || r.createdAt || r.ts || r.time || '') : '';
       const rInitials = rName.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase() || '??';
       const isLast = ri === reactions.length - 1 && i === 0;
       html += `<div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:${isLast ? '0' : '6px'}">
@@ -1677,62 +1677,96 @@ function eTs(e) {
   return 0;
 }
 
-/* ── Hljóð flipi — recordings úr sessions ── */
+/* ── Hljóð flipi ── */
 function renderRecordings(sessions) {
-  const el = document.getElementById('p-recordings-list');
-  if (!el) return;
-  
-  const withAudio = sessions.filter(s => s.hasAudio && (s.audioPath || s.audioPath_min1 || s.audioPath_min2 || s.audioPath_min5));
-  
+  const heroEl = document.getElementById('p-rec-hero');
+  const listEl = document.getElementById('p-recordings-list');
+  if (!listEl) return;
+
+  const withAudio = sessions.filter(s => s.hasAudio && (s.audioPath || CLIP_KEYS.some(k => s[k])));
+
   if (withAudio.length === 0) {
-    el.innerHTML = '<div style="text-align:center;padding:24px;color:var(--muted);font-size:13px">Engar upptökur enn</div>';
+    if (heroEl) heroEl.innerHTML = '';
+    listEl.innerHTML = '<div style="text-align:center;padding:24px;color:var(--muted);font-size:13px">Engar upptökur enn</div>';
     return;
   }
 
-  const books = (S.books || []).filter(b => b.childKey === _selectedChild);
+  const books = (S.books||[]).filter(b => b.childKey === _selectedChild);
 
-  el.innerHTML = withAudio.slice(0, 20).map((s, i) => {
-    const mins = Math.floor((s.seconds || 0) / 60);
-    const date = s.date ? fmtDateShort(s.date) : '';
-    const docId = s._docId || '';
-    const hasFav = s.favorites && Object.values(s.favorites).some(v => v);
-    
-    /* Finna bókaheiti — krossa við books eftir timestamp */
+  function getTitle(s) {
     const sTime = s.timestamp || 0;
-    let bookTitle = '';
     if (books.length > 0) {
-      const closest = books.filter(b => b.status === 'reading' || b.status === 'finished')
-        .sort((a, b) => Math.abs(bTs(a, 'lastReadAt') - sTime) - Math.abs(bTs(b, 'lastReadAt') - sTime))[0];
-      if (closest) bookTitle = closest.title || '';
+      const closest = books.filter(b => b.status==='reading'||b.status==='finished')
+        .sort((a,b) => Math.abs(bTs(a,'lastReadAt')-sTime)-Math.abs(bTs(b,'lastReadAt')-sTime))[0];
+      if (closest?.title) return closest.title;
     }
-    const title = bookTitle || s.title || 'Lestur';
-    
-    /* Telja clips */
-    const clipKeys = ['audioPath_min1','audioPath_min2','audioPath_min5','audioPath_min8','audioPath_min10'];
-    const clipCount = clipKeys.filter(k => s[k]).length;
-    const clipText = clipCount > 0 ? clipCount + (clipCount === 1 ? ' klippa' : ' klippur') : '';
+    return s.title || 'Lestur';
+  }
 
-    const isFirst = i === 0;
-    
-    if (isFirst) {
-      /* Hero: stór play takki fyrir nýjustu */
-      return `<div class="crd play-crd" style="padding:14px;margin-bottom:4px" data-doc="${docId}">
-        <div class="play-btn" style="width:48px;height:48px" onclick="playRecording('${docId}')"><div class="play-tri" style="border-left-width:12px;border-top-width:8px;border-bottom-width:8px"></div></div>
-        <div class="play-info">
-          <div class="play-t" style="font-size:14px">${esc(title)}</div>
-          <div class="play-m">${mins} mín · ${date}${clipText ? ' · ' + clipText : ''}</div>
+  function clipDots(s) {
+    const count = CLIP_KEYS.filter(k => s[k]).length;
+    if (count === 0) return '';
+    const dots = CLIP_KEYS.map((k,i) => {
+      const lit = i < count;
+      return `<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${lit ? 'var(--accent)' : 'rgba(29,205,211,.15)'};margin-right:3px"></span>`;
+    }).join('');
+    return `<div style="display:flex;align-items:center;margin-top:5px">${dots}</div>`;
+  }
+
+  /* ── Hero ── */
+  if (heroEl) {
+    const s = withAudio[0];
+    const docId = s._docId || '';
+    const title = getTitle(s);
+    const mins = Math.round((s.seconds||0)/60);
+    const date = s.date ? fmtDateShort(s.date) : '';
+    const count = CLIP_KEYS.filter(k => s[k]).length;
+    heroEl.innerHTML = `
+      <div class="crd" style="padding:14px;margin-bottom:4px;display:flex;align-items:center;gap:12px" data-doc="${docId}">
+        <div style="position:relative;width:56px;height:56px;flex:0 0 56px" onclick="playRecording('${docId}')">
+          <svg width="56" height="56" viewBox="0 0 56 56" style="position:absolute;inset:0;transform:rotate(-90deg)">
+            <circle cx="28" cy="28" r="24" fill="none" stroke="rgba(29,205,211,.12)" stroke-width="3"/>
+            <circle id="rec-hero-ring-${docId}" cx="28" cy="28" r="24" fill="none" stroke="var(--accent)" stroke-width="3"
+              stroke-dasharray="151" stroke-dashoffset="151" stroke-linecap="round" style="transition:stroke-dashoffset .5s linear"/>
+          </svg>
+          <div id="rec-hero-btn-${docId}" style="position:absolute;inset:6px;border-radius:50%;background:var(--accent-soft);border:1.5px solid var(--border-hl);display:flex;align-items:center;justify-content:center;cursor:pointer">
+            <div id="rec-hero-icon-${docId}" class="play-tri" style="border-left-width:10px;border-top-width:7px;border-bottom-width:7px;margin-left:2px"></div>
+          </div>
         </div>
-        <div class="rec-fav ${hasFav ? 'on' : ''}" onclick="toggleFav('${docId}',this)" style="font-size:18px">★</div>
+        <div style="flex:1;min-width:0">
+          <div class="play-t" style="font-size:13px;font-weight:600">${esc(title)}</div>
+          <div class="play-m">${mins} mín · ${date}</div>
+          ${clipDots(s)}
+          <div id="rec-hero-time-${docId}" style="font-size:10px;color:var(--accent);margin-top:4px;font-weight:600;display:none"></div>
+        </div>
+        <div class="rec-fav ${s.favorites && Object.values(s.favorites).some(v=>v) ? 'on' : ''}" onclick="toggleFav('${docId}',this)" style="font-size:20px">★</div>
       </div>`;
-    }
-    
+  }
+
+  /* ── Listi ── */
+  listEl.innerHTML = withAudio.slice(1, 20).map(s => {
+    const docId = s._docId || '';
+    const title = getTitle(s);
+    const mins = Math.round((s.seconds||0)/60);
+    const date = s.date ? fmtDateShort(s.date) : '';
+    const hasFav = s.favorites && Object.values(s.favorites).some(v=>v);
     return `<div class="rec-item" data-doc="${docId}">
-      <div class="rec-play-sm" onclick="playRecording('${docId}')"><div class="play-tri"></div></div>
-      <div class="rec-main">
-        <div class="rec-t">${esc(title)}</div>
-        <div class="rec-m">${mins} mín · ${date}${clipText ? ' · ' + clipText : ''}</div>
+      <div style="position:relative;width:36px;height:36px;flex:0 0 36px" onclick="playRecording('${docId}')">
+        <svg width="36" height="36" viewBox="0 0 36 36" style="position:absolute;inset:0;transform:rotate(-90deg)">
+          <circle cx="18" cy="18" r="15" fill="none" stroke="rgba(29,205,211,.1)" stroke-width="2.5"/>
+          <circle id="rec-ring-${docId}" cx="18" cy="18" r="15" fill="none" stroke="var(--accent)" stroke-width="2.5"
+            stroke-dasharray="94" stroke-dashoffset="94" stroke-linecap="round" style="transition:stroke-dashoffset .4s linear"/>
+        </svg>
+        <div style="position:absolute;inset:5px;border-radius:50%;background:var(--accent-soft);display:flex;align-items:center;justify-content:center;cursor:pointer">
+          <div id="rec-icon-${docId}" class="play-tri" style="border-left-width:7px;border-top-width:5px;border-bottom-width:5px;margin-left:1px"></div>
+        </div>
       </div>
-      <div class="rec-fav ${hasFav ? 'on' : ''}" onclick="toggleFav('${docId}',this)">★</div>
+      <div class="rec-main" style="flex:1;min-width:0">
+        <div class="rec-t">${esc(title)}</div>
+        <div class="rec-m">${mins} mín · ${date}</div>
+        ${clipDots(s)}
+      </div>
+      <div class="rec-fav ${hasFav?'on':''}" onclick="toggleFav('${docId}',this)">★</div>
     </div>`;
   }).join('');
 }
@@ -1897,29 +1931,96 @@ window.heroPlayPause = async function() {
   }
 };
 
-/* ── Play recording (Hljóð flipi) — halda óbreyttu ── */
+/* ── Play recording (Hljóð flipi) — með play state á hring ── */
 let _currentAudio = null;
 let _playingDocId = null;
+let _recRaf = null;
+let _recElapsed = 0;
+let _recTotal = 0;
+
+function _recUpdateRing(docId, elapsed, total, playing) {
+  /* Hero hringur */
+  const heroRing = document.getElementById(`rec-hero-ring-${docId}`);
+  const heroIcon = document.getElementById(`rec-hero-icon-${docId}`);
+  const heroTime = document.getElementById(`rec-hero-time-${docId}`);
+  /* Lista hringur */
+  const listRing = document.getElementById(`rec-ring-${docId}`);
+  const listIcon = document.getElementById(`rec-icon-${docId}`);
+
+  const pct = total > 0 ? Math.min(elapsed / total, 1) : 0;
+
+  if (heroRing) heroRing.style.strokeDashoffset = 151 * (1 - pct);
+  if (listRing) listRing.style.strokeDashoffset = 94  * (1 - pct);
+
+  const pauseHtml = '<span style="display:inline-flex;gap:3px"><span style="display:block;width:3px;height:12px;border-radius:2px;background:var(--accent)"></span><span style="display:block;width:3px;height:12px;border-radius:2px;background:var(--accent)"></span></span>';
+  const playHtml  = `<div class="play-tri" style="border-left-width:10px;border-top-width:7px;border-bottom-width:7px;margin-left:2px"></div>`;
+  const playSmHtml = `<div class="play-tri" style="border-left-width:7px;border-top-width:5px;border-bottom-width:5px;margin-left:1px"></div>`;
+
+  if (heroIcon) heroIcon.innerHTML = playing ? pauseHtml : playHtml;
+  if (listIcon) listIcon.innerHTML = playing ? pauseHtml : playSmHtml;
+  if (heroTime) {
+    heroTime.style.display = playing || elapsed > 0 ? 'block' : 'none';
+    heroTime.textContent = `${_fmt(Math.floor(elapsed))} / ${_fmt(Math.floor(total))}`;
+  }
+}
+
+function _recTick() {
+  if (!_currentAudio || _currentAudio.paused) return;
+  _recElapsed += 1/60;
+  _recUpdateRing(_playingDocId, _recElapsed, _recTotal, true);
+  _recRaf = requestAnimationFrame(_recTick);
+}
 
 window.playRecording = async function(docId) {
   const session = (S.sessions||[]).find(s => s._docId === docId);
   if (!session) return;
+
+  /* Pause ef sama */
   if (_playingDocId === docId && _currentAudio && !_currentAudio.paused) {
     _currentAudio.pause();
-    toast('Í pásu ⏸');
+    if (_recRaf) { cancelAnimationFrame(_recRaf); _recRaf = null; }
+    _recUpdateRing(docId, _recElapsed, _recTotal, false);
     return;
   }
+
+  /* Resume ef sama en í pásu */
+  if (_playingDocId === docId && _currentAudio && _currentAudio.paused) {
+    _currentAudio.play();
+    _recRaf = requestAnimationFrame(_recTick);
+    _recUpdateRing(docId, _recElapsed, _recTotal, true);
+    return;
+  }
+
+  /* Reset fyrri */
+  if (_playingDocId && _playingDocId !== docId) {
+    _recUpdateRing(_playingDocId, 0, 0, false);
+  }
+  if (_currentAudio) { _currentAudio.pause(); _currentAudio = null; }
+  if (_recRaf) { cancelAnimationFrame(_recRaf); _recRaf = null; }
+
   const path = session.audioPath_min10 || session.audioPath_min8 || session.audioPath_min5 || session.audioPath_min2 || session.audioPath_min1 || session.audioPath;
   if (!path) { toast('Engin hljóðskrá'); return; }
+
+  _playingDocId = docId;
+  _recElapsed = 0;
+  _recTotal = session.seconds || 60;
+
   try {
-    if (_currentAudio) { _currentAudio.pause(); _currentAudio = null; }
-    _playingDocId = docId;
-    toast('Hleð upptöku...');
+    toast('Hleð...');
     const url = await getDownloadURL(ref(storage, path));
     _currentAudio = new Audio(url);
-    _currentAudio.play();
-    _currentAudio.onended = () => { _playingDocId = null; toast('Upptaka kláruð'); };
-    toast('Spilar ▶');
+    _currentAudio.onloadedmetadata = () => { _recTotal = _currentAudio.duration || _recTotal; };
+    _currentAudio.onended = () => {
+      if (_recRaf) { cancelAnimationFrame(_recRaf); _recRaf = null; }
+      _recUpdateRing(docId, _recTotal, _recTotal, false);
+      _playingDocId = null;
+      toast('Kláruð ✓');
+    };
+    _currentAudio.onerror = () => { toast('Villa við spilun'); _playingDocId = null; };
+    await _currentAudio.play();
+    toast('');
+    _recUpdateRing(docId, 0, _recTotal, true);
+    _recRaf = requestAnimationFrame(_recTick);
   } catch(e) {
     console.warn('Play villa:', e);
     _playingDocId = null;

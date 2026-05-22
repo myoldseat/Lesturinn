@@ -371,6 +371,26 @@ button{font:inherit;cursor:pointer;border:0;background:none;color:inherit}a{colo
 <button class="dialog-btn secondary" id="backToCamera">📷 Breyta mynd</button>
 </div>
 
+<div id="addStep2b" style="display:none">
+<h2>Hljóðbrot og lestur</h2>
+<p class="dialog-sub">Við getum reiknað hve hratt þú ert að lesa ef þú tekur mynd af síðu í bókinni</p>
+<div id="pageImgPreview" style="display:none;margin:10px 0;border-radius:10px;overflow:hidden;border:1px solid rgba(29,205,211,.2)">
+  <img id="pagePreviewImg" alt="" style="width:100%;display:block;max-height:220px;object-fit:cover">
+  <div id="pageAnalysisStatus" style="padding:8px 12px;font-size:12px;font-weight:500;color:var(--accent,#1dcdd3)"></div>
+</div>
+<div id="pageAnalysisResult" style="display:none;background:rgba(29,205,211,.06);border:1px solid rgba(29,205,211,.18);border-radius:10px;padding:12px;margin:10px 0">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+    <span style="font-size:11px;font-weight:700;color:#7a8fa0;text-transform:uppercase;letter-spacing:.5px">Greining</span>
+    <span id="pageDifficultyBadge" style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:99px;background:rgba(29,205,211,.15);color:#1dcdd3"></span>
+  </div>
+  <div id="pageWppDisplay" style="font-size:13px;color:#c8d8e8"></div>
+</div>
+<input id="pageInput" type="file" accept="image/*" capture="environment" style="display:none">
+<button class="dialog-btn" id="takePagePhotoBtn" onclick="triggerPagePhoto()">📷 Taka mynd af síðu</button>
+<button class="dialog-btn secondary" id="skipPagePhotoBtn" onclick="skipPagePhoto()">Sleppa — áætla sjálfkrafa</button>
+<div id="skipPageInfo" style="font-size:11px;color:#5a7088;text-align:center;margin-top:6px;display:none"></div>
+</div>
+
 <div id="addStep3" style="display:none">
 <div style="text-align:center;padding:20px 0">
 <div style="font-size:36px;margin-bottom:10px">✓</div>
@@ -1367,7 +1387,11 @@ async function compress(file,tw=180,th=270,q=.50){
 }
 
 function setReady(){saving=false;const b=document.getElementById('saveBook');if(b){b.hidden=false;b.disabled=false;b.textContent='Vista bók'}}
-function showStep(n){['addStep2','addStep3'].forEach((id,i)=>document.getElementById(id).style.display=i===(n-2)?'':'none')}
+function showStep(n){
+  document.getElementById('addStep2').style.display  = n === 2   ? '' : 'none';
+  document.getElementById('addStep2b').style.display = n === 2.5 ? '' : 'none';
+  document.getElementById('addStep3').style.display  = n === 4   ? '' : 'none';
+}
 function resetF(){curCov=null;curCovHQ=null;pendingCoverUrl=null;pendingCoverGsPath=null;['bookTitle','bookAuthor'].forEach(id=>document.getElementById(id).value='');document.getElementById('bookStatus').value='shelf';document.getElementById('bookPages').value='';document.getElementById('coverInput').value='';document.getElementById('previewImg').removeAttribute('src');document.getElementById('previewMeta').textContent='';document.getElementById('previewRow').style.display='none';showStep(2);setReady()}
 function openAddM(){
   // Trigger native camera/gallery picker
@@ -1419,6 +1443,161 @@ async function handleCoverFile(file){
   }
 }
 
+/* ── Difficulty fallback ── */
+function calcDifficulty(pages, birthYear) {
+  const age = birthYear ? (new Date().getFullYear() - parseInt(birthYear)) : null;
+  let d = 'medium';
+  if (age !== null) {
+    if (age < 9)  d = 'light';
+    else if (age < 12) d = 'medium';
+    else d = 'heavy';
+  }
+  /* Blaðsíður geta hnekkt aldri */
+  if (pages < 80)  d = 'light';
+  if (pages > 200) d = 'heavy';
+  const wpp = { light: 80, medium: 150, heavy: 250 };
+  const labels = { light: 'Létt', medium: 'Miðlungs', heavy: 'Þungt' };
+  return { difficulty: d, wordsPerPage: wpp[d], difficultySource: 'calculated', label: labels[d] };
+}
+
+/* ── Page photo — greining með Gemini ── */
+let _pageAnalysis = null; /* {wordsPerPage, difficulty, difficultySource} */
+let _pendingPageGsPath = null;
+
+window.triggerPagePhoto = function() {
+  document.getElementById('pageInput').click();
+};
+
+document.getElementById('pageInput').addEventListener('change', async e => {
+  const file = e.target.files?.[0];
+  if (!file) return;
+
+  /* Sýna preview */
+  const reader = new FileReader();
+  reader.onload = ev => {
+    document.getElementById('pagePreviewImg').src = ev.target.result;
+    document.getElementById('pageImgPreview').style.display = '';
+  };
+  reader.readAsDataURL(file);
+
+  document.getElementById('pageAnalysisStatus').textContent = '🔍 Greini textann...';
+  document.getElementById('pageAnalysisResult').style.display = 'none';
+  document.getElementById('takePagePhotoBtn').disabled = true;
+
+  try {
+    /* Þjappa og hlaða upp */
+    const compressed = await compress(file, 400, 600, 0.75);
+    const blob = base64ToBlob(compressed);
+    const ts = Date.now();
+    const path = 'pagescans/' + FID + '/' + CK + '/' + ts + '.jpg';
+    const sRef = storageRef(bsStorage, path);
+    await uploadBytes(sRef, blob, { contentType: 'image/jpeg' });
+    const gsPath = 'gs://lesum-22e85.firebasestorage.app/' + path;
+    _pendingPageGsPath = gsPath;
+
+    /* Kalla Gemini */
+    const analyze = httpsCallable(functions, 'analyzePageText');
+    const result = await analyze({ gsPath });
+    const info = result.data;
+    console.log('Page analysis:', info);
+
+    _pageAnalysis = {
+      wordsPerPage: info.wordsPerPage || 150,
+      difficulty: info.difficulty || 'medium',
+      difficultySource: 'gemini'
+    };
+
+    const labels = { light: 'Létt', medium: 'Miðlungs', heavy: 'Þungt' };
+    document.getElementById('pageAnalysisStatus').textContent = '✨ Greining kláruð';
+    document.getElementById('pageDifficultyBadge').textContent = labels[_pageAnalysis.difficulty] || 'Miðlungs';
+    document.getElementById('pageWppDisplay').textContent = 'Um ' + _pageAnalysis.wordsPerPage + ' orð á síðu';
+    document.getElementById('pageAnalysisResult').style.display = '';
+
+    /* Fara í vista */
+    await _doSaveBook();
+
+  } catch(e) {
+    console.warn('Page analysis failed:', e);
+    document.getElementById('pageAnalysisStatus').textContent = 'Greining mistókst — notar áætlun';
+    _pageAnalysis = null;
+    await _doSaveBook();
+  } finally {
+    document.getElementById('takePagePhotoBtn').disabled = false;
+  }
+});
+
+window.skipPagePhoto = function() {
+  _pageAnalysis = null;
+  const pages = Number(document.getElementById('bookPages').value || 0);
+  const birthYear = CS?.birthYear || null;
+  const fb = calcDifficulty(pages, birthYear);
+  const labels = { light: 'Létt', medium: 'Miðlungs', heavy: 'Þungt' };
+  document.getElementById('skipPageInfo').textContent =
+    'Áætlað: ' + labels[fb.difficulty] + ' · ~' + fb.wordsPerPage + ' orð/síðu';
+  document.getElementById('skipPageInfo').style.display = '';
+  _doSaveBook();
+};
+
+async function _doSaveBook() {
+  if (saving) return;
+  const btn = document.getElementById('saveBook');
+  const title = document.getElementById('bookTitle').value.trim();
+  const pages = Number(document.getElementById('bookPages').value || 0);
+  if (!title || !pages) return;
+
+  saving = true;
+  const st = document.getElementById('bookStatus').value, now = Date.now();
+  const pals = [['#2b8f91','#0a2341'],['#23814b','#0d2b23'],['#7c23df','#1d1537'],['#c4523a','#2a1418'],['#3a7bd5','#0f1f3d'],['#d4a03c','#2b1e0e']];
+  const pk = pals[Math.floor(Math.random() * pals.length)];
+
+  /* Þyngd — Gemini eða fallback */
+  const birthYear = CS?.birthYear || null;
+  const diffData = _pageAnalysis || calcDifficulty(pages, birthYear);
+
+  const d = {
+    familyId: FID, childKey: CK, childName: CN,
+    title, author: document.getElementById('bookAuthor').value.trim(),
+    status: st, totalPages: pages,
+    currentPageFrom: null, currentPageTo: null,
+    progressPercent: st === 'finished' ? 100 : 0,
+    coverBase64: curCov || null,
+    c1: curCov ? null : pk[0], c2: curCov ? null : pk[1],
+    note: st === 'reading' ? 'Bókin er tilbúin til að byrja að lesa.' : null,
+    lastReadAt: null, journeyEntries: [],
+    /* Nýtt — þyngd og orðafjöldi */
+    wordsPerPage: diffData.wordsPerPage,
+    difficulty: diffData.difficulty,
+    difficultySource: diffData.difficultySource,
+    createdAt: now, updatedAt: now
+  };
+
+  try {
+    if (previewMode) {
+      d.id = 'local_' + now + '_' + Math.random().toString(36).slice(2, 6);
+      if (curCovHQ) cc[d.id] = curCovHQ; else if (curCov) cc[d.id] = curCov;
+      books = books.filter(b => !b._demo); demoDismissed = true;
+      books.unshift(d); render();
+    } else {
+      d.createdAt = serverTimestamp(); d.updatedAt = serverTimestamp();
+      try { await addBook(d); } catch(fireErr) {
+        console.warn('Firestore write failed, saving locally:', fireErr);
+        d.id = 'local_' + now + '_' + Math.random().toString(36).slice(2, 6);
+        d.createdAt = now; d.updatedAt = now;
+        if (curCovHQ) cc[d.id] = curCovHQ; else if (curCov) cc[d.id] = curCov;
+        books = books.filter(b => !b._demo);
+        books.unshift(d); render();
+      }
+    }
+    _pageAnalysis = null;
+    _pendingPageGsPath = null;
+    showStep(4); saving = false;
+  } catch(e) {
+    console.error(e); saving = false;
+    if (btn) { btn.disabled = false; btn.textContent = 'Vista bók'; }
+    alert('Villa — reyndu aftur.');
+  }
+}
+
 async function identifyBookCover(gsPath){
   const titleEl=document.getElementById('bookTitle');
   const authorEl=document.getElementById('bookAuthor');
@@ -1447,35 +1626,26 @@ async function identifyBookCover(gsPath){
 
 document.getElementById('coverInput').addEventListener('change',e=>handleCoverFile(e.target.files?.[0]));
 
-document.getElementById('saveBook').addEventListener('click',async()=>{
-  if(saving)return;const btn=document.getElementById('saveBook');
-  const title=document.getElementById('bookTitle').value.trim();
-  const pages=Number(document.getElementById('bookPages').value||0);
-  if(!title){alert('Settu inn nafn bókar.');return}
-  if(!pages||pages<1){alert('Settu inn blaðsíðufjölda.');return}
-  saving=true;if(btn){btn.disabled=true;btn.textContent='Vista...'}
-  const st=document.getElementById('bookStatus').value,now=Date.now();
-  const pals=[['#2b8f91','#0a2341'],['#23814b','#0d2b23'],['#7c23df','#1d1537'],['#c4523a','#2a1418'],['#3a7bd5','#0f1f3d'],['#d4a03c','#2b1e0e']];const pk=pals[Math.floor(Math.random()*pals.length)];
-  const d={familyId:FID,childKey:CK,childName:CN,title,author:document.getElementById('bookAuthor').value.trim(),status:st,totalPages:pages,currentPageFrom:null,currentPageTo:null,progressPercent:st==='finished'?100:0,coverBase64:curCov||null,c1:curCov?null:pk[0],c2:curCov?null:pk[1],note:st==='reading'?'Bókin er tilbúin til að byrja að lesa.':null,lastReadAt:null,journeyEntries:[],createdAt:now,updatedAt:now};
-  try{
-    if(previewMode){
-      d.id='local_'+now+'_'+Math.random().toString(36).slice(2,6);
-      if(curCovHQ)cc[d.id]=curCovHQ;else if(curCov)cc[d.id]=curCov;
-      books=books.filter(b=>!b._demo);demoDismissed=true;
-      books.unshift(d);render();
-    }else{
-      d.createdAt=serverTimestamp();d.updatedAt=serverTimestamp();
-      try{await addBook(d)}catch(fireErr){
-        console.warn('Firestore write failed, saving locally:',fireErr);
-        d.id='local_'+now+'_'+Math.random().toString(36).slice(2,6);
-        d.createdAt=now;d.updatedAt=now;
-        if(curCovHQ)cc[d.id]=curCovHQ;else if(curCov)cc[d.id]=curCov;
-        books=books.filter(b=>!b._demo);
-        books.unshift(d);render();
-      }
-    }
-    showStep(3);saving=false;
-  }catch(e){console.error(e);saving=false;if(btn){btn.disabled=false;btn.textContent='Vista bók'}alert('Villa — reyndu aftur.')}
+document.getElementById('saveBook').addEventListener('click', async () => {
+  const title = document.getElementById('bookTitle').value.trim();
+  const pages = Number(document.getElementById('bookPages').value || 0);
+  if (!title) { alert('Settu inn nafn bókar.'); return; }
+  if (!pages || pages < 1) { alert('Settu inn blaðsíðufjölda.'); return; }
+
+  /* Reikna fallback þyngd til að sýna í skip-texta */
+  const birthYear = CS?.birthYear || null;
+  const fb = calcDifficulty(pages, birthYear);
+  const labels = { light: 'Létt', medium: 'Miðlungs', heavy: 'Þungt' };
+  document.getElementById('skipPageInfo').textContent =
+    'Áætlað: ' + labels[fb.difficulty] + ' · ~' + fb.wordsPerPage + ' orð/síðu';
+  document.getElementById('skipPageInfo').style.display = '';
+
+  /* Fara í síðumynd-step */
+  _pageAnalysis = null;
+  document.getElementById('pageImgPreview').style.display = 'none';
+  document.getElementById('pageAnalysisResult').style.display = 'none';
+  document.getElementById('pageInput').value = '';
+  showStep(2.5);
 });
 
 // ── Goal modal ──

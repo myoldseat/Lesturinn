@@ -296,13 +296,14 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
 
 /* ── Settings ── */
 .st-sec{font-size:10px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;padding:6px 0 2px}
-.st-group{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;position:relative}
+.st-group{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);flex-shrink:0}
 .st-group .st-row{
   display:flex;align-items:center;justify-content:space-between;
   padding:12px 14px;border-bottom:1px solid var(--border);
   cursor:default;transition:background .15s;min-height:44px;
 }
-.st-group .st-row:last-child{border:none}
+.st-group .st-row:first-child{border-radius:var(--r) var(--r) 0 0}
+.st-group .st-row:last-child{border:none;border-radius:0 0 var(--r) var(--r)}
 .st-group .st-row.tap{cursor:pointer;-webkit-tap-highlight-color:transparent}
 .st-group .st-row.tap:hover{background:rgba(29,205,211,.03)}
 .st-group .st-row.tap:active{background:rgba(29,205,211,.06)}
@@ -1090,7 +1091,16 @@ function toast(text) {
   clearTimeout(toast._t);
   toast._t = setTimeout(() => el.classList.remove('show'), 1600);
 }
-function nav(url) { window.location.href = url; }
+function nav(url) {
+  if (url === 'bookshelf.html' && typeof window._getNavParams === 'function') {
+    const p = window._getNavParams();
+    if (p.family && p.child) {
+      window.location.href = 'bookshelf.html?family=' + encodeURIComponent(p.family) + '&child=' + encodeURIComponent(p.child) + '&name=' + encodeURIComponent(p.name) + '&parent=1';
+      return;
+    }
+  }
+  window.location.href = url;
+}
 
 /* ═══════════════════════════════════
    WELCOME / EMPTY STATE
@@ -1699,8 +1709,19 @@ window.doLogin = async function() {
 document.getElementById('p-login-pw')?.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
 document.getElementById('p-login-email')?.addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('p-login-pw')?.focus(); });
 
+/* ── Nav params fyrir bookshelf ── */
+window._getNavParams = function() {
+  const child = (S.parentChildren || []).find(c => c.key === _selectedChild);
+  return {
+    family: S.familyCode || '',
+    child: _selectedChild || '',
+    name: child?.name || _selectedChild || '',
+  };
+};
+
 /* ── Boot ── */
 initAuth();
+startWatching(); /* byrja polling strax — render() keyrir þegar S fyllst */
 console.log('🚀 parent.html engine started');
 </script>
 </body>

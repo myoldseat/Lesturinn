@@ -105,6 +105,7 @@ button{font:inherit;cursor:pointer;border:0;background:none;color:inherit}a{colo
 .book-author{font-size:10px;color:var(--soft);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .book-chip{display:inline-flex;align-items:center;margin-top:5px;padding:2px 8px;border-radius:99px;font-size:9px;font-weight:800;background:var(--accent-dim);border:1px solid var(--line);color:var(--accent)}
 .book-chip.done{background:rgba(29,205,211,.15)}
+.rl-pill{display:inline-flex;align-items:center;margin-top:5px;margin-left:5px;padding:2px 8px;border-radius:99px;font-size:9px;font-weight:800;background:var(--accent-dim);border:1px solid var(--line);color:var(--accent)}
 .empty-state{text-align:center;padding:28px 16px}
 .empty-icon{width:64px;height:64px;margin:0 auto 14px;border-radius:50%;border:1px dashed var(--line-hot);background:var(--accent-dim);display:grid;place-items:center;font-size:28px;color:var(--accent)}
 .empty-title{font-family:var(--serif);font-size:19px;margin-bottom:6px}
@@ -1305,7 +1306,8 @@ function rGrid(sid,gid,cid,list){
     const pend=isPending(b);
     const badge=pend?'<div class="celebrate-badge"><div class="celebrate-badge-icon">✓</div><div class="celebrate-badge-text">Lokið!</div></div>':'';
     const demo=b._demo?'<span class="book-demo-badge">Dæmi</span>':'';
-    return'<div class="book-card'+(selIds.has(b.id)?' selected':'')+(pend?' book-celebrate':'')+'" data-open-book="'+b.id+'"><div class="book-cover" style="'+covS(b)+'">'+covHTML(b)+demo+badge+'</div><div class="book-info"><div class="book-name">'+esc(b.title)+'</div><div class="book-author">'+esc(b.author||'')+'</div><span class="book-chip '+chipCls(b)+'">'+chipT(b)+'</span></div></div>';
+    const rlBadge=b.readingLoadLabel?'<span class="rl-pill">'+esc(b.readingLoadLabel)+'</span>':'';
+    return'<div class="book-card'+(selIds.has(b.id)?' selected':'')+(pend?' book-celebrate':'')+'" data-open-book="'+b.id+'"><div class="book-cover" style="'+covS(b)+'">'+covHTML(b)+demo+badge+'</div><div class="book-info"><div class="book-name">'+esc(b.title)+'</div><div class="book-author">'+esc(b.author||'')+'</div><span class="book-chip '+chipCls(b)+'">'+chipT(b)+'</span>'+rlBadge+'</div></div>';
   }).join('')+(hasDemo?'<div class="demo-hint" style="grid-column:1/-1">Þetta eru dæmi — haltu inni til að eyða</div>':'');
 }
 function renderLR(){

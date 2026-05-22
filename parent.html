@@ -520,7 +520,7 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
 
         <!-- Bókahero ferkanturt -->
         <div class="crd crd-glow" id="p-now-reading" onclick="nav('bookshelf.html')" style="padding:0;overflow:hidden;cursor:pointer;display:flex;flex-direction:column;aspect-ratio:1">
-          <div id="p-book-cover-bg" style="flex:0 0 58%;background:linear-gradient(145deg,#6a3140,#c08a36);display:flex;align-items:center;justify-content:center;font-size:30px;font-weight:700;color:rgba(255,255,255,.9)"><span id="p-book-cover-letter">F</span></div>
+          <div id="p-book-cover-bg" style="flex:0 0 65%;background:linear-gradient(145deg,#6a3140,#c08a36);display:flex;align-items:center;justify-content:center;font-size:30px;font-weight:700;color:rgba(255,255,255,.9);overflow:hidden"><span id="p-book-cover-letter">F</span></div>
           <div style="flex:1;padding:8px 10px;display:flex;flex-direction:column;justify-content:space-between;min-height:0">
             <div>
               <div class="rd-title" style="font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" id="p-book-title">Fuglabúrið</div>
@@ -533,14 +533,24 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
           </div>
         </div>
 
-        <!-- Hljóðhero ferkanturt -->
-        <div class="crd" id="p-audio-hero" onclick="go('recordings')" style="cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;aspect-ratio:1;padding:14px 8px;gap:0">
-          <div style="width:52px;height:52px;border-radius:50%;border:1.5px solid var(--border-hl);background:var(--accent-soft);display:flex;align-items:center;justify-content:center;margin-bottom:10px;flex:0 0 auto">
-            <div class="play-tri" style="border-left-width:13px;border-top-width:8px;border-bottom-width:8px;margin-left:3px"></div>
+        <!-- Hljóðhero ferkanturt — play beint hér -->
+        <div class="crd" id="p-audio-hero" style="display:flex;flex-direction:column;align-items:center;justify-content:center;aspect-ratio:1;padding:14px 8px;gap:0">
+          <!-- SVG progress hringur + play/pause takki -->
+          <div style="position:relative;width:60px;height:60px;margin-bottom:10px;flex:0 0 auto" onclick="heroPlayPause()" id="p-audio-btn-wrap" style="cursor:pointer">
+            <svg width="60" height="60" viewBox="0 0 60 60" style="position:absolute;inset:0;transform:rotate(-90deg)">
+              <circle cx="30" cy="30" r="26" fill="none" stroke="rgba(29,205,211,.12)" stroke-width="3"/>
+              <circle id="p-audio-progress-ring" cx="30" cy="30" r="26" fill="none" stroke="var(--accent)" stroke-width="3"
+                stroke-dasharray="163" stroke-dashoffset="163" stroke-linecap="round"
+                style="transition:stroke-dashoffset .5s linear"/>
+            </svg>
+            <div id="p-audio-btn-inner" style="position:absolute;inset:6px;border-radius:50%;background:var(--accent-soft);border:1.5px solid var(--border-hl);display:flex;align-items:center;justify-content:center;cursor:pointer">
+              <div id="p-audio-btn-icon" class="play-tri" style="border-left-width:11px;border-top-width:7px;border-bottom-width:7px;margin-left:3px"></div>
+            </div>
           </div>
           <div class="play-t" style="font-size:11px;font-weight:600;text-align:center;line-height:1.2;padding:0 4px" id="p-audio-title">Fuglabúrið kafli 6</div>
           <div class="play-m" style="margin-top:3px;text-align:center" id="p-audio-meta">5 mín · í dag</div>
-          <div style="display:flex;align-items:center;gap:2px;margin-top:10px;height:18px;flex:0 0 auto">
+          <div id="p-audio-time" style="font-size:10px;color:var(--accent);margin-top:4px;font-weight:600;display:none">0:00 / 0:00</div>
+          <div style="display:flex;align-items:center;gap:2px;margin-top:8px;height:16px;flex:0 0 auto" id="p-audio-wave">
             <span style="display:block;width:3px;border-radius:2px;height:6px;background:rgba(29,205,211,.3)"></span>
             <span style="display:block;width:3px;border-radius:2px;height:11px;background:var(--accent)"></span>
             <span style="display:block;width:3px;border-radius:2px;height:15px;background:var(--accent)"></span>
@@ -1360,6 +1370,7 @@ function render() {
 
   renderChildren(children);
   renderReading(cb);
+  renderAudioHero(cs);
   renderWeek(cs);
   renderStreak(cs);
   renderStats(cs, cb);
@@ -1405,7 +1416,7 @@ function renderReading(books) {
     ? `<img src="${esc(coverSrc)}" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none';this.parentNode.innerHTML+='<span style=font-size:30px;font-weight:700;color:rgba(255,255,255,.9)>${letter}</span>'">`
     : `<span style="font-size:30px;font-weight:700;color:rgba(255,255,255,.9)">${letter}</span>`;
   el.innerHTML = `
-    <div style="flex:0 0 58%;background:linear-gradient(145deg,${c1},${c2});display:flex;align-items:center;justify-content:center;overflow:hidden">${coverHtml}</div>
+    <div style="flex:0 0 65%;background:linear-gradient(145deg,${c1},${c2});display:flex;align-items:center;justify-content:center;overflow:hidden">${coverHtml}</div>
     <div style="flex:1;padding:8px 10px;display:flex;flex-direction:column;justify-content:space-between;min-height:0">
       <div>
         <div class="rd-title" style="font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(hero.title)}</div>
@@ -1726,25 +1737,180 @@ function renderRecordings(sessions) {
   }).join('');
 }
 
-/* ── Play recording — sækja URL frá Storage ── */
+/* ══════════════════════════════════════
+   HERO AUDIO ENGINE — playlist úr clips
+   ══════════════════════════════════════ */
+const CLIP_KEYS = ['audioPath_min1','audioPath_min2','audioPath_min5','audioPath_min8','audioPath_min10'];
+
+let _heroSession   = null;   /* session object fyrir hero */
+let _heroPlaylist  = [];     /* [{path, duration}] */
+let _heroAudio     = null;   /* núverandi Audio hlutur */
+let _heroIndex     = 0;      /* hvaða clip er að spila */
+let _heroPlaying   = false;
+let _heroTotalSecs = 0;      /* heildarlengd allra clips */
+let _heroElapsed   = 0;      /* sekúndur sem liðnar eru */
+let _heroRaf       = null;   /* requestAnimationFrame id */
+
+/* Kallaður úr render() þegar sessions eru tilbúnar */
+function renderAudioHero(sessions) {
+  const withAudio = sessions.filter(s => s.hasAudio && CLIP_KEYS.some(k => s[k]));
+  if (withAudio.length === 0) {
+    const el = document.getElementById('p-audio-hero');
+    if (el) el.style.display = 'none';
+    return;
+  }
+  /* Nýjasta session */
+  const latest = withAudio.sort((a,b) => (b.timestamp||0) - (a.timestamp||0))[0];
+  _heroSession = latest;
+
+  const clips = CLIP_KEYS.filter(k => latest[k]).map(k => ({ path: latest[k] }));
+  _heroPlaylist = clips;
+
+  /* Heildarminútur úr session.seconds */
+  _heroTotalSecs = latest.seconds || (clips.length * 60);
+
+  /* Finna bókatitil */
+  const books = (S.books||[]).filter(b => b.childKey === _selectedChild);
+  const sTime = latest.timestamp || 0;
+  let bookTitle = '';
+  if (books.length > 0) {
+    const closest = books
+      .filter(b => b.status==='reading' || b.status==='finished')
+      .sort((a,b) => Math.abs(bTs(a,'lastReadAt')-sTime) - Math.abs(bTs(b,'lastReadAt')-sTime))[0];
+    if (closest) bookTitle = closest.title || '';
+  }
+  const title = bookTitle || latest.title || 'Nýjasta lestur';
+  const mins = Math.round(_heroTotalSecs / 60);
+  const date = latest.date ? fmtDateShort(latest.date) : 'í dag';
+
+  const titleEl = document.getElementById('p-audio-title');
+  const metaEl  = document.getElementById('p-audio-meta');
+  if (titleEl) titleEl.textContent = title;
+  if (metaEl)  metaEl.textContent  = `${mins} mín · ${date} · ${clips.length} klippur`;
+
+  _heroReset();
+}
+
+function _heroReset() {
+  _heroPlaying = false;
+  _heroIndex   = 0;
+  _heroElapsed = 0;
+  if (_heroAudio) { _heroAudio.pause(); _heroAudio = null; }
+  if (_heroRaf)   { cancelAnimationFrame(_heroRaf); _heroRaf = null; }
+  _heroUpdateUI(false, 0);
+}
+
+function _heroUpdateUI(playing, elapsed) {
+  const ring  = document.getElementById('p-audio-progress-ring');
+  const icon  = document.getElementById('p-audio-btn-icon');
+  const timeEl = document.getElementById('p-audio-time');
+  const metaEl = document.getElementById('p-audio-meta');
+
+  /* Progress hringur — circumference 2π×26 ≈ 163 */
+  const pct = _heroTotalSecs > 0 ? Math.min(elapsed / _heroTotalSecs, 1) : 0;
+  if (ring) ring.style.strokeDashoffset = 163 * (1 - pct);
+
+  /* Play / pause icon */
+  if (icon) {
+    if (playing) {
+      /* Pause — tvær lóðréttar línur */
+      icon.style.cssText = 'width:14px;height:14px;display:flex;gap:4px;align-items:center;justify-content:center;margin-left:0';
+      icon.innerHTML = '<span style="display:block;width:4px;height:14px;border-radius:2px;background:var(--accent)"></span><span style="display:block;width:4px;height:14px;border-radius:2px;background:var(--accent)"></span>';
+    } else {
+      icon.style.cssText = 'border-left:11px solid var(--accent);border-top:7px solid transparent;border-bottom:7px solid transparent;margin-left:3px;width:0;height:0';
+      icon.innerHTML = '';
+    }
+  }
+
+  /* Tímatali */
+  if (timeEl) {
+    if (playing || elapsed > 0) {
+      timeEl.style.display = 'block';
+      const e = Math.floor(elapsed);
+      const t = Math.floor(_heroTotalSecs);
+      timeEl.textContent = `${_fmt(e)} / ${_fmt(t)}`;
+    } else {
+      timeEl.style.display = 'none';
+    }
+  }
+}
+
+function _fmt(s) {
+  return Math.floor(s/60) + ':' + String(s%60).padStart(2,'0');
+}
+
+function _heroTick() {
+  if (!_heroAudio || _heroAudio.paused) return;
+  _heroElapsed += 1/60;
+  _heroUpdateUI(true, _heroElapsed);
+  _heroRaf = requestAnimationFrame(_heroTick);
+}
+
+async function _heroPlayClip(index) {
+  if (index >= _heroPlaylist.length) {
+    /* Allt spilað */
+    toast('Lestur kláraður ✓');
+    _heroReset();
+    return;
+  }
+  _heroIndex = index;
+  const { path } = _heroPlaylist[index];
+  try {
+    toast(index === 0 ? 'Hleð...' : '');
+    const url = await getDownloadURL(ref(storage, path));
+    if (_heroAudio) { _heroAudio.pause(); _heroAudio = null; }
+    const audio = new Audio(url);
+    _heroAudio = audio;
+    audio.onended = () => _heroPlayClip(index + 1);
+    audio.onerror = () => { toast('Villa í klippu ' + (index+1)); _heroPlayClip(index + 1); };
+    await audio.play();
+    if (index === 0) toast('');
+    if (!_heroRaf) _heroRaf = requestAnimationFrame(_heroTick);
+  } catch(e) {
+    console.warn('Hero play villa:', e);
+    toast('Villa við spilun');
+    _heroReset();
+  }
+}
+
+window.heroPlayPause = async function() {
+  if (!_heroSession) return;
+  if (_heroPlaying) {
+    /* Pause */
+    _heroPlaying = false;
+    if (_heroAudio) _heroAudio.pause();
+    if (_heroRaf) { cancelAnimationFrame(_heroRaf); _heroRaf = null; }
+    _heroUpdateUI(false, _heroElapsed);
+  } else {
+    /* Play / Resume */
+    _heroPlaying = true;
+    if (_heroAudio && _heroAudio.paused && _heroElapsed > 0) {
+      /* Halda áfram */
+      _heroAudio.play();
+      _heroRaf = requestAnimationFrame(_heroTick);
+      _heroUpdateUI(true, _heroElapsed);
+    } else {
+      /* Byrja frá byrjun / næsta clip */
+      await _heroPlayClip(_heroIndex);
+      _heroUpdateUI(true, _heroElapsed);
+    }
+  }
+};
+
+/* ── Play recording (Hljóð flipi) — halda óbreyttu ── */
 let _currentAudio = null;
 let _playingDocId = null;
 
 window.playRecording = async function(docId) {
   const session = (S.sessions||[]).find(s => s._docId === docId);
   if (!session) return;
-  
-  /* Ef sama session er að spila, pause */
   if (_playingDocId === docId && _currentAudio && !_currentAudio.paused) {
     _currentAudio.pause();
     toast('Í pásu ⏸');
     return;
   }
-  
-  /* Velja besta clip — lengst fyrst */
   const path = session.audioPath_min10 || session.audioPath_min8 || session.audioPath_min5 || session.audioPath_min2 || session.audioPath_min1 || session.audioPath;
   if (!path) { toast('Engin hljóðskrá'); return; }
-
   try {
     if (_currentAudio) { _currentAudio.pause(); _currentAudio = null; }
     _playingDocId = docId;

@@ -156,6 +156,20 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
 .play-t{font-size:13px;font-weight:500;color:var(--text-bright)}
 .play-m{font-size:10px;color:var(--muted);margin-top:1px}
 
+/* ── Journey chat bubbles ── */
+.jn-daylbl{font-size:10px;font-weight:500;color:var(--muted);text-align:center;padding:8px 0 4px;letter-spacing:.03em}
+.jn-av{flex:0 0 28px;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;margin-top:2px}
+.jn-av-child{background:var(--accent);color:#061018}
+.jn-av-fam{background:rgba(148,164,180,.15);border:1px solid rgba(148,164,180,.2);color:#8aa0b4}
+.jn-bubble{flex:1;border-radius:10px;padding:8px 11px;min-width:0}
+.jn-bubble-child{background:rgba(29,205,211,.07);border:1px solid rgba(29,205,211,.15)}
+.jn-bubble-fam{background:rgba(148,164,180,.05);border:1px solid rgba(148,164,180,.1)}
+.jn-bubble-name{font-size:10px;font-weight:600;color:var(--accent);margin-bottom:3px}
+.jn-bubble-name-fam{color:#8aa0b4}
+.jn-bubble-ts{font-weight:400;color:var(--muted);font-size:10px;margin-left:3px}
+.jn-bubble-text{font-size:13px;color:var(--text-bright);line-height:1.35}
+.jn-bubble-meta{font-size:10px;color:var(--muted);margin-top:3px}
+
 /* ── Journey screen ── */
 .jn-hero{
   display:flex;align-items:center;gap:12px;
@@ -487,20 +501,9 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
         </button>
       </div>
 
-      <div class="crd crd-glow" id="p-now-reading">
-        <div class="crd-head"><span class="crd-lbl">Að lesa</span><button class="crd-act" onclick="nav('bookshelf.html')">Bókasafn ›</button></div>
-        <div class="rd-row">
-          <div class="rd-cover"><span>F</span></div>
-          <div>
-            <div class="rd-title">Fuglabúrið</div>
-            <div class="rd-meta">bls. 60 af 115</div>
-            <div class="rd-prog"><div class="rd-bar"><div class="rd-fill" style="width:52%"></div></div><div class="rd-pct">52%</div></div>
-          </div>
-        </div>
-      </div>
-
+      <!-- ── 1. Síðustu 7 dagar ── -->
       <div class="crd" id="p-week-grid">
-        <div class="crd-lbl" style="margin-bottom:6px">Síðustu 7 dagar</div>
+        <div class="crd-lbl" style="margin-bottom:8px">Síðustu 7 dagar</div>
         <div class="wk">
           <div class="wk-d"><div class="wk-l">M</div><div class="wk-dot hi">&#10003;</div><div class="wk-n">14</div></div>
           <div class="wk-d"><div class="wk-l">Þ</div><div class="wk-dot"></div><div class="wk-n">15</div></div>
@@ -512,25 +515,69 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
         </div>
       </div>
 
-      <div class="crd" id="p-journey-card" onclick="go('journey')" style="cursor:pointer">
-        <div class="note-q">"Bókin er byrjuð."</div>
-        <div class="note-from">Hrafnkell las bls. 1–10 í dag</div>
-        <div class="note-cmt"><strong style="color:var(--accent)">Pétur:</strong> Hlakka til að heyra næsta kafla</div>
-      </div>
+      <!-- ── 2. Lestur + Hljóð hlið við hlið ── -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
 
-      <div class="crd play-crd" onclick="go('recordings')" style="cursor:pointer">
-        <div class="play-btn"><div class="play-tri"></div></div>
-        <div class="play-info"><div class="play-t">Nýjasta upptaka</div><div class="play-m">5 mín · í dag</div></div>
-      </div>
-
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-        <div class="crd" id="p-goals-card" style="text-align:center;padding:14px 10px">
-          <div style="font-size:22px;font-weight:600;color:var(--accent);font-family:Georgia,serif">25%</div>
-          <div style="font-size:10px;color:var(--muted);margin-top:4px">Markmið · 1/4 daga</div>
+        <!-- Bókahero ferkanturt -->
+        <div class="crd crd-glow" id="p-now-reading" onclick="nav('bookshelf.html')" style="padding:0;overflow:hidden;cursor:pointer;display:flex;flex-direction:column;aspect-ratio:1">
+          <div id="p-book-cover-bg" style="flex:0 0 58%;background:linear-gradient(145deg,#6a3140,#c08a36);display:flex;align-items:center;justify-content:center;font-size:30px;font-weight:700;color:rgba(255,255,255,.9)"><span id="p-book-cover-letter">F</span></div>
+          <div style="flex:1;padding:8px 10px;display:flex;flex-direction:column;justify-content:space-between;min-height:0">
+            <div>
+              <div class="rd-title" style="font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" id="p-book-title">Fuglabúrið</div>
+              <div class="rd-meta" id="p-book-meta">bls. 60 af 115</div>
+            </div>
+            <div class="rd-prog" style="margin-top:4px">
+              <div class="rd-bar"><div class="rd-fill" id="p-book-fill" style="width:52%"></div></div>
+              <div class="rd-pct" id="p-book-pct">52%</div>
+            </div>
+          </div>
         </div>
-        <div class="crd" id="p-bookshelf-link" onclick="nav('bookshelf.html')" style="text-align:center;padding:14px 10px;cursor:pointer">
-          <div style="font-size:22px;font-weight:600;color:var(--accent);font-family:Georgia,serif">11</div>
-          <div style="font-size:10px;color:var(--muted);margin-top:4px">bækur í safni ›</div>
+
+        <!-- Hljóðhero ferkanturt -->
+        <div class="crd" id="p-audio-hero" onclick="go('recordings')" style="cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;aspect-ratio:1;padding:14px 8px;gap:0">
+          <div style="width:52px;height:52px;border-radius:50%;border:1.5px solid var(--border-hl);background:var(--accent-soft);display:flex;align-items:center;justify-content:center;margin-bottom:10px;flex:0 0 auto">
+            <div class="play-tri" style="border-left-width:13px;border-top-width:8px;border-bottom-width:8px;margin-left:3px"></div>
+          </div>
+          <div class="play-t" style="font-size:11px;font-weight:600;text-align:center;line-height:1.2;padding:0 4px" id="p-audio-title">Fuglabúrið kafli 6</div>
+          <div class="play-m" style="margin-top:3px;text-align:center" id="p-audio-meta">5 mín · í dag</div>
+          <div style="display:flex;align-items:center;gap:2px;margin-top:10px;height:18px;flex:0 0 auto">
+            <span style="display:block;width:3px;border-radius:2px;height:6px;background:rgba(29,205,211,.3)"></span>
+            <span style="display:block;width:3px;border-radius:2px;height:11px;background:var(--accent)"></span>
+            <span style="display:block;width:3px;border-radius:2px;height:15px;background:var(--accent)"></span>
+            <span style="display:block;width:3px;border-radius:2px;height:9px;background:var(--accent)"></span>
+            <span style="display:block;width:3px;border-radius:2px;height:16px;background:rgba(29,205,211,.3)"></span>
+            <span style="display:block;width:3px;border-radius:2px;height:7px;background:rgba(29,205,211,.3)"></span>
+            <span style="display:block;width:3px;border-radius:2px;height:12px;background:rgba(29,205,211,.3)"></span>
+            <span style="display:block;width:3px;border-radius:2px;height:8px;background:rgba(29,205,211,.3)"></span>
+            <span style="display:block;width:3px;border-radius:2px;height:13px;background:rgba(29,205,211,.3)"></span>
+            <span style="display:block;width:3px;border-radius:2px;height:6px;background:rgba(29,205,211,.3)"></span>
+            <span style="display:block;width:3px;border-radius:2px;height:10px;background:rgba(29,205,211,.3)"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── 3. Ferðalag sneak peek — chat stíll ── -->
+      <div class="crd" id="p-journey-card" onclick="go('journey')" style="cursor:pointer;padding:12px 13px">
+        <div class="crd-head" style="margin-bottom:10px">
+          <span class="crd-lbl">Ferðalag</span>
+          <span class="crd-act">Meira ›</span>
+        </div>
+        <!-- Síðasta barnafærsla -->
+        <div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:8px">
+          <div style="flex:0 0 26px;width:26px;height:26px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;color:#061018;margin-top:1px" id="p-jn-child-av">HH</div>
+          <div style="flex:1;background:rgba(29,205,211,.07);border:1px solid rgba(29,205,211,.15);border-radius:10px;padding:7px 10px;min-width:0">
+            <div style="font-size:10px;font-weight:600;color:var(--accent);margin-bottom:3px"><span id="p-jn-child-name">Hrafnkell</span> <span style="font-weight:400;color:var(--muted)" id="p-jn-child-ts">16:42</span></div>
+            <div style="font-size:13px;color:var(--text-bright);line-height:1.3" id="p-jn-child-text">Bókin er byrjuð.</div>
+            <div style="font-size:10px;color:var(--muted);margin-top:3px" id="p-jn-child-meta">bls. 1–10 · 5 mín</div>
+          </div>
+        </div>
+        <!-- Síðasta fjölskyldukomment -->
+        <div style="display:flex;gap:8px;align-items:flex-start">
+          <div style="flex:0 0 26px;width:26px;height:26px;border-radius:50%;background:rgba(148,164,180,.15);border:1px solid rgba(148,164,180,.2);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;color:#8aa0b4;margin-top:1px" id="p-jn-fam-av">AP</div>
+          <div style="flex:1;background:rgba(148,164,180,.05);border:1px solid rgba(148,164,180,.1);border-radius:10px;padding:7px 10px;min-width:0">
+            <div style="font-size:10px;font-weight:600;color:#8aa0b4;margin-bottom:3px"><span id="p-jn-fam-name">Afi Pétur</span> <span style="font-weight:400;color:var(--muted)" id="p-jn-fam-ts">17:05</span></div>
+            <div style="font-size:13px;color:var(--text-bright);line-height:1.3" id="p-jn-fam-text">Hlakka til að heyra næsta kafla!</div>
+          </div>
         </div>
       </div>
     </div>
@@ -560,45 +607,70 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
         </div>
       </div>
 
-      <!-- 3 newest entries (newest first), reply per entry -->
-      <div id="jm-feed" style="display:flex;flex-direction:column;gap:8px">
-        <div class="jn-entry fresh">
-          <div class="jn-author">Hrafnkell <span class="jn-ts">í dag · 16:42</span></div>
-          <div class="jn-text">"Bókin er byrjuð."</div>
-          <div class="jn-meta">Bls. 1–10 · 5 mín</div>
-          <div class="jn-cmt">
-            <div class="jn-cmt-item"><strong>Pétur</strong> <span class="jn-cmt-ts">í dag · 17:05</span><div>Hlakka til að heyra næsta kafla</div></div>
-          </div>
-          <div class="jn-reply">
-            <input class="jn-reply-input" placeholder="Skrifa svar..." maxlength="80" id="jm-input">
-            <button class="jn-reply-btn" type="button" id="jm-send" onclick="sendReply(this)">↑</button>
+      <!-- Chat-stíll feed -->
+      <div id="jm-feed" style="display:flex;flex-direction:column;gap:4px">
+
+        <div class="jn-daylbl">Í dag</div>
+
+        <!-- HH færsla -->
+        <div style="display:flex;gap:8px;align-items:flex-start">
+          <div class="jn-av jn-av-child">HH</div>
+          <div class="jn-bubble jn-bubble-child">
+            <div class="jn-bubble-name">Hrafnkell <span class="jn-bubble-ts">16:42</span></div>
+            <div class="jn-bubble-text">Bókin er byrjuð.</div>
+            <div class="jn-bubble-meta">bls. 1–10 · 5 mín</div>
           </div>
         </div>
 
-        <div class="jn-entry">
-          <div class="jn-author">Hrafnkell <span class="jn-ts">20. maí · 15:20</span></div>
-          <div class="jn-text">"Þau fundu nýja vísbendingu."</div>
-          <div class="jn-meta">Bls. 50–60 · 4 mín</div>
-          <button class="jn-reply-toggle" onclick="openReply(this)">Svara</button>
-          <div class="jn-reply" style="display:none">
-            <input class="jn-reply-input" placeholder="Skrifa svar..." maxlength="80">
-            <button class="jn-reply-btn" type="button" onclick="sendReply(this)">↑</button>
+        <!-- Fjölskylda svar -->
+        <div style="display:flex;gap:8px;align-items:flex-start">
+          <div class="jn-av jn-av-fam">AP</div>
+          <div class="jn-bubble jn-bubble-fam">
+            <div class="jn-bubble-name jn-bubble-name-fam">Afi Pétur <span class="jn-bubble-ts">17:05</span></div>
+            <div class="jn-bubble-text">Hlakka til að heyra næsta kafla!</div>
+            <div class="jn-reply" style="margin-top:6px">
+              <input class="jn-reply-input" placeholder="Skrifa svar..." maxlength="80" id="jm-input">
+              <button class="jn-reply-btn" type="button" id="jm-send" onclick="sendReply(this)">↑</button>
+            </div>
           </div>
         </div>
 
-        <div class="jn-entry">
-          <div class="jn-author">Hrafnkell <span class="jn-ts">20. maí · 14:55</span></div>
-          <div class="jn-text">"Kaflinn endaði á leyndarmáli."</div>
-          <div class="jn-meta">Bls. 42–50 · 6 mín</div>
-          <div class="jn-cmt">
-            <div class="jn-cmt-item"><strong>Anna</strong> <span class="jn-cmt-ts">20. maí · 18:30</span><div>Spennandi!</div></div>
-          </div>
-          <button class="jn-reply-toggle" onclick="openReply(this)">Svara</button>
-          <div class="jn-reply" style="display:none">
-            <input class="jn-reply-input" placeholder="Skrifa svar..." maxlength="80">
-            <button class="jn-reply-btn" type="button" onclick="sendReply(this)">↑</button>
+        <div class="jn-daylbl" style="margin-top:8px">20. maí</div>
+
+        <!-- HH færsla -->
+        <div style="display:flex;gap:8px;align-items:flex-start">
+          <div class="jn-av jn-av-child">HH</div>
+          <div class="jn-bubble jn-bubble-child">
+            <div class="jn-bubble-name">Hrafnkell <span class="jn-bubble-ts">15:20</span></div>
+            <div class="jn-bubble-text">Þau fundu nýja vísbendingu.</div>
+            <div class="jn-bubble-meta">bls. 50–60 · 4 mín</div>
           </div>
         </div>
+
+        <!-- Fjölskylda svar -->
+        <div style="display:flex;gap:8px;align-items:flex-start">
+          <div class="jn-av jn-av-fam">AM</div>
+          <div class="jn-bubble jn-bubble-fam">
+            <div class="jn-bubble-name jn-bubble-name-fam">Amma María <span class="jn-bubble-ts">18:30</span></div>
+            <div class="jn-bubble-text">Spennandi! Hver heldurðu að sé þjófurinn?</div>
+            <button class="jn-reply-toggle" onclick="openReply(this)" style="margin-top:6px">Svara</button>
+            <div class="jn-reply" style="display:none;margin-top:6px">
+              <input class="jn-reply-input" placeholder="Skrifa svar..." maxlength="80">
+              <button class="jn-reply-btn" type="button" onclick="sendReply(this)">↑</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- HH færsla -->
+        <div style="display:flex;gap:8px;align-items:flex-start">
+          <div class="jn-av jn-av-child">HH</div>
+          <div class="jn-bubble jn-bubble-child">
+            <div class="jn-bubble-name">Hrafnkell <span class="jn-bubble-ts">14:55</span></div>
+            <div class="jn-bubble-text">Kaflinn endaði á leyndarmáli.</div>
+            <div class="jn-bubble-meta">bls. 42–50 · 6 mín</div>
+          </div>
+        </div>
+
       </div>
 
       <div class="jn-sent" id="jm-sent">Sent ✓</div>

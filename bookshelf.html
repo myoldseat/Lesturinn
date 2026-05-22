@@ -358,7 +358,8 @@ button{font:inherit;cursor:pointer;border:0;background:none;color:inherit}a{colo
 
 <div id="addStep2">
 <h2>Ný bók</h2>
-<p class="dialog-sub">Fylltu út og vistaðu í hilluna</p>
+<p class="dialog-sub" id="addStep2Sub">Taktu mynd af kápu — við finnum bókina sjálfkrafa</p>
+<button class="dialog-btn" id="takeCoverBtn" onclick="document.getElementById('coverInput').click()" style="margin-bottom:8px">📷 Taka mynd af kápu</button>
 <div class="preview-row" id="previewRow" style="display:none">
 <div class="preview-cover"><img id="previewImg" alt=""></div>
 <div class="preview-info"><strong id="previewMeta"></strong></div>
@@ -368,12 +369,12 @@ button{font:inherit;cursor:pointer;border:0;background:none;color:inherit}a{colo
 <div class="field"><label>Blaðsíðufjöldi *</label><input id="bookPages" inputmode="numeric" placeholder="t.d. 120"></div>
 <div class="field"><label>Staða</label><select id="bookStatus"><option value="shelf">Á hillunni</option><option value="reading">Að lesa</option><option value="finished">Lokið</option></select></div>
 <button class="dialog-btn" id="saveBook">Vista bók</button>
-<button class="dialog-btn secondary" id="backToCamera">📷 Breyta mynd</button>
+<button class="dialog-btn secondary" id="backToCamera" style="display:none">📷 Breyta kápu</button>
 </div>
 
 <div id="addStep2b" style="display:none">
-<h2>Hljóðbrot og lestur</h2>
-<p class="dialog-sub">Við getum reiknað hve hratt þú ert að lesa ef þú tekur mynd af síðu í bókinni</p>
+<h2>Þyngd bókarinnar</h2>
+<p class="dialog-sub">Við getum metið þyngd bókarinnar ef þú tekur mynd af síðu</p>
 <div id="pageImgPreview" style="display:none;margin:10px 0;border-radius:10px;overflow:hidden;border:1px solid rgba(29,205,211,.2)">
   <img id="pagePreviewImg" alt="" style="width:100%;display:block;max-height:220px;object-fit:cover">
   <div id="pageAnalysisStatus" style="padding:8px 12px;font-size:12px;font-weight:500;color:var(--accent,#1dcdd3)"></div>
@@ -385,7 +386,7 @@ button{font:inherit;cursor:pointer;border:0;background:none;color:inherit}a{colo
   </div>
   <div id="pageWppDisplay" style="font-size:13px;color:#c8d8e8"></div>
 </div>
-<input id="pageInput" type="file" accept="image/*" capture="environment" style="display:none">
+<input id="pageInput" type="file" accept="image/*" style="display:none">
 <button class="dialog-btn" id="takePagePhotoBtn" onclick="triggerPagePhoto()">📷 Taka mynd af síðu</button>
 <button class="dialog-btn secondary" id="skipPagePhotoBtn" onclick="skipPagePhoto()">Sleppa — áætla sjálfkrafa</button>
 <div id="skipPageInfo" style="font-size:11px;color:#5a7088;text-align:center;margin-top:6px;display:none"></div>
@@ -1392,19 +1393,11 @@ function showStep(n){
   document.getElementById('addStep2b').style.display = n === 2.5 ? '' : 'none';
   document.getElementById('addStep3').style.display  = n === 4   ? '' : 'none';
 }
-function resetF(){curCov=null;curCovHQ=null;pendingCoverUrl=null;pendingCoverGsPath=null;['bookTitle','bookAuthor'].forEach(id=>document.getElementById(id).value='');document.getElementById('bookStatus').value='shelf';document.getElementById('bookPages').value='';document.getElementById('coverInput').value='';document.getElementById('previewImg').removeAttribute('src');document.getElementById('previewMeta').textContent='';document.getElementById('previewRow').style.display='none';showStep(2);setReady()}
+function resetF(){curCov=null;curCovHQ=null;pendingCoverUrl=null;pendingCoverGsPath=null;['bookTitle','bookAuthor'].forEach(id=>document.getElementById(id).value='');document.getElementById('bookStatus').value='shelf';document.getElementById('bookPages').value='';document.getElementById('coverInput').value='';document.getElementById('previewImg').removeAttribute('src');document.getElementById('previewMeta').textContent='';document.getElementById('previewRow').style.display='none';document.getElementById('takeCoverBtn').style.display='';document.getElementById('backToCamera').style.display='none';const s=document.getElementById('addStep2Sub');if(s)s.textContent='Taktu mynd af kápu — við finnum bókina sjálfkrafa';showStep(2);setReady()}
 function openAddM(){
-  // Trigger native camera/gallery picker
-  document.getElementById('coverInput').click();
-  // If user cancels camera, they can still open modal manually
-  // We detect this by checking if file was selected after a delay
-  setTimeout(()=>{
-    if(!document.getElementById('addModal').classList.contains('open')&&!curCov){
-      // Camera was likely cancelled — open modal without image
-      resetF();openOv('addModal');
-      setTimeout(()=>document.getElementById('bookTitle')?.focus(),100);
-    }
-  },800);
+  resetF();
+  openOv('addModal');
+  setTimeout(()=>document.getElementById('bookTitle')?.focus(),100);
 }
 
 // ── Handle image from camera or gallery ──
@@ -1417,6 +1410,8 @@ async function handleCoverFile(file){
   document.getElementById('previewImg').src=curCovHQ;
   document.getElementById('previewMeta').textContent=bk+'KB → ~'+ak+'KB';
   document.getElementById('previewRow').style.display='grid';
+  document.getElementById('takeCoverBtn').style.display='none';
+  document.getElementById('backToCamera').style.display='';
   showStep(2);setReady();
   openOv('addModal');
 
@@ -1601,6 +1596,7 @@ async function identifyBookCover(gsPath){
   const titleEl=document.getElementById('bookTitle');
   const authorEl=document.getElementById('bookAuthor');
   const metaEl=document.getElementById('previewMeta');
+  const subEl=document.getElementById('addStep2Sub');
   if(!titleEl||!metaEl)return;
 
   const origMeta=metaEl.textContent;
@@ -1616,6 +1612,10 @@ async function identifyBookCover(gsPath){
     if(info.author&&authorEl&&!authorEl.value) authorEl.value=info.author;
     titleEl.placeholder='t.d. Drekastormur';
     if(!info.title) metaEl.textContent=origMeta;
+    /* Uppfæra subtitle */
+    if(subEl && info.title){
+      subEl.textContent='Við fundum bókina — lestu yfir og lagfærðu ef þarf. Gleymdu ekki blaðsíðufjölda.';
+    }
   }catch(e){
     console.warn('identifyBookCover failed:',e);
     metaEl.textContent=origMeta;

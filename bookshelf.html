@@ -1538,8 +1538,11 @@ window.skipPagePhoto = function() {
   _doSaveBook();
 };
 
+let _saving = false;
+
 async function _doSaveBook() {
-  if (saving) return;
+  if (_saving) return;
+  _saving = true;
   const btn = document.getElementById('saveBook');
   const title = document.getElementById('bookTitle').value.trim();
   const pages = Number(document.getElementById('bookPages').value || 0);
@@ -1553,6 +1556,7 @@ async function _doSaveBook() {
   /* Þyngd — Gemini eða fallback */
   const birthYear = CS?.birthYear || null;
   const diffData = _pageAnalysis || calcDifficulty(pages, birthYear);
+  console.log('💾 _doSaveBook — diffData:', diffData);
 
   const d = {
     familyId: FID, childKey: CK, childName: CN,
@@ -1590,9 +1594,10 @@ async function _doSaveBook() {
     }
     _pageAnalysis = null;
     _pendingPageGsPath = null;
+    _saving = false;
     showStep(4); saving = false;
   } catch(e) {
-    console.error(e); saving = false;
+    console.error(e); saving = false; _saving = false;
     if (btn) { btn.disabled = false; btn.textContent = 'Vista bók'; }
     alert('Villa — reyndu aftur.');
   }

@@ -1385,31 +1385,37 @@ function renderChildren(children) {
   document.querySelectorAll('[data-child-row]').forEach(r => { r.innerHTML = html; });
 }
 
-/* ── Að lesa ── */
+/* ── Að lesa — ferkanturt hero ── */
 function renderReading(books) {
   const el = document.getElementById('p-now-reading');
   if (!el) return;
   const hero = books.filter(b => b.status === 'reading').sort((a,b) => bTs(b,'lastReadAt') - bTs(a,'lastReadAt'))[0];
   if (!hero) {
-    el.innerHTML = `<div class="crd-head"><span class="crd-lbl">Að lesa</span></div>
-      <div style="text-align:center;padding:20px 0;color:var(--muted);font-size:13px">
-        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.5" style="display:block;margin:0 auto 8px"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5Z"/></svg>
-        Ekkert verið að lesa</div>`;
+    el.innerHTML = `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;padding:16px;text-align:center">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.5" style="margin-bottom:8px"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5Z"/></svg>
+      <span style="font-size:11px;color:var(--muted)">Engin bók</span></div>`;
     return;
   }
   const pct = hero.progressPercent || 0;
   const pg = hero.currentPageTo ? `bls. ${hero.currentPageTo} af ${hero.totalPages||'?'}` : '';
-  const c1 = hero.c1||'#2b8f91', c2 = hero.c2||'#0a2341';
+  const c1 = hero.c1||'#6a3140', c2 = hero.c2||'#c08a36';
+  const letter = esc((hero.title||'?')[0]);
   const coverSrc = hero.coverUrl || hero.coverBase64;
   const coverHtml = coverSrc
-    ? `<img src="${esc(coverSrc)}" style="width:56px;height:78px;border-radius:8px;object-fit:cover;box-shadow:0 4px 12px rgba(0,0,0,.3)" onerror="this.outerHTML='<div class=rd-cover style=background:linear-gradient(145deg,${c1},${c2})><span>${esc((hero.title||'?')[0])}</span></div>'">`
-    : `<div class="rd-cover" style="background:linear-gradient(145deg,${c1},${c2})"><span>${esc((hero.title||'?')[0])}</span></div>`;
-  el.innerHTML = `<div class="crd-head"><span class="crd-lbl">Að lesa</span><button class="crd-act" onclick="nav('bookshelf.html')">Bókasafn ›</button></div>
-    <div class="rd-row">${coverHtml}<div>
-      <div class="rd-title">${esc(hero.title)}</div>
-      <div class="rd-meta">${pg}</div>
-      <div class="rd-prog"><div class="rd-bar"><div class="rd-fill" style="width:${pct}%"></div></div><div class="rd-pct">${pct}%</div></div>
-    </div></div>`;
+    ? `<img src="${esc(coverSrc)}" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none';this.parentNode.innerHTML+='<span style=font-size:30px;font-weight:700;color:rgba(255,255,255,.9)>${letter}</span>'">`
+    : `<span style="font-size:30px;font-weight:700;color:rgba(255,255,255,.9)">${letter}</span>`;
+  el.innerHTML = `
+    <div style="flex:0 0 58%;background:linear-gradient(145deg,${c1},${c2});display:flex;align-items:center;justify-content:center;overflow:hidden">${coverHtml}</div>
+    <div style="flex:1;padding:8px 10px;display:flex;flex-direction:column;justify-content:space-between;min-height:0">
+      <div>
+        <div class="rd-title" style="font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(hero.title)}</div>
+        <div class="rd-meta">${pg}</div>
+      </div>
+      <div class="rd-prog" style="margin-top:4px">
+        <div class="rd-bar"><div class="rd-fill" style="width:${pct}%"></div></div>
+        <div class="rd-pct">${pct}%</div>
+      </div>
+    </div>`;
 }
 
 /* ── Vikugrid (Í dag) ── */
@@ -1491,7 +1497,7 @@ function weekMins(sessions, weeksAgo) {
   return total;
 }
 
-/* ── Journey preview (Í dag flipi) ── */
+/* ── Journey preview (Í dag flipi) — chat stíll ── */
 function renderJourneyPreview(sessions, books) {
   const el = document.getElementById('p-journey-card');
   if (!el) return;
@@ -1501,23 +1507,56 @@ function renderJourneyPreview(sessions, books) {
     return;
   }
   el.style.display = '';
-  const latest = hero.journeyEntries[hero.journeyEntries.length - 1];
-  const note = latest.note || latest.text || '';
-  const meta = latest.date || '';
-  const reactions = latest.reactions || [];
-  let html = `<div class="note-q">"${esc(note)}"</div>`;
-  if (meta) html += `<div class="note-from">${esc(meta)}</div>`;
-  if (reactions.length > 0) {
-    html += `<div class="note-cmt">${reactions.map(r => typeof r === 'string' ? `<span>${esc(r)}</span>` : `<strong style="color:var(--accent)">${esc(r.name||'')}</strong> ${esc(r.text||r)}`).join('<br>')}</div>`;
+
+  const childName = (S.parentChildren||[]).find(c => c.key === _selectedChild)?.name || 'Barn';
+  const initials = childName.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+  const entries = [...hero.journeyEntries].sort((a,b) => eTs(b) - eTs(a));
+
+  /* Síðasta barnafærsla */
+  const lastChild = entries[0];
+  const childNote = lastChild ? (lastChild.note || lastChild.text || '') : '';
+  const childMeta = lastChild ? [lastChild.pageFrom && lastChild.pageTo ? `bls. ${lastChild.pageFrom}–${lastChild.pageTo}` : '', lastChild.seconds ? Math.floor(lastChild.seconds/60)+' mín' : ''].filter(Boolean).join(' · ') : '';
+  const childTs = lastChild?.date || '';
+
+  /* Síðasta fjölskyldukomment */
+  const reactions = lastChild?.reactions || [];
+  const lastReaction = reactions.length > 0 ? reactions[reactions.length - 1] : null;
+  const famName = lastReaction?.name || '';
+  const famInitials = famName.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase() || 'FF';
+  const famText = lastReaction?.text || '';
+  const famTs = lastReaction?.date || '';
+
+  let html = `<div class="crd-head" style="margin-bottom:10px"><span class="crd-lbl">Ferðalag</span><span class="crd-act">Meira ›</span></div>`;
+
+  /* Child bubble */
+  html += `<div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:8px">
+    <div style="flex:0 0 26px;width:26px;height:26px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;color:#061018;margin-top:1px">${initials}</div>
+    <div style="flex:1;background:rgba(29,205,211,.07);border:1px solid rgba(29,205,211,.15);border-radius:10px;padding:7px 10px;min-width:0">
+      <div style="font-size:10px;font-weight:600;color:var(--accent);margin-bottom:3px">${esc(childName)} <span style="font-weight:400;color:var(--muted)">${esc(childTs)}</span></div>
+      <div style="font-size:13px;color:var(--text-bright);line-height:1.3">${esc(childNote)}</div>
+      ${childMeta ? `<div style="font-size:10px;color:var(--muted);margin-top:3px">${childMeta}</div>` : ''}
+    </div>
+  </div>`;
+
+  /* Family bubble — ef til */
+  if (lastReaction && famText) {
+    html += `<div style="display:flex;gap:8px;align-items:flex-start">
+      <div style="flex:0 0 26px;width:26px;height:26px;border-radius:50%;background:rgba(148,164,180,.15);border:1px solid rgba(148,164,180,.2);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;color:#8aa0b4;margin-top:1px">${famInitials}</div>
+      <div style="flex:1;background:rgba(148,164,180,.05);border:1px solid rgba(148,164,180,.1);border-radius:10px;padding:7px 10px;min-width:0">
+        <div style="font-size:10px;font-weight:600;color:#8aa0b4;margin-bottom:3px">${esc(famName)} <span style="font-weight:400;color:var(--muted)">${esc(famTs)}</span></div>
+        <div style="font-size:13px;color:var(--text-bright);line-height:1.3">${esc(famText)}</div>
+      </div>
+    </div>`;
   }
+
   el.innerHTML = html;
 }
 
-/* ── Ferðalag flipi — hero cover + feed ── */
+/* ── Ferðalag flipi — chat stíll ── */
 function renderJourney(books) {
   const hero = books.filter(b => b.status === 'reading').sort((a,b) => bTs(b,'lastReadAt') - bTs(a,'lastReadAt'))[0];
 
-  /* Hero cover */
+  /* Hero cover — halda óbreyttu */
   const heroEl = document.getElementById('jm-book-hero');
   if (heroEl && hero) {
     const c1 = hero.c1||'#2b8f91', c2 = hero.c2||'#0a2341';
@@ -1535,7 +1574,7 @@ function renderJourney(books) {
       </div>`;
   }
 
-  /* Journey feed */
+  /* Chat feed */
   const feedEl = document.getElementById('jm-feed');
   if (!feedEl || !hero) return;
   const entries = hero.journeyEntries || [];
@@ -1544,47 +1583,69 @@ function renderJourney(books) {
     return;
   }
 
-  /* Sýna 3 nýjustu (nýjast efst) */
-  const childName = (S.parentChildren||[]).find(c => c.key === _selectedChild)?.name || '';
+  const childName = (S.parentChildren||[]).find(c => c.key === _selectedChild)?.name || 'Barn';
+  const childInitials = childName.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
   const sorted = [...entries].sort((a,b) => eTs(b) - eTs(a));
   const show = sorted.slice(0, 3);
   const total = entries.length;
 
+  /* Hópa eftir degi */
+  const today = dk(new Date());
+  const yesterday = dk(new Date(Date.now() - 86400000));
+  function dayLabel(dateStr) {
+    if (!dateStr) return '';
+    if (dateStr === today) return 'Í dag';
+    if (dateStr === yesterday) return 'Í gær';
+    return dateStr;
+  }
+
   let html = '';
+  let lastDay = null;
+
   show.forEach((e, i) => {
     const note = e.note || e.text || '';
-    const meta = [];
-    if (e.pageFrom && e.pageTo) meta.push(`Bls. ${e.pageFrom}–${e.pageTo}`);
-    if (e.seconds) meta.push(Math.floor(e.seconds/60) + ' mín');
-    if (e.date) meta.push(e.date);
-    const fresh = i === 0 ? ' fresh' : '';
+    const meta = [e.pageFrom && e.pageTo ? `bls. ${e.pageFrom}–${e.pageTo}` : '', e.seconds ? Math.floor(e.seconds/60)+' mín' : ''].filter(Boolean).join(' · ');
     const reactions = e.reactions || [];
+    const dayKey = e.date || '';
 
-    html += `<div class="jn-entry${fresh}">
-      <div class="jn-author">${esc(childName)} <span class="jn-ts">${e.date || ''}</span></div>
-      <div class="jn-text">"${esc(note)}"</div>
-      <div class="jn-meta">${meta.join(' · ')}</div>`;
-
-    if (reactions.length > 0) {
-      html += '<div class="jn-cmt">';
-      reactions.forEach(r => {
-        if (typeof r === 'string') {
-          html += `<div class="jn-cmt-item">${esc(r)}</div>`;
-        } else if (r.name || r.text) {
-          html += `<div class="jn-cmt-item"><strong>${esc(r.name||'')}</strong> <span class="jn-cmt-ts">${r.date||''}</span><div>${esc(r.text||'')}</div></div>`;
-        }
-      });
-      html += '</div>';
+    /* Dagskiptir */
+    if (dayKey !== lastDay) {
+      html += `<div class="jn-daylbl">${dayLabel(dayKey)}</div>`;
+      lastDay = dayKey;
     }
 
-    /* Reply: open on first, toggle on rest */
-    if (i === 0) {
-      html += `<div class="jn-reply"><input class="jn-reply-input" placeholder="Skrifa svar..." maxlength="80"><button class="jn-reply-btn" type="button" onclick="sendReply(this)">↑</button></div>`;
-    } else {
-      html += `<button class="jn-reply-toggle" onclick="openReply(this)">Svara</button>
-        <div class="jn-reply" style="display:none"><input class="jn-reply-input" placeholder="Skrifa svar..." maxlength="80"><button class="jn-reply-btn" type="button" onclick="sendReply(this)">↑</button></div>`;
+    /* Child bubble */
+    html += `<div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:6px">
+      <div class="jn-av jn-av-child">${childInitials}</div>
+      <div class="jn-bubble jn-bubble-child">
+        <div class="jn-bubble-name">${esc(childName)} <span class="jn-bubble-ts">${esc(e.date||'')}</span></div>
+        <div class="jn-bubble-text">${esc(note)}</div>
+        ${meta ? `<div class="jn-bubble-meta">${meta}</div>` : ''}
+      </div>
+    </div>`;
+
+    /* Reactions sem family bubbles */
+    reactions.forEach((r, ri) => {
+      const rName = typeof r === 'string' ? '' : (r.name || '');
+      const rText = typeof r === 'string' ? r : (r.text || '');
+      const rTs = typeof r === 'object' ? (r.date || '') : '';
+      const rInitials = rName.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase() || '??';
+      const isLast = ri === reactions.length - 1 && i === 0;
+      html += `<div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:${isLast ? '0' : '6px'}">
+        <div class="jn-av jn-av-fam">${rInitials}</div>
+        <div class="jn-bubble jn-bubble-fam">
+          <div class="jn-bubble-name jn-bubble-name-fam">${esc(rName)} <span class="jn-bubble-ts">${esc(rTs)}</span></div>
+          <div class="jn-bubble-text">${esc(rText)}</div>
+          ${isLast ? `<div class="jn-reply" style="margin-top:6px"><input class="jn-reply-input" placeholder="Skrifa svar..." maxlength="80"><button class="jn-reply-btn" type="button" onclick="sendReply(this)">↑</button></div>` : ''}
+        </div>
+      </div>`;
+    });
+
+    /* Svara takki ef engar reactions og ekki fyrsta */
+    if (reactions.length === 0 && i > 0) {
+      html += `<div style="padding-left:36px;margin-bottom:6px"><button class="jn-reply-toggle" onclick="openReply(this)">Svara</button>
+        <div class="jn-reply" style="display:none;margin-top:6px"><input class="jn-reply-input" placeholder="Skrifa svar..." maxlength="80"><button class="jn-reply-btn" type="button" onclick="sendReply(this)">↑</button></div></div>`;
     }
-    html += '</div>';
   });
 
   if (total > 3) {

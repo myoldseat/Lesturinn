@@ -1161,7 +1161,7 @@ const fbMod    = await import('./js/firebase-config.js').catch(e => { console.er
 
 const { initAuth, openAddChildPopup, closeAddChildPopup, logout } = authMod;
 const S = stateMod.S || {};
-const { db, collection, onSnapshot, query, where, doc, setDoc, auth, storage, ref, getDownloadURL } = fbMod;
+const { db, collection, onSnapshot, query, where, doc, setDoc, auth, storage, ref, getDownloadURL, signInWithEmailAndPassword } = fbMod;
 
 console.log('📦 Loaded:', { auth: !!initAuth, S: !!S, db: !!db });
 
@@ -1676,8 +1676,6 @@ window.pickChild = function(el, key) {
 };
 
 /* ── Login ── */
-const { signInWithEmailAndPassword: signInFn } = fbMod;
-
 window.doLogin = async function() {
   const email = document.getElementById('p-login-email')?.value?.trim();
   const pw = document.getElementById('p-login-pw')?.value;
@@ -1687,9 +1685,12 @@ window.doLogin = async function() {
   if (!email || !pw) { if (err) err.textContent = 'Sláðu inn netfang og lykilorð.'; return; }
   if (btn) { btn.textContent = 'Skrá inn...'; btn.disabled = true; }
   try {
-    await signInFn(auth, email, pw);
+    console.log('🔑 Login attempt:', email);
+    await signInWithEmailAndPassword(auth, email, pw);
+    console.log('✅ Login OK — onAuthStateChanged tekur við');
     /* onAuthStateChanged í auth.js tekur við héðan */
   } catch(e) {
+    console.error('❌ Login villa:', e);
     if (err) err.textContent = 'Innskráning mistókst — athugaðu netfang og lykilorð.';
     if (btn) { btn.textContent = 'Skrá inn'; btn.disabled = false; }
   }

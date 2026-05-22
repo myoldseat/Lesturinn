@@ -1688,6 +1688,8 @@ window.doLogin = async function() {
     console.log('🔑 Login attempt:', email);
     await signInWithEmailAndPassword(auth, email, pw);
     console.log('✅ Login OK — onAuthStateChanged tekur við');
+    /* Loka popup strax — ekki bíða eftir goTo */
+    document.getElementById('p-login-overlay')?.classList.remove('show');
     /* onAuthStateChanged í auth.js tekur við héðan */
   } catch(e) {
     console.error('❌ Login villa:', e);

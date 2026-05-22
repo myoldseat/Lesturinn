@@ -295,22 +295,22 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
 .rec-fav.on{color:var(--gold)}
 
 /* ── Settings ── */
-.st-sec{font-size:10px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;padding:10px 0 4px}
-.st-group{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
-.st-row{
+.st-sec{font-size:10px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;padding:6px 0 2px}
+.st-group{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;position:relative}
+.st-group .st-row{
   display:flex;align-items:center;justify-content:space-between;
   padding:12px 14px;border-bottom:1px solid var(--border);
-  cursor:default;transition:background .15s;
+  cursor:default;transition:background .15s;min-height:44px;
 }
-.st-row:last-child{border:none}
-.st-row.tap{cursor:pointer;-webkit-tap-highlight-color:transparent}
-.st-row.tap:hover{background:rgba(29,205,211,.03)}
-.st-row.tap:active{background:rgba(29,205,211,.06)}
+.st-group .st-row:last-child{border:none}
+.st-group .st-row.tap{cursor:pointer;-webkit-tap-highlight-color:transparent}
+.st-group .st-row.tap:hover{background:rgba(29,205,211,.03)}
+.st-group .st-row.tap:active{background:rgba(29,205,211,.06)}
 .st-lbl{font-size:13px;font-weight:500;color:var(--text-bright)}
-.st-val{font-size:12px;color:var(--muted);text-align:right;min-width:0;overflow:hidden;text-overflow:ellipsis}
+.st-val{font-size:12px;color:var(--muted);text-align:right;min-width:0;max-width:55%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .st-val.ac{color:var(--accent);font-weight:600;letter-spacing:1px}
 .st-act{font-size:11px;font-weight:500;color:var(--accent);flex:0 0 auto}
-.st-row.danger .st-lbl{color:var(--danger)}
+.st-group .st-row.danger .st-lbl{color:var(--danger)}
 .st-sub{font-size:10px;color:var(--muted);margin-top:1px}
 
 /* ── Confirm popup ── */
@@ -810,7 +810,7 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
 
       <div class="st-sec">Hætta</div>
       <div class="st-group">
-        <div class="st-row tap" onclick="toast('Útskráning tengist seinna')"><span class="st-lbl">Útskrá</span></div>
+        <div class="st-row tap" onclick="if(typeof window.logout==='function')window.logout();else toast('Villa við útskráningu')"><span class="st-lbl">Útskrá</span></div>
         <div class="st-row tap danger" onclick="confirmAction('delete-account')"><span class="st-lbl">Eyða aðgangi og öllum gögnum</span></div>
       </div>
     </div>
@@ -1090,7 +1090,7 @@ function toast(text) {
   clearTimeout(toast._t);
   toast._t = setTimeout(() => el.classList.remove('show'), 1600);
 }
-function nav(url) { toast('Opna: ' + url); }
+function nav(url) { window.location.href = url; }
 
 /* ═══════════════════════════════════
    WELCOME / EMPTY STATE
@@ -1400,6 +1400,7 @@ function renderStats(sessions, books) {
   /* Samanburður — vikuleg framvinda */
   const thisWeek = weekMins(sessions, 0);
   const lastWeek = weekMins(sessions, 1);
+  set('ph-week-total', thisWeek + ' mín');
   updateProgressPill(thisWeek - lastWeek);
 }
 

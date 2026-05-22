@@ -72,18 +72,19 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
 .cpills{display:flex;gap:6px;padding:2px 0 4px;overflow-x:auto;flex-shrink:0;scrollbar-width:none}
 .cpills::-webkit-scrollbar{display:none}
 .cpill{
-  flex:0 0 auto;display:flex;align-items:center;gap:6px;
+  flex:0 0 auto;display:flex;align-items:center;gap:7px;
   background:var(--surface);border:1.5px solid var(--border);
-  border-radius:99px;padding:5px 12px 5px 5px;cursor:pointer;
+  border-radius:99px;padding:7px 14px 7px 7px;cursor:pointer;
   transition:all .2s;-webkit-tap-highlight-color:transparent;
+  min-height:44px;
 }
 .cpill:hover{border-color:rgba(29,205,211,.2)}
 .cpill.sel{border-color:var(--accent);background:var(--accent-soft)}
 .cpill-av{
-  width:26px;height:26px;border-radius:50%;
+  width:30px;height:30px;border-radius:50%;
   background:rgba(255,255,255,.05);
   display:flex;align-items:center;justify-content:center;
-  font-size:10px;font-weight:600;color:var(--muted);transition:all .2s;
+  font-size:11px;font-weight:600;color:var(--muted);transition:all .2s;
 }
 .cpill.sel .cpill-av{background:var(--accent);color:#061018}
 .cpill-name{font-size:12px;font-weight:500;color:var(--text);white-space:nowrap}
@@ -250,7 +251,7 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
 .hm-month-cell.empty{background:transparent;cursor:default}
 .hm-month-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
 .hm-month-title{font-size:12px;font-weight:500;color:var(--text-bright)}
-.hm-nav-arrow{background:none;border:1px solid var(--border);border-radius:6px;width:28px;height:28px;color:var(--accent);font-size:14px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.hm-nav-arrow{background:none;border:1px solid var(--border);border-radius:8px;width:36px;height:36px;color:var(--accent);font-size:16px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s}
 .hm-nav-arrow:hover:not(:disabled){border-color:var(--border-hl);background:var(--accent-soft)}
 .hm-nav-arrow:disabled{opacity:.3;cursor:default}
 .mc-num{font-size:9px;font-weight:500;color:rgba(200,216,232,.7)}
@@ -283,15 +284,15 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
 }
 .rec-item:last-child{border:none}
 .rec-play-sm{
-  width:32px;height:32px;border-radius:50%;flex:0 0 auto;
+  width:40px;height:40px;border-radius:50%;flex:0 0 auto;
   border:1px solid var(--border-hl);background:var(--accent-soft);
   display:flex;align-items:center;justify-content:center;cursor:pointer;
 }
-.rec-play-sm .play-tri{border-left-width:7px;border-top-width:4px;border-bottom-width:4px;margin-left:1px}
+.rec-play-sm .play-tri{border-left-width:8px;border-top-width:5px;border-bottom-width:5px;margin-left:2px}
 .rec-main{flex:1;min-width:0}
 .rec-t{font-size:12px;font-weight:500;color:var(--text-bright);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .rec-m{font-size:10px;color:var(--muted);margin-top:1px}
-.rec-fav{font-size:14px;color:rgba(255,255,255,.12);cursor:pointer;flex:0 0 auto;transition:color .2s;-webkit-tap-highlight-color:transparent}
+.rec-fav{font-size:16px;width:40px;height:40px;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.12);cursor:pointer;flex:0 0 auto;transition:color .2s;-webkit-tap-highlight-color:transparent}
 .rec-fav.on{color:var(--gold)}
 
 /* ── Settings ── */
@@ -347,12 +348,12 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
 .nav button{
   flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;
   background:none;border:none;color:var(--muted);
-  font-size:9.5px;font-weight:500;padding:5px 2px 2px;
+  font-size:10.5px;font-weight:500;padding:5px 2px 2px;
   cursor:pointer;position:relative;transition:color .2s;
   -webkit-tap-highlight-color:transparent;
   font-family:inherit;
 }
-.nav button svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.nav button svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
 .nav button.on{color:var(--accent)}
 .nav button.on::after{
   content:'';position:absolute;bottom:0;left:50%;transform:translateX(-50%);
@@ -379,15 +380,15 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
 @media(max-width:390px){
   .top{padding:12px 12px 8px}
   .bod{padding:8px 10px 24px;gap:8px}
-  .cpill-av{width:24px;height:24px;font-size:9px}
+  .cpill-av{width:26px;height:26px;font-size:10px}
   .cpill-name{font-size:11px}
   .rd-row{grid-template-columns:48px 1fr;gap:10px}
   .rd-cover{width:48px;height:68px;font-size:16px}
   .rd-title{font-size:15px}
   .streak-n{font-size:28px}
   .stat-v{font-size:22px}
-  .nav button{font-size:8.5px}
-  .nav button svg{width:17px;height:17px}
+  .nav button{font-size:9.5px}
+  .nav button svg{width:20px;height:20px}
 }
 </style>
 </head>

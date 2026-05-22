@@ -1487,19 +1487,18 @@ document.getElementById('pageInput').addEventListener('change', async e => {
   try {
     /* Þjappa — Gemini les texta vel á lágri upplausn */
     const compressed = await compress(file, 360, 540, 0.55);
-    const blob = base64ToBlob(compressed);
-    const ts = Date.now();
-    const path = 'pagescans/' + FID + '/' + CK + '/' + ts + '.jpg';
-    const sRef = storageRef(bsStorage, path);
-    await uploadBytes(sRef, blob, { contentType: 'image/jpeg' });
-    const gsPath = 'gs://lesum-22e85.firebasestorage.app/' + path;
-    _pendingPageGsPath = gsPath;
+    /* Senda base64 beint — engin Storage round-trip */
+    const base64Data = compressed.split(',')[1];
 
-    /* Kalla Gemini */
-    const analyze = httpsCallable(functions, 'analyzePageText');
-    const result = await analyze({ gsPath });
-    const info = result.data;
-    console.log('Page analysis:', info);
+    document.getElementById('pageAnalysisStatus').textContent = '🔍 Greini textann...';
+    document.getElementById('pageAnalysisResult').style.display = 'none';
+    document.getElementById('takePagePhotoBtn').disabled = true;
+
+    try {
+      const analyze = httpsCallable(functions, 'analyzePageText');
+      const result = await analyze({ base64: base64Data, mimeType: 'image/jpeg' });
+      const info = result.data;
+      console.log('Page analysis:', info);
 
     _pageAnalysis = {
       wordsPerPage: info.wordsPerPage || 150,

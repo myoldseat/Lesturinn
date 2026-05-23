@@ -797,16 +797,16 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
         <div class="crd-lbl" style="margin-bottom:8px">Markmið</div>
         <div class="goal-row" style="padding:0">
           <div class="goal-ring">
-            <svg viewBox="0 0 44 44"><circle cx="22" cy="22" r="17" fill="none" stroke="rgba(29,205,211,.1)" stroke-width="5"/><circle cx="22" cy="22" r="17" fill="none" stroke="var(--accent)" stroke-width="5" stroke-dasharray="107" stroke-dashoffset="27" stroke-linecap="round" transform="rotate(-90 22 22)"/></svg>
-            <div class="goal-pct">75%</div>
+            <svg viewBox="0 0 44 44"><circle cx="22" cy="22" r="17" fill="none" stroke="rgba(29,205,211,.1)" stroke-width="5"/><circle id="goal-ring-fill" cx="22" cy="22" r="17" fill="none" stroke="var(--accent)" stroke-width="5" stroke-dasharray="107" stroke-dashoffset="107" stroke-linecap="round" transform="rotate(-90 22 22)"/></svg>
+            <div class="goal-pct" id="p-goal-pct">0%</div>
           </div>
-          <div class="goal-info"><div class="goal-name">4 dagar / viku</div><div class="goal-sub">3 af 4 dögum náðir</div></div>
+          <div class="goal-info"><div class="goal-name" id="p-goal-name"></div><div class="goal-sub" id="p-goal-sub"></div></div>
         </div>
       </div>
 
       <!-- Bókasafn link -->
       <div class="crd" onclick="nav('bookshelf.html')" style="cursor:pointer;display:flex;align-items:center;justify-content:space-between">
-        <div><div style="font-size:13px;font-weight:500;color:var(--text-bright)">Bókasafn</div><div style="font-size:10px;color:var(--muted);margin-top:2px">11 bækur · 3 kláraðar</div></div>
+        <div><div style="font-size:13px;font-weight:500;color:var(--text-bright)">Bókasafn</div><div style="font-size:10px;color:var(--muted);margin-top:2px" id="p-bookshelf-sub"></div></div>
         <div class="crd-act">Opna ›</div>
       </div>
     </div>
@@ -1639,7 +1639,6 @@ function renderStats(sessions, books) {
     child.totalWordsRead = totalWords;
   }
 
-  const done = books.filter(b => b.status === 'finished').length;
   const today = new Date(); today.setHours(12,0,0,0);
   let dr = 0;
   for (let i = 0; i < 7; i++) { const d = new Date(today); d.setDate(today.getDate()-i); if (sessions.some(s => nd(s.date)===dk(d) && (s.seconds||0)>=60)) dr++; }
@@ -1655,7 +1654,6 @@ function renderStats(sessions, books) {
     else ctxEl.textContent = '';
   }
 
-  set('p-stat-books', done);
   set('p-stat-days', dr + ' / 7');
 
   /* Streak í stats grid */
@@ -1667,10 +1665,23 @@ function renderStats(sessions, books) {
   }
   set('p-stat-streak', streak);
 
-  /* Markmið ring */
-  const goalPct = dr > 0 ? Math.round((dr / 7) * 100) : 0;
-  const goalEl = document.querySelector('.goal-pct');
-  if (goalEl) goalEl.textContent = goalPct + '%';
+  /* Markmið ring — nota child.goalDays eða fallback 4 */
+  const goalTarget = child?.goalDays || 4;
+  const goalPct = Math.min(100, Math.round((dr / goalTarget) * 100));
+  /* SVG ring: ummál = 2π×17 ≈ 106.81 → notum 107 */
+  const circumference = 107;
+  const dashoffset = circumference - (circumference * goalPct / 100);
+  set('p-goal-pct', goalPct + '%');
+  set('p-goal-name', goalTarget + ' dagar / viku');
+  set('p-goal-sub', dr + ' af ' + goalTarget + ' dögum náðir');
+  const ringFill = document.getElementById('goal-ring-fill');
+  if (ringFill) ringFill.setAttribute('stroke-dashoffset', dashoffset);
+
+  /* Bókasafn link + bækur kláraðar stat */
+  const done = books.filter(b => b.status === 'finished').length;
+  set('p-stat-books', done);
+  const bsub = document.getElementById('p-bookshelf-sub');
+  if (bsub) bsub.textContent = books.length + ' bækur · ' + done + ' kláraðar';
 
   /* Samanburður — vikuleg framvinda */
   const thisWeek = weekMins(sessions, 0);

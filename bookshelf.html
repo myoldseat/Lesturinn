@@ -428,26 +428,55 @@ button{font:inherit;cursor:pointer;border:0;background:none;color:inherit}a{colo
 
 <button class="dialog-btn secondary" id="closeAdd2" style="margin-top:6px">Loka</button>
 </section></div>
-<div class="overlay" id="journeyModal"><section class="dialog">
-<button class="close" id="closeJourney">×</button>
-<h2 id="journeyTitle">Lestrarferðalag</h2>
-<p class="dialog-sub" id="journeySub">Ferðin þín í bókinni</p>
-<div id="journeyPageUpdate" style="display:none;margin-bottom:16px">
-<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
-<div style="flex:1">
-<label style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--text);display:block;margin-bottom:4px">Ég er á blaðsíðu</label>
-<input id="journeyPageInput" inputmode="numeric" placeholder="t.d. 45" style="width:100%;background:rgba(7,18,33,.96);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:16px;color:var(--text);outline:none">
+<div class="overlay" id="journeyModal"><section class="dialog" style="padding:0;overflow:hidden">
+<button class="close" id="closeJourney" style="position:absolute;top:12px;right:12px;z-index:2">×</button>
+
+<!-- Bókahero -->
+<div id="jm-hero" style="display:flex;gap:12px;padding:20px 16px 14px;background:rgba(13,24,42,.98);border-bottom:1px solid rgba(29,205,211,.1)">
+  <div id="jm-cover" style="flex:0 0 72px;width:72px;height:100px;border-radius:8px;overflow:hidden;background:linear-gradient(145deg,#2b8f91,#0a2341);display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:700;color:rgba(255,255,255,.9)"></div>
+  <div style="flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;gap:4px">
+    <div id="jm-title" style="font-size:16px;font-weight:700;color:#e4edf5;line-height:1.2"></div>
+    <div id="jm-author" style="font-size:12px;color:#5a7088"></div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px">
+      <span id="jm-status-chip" style="font-size:9px;font-weight:800;padding:2px 8px;border-radius:99px;background:rgba(29,205,211,.1);border:1px solid rgba(29,205,211,.25);color:#1dcdd3"></span>
+      <span id="jm-rl-chip" style="font-size:9px;font-weight:800;padding:2px 8px;border-radius:99px;background:rgba(29,205,211,.1);border:1px solid rgba(29,205,211,.25);color:#1dcdd3;display:none"></span>
+    </div>
+    <div id="jm-prog-row" style="display:none;margin-top:6px">
+      <div style="display:flex;align-items:center;gap:6px">
+        <div style="flex:1;height:4px;border-radius:99px;background:rgba(148,164,180,.1);overflow:hidden">
+          <div id="jm-prog-fill" style="height:100%;border-radius:inherit;background:#1dcdd3;transition:width .3s"></div>
+        </div>
+        <span id="jm-pct" style="font-size:10px;font-weight:700;color:#1dcdd3"></span>
+      </div>
+      <div id="jm-pages" style="font-size:11px;color:#5a7088;margin-top:3px"></div>
+    </div>
+  </div>
 </div>
-<div style="text-align:center;padding-top:16px">
-<span style="font-size:11px;color:var(--soft)">af</span>
-<span id="journeyTotalPages" style="font-size:16px;font-weight:800;color:var(--text);display:block"></span>
+
+<!-- Takkar -->
+<div id="jm-actions" style="display:flex;gap:8px;padding:10px 16px;border-bottom:1px solid rgba(29,205,211,.08)">
+  <button class="dialog-btn" id="jm-btn-read" style="flex:1;padding:8px;font-size:12px;display:none" onclick="jmStartReading()">Byrja að lesa</button>
+  <button class="dialog-btn secondary" id="jm-btn-edit" style="flex:1;padding:8px;font-size:12px" onclick="closeOv('journeyModal');openEditBook(selBookId)">Breyta</button>
 </div>
+
+<!-- Blaðsíðuuppfærsla -->
+<div id="journeyPageUpdate" style="display:none;padding:12px 16px;border-bottom:1px solid rgba(29,205,211,.08)">
+  <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:#7a8fa0;margin-bottom:6px">Uppfæra framvindu</div>
+  <div style="display:flex;align-items:center;gap:10px">
+    <input id="journeyPageInput" inputmode="numeric" placeholder="Blaðsíða" style="flex:1;background:rgba(7,18,33,.96);border:1px solid rgba(29,205,211,.2);border-radius:8px;padding:8px 12px;font-size:15px;color:#e4edf5;outline:none">
+    <span style="font-size:11px;color:#5a7088">af <span id="journeyTotalPages" style="color:#c8d8e8;font-weight:600"></span></span>
+    <button class="dialog-btn" id="journeyUpdateBtn" style="flex:0 0 auto;padding:8px 14px;margin:0;font-size:12px">Vista</button>
+  </div>
+  <div id="journeyUpdateResult" style="display:none;margin-top:6px;font-size:12px;font-weight:700;color:#1dcdd3;text-align:center"></div>
 </div>
-<button class="dialog-btn" id="journeyUpdateBtn" style="margin-top:0">Uppfæra</button>
-<div id="journeyUpdateResult" style="display:none;margin-top:6px;text-align:center;font-size:12px;font-weight:700;color:var(--accent)"></div>
+
+<!-- Ferðalagsfærslur -->
+<div style="padding:12px 16px 6px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:#7a8fa0">Lestrarferðalag</div>
+<div class="entry" id="journeyEntries" style="padding:0 16px 16px;max-height:260px;overflow-y:auto"></div>
+
+<div style="padding:0 16px 16px">
+  <button class="dialog-btn secondary" id="closeJourney2" style="width:100%">Loka</button>
 </div>
-<div class="entry" id="journeyEntries"></div>
-<button class="dialog-btn secondary" id="closeJourney2">Loka</button>
 </section></div>
 <div class="overlay" id="profileModal"><section class="dialog" style="text-align:center"><button class="close" id="closeProfile">×</button><div class="child-initials" id="profileInitials" style="width:64px;height:64px;margin:5px auto 12px;font-size:20px">KK</div><h2 id="profileName">Barn</h2><p class="dialog-sub">Bókahillan mín</p><div class="card" style="padding:14px;text-align:left;margin-bottom:14px" id="lastReadCard"></div><p class="dialog-sub" style="margin-bottom:8px">Deila síðasta lestri?</p><button class="dialog-btn" id="shareLastReading">Deila</button><button class="dialog-btn secondary" id="closeProfile2">Loka</button><div class="share-result" id="shareResult">Tilbúið — tengjum push seinna.</div></section></div>
 <div class="overlay" id="editBookModal"><section class="dialog"><button class="close" id="closeEditBook">×</button><h2>Breyta bók</h2><p class="dialog-sub" id="editBookSub">Laga titil, höfund eða blaðsíðufjölda.</p><div class="edit-modal-form"><div><label class="edit-modal-label" for="editBookTitle">Titill</label><input class="edit-modal-input" type="text" id="editBookTitle" placeholder="Titill bókar"></div><div><label class="edit-modal-label" for="editBookAuthor">Höfundur</label><input class="edit-modal-input" type="text" id="editBookAuthor" placeholder="Höfundur"></div><div class="edit-modal-row"><div><label class="edit-modal-label" for="editBookPages">Blaðsíður</label><input class="edit-modal-input" type="number" id="editBookPages" placeholder="120" inputmode="numeric"></div><div><label class="edit-modal-label" for="editBookStatus">Staða</label><select class="edit-modal-input" id="editBookStatus"><option value="shelf">Á hillu</option><option value="reading">Að lesa</option><option value="finished">Lokið</option></select></div></div><button class="edit-modal-save" id="saveEditBook">Vista breytingar</button></div></section></div>
@@ -1334,23 +1363,57 @@ function openOv(id){document.getElementById(id).classList.add('open');document.b
 function closeOv(id){document.getElementById(id).classList.remove('open');document.body.style.overflow=''}
 function openJourney(id){
   const b=books.find(x=>x.id===id);if(!b)return;selBookId=id;
-  document.getElementById('journeyTitle').textContent=b.title;
-  const pageUpdate=document.getElementById('journeyPageUpdate');
-  const pageInput=document.getElementById('journeyPageInput');
-  const totalEl=document.getElementById('journeyTotalPages');
-  const resultEl=document.getElementById('journeyUpdateResult');
-  resultEl.style.display='none';
 
-  if(b.status==='reading'){
-    pageUpdate.style.display='';
-    pageInput.value=b.currentPageTo||'';
-    totalEl.textContent=b.totalPages||'?';
-    document.getElementById('journeySub').textContent='bls. '+(b.currentPageTo||0)+' af '+(b.totalPages||'?')+' · '+(b.progressPercent||0)+'% lokið';
-  }else{
-    pageUpdate.style.display='none';
-    document.getElementById('journeySub').textContent=b.status==='finished'?'Lokið!':'Á hillunni';
+  /* Kápa */
+  const coverEl=document.getElementById('jm-cover');
+  if(b.coverUrl||b.coverBase64){
+    coverEl.innerHTML=`<img src="${esc(b.coverUrl||b.coverBase64)}" style="width:100%;height:100%;object-fit:cover">`;
+  } else {
+    const c1=b.c1||'#2b8f91',c2=b.c2||'#0a2341';
+    coverEl.style.background=`linear-gradient(145deg,${c1},${c2})`;
+    coverEl.textContent=(b.title||'?')[0];
   }
 
+  /* Titill og höfundur */
+  document.getElementById('jm-title').textContent=b.title||'';
+  document.getElementById('jm-author').textContent=b.author||'';
+
+  /* Status chip */
+  const statusMap={reading:'Að lesa',shelf:'Á hillunni',finished:'Lokið'};
+  document.getElementById('jm-status-chip').textContent=statusMap[b.status]||b.status||'';
+
+  /* readingLoad chip */
+  const rlChip=document.getElementById('jm-rl-chip');
+  if(b.readingLoadLabel){rlChip.textContent=b.readingLoadLabel;rlChip.style.display='';}
+  else rlChip.style.display='none';
+
+  /* Framvinda */
+  const progRow=document.getElementById('jm-prog-row');
+  if(b.status==='reading'){
+    progRow.style.display='';
+    document.getElementById('jm-prog-fill').style.width=(b.progressPercent||0)+'%';
+    document.getElementById('jm-pct').textContent=(b.progressPercent||0)+'%';
+    document.getElementById('jm-pages').textContent=b.currentPageTo?'bls. '+(b.currentPageFrom||1)+'–'+b.currentPageTo+' af '+(b.totalPages||'?'):'';
+  } else {
+    progRow.style.display='none';
+  }
+
+  /* Takkar */
+  document.getElementById('jm-btn-read').style.display=b.status==='shelf'?'':'none';
+
+  /* Blaðsíðuuppfærsla */
+  const pageUpdate=document.getElementById('journeyPageUpdate');
+  const resultEl=document.getElementById('journeyUpdateResult');
+  resultEl.style.display='none';
+  if(b.status==='reading'){
+    pageUpdate.style.display='';
+    document.getElementById('journeyPageInput').value=b.currentPageTo||'';
+    document.getElementById('journeyTotalPages').textContent=b.totalPages||'?';
+  }else{
+    pageUpdate.style.display='none';
+  }
+
+  /* Ferðalagsfærslur */
   const ent=(b.journeyEntries?.length?b.journeyEntries:[{date:'Í dag',createdAt:Date.now(),pageFrom:b.currentPageFrom||'',pageTo:b.currentPageTo||'',note:b.note||'Bókin var sett á hilluna.',reactions:[]}])
     .map((entry,originalIndex)=>({entry,originalIndex,ts:entryTs(entry,originalIndex)}))
     .sort((a,b)=>(b.ts-a.ts)||(b.originalIndex-a.originalIndex));
@@ -1363,8 +1426,16 @@ function openJourney(id){
     }
     return'<article class="event"><div class="event-date">'+meta+'</div>'+(e.note?'<p class="event-quote">\u201C'+esc(e.note)+'\u201D</p>':'')+'<div class="reactions">'+(e.reactions||[]).map((r,ri)=>'<span class="react"><span class="react-text">'+esc(reactionText(r))+(fmtDT(toMillis(r?.createdAt)||toMillis(r?.timestamp)||toMillis(r?.sentAt))?'<small style="display:block;margin-top:3px;color:rgba(148,164,180,.75);font-weight:700">'+esc(fmtDT(toMillis(r?.createdAt)||toMillis(r?.timestamp)||toMillis(r?.sentAt)))+'</small>':'')+'</span><button class="react-delete" type="button" data-delete-reaction="'+i+':'+ri+'" aria-label="Eyða kommenti">×</button></span>').join('')+'</div></article>'
   }).join('');
+
   openOv('journeyModal');
 }
+
+window.jmStartReading = function() {
+  const b=books.find(x=>x.id===selBookId);if(!b)return;
+  updBook(b.id,{status:'reading',updatedAt:Date.now()}).then(()=>{
+    b.status='reading';render();openJourney(b.id);
+  }).catch(e=>console.error(e));
+};
 
 async function deleteJourneyReaction(entryIndex,reactionIndex){
   const b=books.find(x=>x.id===selBookId);if(!b||!Array.isArray(b.journeyEntries))return;
@@ -1439,7 +1510,7 @@ async function handleCoverFile(file){
   document.getElementById('takeCoverBtn').style.display='none';
   document.getElementById('backToCamera').style.display='';
   showStep(2);setReady();
-  openOv('addModal');
+  if(!document.getElementById('addModal').classList.contains('open')) openOv('addModal');
 
   // ── Upload strax í Storage og kalla Gemini extension ──
   if(!previewMode){

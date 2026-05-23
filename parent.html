@@ -432,6 +432,26 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
 .book-dd-info{flex:1;min-width:0}
 .book-dd-title{font-size:14px;font-weight:500;color:var(--text-bright);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .book-dd-pct{font-size:12px;font-weight:600;color:var(--accent);flex:0 0 auto}
+
+/* ── Full journey overlay ── */
+.jn-all-overlay{display:none;position:fixed;inset:0;z-index:200;background:var(--bg);flex-direction:column}
+.jn-all-overlay.show{display:flex}
+.jn-all-top{flex:0 0 auto;display:flex;align-items:center;gap:10px;padding:14px 16px 10px;border-bottom:1px solid var(--border)}
+.jn-all-back{background:none;border:none;color:var(--accent);font-size:22px;cursor:pointer;padding:0;line-height:1;flex:0 0 auto;-webkit-tap-highlight-color:transparent}
+.jn-all-title{flex:1;font-size:15px;font-weight:500;color:var(--text-bright);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.jn-all-share{background:none;border:1px solid var(--border-hl);border-radius:var(--r-sm);color:var(--accent);font-size:12px;font-weight:500;padding:6px 10px;cursor:pointer;transition:background .15s;-webkit-tap-highlight-color:transparent;white-space:nowrap;flex:0 0 auto;font-family:inherit}
+.jn-all-share:hover{background:var(--accent-soft)}
+.jn-all-filters{flex:0 0 auto;display:flex;gap:3px;padding:8px 14px;background:rgba(255,255,255,.02);border-bottom:1px solid var(--border)}
+.jn-filter-btn{flex:1;background:none;border:1px solid transparent;border-radius:7px;padding:6px 0;font-size:11px;font-weight:500;color:var(--muted);cursor:pointer;text-align:center;transition:all .15s;-webkit-tap-highlight-color:transparent;font-family:inherit}
+.jn-filter-btn.on{background:rgba(255,255,255,.06);border-color:rgba(29,205,211,.3);color:var(--text-bright)}
+.jn-all-body{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;padding:10px 14px 40px;display:flex;flex-direction:column;gap:4px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.jn-all-body::-webkit-scrollbar{display:none}
+.jn-commenter-group{margin-bottom:14px}
+.jn-commenter-hd{font-size:11px;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px}
+.jn-commenter-hd-count{font-weight:400;color:var(--muted);text-transform:none;letter-spacing:0}
+.jn-commenter-item{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-sm);padding:9px 12px;margin-bottom:4px}
+.jn-commenter-text{font-size:13px;color:var(--text-bright);line-height:1.35}
+.jn-commenter-ctx{font-size:10px;color:var(--muted);margin-top:3px;font-style:italic}
 </style>
 </head>
 <body>
@@ -968,6 +988,21 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
 <div class="toast" id="app-toast"></div>
 
 
+<!-- ═══ Full journey overlay ═══ -->
+<div class="jn-all-overlay" id="jn-all-overlay">
+  <div class="jn-all-top">
+    <button class="jn-all-back" type="button" onclick="closeAllJourney()">←</button>
+    <div class="jn-all-title" id="jn-all-title">Ferðalag</div>
+    <button class="jn-all-share" type="button" id="jn-all-share-btn" onclick="exportJourney()">Deila ↑</button>
+  </div>
+  <div class="jn-all-filters">
+    <button class="jn-filter-btn on" data-filter="all"      onclick="setJourneyFilter('all',this)">Allt</button>
+    <button class="jn-filter-btn"    data-filter="notes"    onclick="setJourneyFilter('notes',this)">Setningar</button>
+    <button class="jn-filter-btn"    data-filter="comments" onclick="setJourneyFilter('comments',this)">Komment</button>
+  </div>
+  <div class="jn-all-body" id="jn-all-body"></div>
+</div>
+
 <script>
 /* ═══════════════════════════════════
    NAV
@@ -1424,6 +1459,8 @@ function saveTotalPagesRead() {
    ══════════════════════════════════════ */
 let _selectedChild = null;
 let _selectedBookId = {};
+let _filterMode = 'all';
+let _fullJourneyBookId = null;
 
 function render() {
   const children = S.parentChildren || [];
@@ -1652,6 +1689,217 @@ function renderJourneyPreview(sessions, books) {
   el.innerHTML = html;
 }
 
+/* ══════════════════════════════════════
+   SHARED ENTRY RENDERER
+   ══════════════════════════════════════ */
+function _fmtTs(v) {
+  if (!v) return '';
+  if (typeof v === 'number') { const d = new Date(v); return d.getHours()+':'+String(d.getMinutes()).padStart(2,'0'); }
+  if (v?.toMillis) { const d = new Date(v.toMillis()); return d.getHours()+':'+String(d.getMinutes()).padStart(2,'0'); }
+  if (v?.seconds)  { const d = new Date(v.seconds*1000); return d.getHours()+':'+String(d.getMinutes()).padStart(2,'0'); }
+  if (typeof v === 'string' && /^\d{10,}$/.test(v)) { const d = new Date(parseInt(v)); return d.getHours()+':'+String(d.getMinutes()).padStart(2,'0'); }
+  return '';
+}
+
+/* indexedEntries = [{e, i}] — i er upprunalegur index í journeyEntries (fyrir Firestore) */
+function _buildEntriesHtml(indexedEntries, bookId, childName, childInitials, showReactions = true) {
+  const todayKey = dk(new Date());
+  const yestKey  = dk(new Date(Date.now() - 86400000));
+  const dayLbl   = d => !d ? '' : d === todayKey ? 'Í dag' : d === yestKey ? 'Í gær' : d;
+
+  let html = '', lastDay = null;
+
+  indexedEntries.forEach(({ e, i: origIdx }) => {
+    const note = e.note || e.text || '';
+    const meta = [
+      e.pageFrom && e.pageTo ? `bls. ${e.pageFrom}–${e.pageTo}` : '',
+      e.seconds ? Math.floor(e.seconds/60)+' mín' : ''
+    ].filter(Boolean).join(' · ');
+    const dayKey   = e.date || '';
+    const reactions = Array.isArray(e.reactions) ? e.reactions : [];
+    const lbl = dayLbl(dayKey);
+
+    if (lbl && dayKey !== lastDay) {
+      html += `<div class="jn-daylbl">${lbl}</div>`;
+      lastDay = dayKey;
+    }
+
+    /* Child bubble */
+    html += `<div style="display:flex;gap:8px;align-items:flex-start">
+      <div class="jn-av jn-av-child">${childInitials}</div>
+      <div class="jn-bubble jn-bubble-child" style="flex:1">
+        <div class="jn-bubble-name">${esc(childName)} <span class="jn-bubble-ts">${esc(e.date||'')}</span></div>
+        <div class="jn-bubble-text">${esc(note)}</div>
+        ${meta ? `<div class="jn-bubble-meta">${meta}</div>` : ''}
+      </div>
+    </div>
+    <div style="padding-left:36px;display:flex;flex-direction:column;gap:4px;margin-top:4px;margin-bottom:14px">`;
+
+    if (showReactions) {
+      reactions.forEach(r => {
+        const rName = typeof r === 'string' ? '' : (r.name || r.author || r.parentName || r.from || '');
+        const rText = typeof r === 'string' ? r : (r.text || r.comment || r.message || r.body || '');
+        const rTs   = _fmtTs(typeof r === 'object' ? (r.createdAt || r.date || r.ts || r.time || '') : '');
+        const rIni  = rName.split(' ').filter(Boolean).map(w=>w[0]).join('').slice(0,2).toUpperCase() || '??';
+        html += `<div style="display:flex;gap:8px;align-items:flex-start">
+          <div class="jn-av jn-av-fam">${rIni}</div>
+          <div class="jn-bubble jn-bubble-fam" style="flex:1">
+            <div class="jn-bubble-name jn-bubble-name-fam">${esc(rName)} <span class="jn-bubble-ts">${rTs}</span></div>
+            <div class="jn-bubble-text">${esc(rText)}</div>
+          </div>
+        </div>`;
+      });
+    }
+
+    html += `<div class="jn-reply" style="margin-top:2px">
+      <input class="jn-reply-input" placeholder="Skrifa komment..." maxlength="160"
+        data-book-id="${esc(bookId)}" data-entry-index="${origIdx}">
+      <button class="jn-reply-btn" type="button" onclick="sendEntryReply(this)">↑</button>
+    </div></div>`;
+  });
+
+  return html;
+}
+
+function _buildCommentsHtml(entries) {
+  /* Hópa öll komment eftir nafni kommenter */
+  const byPerson = {};
+  entries.forEach(e => {
+    const ctx = [
+      e.date || '',
+      e.pageFrom && e.pageTo ? `bls. ${e.pageFrom}–${e.pageTo}` : ''
+    ].filter(Boolean).join(' · ');
+    const note = e.note || e.text || '';
+    (Array.isArray(e.reactions) ? e.reactions : []).forEach(r => {
+      const name = typeof r === 'string' ? 'Nafnlaust' : (r.name || r.author || r.parentName || r.from || 'Nafnlaust');
+      const text = typeof r === 'string' ? r : (r.text || r.comment || r.message || r.body || '');
+      if (!text) return;
+      if (!byPerson[name]) byPerson[name] = [];
+      byPerson[name].push({ text, ctx, note });
+    });
+  });
+
+  const names = Object.keys(byPerson);
+  if (names.length === 0) return '<div style="text-align:center;padding:24px;color:var(--muted);font-size:13px">Engin komment enn</div>';
+
+  return names.map(name => {
+    const items = byPerson[name];
+    const ini = name.split(' ').filter(Boolean).map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    const rows = items.map(item => `
+      <div class="jn-commenter-item">
+        <div class="jn-commenter-text">${esc(item.text)}</div>
+        ${item.note ? `<div class="jn-commenter-ctx">"${esc(item.note.slice(0,70))}${item.note.length>70?'…':''}" · ${esc(item.ctx)}</div>` : item.ctx ? `<div class="jn-commenter-ctx">${esc(item.ctx)}</div>` : ''}
+      </div>`).join('');
+    return `<div class="jn-commenter-group">
+      <div class="jn-commenter-hd">
+        <div class="jn-av jn-av-fam" style="width:22px;height:22px;font-size:8px;display:inline-flex;vertical-align:middle;margin-right:4px">${ini}</div>
+        ${esc(name)} <span class="jn-commenter-hd-count">(${items.length})</span>
+      </div>
+      ${rows}
+    </div>`;
+  }).join('');
+}
+
+/* ══════════════════════════════════════
+   ALL JOURNEY OVERLAY
+   ══════════════════════════════════════ */
+function _renderAllJourney() {
+  const body = document.getElementById('jn-all-body');
+  if (!body || !_fullJourneyBookId) return;
+  const book = (S.books||[]).find(b => b.id === _fullJourneyBookId);
+  if (!book) return;
+
+  const entries = book.journeyEntries || [];
+  if (entries.length === 0) {
+    body.innerHTML = '<div style="text-align:center;padding:24px;color:var(--muted);font-size:13px">Engar færslur enn</div>';
+    return;
+  }
+
+  const childName = (S.parentChildren||[]).find(c => c.key === _selectedChild)?.name || 'Barn';
+  const childIni  = childName.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+  const sorted    = entries.map((e,i) => ({e,i})).sort((a,b) => eTs(b.e)-eTs(a.e) || b.i-a.i);
+
+  let html = '';
+  if (_filterMode === 'notes')    html = _buildEntriesHtml(sorted, _fullJourneyBookId, childName, childIni, false);
+  else if (_filterMode === 'comments') html = _buildCommentsHtml(entries);
+  else                            html = _buildEntriesHtml(sorted, _fullJourneyBookId, childName, childIni, true);
+
+  body.innerHTML = html;
+  body.querySelectorAll('.jn-reply-input').forEach(inp => {
+    inp.addEventListener('keydown', ev => { if (ev.key==='Enter') { ev.preventDefault(); inp.nextElementSibling?.click(); } });
+  });
+}
+
+window.openAllJourney = function(bookId) {
+  _fullJourneyBookId = bookId;
+  _filterMode = 'all';
+  document.querySelectorAll('.jn-filter-btn').forEach(b => b.classList.toggle('on', b.dataset.filter === 'all'));
+  const book = (S.books||[]).find(b => b.id === bookId);
+  const titleEl = document.getElementById('jn-all-title');
+  if (titleEl) titleEl.textContent = book?.title || 'Ferðalag';
+  _renderAllJourney();
+  document.getElementById('jn-all-overlay')?.classList.add('show');
+};
+
+window.closeAllJourney = function() {
+  document.getElementById('jn-all-overlay')?.classList.remove('show');
+};
+
+window.setJourneyFilter = function(mode) {
+  _filterMode = mode;
+  document.querySelectorAll('.jn-filter-btn').forEach(b => b.classList.toggle('on', b.dataset.filter === mode));
+  _renderAllJourney();
+};
+
+window.exportJourney = async function() {
+  const book = (S.books||[]).find(b => b.id === _fullJourneyBookId);
+  if (!book) return;
+  const childName = (S.parentChildren||[]).find(c => c.key === _selectedChild)?.name || 'Barn';
+  const entries = [...(book.journeyEntries||[])].sort((a,b) => eTs(a)-eTs(b));
+
+  const lines = [`${book.title||'Bók'} — Lestarferðalag ${childName}`, ''];
+
+  entries.forEach(e => {
+    const note = e.note || e.text || '';
+    const ctx  = [e.date||'', e.pageFrom&&e.pageTo ? `bls. ${e.pageFrom}–${e.pageTo}` : '', e.seconds ? Math.floor(e.seconds/60)+' mín' : ''].filter(Boolean).join(' · ');
+    const rxs  = Array.isArray(e.reactions) ? e.reactions : [];
+
+    if (_filterMode === 'comments') {
+      rxs.forEach(r => {
+        const n = typeof r==='string' ? '' : (r.name||r.author||'');
+        const t = typeof r==='string' ? r : (r.text||r.comment||r.message||'');
+        if (t) lines.push(`${n}: ${t}`);
+      });
+    } else if (_filterMode === 'notes') {
+      if (note) { lines.push(ctx); lines.push(`"${note}"`); lines.push(''); }
+    } else {
+      if (note || rxs.length) {
+        if (ctx) lines.push(ctx);
+        if (note) lines.push(`"${note}"`);
+        rxs.forEach(r => {
+          const n = typeof r==='string' ? '' : (r.name||r.author||'');
+          const t = typeof r==='string' ? r : (r.text||r.comment||r.message||'');
+          if (t) lines.push(`  ${n}: ${t}`);
+        });
+        lines.push('');
+      }
+    }
+  });
+
+  const text = lines.join('\n').trim();
+  const btn  = document.getElementById('jn-all-share-btn');
+
+  if (navigator.share) {
+    try { await navigator.share({ title: `${book.title||'Bók'} — ${childName}`, text }); }
+    catch(e) { if (e.name !== 'AbortError') toast('Villa við deilingu'); }
+  } else {
+    try {
+      await navigator.clipboard.writeText(text);
+      if (btn) { const orig = btn.textContent; btn.textContent = 'Afritað ✓'; setTimeout(()=>btn.textContent=orig, 2000); }
+    } catch(e) { toast('Villa við afritun'); }
+  }
+};
+
 /* ── Book dropdown hjálparföll ── */
 function _updateBookDropdown(activeBooks, selectedId) {
   let overlay = document.getElementById('jn-book-dd');
@@ -1770,82 +2018,17 @@ function renderJourney(books) {
     return dateStr;
   }
 
-  function fmtReactionTs(v) {
-    if (!v) return '';
-    if (typeof v === 'number') { const d = new Date(v); return d.getHours()+':'+String(d.getMinutes()).padStart(2,'0'); }
-    if (v?.toMillis)  { const d = new Date(v.toMillis());    return d.getHours()+':'+String(d.getMinutes()).padStart(2,'0'); }
-    if (v?.seconds)   { const d = new Date(v.seconds*1000);  return d.getHours()+':'+String(d.getMinutes()).padStart(2,'0'); }
-    if (typeof v === 'string' && /^\d{10,}$/.test(v)) { const d = new Date(parseInt(v)); return d.getHours()+':'+String(d.getMinutes()).padStart(2,'0'); }
-    return '';
-  }
-
-  let html = '';
-  let lastDay = null;
-
-  show.forEach(({ e, i: origIdx }) => {
-    const note = e.note || e.text || '';
-    const meta = [
-      e.pageFrom && e.pageTo ? `bls. ${e.pageFrom}–${e.pageTo}` : '',
-      e.seconds ? Math.floor(e.seconds/60)+' mín' : ''
-    ].filter(Boolean).join(' · ');
-    const dayKey = e.date || '';
-    const reactions = Array.isArray(e.reactions) ? e.reactions : [];
-
-    if (dayKey !== lastDay) {
-      html += `<div class="jn-daylbl">${dayLabel(dayKey)}</div>`;
-      lastDay = dayKey;
-    }
-
-    /* ── Child bubble ── */
-    html += `<div style="display:flex;gap:8px;align-items:flex-start">
-      <div class="jn-av jn-av-child">${childInitials}</div>
-      <div class="jn-bubble jn-bubble-child" style="flex:1">
-        <div class="jn-bubble-name">${esc(childName)} <span class="jn-bubble-ts">${esc(e.date||'')}</span></div>
-        <div class="jn-bubble-text">${esc(note)}</div>
-        ${meta ? `<div class="jn-bubble-meta">${meta}</div>` : ''}
-      </div>
-    </div>`;
-
-    /* ── Komment þráður — inndregin undir barni ── */
-    html += `<div style="padding-left:36px;display:flex;flex-direction:column;gap:4px;margin-top:4px;margin-bottom:14px">`;
-
-    reactions.forEach(r => {
-      const rName = typeof r === 'string' ? '' : (r.name || r.author || r.parentName || r.from || '');
-      const rText = typeof r === 'string' ? r : (r.text || r.comment || r.message || r.body || '');
-      const rTs   = fmtReactionTs(typeof r === 'object' ? (r.createdAt || r.date || r.ts || r.time || '') : '');
-      const rIni  = rName.split(' ').filter(Boolean).map(w=>w[0]).join('').slice(0,2).toUpperCase() || '??';
-      html += `<div style="display:flex;gap:8px;align-items:flex-start">
-        <div class="jn-av jn-av-fam">${rIni}</div>
-        <div class="jn-bubble jn-bubble-fam" style="flex:1">
-          <div class="jn-bubble-name jn-bubble-name-fam">${esc(rName)} <span class="jn-bubble-ts">${rTs}</span></div>
-          <div class="jn-bubble-text">${esc(rText)}</div>
-        </div>
-      </div>`;
-    });
-
-    /* ── Komment input fyrir þetta entry ── */
-    html += `<div class="jn-reply" style="margin-top:2px">
-      <input class="jn-reply-input" placeholder="Skrifa komment..." maxlength="160"
-        data-book-id="${esc(bookId)}" data-entry-index="${origIdx}">
-      <button class="jn-reply-btn" type="button" onclick="sendEntryReply(this)">↑</button>
-    </div>`;
-
-    html += `</div>`;
-  });
+  let html = _buildEntriesHtml(show, bookId, childName, childInitials);
 
   if (total > 5) {
-    html += `<button class="jn-open-all" type="button" onclick="toast('Opna allt ferðalag — tengist seinna')">
+    html += `<button class="jn-open-all" type="button" onclick="openAllJourney('${esc(bookId)}')">
       <div class="jn-open-all-text">Opna allt ferðalag</div>
       <div class="jn-open-all-meta">${total} færslur</div></button>`;
   }
 
   feedEl.innerHTML = html;
-
-  /* Enter-lykill sendir komment */
   feedEl.querySelectorAll('.jn-reply-input').forEach(inp => {
-    inp.addEventListener('keydown', ev => {
-      if (ev.key === 'Enter') { ev.preventDefault(); inp.nextElementSibling?.click(); }
-    });
+    inp.addEventListener('keydown', ev => { if (ev.key==='Enter') { ev.preventDefault(); inp.nextElementSibling?.click(); } });
   });
 }
 

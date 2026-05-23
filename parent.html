@@ -405,6 +405,33 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
   .nav button{font-size:9.5px}
   .nav button svg{width:20px;height:20px}
 }
+
+/* ── Book dropdown ── */
+.book-dd-overlay{
+  display:none;position:fixed;inset:0;z-index:150;
+  background:rgba(0,0,0,.55);
+}
+.book-dd-overlay.show{display:block}
+.book-dd-card{
+  position:absolute;top:56px;left:50%;transform:translateX(-50%);
+  width:min(400px,calc(100% - 24px));
+  background:#0d1a2e;border:1px solid var(--border-hl);
+  border-radius:var(--r);overflow:hidden;
+  box-shadow:0 8px 32px rgba(0,0,0,.45);
+}
+.book-dd-item{
+  display:flex;align-items:center;gap:10px;
+  padding:13px 16px;border-bottom:1px solid var(--border);
+  cursor:pointer;transition:background .15s;
+  -webkit-tap-highlight-color:transparent;
+}
+.book-dd-item:last-child{border:none}
+.book-dd-item:hover{background:rgba(29,205,211,.04)}
+.book-dd-item.sel{background:var(--accent-soft)}
+.book-dd-check{font-size:13px;color:var(--accent);width:16px;flex:0 0 16px;text-align:center}
+.book-dd-info{flex:1;min-width:0}
+.book-dd-title{font-size:14px;font-weight:500;color:var(--text-bright);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.book-dd-pct{font-size:12px;font-weight:600;color:var(--accent);flex:0 0 auto}
 </style>
 </head>
 <body>
@@ -1253,7 +1280,7 @@ const fbMod    = await import('./js/firebase-config.js').catch(e => { console.er
 
 const { initAuth, openAddChildPopup, closeAddChildPopup, logout } = authMod;
 const S = stateMod.S || {};
-const { db, collection, onSnapshot, query, where, doc, setDoc, auth, storage, ref, getDownloadURL, signInWithEmailAndPassword } = fbMod;
+const { db, collection, onSnapshot, query, where, doc, setDoc, updateDoc, serverTimestamp, auth, storage, ref, getDownloadURL, signInWithEmailAndPassword } = fbMod;
 
 console.log('📦 Loaded:', { auth: !!initAuth, S: !!S, db: !!db });
 
@@ -1279,6 +1306,46 @@ const { parentLoginFromPopup, openParentLoginPopup, closeParentLoginPopup } = au
 if (parentLoginFromPopup) window.parentLoginFromPopup = parentLoginFromPopup;
 if (openParentLoginPopup) window.openParentLoginPopup = openParentLoginPopup;
 if (closeParentLoginPopup) window.closeParentLoginPopup = closeParentLoginPopup;
+
+/* ══════════════════════════════════════
+   SEND ENTRY REPLY — vistar í Firestore
+   ══════════════════════════════════════ */
+window.sendEntryReply = async function(btn) {
+  const input = btn.previousElementSibling;
+  if (!input) return;
+  const text = input.value.trim();
+  if (!text) return;
+  const bookId = input.dataset.bookId;
+  const entryIndex = parseInt(input.dataset.entryIndex, 10);
+  if (!bookId || isNaN(entryIndex)) return;
+  const book = (S.books || []).find(b => b.id === bookId);
+  if (!book?.journeyEntries) return;
+
+  input.disabled = true;
+  btn.disabled = true;
+
+  try {
+    const entries = book.journeyEntries.map(e => ({
+      ...e, reactions: Array.isArray(e.reactions) ? [...e.reactions] : []
+    }));
+    const name = S.parentName || (S.parentEmail ? S.parentEmail.split('@')[0] : 'Foreldri');
+    entries[entryIndex] = {
+      ...entries[entryIndex],
+      reactions: [...(entries[entryIndex].reactions || []), { name, text, createdAt: Date.now() }]
+    };
+    await updateDoc(doc(db, 'books', bookId), { journeyEntries: entries, updatedAt: serverTimestamp() });
+    book.journeyEntries = entries;
+    input.value = '';
+    toast('Sent ✓');
+    render();
+  } catch(e) {
+    console.error('sendEntryReply villa:', e);
+    toast('Villa við vistun');
+  } finally {
+    input.disabled = false;
+    btn.disabled = false;
+  }
+};
 
 /* ══════════════════════════════════════
    WATCH S — parent-view.js listeners fylla
@@ -1356,6 +1423,7 @@ function saveTotalPagesRead() {
    RENDER ENGINE
    ══════════════════════════════════════ */
 let _selectedChild = null;
+let _selectedBookId = {};
 
 function render() {
   const children = S.parentChildren || [];
@@ -1584,11 +1652,54 @@ function renderJourneyPreview(sessions, books) {
   el.innerHTML = html;
 }
 
-/* ── Ferðalag flipi — chat stíll ── */
-function renderJourney(books) {
-  const hero = books.filter(b => b.status === 'reading').sort((a,b) => bTs(b,'lastReadAt') - bTs(a,'lastReadAt'))[0];
+/* ── Book dropdown hjálparföll ── */
+function _updateBookDropdown(activeBooks, selectedId) {
+  let overlay = document.getElementById('jn-book-dd');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'jn-book-dd';
+    overlay.className = 'book-dd-overlay';
+    overlay.addEventListener('click', () => window.closeBookDropdown());
+    const card = document.createElement('div');
+    card.className = 'book-dd-card';
+    card.addEventListener('click', e => e.stopPropagation());
+    overlay.appendChild(card);
+    document.body.appendChild(overlay);
+  }
+  const card = overlay.querySelector('.book-dd-card');
+  card.innerHTML = activeBooks.map(b => {
+    const sel = b.id === selectedId;
+    const pct = b.progressPercent || 0;
+    return `<div class="book-dd-item${sel?' sel':''}" onclick="pickBook('${esc(b.id||'')}')">
+      <span class="book-dd-check">${sel?'✓':''}</span>
+      <div class="book-dd-info"><div class="book-dd-title">${esc(b.title||'?')}</div></div>
+      <div class="book-dd-pct">${pct}%</div>
+    </div>`;
+  }).join('');
+}
 
-  /* Hero cover — halda óbreyttu */
+window.openBookDropdown  = function() { document.getElementById('jn-book-dd')?.classList.add('show'); };
+window.closeBookDropdown = function() { document.getElementById('jn-book-dd')?.classList.remove('show'); };
+window.pickBook = function(bookId) {
+  _selectedBookId[_selectedChild] = bookId;
+  window.closeBookDropdown();
+  const books = (S.books||[]).filter(b => b.childKey === _selectedChild);
+  renderJourney(books);
+};
+
+/* ── Ferðalag flipi — chat stíll með komment þráð ── */
+function renderJourney(books) {
+  const activeBooks = books.filter(b => b.status === 'reading')
+    .sort((a,b) => bTs(b,'lastReadAt') - bTs(a,'lastReadAt'));
+  const multiBook = activeBooks.length > 1;
+
+  /* Staðfesta/frumstilla valda bók */
+  if (!_selectedBookId[_selectedChild] || !activeBooks.find(b => b.id === _selectedBookId[_selectedChild])) {
+    _selectedBookId[_selectedChild] = activeBooks[0]?.id || null;
+  }
+  const hero = activeBooks.find(b => b.id === _selectedBookId[_selectedChild]) || activeBooks[0];
+
+  /* Hero cover */
   const heroEl = document.getElementById('jm-book-hero');
   if (heroEl && hero) {
     const c1 = hero.c1||'#2b8f91', c2 = hero.c2||'#0a2341';
@@ -1598,18 +1709,42 @@ function renderJourney(books) {
       : `<div class="rd-cover" style="width:48px;height:68px;font-size:18px;border-radius:7px;background:linear-gradient(145deg,${c1},${c2})"><span>${esc((hero.title||'?')[0])}</span></div>`;
     const pct = hero.progressPercent || 0;
     const pg = hero.currentPageTo ? `bls. ${hero.currentPageTo} af ${hero.totalPages||'?'}` : '';
+
+    /* Titill — með ⌄ ef fleiri bækur */
+    const titleHtml = multiBook
+      ? `<button type="button" onclick="openBookDropdown()" style="background:none;border:none;font:inherit;font-size:15px;font-weight:500;color:var(--text-bright);cursor:pointer;display:flex;align-items:center;gap:5px;padding:0;letter-spacing:-.2px;text-align:left;max-width:100%;min-width:0;-webkit-tap-highlight-color:transparent">${esc(hero.title)}<span style="font-size:13px;color:var(--accent);flex:0 0 auto;line-height:1">⌄</span></button>`
+      : esc(hero.title);
+
     heroEl.innerHTML = `<div class="jn-hero-cover">${coverHtml}</div>
       <div class="jn-hero-info">
-        <div class="rd-title" style="font-size:15px">${esc(hero.title)}</div>
+        <div class="rd-title" style="font-size:15px">${titleHtml}</div>
         <div class="rd-meta">${pg}</div>
         <div class="rd-prog" style="margin-top:4px"><div class="rd-bar"><div class="rd-fill" style="width:${pct}%"></div></div><div class="rd-pct">${pct}%</div></div>
       </div>`;
+
+    /* Hint lína neðan hero — "N bækur í gangi" */
+    let hintEl = document.getElementById('jn-book-hint');
+    if (!hintEl) {
+      hintEl = document.createElement('div');
+      hintEl.id = 'jn-book-hint';
+      heroEl.after(hintEl);
+    }
+    if (multiBook) {
+      Object.assign(hintEl.style, { display:'', fontSize:'11px', color:'var(--muted)', textAlign:'center', padding:'0 0 4px', cursor:'pointer', letterSpacing:'.01em', webkitTapHighlightColor:'transparent' });
+      hintEl.textContent = `${activeBooks.length} bækur í gangi — veldu bók`;
+      hintEl.onclick = () => window.openBookDropdown();
+      _updateBookDropdown(activeBooks, hero.id);
+    } else {
+      hintEl.style.display = 'none';
+    }
   }
 
-  /* Chat feed */
   const feedEl = document.getElementById('jm-feed');
   if (!feedEl || !hero) return;
+
+  const bookId = hero.id || '';
   const entries = hero.journeyEntries || [];
+
   if (entries.length === 0) {
     feedEl.innerHTML = '<div style="text-align:center;padding:20px;color:var(--muted);font-size:13px">Engar færslur enn</div>';
     return;
@@ -1617,11 +1752,15 @@ function renderJourney(books) {
 
   const childName = (S.parentChildren||[]).find(c => c.key === _selectedChild)?.name || 'Barn';
   const childInitials = childName.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
-  const sorted = [...entries].sort((a,b) => eTs(b) - eTs(a));
-  const show = sorted.slice(0, 3);
+
+  /* Raða nýjust fyrst, varðveita upprunalegan index fyrir Firestore */
+  const sorted = entries
+    .map((e, i) => ({ e, i }))
+    .sort((a, b) => eTs(b.e) - eTs(a.e) || b.i - a.i);
+
+  const show = sorted.slice(0, 5);
   const total = entries.length;
 
-  /* Hópa eftir degi */
   const today = dk(new Date());
   const yesterday = dk(new Date(Date.now() - 86400000));
   function dayLabel(dateStr) {
@@ -1631,72 +1770,83 @@ function renderJourney(books) {
     return dateStr;
   }
 
+  function fmtReactionTs(v) {
+    if (!v) return '';
+    if (typeof v === 'number') { const d = new Date(v); return d.getHours()+':'+String(d.getMinutes()).padStart(2,'0'); }
+    if (v?.toMillis)  { const d = new Date(v.toMillis());    return d.getHours()+':'+String(d.getMinutes()).padStart(2,'0'); }
+    if (v?.seconds)   { const d = new Date(v.seconds*1000);  return d.getHours()+':'+String(d.getMinutes()).padStart(2,'0'); }
+    if (typeof v === 'string' && /^\d{10,}$/.test(v)) { const d = new Date(parseInt(v)); return d.getHours()+':'+String(d.getMinutes()).padStart(2,'0'); }
+    return '';
+  }
+
   let html = '';
   let lastDay = null;
 
-  show.forEach((e, i) => {
+  show.forEach(({ e, i: origIdx }) => {
     const note = e.note || e.text || '';
-    const meta = [e.pageFrom && e.pageTo ? `bls. ${e.pageFrom}–${e.pageTo}` : '', e.seconds ? Math.floor(e.seconds/60)+' mín' : ''].filter(Boolean).join(' · ');
-    const reactions = e.reactions || [];
+    const meta = [
+      e.pageFrom && e.pageTo ? `bls. ${e.pageFrom}–${e.pageTo}` : '',
+      e.seconds ? Math.floor(e.seconds/60)+' mín' : ''
+    ].filter(Boolean).join(' · ');
     const dayKey = e.date || '';
+    const reactions = Array.isArray(e.reactions) ? e.reactions : [];
 
-    /* Dagskiptir */
     if (dayKey !== lastDay) {
       html += `<div class="jn-daylbl">${dayLabel(dayKey)}</div>`;
       lastDay = dayKey;
     }
 
-    /* Child bubble */
-    html += `<div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:6px">
+    /* ── Child bubble ── */
+    html += `<div style="display:flex;gap:8px;align-items:flex-start">
       <div class="jn-av jn-av-child">${childInitials}</div>
-      <div class="jn-bubble jn-bubble-child">
+      <div class="jn-bubble jn-bubble-child" style="flex:1">
         <div class="jn-bubble-name">${esc(childName)} <span class="jn-bubble-ts">${esc(e.date||'')}</span></div>
         <div class="jn-bubble-text">${esc(note)}</div>
         ${meta ? `<div class="jn-bubble-meta">${meta}</div>` : ''}
       </div>
     </div>`;
 
-    /* Reactions sem family bubbles */
-    reactions.forEach((r, ri) => {
+    /* ── Komment þráður — inndregin undir barni ── */
+    html += `<div style="padding-left:36px;display:flex;flex-direction:column;gap:4px;margin-top:4px;margin-bottom:14px">`;
+
+    reactions.forEach(r => {
       const rName = typeof r === 'string' ? '' : (r.name || r.author || r.parentName || r.from || '');
       const rText = typeof r === 'string' ? r : (r.text || r.comment || r.message || r.body || '');
-      const rTsRaw = typeof r === 'object' ? (r.date || r.createdAt || r.ts || r.time || '') : '';
-      /* Snið timestamp */
-      let rTs = '';
-      if (rTsRaw) {
-        if (typeof rTsRaw === 'number' || (typeof rTsRaw === 'string' && /^\d{10,}$/.test(rTsRaw))) {
-          const d = new Date(typeof rTsRaw === 'string' ? parseInt(rTsRaw) : rTsRaw);
-          rTs = d.getHours() + ':' + String(d.getMinutes()).padStart(2,'0');
-        } else if (rTsRaw?.toMillis) { const d = new Date(rTsRaw.toMillis()); rTs = d.getHours() + ':' + String(d.getMinutes()).padStart(2,'0'); }
-        else if (rTsRaw?.seconds) { const d = new Date(rTsRaw.seconds*1000); rTs = d.getHours() + ':' + String(d.getMinutes()).padStart(2,'0'); }
-        else rTs = String(rTsRaw);
-      }
-      const rInitials = rName.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase() || '??';
-      const isLast = ri === reactions.length - 1 && i === 0;
-      html += `<div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:${isLast ? '0' : '6px'}">
-        <div class="jn-av jn-av-fam">${rInitials}</div>
-        <div class="jn-bubble jn-bubble-fam">
-          <div class="jn-bubble-name jn-bubble-name-fam">${esc(rName)} <span class="jn-bubble-ts">${esc(rTs)}</span></div>
+      const rTs   = fmtReactionTs(typeof r === 'object' ? (r.createdAt || r.date || r.ts || r.time || '') : '');
+      const rIni  = rName.split(' ').filter(Boolean).map(w=>w[0]).join('').slice(0,2).toUpperCase() || '??';
+      html += `<div style="display:flex;gap:8px;align-items:flex-start">
+        <div class="jn-av jn-av-fam">${rIni}</div>
+        <div class="jn-bubble jn-bubble-fam" style="flex:1">
+          <div class="jn-bubble-name jn-bubble-name-fam">${esc(rName)} <span class="jn-bubble-ts">${rTs}</span></div>
           <div class="jn-bubble-text">${esc(rText)}</div>
-          ${isLast ? `<div class="jn-reply" style="margin-top:6px"><input class="jn-reply-input" placeholder="Skrifa svar..." maxlength="80"><button class="jn-reply-btn" type="button" onclick="sendReply(this)">↑</button></div>` : ''}
         </div>
       </div>`;
     });
 
-    /* Svara takki ef engar reactions og ekki fyrsta */
-    if (reactions.length === 0 && i > 0) {
-      html += `<div style="padding-left:36px;margin-bottom:6px"><button class="jn-reply-toggle" onclick="openReply(this)">Svara</button>
-        <div class="jn-reply" style="display:none;margin-top:6px"><input class="jn-reply-input" placeholder="Skrifa svar..." maxlength="80"><button class="jn-reply-btn" type="button" onclick="sendReply(this)">↑</button></div></div>`;
-    }
+    /* ── Komment input fyrir þetta entry ── */
+    html += `<div class="jn-reply" style="margin-top:2px">
+      <input class="jn-reply-input" placeholder="Skrifa komment..." maxlength="160"
+        data-book-id="${esc(bookId)}" data-entry-index="${origIdx}">
+      <button class="jn-reply-btn" type="button" onclick="sendEntryReply(this)">↑</button>
+    </div>`;
+
+    html += `</div>`;
   });
 
-  if (total > 3) {
+  if (total > 5) {
     html += `<button class="jn-open-all" type="button" onclick="toast('Opna allt ferðalag — tengist seinna')">
       <div class="jn-open-all-text">Opna allt ferðalag</div>
       <div class="jn-open-all-meta">${total} færslur</div></button>`;
   }
 
   feedEl.innerHTML = html;
+
+  /* Enter-lykill sendir komment */
+  feedEl.querySelectorAll('.jn-reply-input').forEach(inp => {
+    inp.addEventListener('keydown', ev => {
+      if (ev.key === 'Enter') { ev.preventDefault(); inp.nextElementSibling?.click(); }
+    });
+  });
 }
 
 function eTs(e) {

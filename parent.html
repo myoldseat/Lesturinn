@@ -734,11 +734,6 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
 
       <div class="jn-sent" id="jm-sent">Sent ✓</div>
 
-      <!-- Open full journey -->
-      <button class="jn-open-all" type="button" onclick="toast('Opna allt ferðalag — tengist seinna')">
-        <div class="jn-open-all-text">Opna allt ferðalag</div>
-        <div class="jn-open-all-meta">12 færslur · frá 8. maí</div>
-      </button>
     </div>
   </section>
 
@@ -1958,16 +1953,30 @@ function renderJourney(books) {
     const pct = hero.progressPercent || 0;
     const pg = hero.currentPageTo ? `bls. ${hero.currentPageTo} af ${hero.totalPages||'?'}` : '';
 
-    /* Titill — með ⌄ ef fleiri bækur */
-    const titleHtml = multiBook
-      ? `<button type="button" onclick="openBookDropdown()" style="background:none;border:none;font:inherit;font-size:15px;font-weight:500;color:var(--text-bright);cursor:pointer;display:flex;align-items:center;gap:5px;padding:0;letter-spacing:-.2px;text-align:left;max-width:100%;min-width:0;-webkit-tap-highlight-color:transparent">${esc(hero.title)}<span style="font-size:13px;color:var(--accent);flex:0 0 auto;line-height:1">⌄</span></button>`
-      : esc(hero.title);
+    /* Ef fleiri bækur — allt hero tappable */
+    if (multiBook) {
+      heroEl.style.cursor = 'pointer';
+      heroEl.style.webkitTapHighlightColor = 'transparent';
+      heroEl.onclick = () => window.openBookDropdown();
+    } else {
+      heroEl.style.cursor = '';
+      heroEl.style.webkitTapHighlightColor = '';
+      heroEl.onclick = null;
+    }
+
+    /* Chevron staflaður yfir % þegar fleiri bækur */
+    const pctCol = multiBook
+      ? `<div style="display:flex;flex-direction:column;align-items:center;gap:0px;min-width:28px">
+           <span style="font-size:20px;line-height:1;color:var(--accent)">⌄</span>
+           <span class="rd-pct" style="min-width:auto">${pct}%</span>
+         </div>`
+      : `<div class="rd-pct">${pct}%</div>`;
 
     heroEl.innerHTML = `<div class="jn-hero-cover">${coverHtml}</div>
       <div class="jn-hero-info">
-        <div class="rd-title" style="font-size:15px">${titleHtml}</div>
+        <div class="rd-title" style="font-size:15px">${esc(hero.title)}</div>
         <div class="rd-meta">${pg}</div>
-        <div class="rd-prog" style="margin-top:4px"><div class="rd-bar"><div class="rd-fill" style="width:${pct}%"></div></div><div class="rd-pct">${pct}%</div></div>
+        <div class="rd-prog" style="margin-top:4px"><div class="rd-bar"><div class="rd-fill" style="width:${pct}%"></div></div>${pctCol}</div>
       </div>`;
 
     /* Hint lína neðan hero — "N bækur í gangi" */

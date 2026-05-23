@@ -2029,10 +2029,10 @@ function renderJourney(books) {
 
   let html = _buildEntriesHtml(show, bookId, childName, childInitials);
 
-  if (total > 5) {
+  if (total >= 1) {
     html += `<button class="jn-open-all" type="button" onclick="openAllJourney('${esc(bookId)}')">
       <div class="jn-open-all-text">Opna allt ferðalag</div>
-      <div class="jn-open-all-meta">${total} færslur</div></button>`;
+      <div class="jn-open-all-meta">${total} færsl${total === 1 ? 'a' : 'ur'}</div></button>`;
   }
 
   feedEl.innerHTML = html;

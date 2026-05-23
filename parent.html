@@ -286,6 +286,71 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
   font-size:12px;color:var(--muted);
 }
 
+
+/* ── Progress concept ── */
+.progress-summary{display:grid;grid-template-columns:1.15fr .85fr;gap:10px}
+.progress-hero{background:linear-gradient(180deg,rgba(29,205,211,.10),rgba(255,255,255,.025));border-color:rgba(29,205,211,.22)}
+.progress-big{font-size:34px;font-weight:700;color:var(--text-bright);line-height:1;letter-spacing:-.04em}
+.progress-big span{color:var(--accent)}
+.progress-note{font-size:11px;color:var(--muted);font-weight:600;line-height:1.35;margin-top:6px}
+.progress-trend{display:flex;align-items:center;gap:7px;margin-top:12px;font-size:12px;font-weight:700;color:var(--accent)}
+.progress-trend-pill{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:rgba(29,205,211,.13);border:1px solid rgba(29,205,211,.22)}
+.progress-tabs{display:grid;grid-template-columns:repeat(2,1fr);gap:3px;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:var(--r-sm);padding:3px;flex:0 0 auto}
+.progress-tabs button{background:none;border:none;border-radius:7px;padding:7px 10px;font:inherit;font-size:11px;font-weight:600;color:var(--muted);cursor:pointer}
+.progress-tabs button.on{background:rgba(29,205,211,.11);color:var(--accent);border:1px solid rgba(29,205,211,.25)}
+.avg-card{min-height:114px;display:flex;flex-direction:column;justify-content:space-between}
+.avg-tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:3px;background:rgba(255,255,255,.035);border:1px solid rgba(29,205,211,.08);border-radius:9px;padding:3px}
+.avg-tabs button{border:0;background:transparent;border-radius:7px;color:var(--muted);font:inherit;font-size:9px;font-weight:700;padding:5px 2px;cursor:pointer}
+.avg-tabs button.on{background:rgba(29,205,211,.13);color:var(--accent)}
+.avg-value{font-size:32px;font-weight:700;color:var(--text-bright);line-height:1;margin-top:12px;letter-spacing:-.04em}
+.avg-value span{color:var(--accent)}
+.avg-label{font-size:11px;color:var(--muted);font-weight:600;line-height:1.3;margin-top:5px}
+.progress-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.progress-metric{background:rgba(255,255,255,.022);border:1px solid rgba(29,205,211,.075);border-radius:12px;padding:11px 10px;min-width:0}
+.progress-mhead{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:9px}
+.progress-mname{font-size:10px;font-weight:700;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.progress-mval{font-size:15px;font-weight:700;color:var(--text-bright);white-space:nowrap}
+.progress-bars{height:62px;display:flex;align-items:flex-end;gap:4px}
+.progress-col{flex:1;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:3px;min-width:0}
+.progress-bar{width:100%;border-radius:4px 4px 1px 1px;min-height:4px}
+.progress-wk{font-size:7px;font-weight:700;color:var(--muted);opacity:.7;white-space:nowrap}
+.progress-wk.now{color:var(--accent);opacity:1}
+.progress-secondary{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.level-card,.books-card{min-height:138px;display:grid;gap:10px;align-content:space-between}
+.level-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.level-name{font-size:10px;font-weight:700;color:var(--accent);letter-spacing:.06em;text-transform:uppercase}
+.level-value{font-size:18px;font-weight:700;color:var(--text-bright);white-space:nowrap}
+.level-track{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;align-items:end;margin-top:3px}
+.level-step{height:34px;border-radius:8px;background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.045);position:relative}
+.level-step.on{background:rgba(212,160,23,.16);border-color:rgba(212,160,23,.38);box-shadow:0 0 18px rgba(212,160,23,.09)}
+.level-step::after{content:attr(data-l);position:absolute;left:50%;top:calc(100% + 5px);transform:translateX(-50%);font-size:7px;font-weight:700;color:var(--muted);white-space:nowrap;opacity:.78}
+.level-step.on::after{color:var(--warn);opacity:1}
+.books-num{font-size:36px;font-weight:700;color:var(--text-bright);line-height:1;letter-spacing:-.04em}
+.books-num span{color:#4ecdc4}
+.books-note{font-size:11px;color:var(--muted);line-height:1.35}
+.tiny-ach{display:flex;align-items:center;justify-content:space-between;border-top:1px solid rgba(255,255,255,.06);padding-top:8px;gap:8px}
+.tiny-ach span{font-size:10px;color:var(--muted);font-weight:700}
+.badge-row{display:flex;gap:6px;align-items:center}.badge-mini{width:23px;height:23px;border-radius:50%;display:grid;place-items:center;background:rgba(224,124,79,.08);border:1px solid rgba(224,124,79,.18);color:#e07c4f;font-size:10px;font-weight:800}
+.disclaimer-btn{border:1px solid rgba(212,160,23,.2);background:rgba(212,160,23,.08);color:var(--warn);border-radius:8px;padding:5px 9px;font:inherit;font-size:10px;font-weight:700;cursor:pointer;white-space:nowrap}
+.progress-sheet-ov{position:fixed;inset:0;z-index:100;background:rgba(7,16,30,.72);backdrop-filter:blur(7px);display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s}
+.progress-sheet-ov.open{opacity:1;pointer-events:auto}.progress-sheet{width:min(430px,100%);background:rgba(18,32,52,.98);border:1px solid rgba(212,160,23,.22);border-bottom:0;border-radius:18px 18px 0 0;padding:18px 18px calc(24px + env(safe-area-inset-bottom,0px));transform:translateY(100%);transition:transform .24s cubic-bezier(.22,1,.36,1)}
+.progress-sheet-ov.open .progress-sheet{transform:translateY(0)}.progress-grab{width:34px;height:4px;border-radius:999px;background:rgba(255,255,255,.13);margin:0 auto 15px}.progress-sheet-title{font-size:14px;font-weight:700;color:var(--warn);margin-bottom:10px}.progress-sheet-copy{font-size:12px;line-height:1.5;color:var(--text)}.progress-sheet-copy p{margin:0 0 10px}.progress-sheet-copy strong{color:var(--text-bright)}.progress-sheet-item{border-top:1px solid rgba(212,160,23,.1);padding:8px 0;color:var(--muted)}.progress-sheet-item strong{display:block;color:var(--text);font-size:12px}.progress-sheet-close{width:100%;margin-top:12px;border:1px solid rgba(212,160,23,.24);background:rgba(212,160,23,.08);color:var(--warn);border-radius:12px;padding:11px;font:inherit;font-size:12px;font-weight:700;cursor:pointer}
+@media(max-width:390px){.progress-summary{grid-template-columns:1fr}.avg-card{min-height:104px}.progress-grid,.progress-secondary{gap:8px}.progress-metric{padding:10px 9px}.progress-mval{font-size:14px}.progress-big{font-size:30px}.books-num{font-size:32px}.level-value{font-size:16px}}
+
+/* ── Progress v2 compact/detail ── */
+.progress-period{display:grid;gap:9px;position:relative}
+.progress-period-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.progress-period-toggle{display:flex;gap:3px;background:rgba(255,255,255,.035);border:1px solid rgba(29,205,211,.08);border-radius:9px;padding:3px;flex:0 0 auto}
+.progress-period-toggle button{border:0;background:transparent;border-radius:7px;color:var(--muted);font:inherit;font-size:10px;font-weight:700;padding:5px 8px;cursor:pointer;white-space:nowrap}
+.progress-period-toggle button.on{background:rgba(29,205,211,.13);color:var(--accent)}
+.progress-week-view.off{display:none}.progress-month-view{display:none}.progress-month-view.on{display:block}
+.progress-week-summary{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:2px;font-size:11px;color:var(--muted);font-weight:600}
+.progress-week-days{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}.progress-week-day{display:grid;gap:4px;text-align:center;min-width:0}.progress-week-dot{aspect-ratio:1;border-radius:7px;background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.04);display:grid;place-items:center;color:rgba(255,255,255,.72);font-size:10px;font-weight:700;cursor:pointer;position:relative}.progress-week-dot.c1{background:rgba(29,205,211,.18);border-color:rgba(29,205,211,.14)}.progress-week-dot.c2{background:rgba(29,205,211,.38);border-color:rgba(29,205,211,.22)}.progress-week-dot.c3{background:var(--accent);border-color:rgba(29,205,211,.55);color:#061018}.progress-week-dot.today{outline:2px solid rgba(29,205,211,.65);outline-offset:1px}.progress-week-lbl{font-size:8px;font-weight:700;color:var(--muted)}.progress-week-lbl.now{color:var(--accent)}
+.progress-month-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}.progress-month-nav{width:28px;height:28px;border-radius:50%;border:1px solid rgba(29,205,211,.12);background:rgba(255,255,255,.025);color:var(--accent);font:inherit;font-size:16px;font-weight:700;display:grid;place-items:center;cursor:pointer}.progress-month-title{font-size:13px;font-weight:700;color:var(--text-bright)}.progress-month-meta{font-size:11px;color:var(--muted);font-weight:600}.progress-month-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}.progress-month-lbl{font-size:8px;font-weight:700;color:var(--muted);text-align:center;padding-bottom:2px}.progress-month-cell{aspect-ratio:1;border-radius:6px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.035);display:grid;place-items:center;color:rgba(200,216,232,.7);font-size:9px;font-weight:700;cursor:pointer;position:relative}.progress-month-cell.empty{background:transparent;border-color:transparent;cursor:default}.progress-month-cell.c1{background:rgba(29,205,211,.16);border-color:rgba(29,205,211,.12);color:#bdeef0}.progress-month-cell.c2{background:rgba(29,205,211,.36);border-color:rgba(29,205,211,.2);color:#e9feff}.progress-month-cell.c3{background:var(--accent);border-color:rgba(29,205,211,.55);color:#061018}.progress-month-cell.today{outline:2px solid rgba(29,205,211,.75);outline-offset:1px}
+.progress-tip{position:absolute;left:50%;bottom:calc(100% + 6px);transform:translateX(-50%);z-index:20;background:rgba(10,20,34,.97);border:1px solid rgba(29,205,211,.24);border-radius:8px;padding:5px 8px;color:var(--accent);font-size:10px;font-weight:700;white-space:nowrap;box-shadow:0 8px 24px rgba(0,0,0,.32);pointer-events:none}
+.progress-click{cursor:pointer;-webkit-tap-highlight-color:transparent}.progress-click:active{transform:scale(.992)}
+.progress-detail-ov{position:fixed;inset:0;z-index:120;background:rgba(7,16,30,.72);backdrop-filter:blur(7px);display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s}.progress-detail-ov.open{opacity:1;pointer-events:auto}.progress-detail-sheet{width:min(430px,100%);max-height:86dvh;overflow:auto;background:rgba(18,32,52,.985);border:1px solid rgba(29,205,211,.18);border-bottom:0;border-radius:18px 18px 0 0;padding:18px 16px calc(24px + env(safe-area-inset-bottom,0px));transform:translateY(100%);transition:transform .24s cubic-bezier(.22,1,.36,1)}.progress-detail-ov.open .progress-detail-sheet{transform:translateY(0)}.progress-detail-grab{width:34px;height:4px;border-radius:99px;background:rgba(255,255,255,.13);margin:0 auto 15px}.progress-detail-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px}.progress-detail-title{font-size:18px;font-weight:700;color:var(--text-bright)}.progress-detail-tabs{display:flex;gap:3px;background:rgba(255,255,255,.035);border:1px solid rgba(29,205,211,.08);border-radius:9px;padding:3px}.progress-detail-tabs button{border:0;background:transparent;color:var(--muted);border-radius:7px;padding:6px 10px;font:inherit;font-size:10px;font-weight:700;cursor:pointer}.progress-detail-tabs button.on{background:rgba(29,205,211,.13);color:var(--accent)}
+.progress-list-row{display:flex;align-items:center;justify-content:space-between;gap:12px;border-top:1px solid rgba(255,255,255,.06);padding:11px 0}.progress-list-row:first-child{border-top:0}.progress-list-title{font-size:13px;font-weight:700;color:var(--text-bright)}.progress-list-meta{font-size:11px;color:var(--muted);margin-top:2px}.progress-level-row{display:grid;grid-template-columns:56px 1fr auto;gap:10px;align-items:center;border-top:1px solid rgba(255,255,255,.06);padding:10px 0}.progress-level-row:first-child{border-top:0}.progress-level-pill{font-size:11px;font-weight:700;color:var(--warn)}.progress-range{font-size:11px;color:var(--muted)}.progress-current-tag{font-size:10px;font-weight:700;color:var(--accent)}
 /* ── Recordings ── */
 .rec-tabs{display:flex;gap:3px;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:var(--r-sm);padding:3px}
 .rec-tab{
@@ -745,71 +810,97 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
   <section class="scr" data-parent-screen="progress">
     <header class="top"><div class="brand"><b>Upp</b>Hátt</div><div class="top-title">Framvinda</div><div class="top-sub"></div></header>
     <div class="bod">
-      <div class="cpills" data-child-row aria-label="Veldu barn">
-        <button class="cpill sel" type="button" onclick="pickChild(this,'hrafnkell')"><div class="cpill-av">HH</div><div><div class="cpill-name">Hrafnkell</div></div></button>
-        <button class="cpill" type="button" onclick="pickChild(this,'kolbeinn')"><div class="cpill-av">KK</div><div><div class="cpill-name">Kolbeinn</div></div></button>
-      </div>
+      <div class="cpills" data-child-row aria-label="Veldu barn"></div>
 
-      <!-- Progress pill — dynamic based on week-over-week change -->
-      <div class="compare-row up" id="p-progress-pill">
-        <div class="compare-icon">↑</div>
-        <div class="compare-txt">Hefur lesið meira þessa viku</div>
-      </div>
-
-      <div class="hm-tabs">
-        <button class="hm-tab on" id="p-hm-week" onclick="hmTab('week',this)">Vika</button>
-        <button class="hm-tab" id="p-hm-month" onclick="hmTab('month',this)">Mánuður</button>
-      </div>
-
-      <div class="crd" id="p-content-activity">
-        <div id="p-heatmap-content">
-          <!-- Week view (default) — rendered by renderFramvindaWeek() -->
-          <div id="hm-view-week"></div>
-          <!-- Month view — rendered by renderFramvindaMonth() -->
-          <div id="hm-view-month" style="display:none"></div>
-        </div>
-      </div>
-
-      <!-- 2×2 stats: streak, blaðsíður, bækur, lestrardagar -->
-      <div class="stats-4">
-        <div class="stat">
-          <div class="stat-icon">🔥</div>
-          <div class="stat-v" id="p-stat-streak">4</div>
-          <div class="stat-l">dagar í röð</div>
-        </div>
-        <div class="stat">
-          <div class="stat-v" id="p-stat-words">0</div>
-          <div class="stat-l">orð lesin</div>
-          <div class="stat-sub" id="p-stat-words-ctx" style="font-size:9px;color:var(--muted);margin-top:2px;opacity:.7"></div>
-        </div>
-        <div class="stat">
-          <div class="stat-v" id="p-stat-books">3</div>
-          <div class="stat-l">bækur kláraðar</div>
-        </div>
-        <div class="stat">
-          <div class="stat-v" id="p-stat-days">5 / 7</div>
-          <div class="stat-l">lestrardagar</div>
-        </div>
-      </div>
-
-      <!-- Markmið -->
-      <div class="crd" id="ph-goals-progress">
-        <div class="crd-lbl" style="margin-bottom:8px">Markmið</div>
-        <div class="goal-row" style="padding:0">
-          <div class="goal-ring">
-            <svg viewBox="0 0 44 44"><circle cx="22" cy="22" r="17" fill="none" stroke="rgba(29,205,211,.1)" stroke-width="5"/><circle id="goal-ring-fill" cx="22" cy="22" r="17" fill="none" stroke="var(--accent)" stroke-width="5" stroke-dasharray="107" stroke-dashoffset="107" stroke-linecap="round" transform="rotate(-90 22 22)"/></svg>
-            <div class="goal-pct" id="p-goal-pct">0%</div>
+      <section class="crd">
+        <div class="crd-head">
+          <div>
+            <div class="crd-lbl">Framvinda</div>
+            <div class="progress-note">Barnið er borið saman við sjálft sig.</div>
           </div>
-          <div class="goal-info"><div class="goal-name" id="p-goal-name"></div><div class="goal-sub" id="p-goal-sub"></div></div>
         </div>
-      </div>
+        <div class="progress-summary">
+          <div class="crd progress-hero">
+            <div class="progress-big" id="progress-summary-main"><span>0</span> mín</div>
+            <div class="progress-note" id="progress-summary-note">Engin lestrargögn enn.</div>
+            <div class="progress-trend"><div class="progress-trend-pill" id="progress-summary-icon">→</div><span id="progress-summary-trend">Byrjum að safna takti</span></div>
+          </div>
+          <div class="crd avg-card">
+            <div class="avg-tabs">
+              <button class="on" type="button" id="avg-tab-mins" onclick="setProgressAvg('mins')">Mín</button>
+              <button type="button" id="avg-tab-pages" onclick="setProgressAvg('pages')">Bls</button>
+              <button type="button" id="avg-tab-words" onclick="setProgressAvg('words')">Orð</button>
+            </div>
+            <div>
+              <div class="avg-value" id="p-avg-value"><span>0</span></div>
+              <div class="avg-label" id="p-avg-label">meðallengd lestrar á dag</div>
+            </div>
+          </div>
+        </div>
+      </section>
 
-      <!-- Bókasafn link -->
+      <section class="crd progress-period">
+        <div class="progress-period-head">
+          <div>
+            <div class="crd-lbl" id="progress-period-title">Þessi vika</div>
+            <div class="progress-note" id="progress-period-hint">Snertið dag til að sjá mínútur.</div>
+          </div>
+          <div class="progress-period-toggle">
+            <button class="on" type="button" id="progress-current-week" onclick="setCurrentProgressPeriod('week')">Vika</button>
+            <button type="button" id="progress-current-month" onclick="setCurrentProgressPeriod('month')">Mánuður</button>
+          </div>
+        </div>
+        <div class="progress-week-view" id="progress-week-view">
+          <div class="progress-week-summary"><span id="progress-week-total">0 mín · 0/7 dagar</span><span id="progress-week-best">best: 0 mín</span></div>
+          <div class="progress-week-days" id="progress-week-days"></div>
+        </div>
+        <div class="progress-month-view" id="progress-month-view">
+          <div class="progress-month-head">
+            <button class="progress-month-nav" type="button" onclick="moveProgressMonth(-1)">‹</button>
+            <div style="text-align:center"><div class="progress-month-title" id="progress-month-title">Maí 2026</div><div class="progress-month-meta" id="progress-month-meta">0 mín · 0/31 dagar</div></div>
+            <button class="progress-month-nav" type="button" onclick="moveProgressMonth(1)">›</button>
+          </div>
+          <div class="progress-month-grid" id="progress-month-grid"></div>
+        </div>
+      </section>
+
+      <section class="crd progress-click" onclick="openTrendDetail()">
+        <div class="crd-head">
+          <div>
+            <div class="crd-lbl">Lestrarþróun</div>
+            <div class="progress-note">Litlu súlurnar sýna síðustu fjórar vikur.</div>
+          </div>
+          <button class="disclaimer-btn" type="button" onclick="event.stopPropagation();openProgressDisclaimer()">Fyrirvari</button>
+        </div>
+        <div class="progress-grid" id="p-progress-grid"></div>
+        <div class="progress-note" style="margin-top:10px;color:var(--accent);font-weight:700">Skoða nánar ›</div>
+      </section>
+
+      <section class="progress-secondary">
+        <div class="crd level-card progress-click" onclick="openInfoDetail('lesefni')">
+          <div class="level-top">
+            <div><div class="level-name">Lesefni</div><div class="progress-note" id="p-lesefni-note">Núverandi lestrarstig</div></div>
+            <div class="level-value" id="p-lesefni-value">-</div>
+          </div>
+          <div class="level-track" id="p-lesefni-track"></div>
+        </div>
+
+        <div class="crd books-card progress-click" onclick="openInfoDetail('books')">
+          <div><div class="level-name" style="color:#4ecdc4">Kláraðar bækur</div><div class="progress-note">Fjöldi bóka sem barnið hefur lokið</div></div>
+          <div class="tiny-ach"><div class="books-num"><span id="p-books-done">0</span></div><div class="badge-row" id="p-achievements-mini"><div class="badge-mini">-</div></div></div>
+          <div class="books-note" id="p-books-note">Engin bók kláruð enn.</div>
+        </div>
+      </section>
+
       <div class="crd" onclick="nav('bookshelf.html')" style="cursor:pointer;display:flex;align-items:center;justify-content:space-between">
         <div><div style="font-size:13px;font-weight:500;color:var(--text-bright)">Bókasafn</div><div style="font-size:10px;color:var(--muted);margin-top:2px" id="p-bookshelf-sub"></div></div>
         <div class="crd-act">Opna ›</div>
       </div>
     </div>
+
+    <div class="progress-detail-ov" id="progress-trend-detail" onclick="closeTrendDetail(event)"><div class="progress-detail-sheet" onclick="event.stopPropagation()"><div class="progress-detail-grab"></div><div class="progress-detail-top"><div><div class="crd-lbl">Lestrarþróun</div><div class="progress-detail-title">Skoða nánar</div><div class="progress-note">Zoomaðu inn í vikur eða út í mánuði.</div></div><div class="progress-detail-tabs"><button class="on" type="button" id="trend-detail-weeks" onclick="setTrendDetail('weeks')">Vikur</button><button type="button" id="trend-detail-months" onclick="setTrendDetail('months')">Mánuðir</button></div></div><div id="trend-detail-body"></div></div></div>
+    <div class="progress-detail-ov" id="progress-info-detail" onclick="closeInfoDetail(event)"><div class="progress-detail-sheet" onclick="event.stopPropagation()"><div class="progress-detail-grab"></div><div class="progress-detail-top"><div><div class="crd-lbl" id="info-label">Nánar</div><div class="progress-detail-title" id="info-title">Upplýsingar</div></div></div><div id="info-detail-body"></div></div></div>
+    <div class="progress-sheet-ov" id="progress-disclaimer" onclick="closeProgressDisclaimer(event)"><div class="progress-sheet" onclick="event.stopPropagation()"><div class="progress-grab"></div><div class="progress-sheet-title">Um tölurnar</div><div class="progress-sheet-copy"><p>Allar tölur eru <strong>áætlanir</strong>. Framvindan ber barnið eingöngu saman við sjálft sig.</p><div class="progress-sheet-item"><strong>Mínútur</strong> Reiknað úr lestrarlotum barnsins.</div><div class="progress-sheet-item"><strong>Blaðsíður</strong> Reiknað úr skráðum blaðsíðum eða blaðsíðubili lotunnar.</div><div class="progress-sheet-item"><strong>Orð</strong> Notar <code>wordsPerPage</code> úr bókahillu þegar það er til, annars varlegt fallback.</div><div class="progress-sheet-item"><strong>Lesefni</strong> Kemur úr bókagögnum: <code>readingLoadLabel</code>, <code>confidenceLevel</code> og <code>wordCountSource</code>.</div></div><button class="progress-sheet-close" type="button" onclick="closeProgressDisclaimer()">Loka</button></div></div>
   </section>
 
 
@@ -1453,10 +1544,7 @@ function render() {
   renderAudioHero(cs);
   renderWeek(cs);
   renderStreak(cs);
-  renderStats(cs, cb);
-  renderFramvindaWeek(cs);
-  _hmMonthOffset = 0;
-  renderFramvindaMonth(cs, 0);
+  renderProgress(cs, cb);
   renderJourneyPreview(cs, cb);
   renderJourney(cb);
   renderRecordings(cs);
@@ -1725,6 +1813,284 @@ function weekMins(sessions, weeksAgo) {
   return total;
 }
 
+
+/* ── Framvinda v2 render ── */
+let _progressAvg = 'mins';
+let _currentProgressPeriod = 'week';
+let _progressMonthOffset = 0;
+let _trendDetailMode = 'weeks';
+let _lastProgressSessions = [];
+let _lastProgressBooks = [];
+let _lastProgressBuckets = [];
+
+window.setProgressAvg = function(mode) {
+  _progressAvg = ['mins','pages','words'].includes(mode) ? mode : 'mins';
+  renderProgress(_lastProgressSessions, _lastProgressBooks);
+};
+window.setCurrentProgressPeriod = function(period) {
+  _currentProgressPeriod = period === 'month' ? 'month' : 'week';
+  renderProgress(_lastProgressSessions, _lastProgressBooks);
+};
+window.moveProgressMonth = function(delta) {
+  _progressMonthOffset += Number(delta) || 0;
+  renderProgressMonth(_lastProgressSessions);
+};
+window.showProgressTip = function(el) {
+  document.querySelectorAll('.progress-tip').forEach(t => t.remove());
+  const tip = document.createElement('div');
+  tip.className = 'progress-tip';
+  tip.textContent = el.dataset.tip || '';
+  el.appendChild(tip);
+  clearTimeout(window.showProgressTip._t);
+  window.showProgressTip._t = setTimeout(() => tip.remove(), 1800);
+};
+window.openTrendDetail = function() {
+  document.getElementById('progress-trend-detail')?.classList.add('open');
+  renderTrendDetail();
+};
+window.closeTrendDetail = function(e) {
+  if (e && e.target !== e.currentTarget) return;
+  document.getElementById('progress-trend-detail')?.classList.remove('open');
+};
+window.setTrendDetail = function(mode) {
+  _trendDetailMode = mode === 'months' ? 'months' : 'weeks';
+  renderTrendDetail();
+};
+window.openInfoDetail = function(type) {
+  const label = document.getElementById('info-label');
+  const title = document.getElementById('info-title');
+  const body = document.getElementById('info-detail-body');
+  if (!body) return;
+  if (type === 'lesefni') {
+    if (label) label.textContent = 'Lesefni';
+    if (title) title.textContent = 'Lestrarstig bóka';
+    body.innerHTML = renderLoadDetails();
+  } else {
+    if (label) label.textContent = 'Kláraðar bækur';
+    if (title) title.textContent = 'Bækur sem barnið hefur lokið';
+    body.innerHTML = renderFinishedBookDetails(_lastProgressBooks);
+  }
+  document.getElementById('progress-info-detail')?.classList.add('open');
+};
+window.closeInfoDetail = function(e) {
+  if (e && e.target !== e.currentTarget) return;
+  document.getElementById('progress-info-detail')?.classList.remove('open');
+};
+window.openProgressDisclaimer = function() { document.getElementById('progress-disclaimer')?.classList.add('open'); };
+window.closeProgressDisclaimer = function(e) {
+  if (e && e.target !== e.currentTarget) return;
+  document.getElementById('progress-disclaimer')?.classList.remove('open');
+};
+
+function renderProgress(sessions, books) {
+  sessions = sessions || [];
+  books = books || [];
+  _lastProgressSessions = sessions;
+  _lastProgressBooks = books;
+
+  document.getElementById('avg-tab-mins')?.classList.toggle('on', _progressAvg === 'mins');
+  document.getElementById('avg-tab-pages')?.classList.toggle('on', _progressAvg === 'pages');
+  document.getElementById('avg-tab-words')?.classList.toggle('on', _progressAvg === 'words');
+  document.getElementById('progress-current-week')?.classList.toggle('on', _currentProgressPeriod === 'week');
+  document.getElementById('progress-current-month')?.classList.toggle('on', _currentProgressPeriod === 'month');
+  document.getElementById('progress-week-view')?.classList.toggle('off', _currentProgressPeriod === 'month');
+  document.getElementById('progress-month-view')?.classList.toggle('on', _currentProgressPeriod === 'month');
+  setText('progress-period-title', _currentProgressPeriod === 'month' ? 'Þessi mánuður' : 'Þessi vika');
+  setText('progress-period-hint', _currentProgressPeriod === 'month' ? 'Snertið dag til að sjá mínútur. Fléttið milli mánaða.' : 'Snertið dag til að sjá mínútur.');
+
+  const buckets = buildWeekBuckets(sessions, books);
+  _lastProgressBuckets = buckets;
+  const current = buckets[buckets.length - 1] || emptyBucket('');
+  const previous = buckets[buckets.length - 2] || emptyBucket('');
+  const diffMins = current.mins - previous.mins;
+
+  setHtml('progress-summary-main', `<span>${diffMins >= 0 ? '+' : ''}${diffMins}</span> mín`);
+  setText('progress-summary-note', 'miðað við síðustu viku');
+  setText('progress-summary-icon', diffMins > 0 ? '↗' : diffMins < 0 ? '↘' : '→');
+  setText('progress-summary-trend', diffMins > 10 ? 'Stígandi taktur' : diffMins > 0 ? 'Aðeins meira lesið' : diffMins < -10 ? 'Minni lestur núna' : 'Svipaður lestur');
+
+  const avgMap = {
+    mins: [Math.round(current.mins / 7), 'meðallengd lestrar á dag'],
+    pages: [round1(current.pages / 7), 'meðaltal blaðsíðna á dag'],
+    words: ['~' + Math.round(current.words / 7), 'áætluð orð á dag']
+  };
+  const avg = avgMap[_progressAvg] || avgMap.mins;
+  setHtml('p-avg-value', `<span>${avg[0]}</span>`);
+  setText('p-avg-label', avg[1]);
+
+  renderProgressWeek(sessions);
+  renderProgressMonth(sessions);
+  renderProgressGrid(buckets);
+  renderLesefni(books);
+  renderBooksDone(books, current);
+}
+
+function renderProgressWeek(sessions) {
+  const today = noon(new Date());
+  const dayLabels = ['S','M','Þ','M','F','F','L'];
+  const cells = [];
+  let total = 0, days = 0, best = 0;
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(today); d.setDate(today.getDate() - i);
+    const key = dateKey(d);
+    const mins = sessions.filter(s => sessionKey(s) === key && (s.seconds || 0) >= 60).reduce((a,s) => a + Math.floor((s.seconds || 0) / 60), 0);
+    total += mins; if (mins > 0) days++; best = Math.max(best, mins);
+    const cls = mins === 0 ? '' : mins < 5 ? 'c1' : mins < 15 ? 'c2' : 'c3';
+    const isToday = key === dateKey(today);
+    cells.push(`<div class="progress-week-day"><div class="progress-week-dot ${cls} ${isToday ? 'today' : ''}" data-tip="${mins} mín" onclick="showProgressTip(this)">${mins > 0 ? '✓' : ''}</div><div class="progress-week-lbl ${isToday ? 'now' : ''}">${dayLabels[d.getDay()]}</div></div>`);
+  }
+  setText('progress-week-total', `${total} mín · ${days}/7 dagar`);
+  setText('progress-week-best', `best: ${best} mín`);
+  setHtml('progress-week-days', cells.join(''));
+}
+
+function renderProgressMonth(sessions) {
+  const now = new Date();
+  const view = new Date(now.getFullYear(), now.getMonth() + _progressMonthOffset, 1);
+  const year = view.getFullYear(), month = view.getMonth();
+  const monthNames = ['Janúar','Febrúar','Mars','Apríl','Maí','Júní','Júlí','Ágúst','September','Október','Nóvember','Desember'];
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  let firstDow = new Date(year, month, 1).getDay();
+  firstDow = firstDow === 0 ? 6 : firstDow - 1;
+  const todayKey = dateKey(noon(new Date()));
+  let total = 0, days = 0;
+  let html = ['M','Þ','M','F','F','L','S'].map(d => `<div class="progress-month-lbl">${d}</div>`).join('');
+  html += Array.from({ length: firstDow }, () => '<div class="progress-month-cell empty"></div>').join('');
+  for (let day = 1; day <= daysInMonth; day++) {
+    const d = noon(new Date(year, month, day));
+    const key = dateKey(d);
+    const mins = sessions.filter(s => sessionKey(s) === key && (s.seconds || 0) >= 60).reduce((a,s) => a + Math.floor((s.seconds || 0) / 60), 0);
+    total += mins; if (mins > 0) days++;
+    const cls = mins === 0 ? '' : mins < 5 ? 'c1' : mins < 15 ? 'c2' : 'c3';
+    const isToday = key === todayKey;
+    html += `<div class="progress-month-cell ${cls} ${isToday ? 'today' : ''}" data-tip="${mins} mín" onclick="showProgressTip(this)">${day}</div>`;
+  }
+  setText('progress-month-title', `${monthNames[month]} ${year}`);
+  setText('progress-month-meta', `${total} mín · ${days}/${daysInMonth} dagar`);
+  setHtml('progress-month-grid', html);
+}
+
+function buildWeekBuckets(sessions, books) {
+  const today = noon(new Date());
+  const buckets = [];
+  for (let bi = 3; bi >= 0; bi--) {
+    const start = new Date(today); start.setDate(today.getDate() - (bi * 7) - 6);
+    const end = new Date(today); end.setDate(today.getDate() - (bi * 7));
+    buckets.push(buildBucket(`V${4 - bi}`, start, end, sessions, books, 7));
+  }
+  return buckets;
+}
+function buildMonthBuckets(sessions, books) {
+  const now = new Date();
+  const labels = ['Jan','Feb','Mar','Apr','Maí','Jún','Júl','Ágú','Sep','Okt','Nóv','Des'];
+  const buckets = [];
+  for (let bi = 3; bi >= 0; bi--) {
+    const start = new Date(now.getFullYear(), now.getMonth() - bi, 1);
+    const end = new Date(now.getFullYear(), now.getMonth() - bi + 1, 0);
+    buckets.push(buildBucket(labels[start.getMonth()], noon(start), noon(end), sessions, books, end.getDate()));
+  }
+  return buckets;
+}
+function buildBucket(label, start, end, sessions, books, daysInPeriod) {
+  const startMs = start.getTime(), endMs = end.getTime();
+  const inRange = sessions.filter(s => { const ms = sessionMs(s); return ms && ms >= startMs && ms <= endMs && (s.seconds || 0) >= 60; });
+  const mins = inRange.reduce((sum, s) => sum + Math.floor((s.seconds || 0) / 60), 0);
+  const pages = inRange.reduce((sum, s) => sum + sessionPages(s), 0);
+  const words = inRange.reduce((sum, s) => sum + sessionWords(s, books), 0);
+  const days = new Set(inRange.map(sessionKey).filter(Boolean)).size;
+  const doneBooks = books.filter(b => b.status === 'finished' && bookFinishedInRange(b, startMs, endMs)).length;
+  return { label, mins, pages, words, days, doneBooks, daysInPeriod };
+}
+function renderProgressGrid(buckets) {
+  const metrics = progressMetrics('weeks');
+  const html = metrics.map(m => renderMetricCard(m, buckets)).join('');
+  setHtml('p-progress-grid', html);
+}
+function renderTrendDetail() {
+  document.getElementById('trend-detail-weeks')?.classList.toggle('on', _trendDetailMode === 'weeks');
+  document.getElementById('trend-detail-months')?.classList.toggle('on', _trendDetailMode === 'months');
+  const buckets = _trendDetailMode === 'months' ? buildMonthBuckets(_lastProgressSessions, _lastProgressBooks) : buildEightWeekBuckets(_lastProgressSessions, _lastProgressBooks);
+  const metrics = progressMetrics(_trendDetailMode);
+  setHtml('trend-detail-body', `<div class="progress-grid">${metrics.map(m => renderMetricCard(m, buckets)).join('')}</div>`);
+}
+function buildEightWeekBuckets(sessions, books) {
+  const today = noon(new Date());
+  const buckets = [];
+  for (let bi = 7; bi >= 0; bi--) {
+    const start = new Date(today); start.setDate(today.getDate() - (bi * 7) - 6);
+    const end = new Date(today); end.setDate(today.getDate() - (bi * 7));
+    buckets.push(buildBucket(`V${8 - bi}`, start, end, sessions, books, 7));
+  }
+  return buckets;
+}
+function progressMetrics(mode) {
+  return [
+    { name:'Mín/dag', value:b => Math.round(b.mins / ((mode === 'months' ? b.daysInPeriod : 7) || 1)), color:'#1dcdd3', fmt:v => String(v) },
+    { name:'Bls/dag', value:b => round1(b.pages / ((mode === 'months' ? b.daysInPeriod : 7) || 1)), color:'#4ecdc4', fmt:v => String(v) },
+    { name:'Orð/dag', value:b => Math.round(b.words / ((mode === 'months' ? b.daysInPeriod : 7) || 1)), color:'#6dd5ed', fmt:v => '~' + v },
+    { name:'Dagar', value:b => b.days, color:'#56ab2f', fmt:(v,b) => `${v}/${mode === 'months' ? b.daysInPeriod : 7}` }
+  ];
+}
+function renderMetricCard(m, buckets) {
+  const vals = buckets.map(b => Number(m.value(b)) || 0);
+  const max = Math.max(...vals, 1);
+  const op = buckets.length > 4 ? [.16,.25,.34,.45,.56,.68,.82,1] : [.24,.4,.62,1];
+  const current = buckets[buckets.length - 1] || emptyBucket('');
+  const currVal = Number(m.value(current)) || 0;
+  return `<div class="progress-metric"><div class="progress-mhead"><div class="progress-mname">${m.name}</div><div class="progress-mval">${m.fmt(currVal, current)}</div></div><div class="progress-bars">${buckets.map((b,i) => `<div class="progress-col"><div class="progress-bar" style="height:${Math.max(5,Math.round(((Number(m.value(b)) || 0) / max) * 58))}px;background:${m.color};opacity:${op[i] || 1}"></div><div class="progress-wk ${i === buckets.length - 1 ? 'now' : ''}">${b.label}</div></div>`).join('')}</div></div>`;
+}
+function renderLesefni(books) {
+  const active = books.filter(b => b.status === 'reading').sort((a,b) => bTs(b,'lastReadAt') - bTs(a,'lastReadAt'))[0];
+  const fallback = books.slice().sort((a,b) => bTs(b,'updatedAt') - bTs(a,'updatedAt'))[0];
+  const book = active || fallback;
+  const levels = loadLevels();
+  const key = book?.readingLoadKey || classifyLoadKey(book?.wordsPerPage, book?.totalPages);
+  const idx = Math.max(0, levels.findIndex(l => l.key === key));
+  const label = book?.readingLoadLabel || levels[Math.max(0, idx)]?.label || '-';
+  const estimate = book?.confidenceLevel && book.confidenceLevel !== 'high' ? ' · áætlað' : '';
+  setText('p-lesefni-value', label);
+  setText('p-lesefni-note', book ? `Núverandi lestrarstig${estimate}` : 'Bættu bók við bókahillu');
+  setHtml('p-lesefni-track', levels.map((l,i) => `<div class="level-step ${i <= idx ? 'on' : ''}" data-l="${l.label}"></div>`).join(''));
+}
+function renderBooksDone(books, currentBucket) {
+  const done = books.filter(b => b.status === 'finished');
+  setText('p-books-done', done.length);
+  const periodDone = currentBucket?.doneBooks || 0;
+  setText('p-books-note', periodDone > 0 ? `${periodDone} bók${periodDone === 1 ? '' : 'ir'} kláraðar í þessu tímabili.` : 'Engin bók kláruð í þessu tímabili.');
+  const achievements = getAchievements();
+  setHtml('p-achievements-mini', achievements.length ? achievements.slice(0,3).map(a => `<div class="badge-mini">${esc(a)}</div>`).join('') : '<div class="badge-mini">-</div>');
+  const bsub = document.getElementById('p-bookshelf-sub');
+  if (bsub) bsub.textContent = `${books.length} bækur · ${done.length} kláraðar`;
+}
+function renderLoadDetails() {
+  const current = document.getElementById('p-lesefni-value')?.textContent || '';
+  return `<div>${loadLevels().map(l => `<div class="progress-level-row"><div class="progress-level-pill">${l.label}</div><div><div class="progress-list-title">${l.range}</div><div class="progress-range">${l.desc}</div></div><div class="progress-current-tag">${l.label === current ? 'Núna' : ''}</div></div>`).join('')}</div>`;
+}
+function renderFinishedBookDetails(books) {
+  const done = books.filter(b => b.status === 'finished').sort((a,b) => bTs(b,'celebratedAt') - bTs(a,'celebratedAt') || bTs(b,'lastReadAt') - bTs(a,'lastReadAt'));
+  if (!done.length) return '<div class="progress-note">Engin bók er skráð sem kláruð enn.</div>';
+  return `<div>${done.map(b => `<div class="progress-list-row"><div><div class="progress-list-title">${esc(b.title || 'Bók')}</div><div class="progress-list-meta">${esc(b.readingLoadLabel || 'Lesefni')} · ${b.totalPages || '?'} bls.</div></div><div class="progress-current-tag">✓</div></div>`).join('')}</div>`;
+}
+function loadLevels() { return [
+  { key:'seedling', label:'Spíra', range:'0-800 orð', desc:'Léttasta lesefnið' },
+  { key:'growing', label:'Vex', range:'801-3.500 orð', desc:'Stuttar bækur og einfaldari texti' },
+  { key:'reading', label:'Les', range:'3.501-12.000 orð', desc:'Sjálfstæðari lestur' },
+  { key:'flowing', label:'Flæðir', range:'12.001-35.000 orð', desc:'Lengri texti' },
+  { key:'soaring', label:'Flýgur', range:'35.000+ orð', desc:'Þyngsta lesefnið' }
+]; }
+function sessionPages(s) { if (Number(s.pagesRead) > 0) return Number(s.pagesRead); const from = Number(s.pageFrom || s.currentPageFrom || 0); const to = Number(s.pageTo || s.currentPageTo || 0); return to > from ? to - from : 0; }
+function sessionWords(s, books) { const pages = sessionPages(s); if (!pages) return 0; const book = books.find(b => (s.bookId && b.id === s.bookId) || (s.bookTitle && b.title === s.bookTitle)); return Math.round(pages * (Number(book?.wordsPerPage) || 150)); }
+function sessionKey(s) { const ms = sessionMs(s); return ms ? dateKey(new Date(ms)) : ''; }
+function sessionMs(s) { if (s.date) { const p = nd(s.date).split('-').map(Number); if (p.length === 3) return noon(new Date(p[0], p[1] - 1, p[2])).getTime(); } return s.timestamp || (s.createdAt?.seconds ? s.createdAt.seconds * 1000 : 0) || (s.createdAt?.toMillis ? s.createdAt.toMillis() : 0); }
+function bookFinishedInRange(b, startMs, endMs) { const t = bTs(b,'celebratedAt') || bTs(b,'lastReadAt') || bTs(b,'updatedAt'); return t >= startMs && t <= endMs; }
+function classifyLoadKey(wordsPerPage, totalPages) { const total = (Number(wordsPerPage) || 150) * (Number(totalPages) || 100); if (total <= 800) return 'seedling'; if (total <= 3500) return 'growing'; if (total <= 12000) return 'reading'; if (total <= 35000) return 'flowing'; return 'soaring'; }
+function getAchievements() { const child = (S.parentChildren || []).find(c => c.key === _selectedChild) || {}; const list = child.achievements || child.badges || []; if (!Array.isArray(list) || !list.length) return []; return list.map(a => a.icon || a.label || a.name || '✓'); }
+function emptyBucket(label) { return { label, mins:0, pages:0, words:0, days:0, doneBooks:0, daysInPeriod:7 }; }
+function noon(d) { const x = new Date(d); x.setHours(12,0,0,0); return x; }
+function dateKey(d) { return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`; }
+function round1(n) { return Math.round((Number(n) || 0) * 10) / 10; }
+function setText(id, value) { const el = document.getElementById(id); if (el) el.textContent = value; }
+function setHtml(id, value) { const el = document.getElementById(id); if (el) el.innerHTML = value; }
 /* ── Journey preview (Í dag flipi) — chat stíll ── */
 function renderJourneyPreview(sessions, books) {
   const el = document.getElementById('p-journey-card');

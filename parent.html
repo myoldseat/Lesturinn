@@ -115,6 +115,7 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
 }
 .rd-title{font-size:17px;font-weight:500;color:var(--text-bright);line-height:1.15}
 .rd-meta{font-size:11px;color:var(--muted);margin-top:3px}
+.rd-load-pill{display:inline-block;font-size:9px;font-weight:600;letter-spacing:.03em;padding:2px 7px;border-radius:6px;background:rgba(29,205,211,.1);color:var(--accent);border:1px solid rgba(29,205,211,.2);margin-left:6px;vertical-align:middle}
 .rd-prog{display:flex;align-items:center;gap:8px;margin-top:6px}
 .rd-bar{flex:1;height:4px;border-radius:99px;background:rgba(148,164,180,.1);overflow:hidden}
 .rd-fill{height:100%;border-radius:inherit;background:var(--accent);transition:width .4s}
@@ -762,43 +763,10 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
 
       <div class="crd" id="p-content-activity">
         <div id="p-heatmap-content">
-          <!-- Week view (default) -->
-          <div id="hm-view-week">
-            <div class="crd-lbl" style="margin-bottom:6px">Síðustu 7 dagar</div>
-            <div class="wk">
-              <div class="wk-d" onclick="dayTip(this,8)"><div class="wk-l">M</div><div class="wk-dot hi">✓</div><div class="wk-n">14</div></div>
-              <div class="wk-d" onclick="dayTip(this,0)"><div class="wk-l">Þ</div><div class="wk-dot"></div><div class="wk-n">15</div></div>
-              <div class="wk-d" onclick="dayTip(this,4)"><div class="wk-l">M</div><div class="wk-dot md">✓</div><div class="wk-n">16</div></div>
-              <div class="wk-d" onclick="dayTip(this,12)"><div class="wk-l">F</div><div class="wk-dot hi">✓</div><div class="wk-n">17</div></div>
-              <div class="wk-d" onclick="dayTip(this,0)"><div class="wk-l">F</div><div class="wk-dot"></div><div class="wk-n">18</div></div>
-              <div class="wk-d" onclick="dayTip(this,3)"><div class="wk-l">L</div><div class="wk-dot lo">✓</div><div class="wk-n">19</div></div>
-              <div class="wk-d" onclick="dayTip(this,5)"><div class="wk-l now">S</div><div class="wk-dot md ring">✓</div><div class="wk-n now">20</div></div>
-            </div>
-            <div class="hm-total">
-              <div class="hm-total-l">Samtals þessa viku</div>
-              <div class="hm-total-v" id="ph-week-total">32 mín</div>
-            </div>
-          </div>
-          <!-- Month view (hidden by default) -->
-          <div id="hm-view-month" style="display:none">
-            <div class="hm-month-head">
-              <button class="hm-nav-arrow" onclick="toast('‹ Apríl')">‹</button>
-              <div class="hm-month-title">Maí 2026</div>
-              <button class="hm-nav-arrow" disabled>›</button>
-            </div>
-            <div class="hm-month">
-              <div class="hm-month-lbl">M</div><div class="hm-month-lbl">Þ</div><div class="hm-month-lbl">M</div><div class="hm-month-lbl">F</div><div class="hm-month-lbl">F</div><div class="hm-month-lbl">L</div><div class="hm-month-lbl">S</div>
-              <div class="hm-month-cell empty"></div><div class="hm-month-cell empty"></div><div class="hm-month-cell empty"></div><div class="hm-month-cell c1" onclick="dayTip(this,3)"><span class="mc-num">1</span></div><div class="hm-month-cell c3" onclick="dayTip(this,15)"><span class="mc-num">2</span></div><div class="hm-month-cell" onclick="dayTip(this,0)"><span class="mc-num">3</span></div><div class="hm-month-cell c1" onclick="dayTip(this,2)"><span class="mc-num">4</span></div>
-              <div class="hm-month-cell c3" onclick="dayTip(this,12)"><span class="mc-num">5</span></div><div class="hm-month-cell" onclick="dayTip(this,0)"><span class="mc-num">6</span></div><div class="hm-month-cell c2" onclick="dayTip(this,6)"><span class="mc-num">7</span></div><div class="hm-month-cell c1" onclick="dayTip(this,3)"><span class="mc-num">8</span></div><div class="hm-month-cell c3" onclick="dayTip(this,14)"><span class="mc-num">9</span></div><div class="hm-month-cell c2" onclick="dayTip(this,8)"><span class="mc-num">10</span></div><div class="hm-month-cell" onclick="dayTip(this,0)"><span class="mc-num">11</span></div>
-              <div class="hm-month-cell c3" onclick="dayTip(this,11)"><span class="mc-num">12</span></div><div class="hm-month-cell c3" onclick="dayTip(this,10)"><span class="mc-num">13</span></div><div class="hm-month-cell c2" onclick="dayTip(this,5)"><span class="mc-num">14</span></div><div class="hm-month-cell" onclick="dayTip(this,0)"><span class="mc-num">15</span></div><div class="hm-month-cell c1" onclick="dayTip(this,3)"><span class="mc-num">16</span></div><div class="hm-month-cell c2" onclick="dayTip(this,7)"><span class="mc-num">17</span></div><div class="hm-month-cell" onclick="dayTip(this,0)"><span class="mc-num">18</span></div>
-              <div class="hm-month-cell c1" onclick="dayTip(this,4)"><span class="mc-num">19</span></div><div class="hm-month-cell c3" onclick="dayTip(this,12)"><span class="mc-num">20</span></div><div class="hm-month-cell today c2" onclick="dayTip(this,5)"><span class="mc-num">21</span></div><div class="hm-month-cell" onclick="dayTip(this,0)"><span class="mc-num">22</span></div><div class="hm-month-cell" onclick="dayTip(this,0)"><span class="mc-num">23</span></div><div class="hm-month-cell" onclick="dayTip(this,0)"><span class="mc-num">24</span></div><div class="hm-month-cell" onclick="dayTip(this,0)"><span class="mc-num">25</span></div>
-              <div class="hm-month-cell" onclick="dayTip(this,0)"><span class="mc-num">26</span></div><div class="hm-month-cell" onclick="dayTip(this,0)"><span class="mc-num">27</span></div><div class="hm-month-cell" onclick="dayTip(this,0)"><span class="mc-num">28</span></div><div class="hm-month-cell" onclick="dayTip(this,0)"><span class="mc-num">29</span></div><div class="hm-month-cell" onclick="dayTip(this,0)"><span class="mc-num">30</span></div><div class="hm-month-cell" onclick="dayTip(this,0)"><span class="mc-num">31</span></div>
-            </div>
-            <div class="hm-total">
-              <div class="hm-total-l">Samtals í maí</div>
-              <div class="hm-total-v" id="p-month-total">118 mín</div>
-            </div>
-          </div>
+          <!-- Week view (default) — rendered by renderFramvindaWeek() -->
+          <div id="hm-view-week"></div>
+          <!-- Month view — rendered by renderFramvindaMonth() -->
+          <div id="hm-view-month" style="display:none"></div>
         </div>
       </div>
 
@@ -810,8 +778,9 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
           <div class="stat-l">dagar í röð</div>
         </div>
         <div class="stat">
-          <div class="stat-v" id="p-stat-pages">342</div>
-          <div class="stat-l">blaðsíður lesnar</div>
+          <div class="stat-v" id="p-stat-words">0</div>
+          <div class="stat-l">orð lesin</div>
+          <div class="stat-sub" id="p-stat-words-ctx" style="font-size:9px;color:var(--muted);margin-top:2px;opacity:.7"></div>
         </div>
         <div class="stat">
           <div class="stat-v" id="p-stat-books">3</div>
@@ -1430,12 +1399,18 @@ function saveTotalPagesRead() {
 
   let changed = false;
   const updated = children.map(c => {
-    const sum = books.filter(b => b.childKey === c.key).reduce((a, b) => a + (b.currentPageTo || 0), 0);
-    const stored = c.totalPagesRead || 0;
-    if (sum > stored) {
+    const cb = books.filter(b => b.childKey === c.key);
+    const sum = cb.reduce((a, b) => a + (b.currentPageTo || 0), 0);
+    const storedPages = c.totalPagesRead || 0;
+    /* Reikna heildarorð */
+    const wordsNow = cb.reduce((a, b) => a + ((b.currentPageTo || 0) * (b.wordsPerPage || 150)), 0);
+    const storedWords = c.totalWordsRead || 0;
+
+    if (sum > storedPages || wordsNow > storedWords) {
       changed = true;
-      console.log('📖', c.name, ':', stored, '→', sum, '(+' + (sum - stored) + ' bls)');
-      return { ...c, totalPagesRead: sum };
+      if (sum > storedPages) console.log('📖', c.name, ':', storedPages, '→', sum, '(+' + (sum - storedPages) + ' bls)');
+      if (wordsNow > storedWords) console.log('📝', c.name, ':', storedWords, '→', wordsNow, '(+' + (wordsNow - storedWords) + ' orð)');
+      return { ...c, totalPagesRead: Math.max(storedPages, sum), totalWordsRead: Math.max(storedWords, wordsNow) };
     }
     return c;
   });
@@ -1445,7 +1420,7 @@ function saveTotalPagesRead() {
   _savingPages = true;
   S.parentChildren = updated;
   setDoc(doc(db, 'users', uid), { children: updated }, { merge: true })
-    .then(() => { console.log('✅ totalPagesRead vistað'); _savingPages = false; })
+    .then(() => { console.log('✅ totalPagesRead + totalWordsRead vistað'); _savingPages = false; })
     .catch(e => { console.warn('totalPagesRead villa:', e); _savingPages = false; });
 }
 
@@ -1479,6 +1454,9 @@ function render() {
   renderWeek(cs);
   renderStreak(cs);
   renderStats(cs, cb);
+  renderFramvindaWeek(cs);
+  _hmMonthOffset = 0;
+  renderFramvindaMonth(cs, 0);
   renderJourneyPreview(cs, cb);
   renderJourney(cb);
   renderRecordings(cs);
@@ -1514,6 +1492,8 @@ function renderReading(books) {
   }
   const pct = hero.progressPercent || 0;
   const pg = hero.currentPageTo ? `bls. ${hero.currentPageTo} af ${hero.totalPages||'?'}` : '';
+  const rlLabel = hero.readingLoadLabel || null;
+  const rlPill = rlLabel ? `<span class="rd-load-pill">${esc(rlLabel)}</span>` : '';
   const c1 = hero.c1||'#6a3140', c2 = hero.c2||'#c08a36';
   const letter = esc((hero.title||'?')[0]);
   const coverSrc = hero.coverUrl || hero.coverBase64;
@@ -1525,7 +1505,7 @@ function renderReading(books) {
     <div style="flex:1;padding:8px 10px;display:flex;flex-direction:column;justify-content:space-between;min-height:0">
       <div>
         <div class="rd-title" style="font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(hero.title)}</div>
-        <div class="rd-meta">${pg}</div>
+        <div class="rd-meta">${pg}${rlPill}</div>
       </div>
       <div class="rd-prog" style="margin-top:4px">
         <div class="rd-bar"><div class="rd-fill" style="width:${pct}%"></div></div>
@@ -1535,6 +1515,82 @@ function renderReading(books) {
 }
 
 /* ── Vikugrid (Í dag) ── */
+/* ── Framvinda heatmap — Vika (dynamic) ── */
+function renderFramvindaWeek(sessions) {
+  const el = document.getElementById('hm-view-week');
+  if (!el) return;
+  const DAYS = ['S','M','Þ','M','F','F','L'];
+  const today = new Date(); today.setHours(12,0,0,0);
+  const tk = dk(today);
+  let total = 0;
+  let h = '<div class="crd-lbl" style="margin-bottom:6px">Síðustu 7 dagar</div><div class="wk">';
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(today); d.setDate(today.getDate() - i);
+    const key = dk(d), isT = key === tk;
+    const mins = sessions.filter(s => nd(s.date) === key && (s.seconds||0)>=60).reduce((a,s) => a + Math.floor((s.seconds||0)/60), 0);
+    total += mins;
+    const dot = mins===0 ? '' : mins<5 ? 'lo' : mins<15 ? 'md' : 'hi';
+    h += `<div class="wk-d" onclick="dayTip(this,${mins})"><div class="wk-l ${isT?'now':''}">${DAYS[d.getDay()]}</div><div class="wk-dot ${dot} ${isT?'ring':''}">${mins>0?'✓':''}</div><div class="wk-n ${isT?'now':''}">${d.getDate()}</div></div>`;
+  }
+  h += '</div>';
+  h += `<div class="hm-total"><div class="hm-total-l">Samtals þessa viku</div><div class="hm-total-v" id="ph-week-total">${total} mín</div></div>`;
+  el.innerHTML = h;
+}
+
+/* ── Framvinda heatmap — Mánuður (dynamic) ── */
+let _hmMonthOffset = 0; /* 0 = þessi mánuður, -1 = síðasti, etc. */
+let _hmSessions = [];   /* cached sessions reference */
+const MONTH_NAMES = ['janúar','febrúar','mars','apríl','maí','júní','júlí','ágúst','september','október','nóvember','desember'];
+
+function renderFramvindaMonth(sessions, offset) {
+  if (sessions) _hmSessions = sessions;
+  if (typeof offset === 'number') _hmMonthOffset = offset;
+  const el = document.getElementById('hm-view-month');
+  if (!el) return;
+
+  const now = new Date(); now.setHours(12,0,0,0);
+  const viewDate = new Date(now.getFullYear(), now.getMonth() + _hmMonthOffset, 1);
+  const year = viewDate.getFullYear(), month = viewDate.getMonth();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  /* Vikudagur fyrsta dags — mánudagur = 0 */
+  let firstDay = new Date(year, month, 1).getDay(); /* 0=sun */
+  firstDay = firstDay === 0 ? 6 : firstDay - 1; /* shift to mon=0 */
+
+  const todayKey = dk(now);
+  const isCurrentMonth = (now.getFullYear() === year && now.getMonth() === month);
+
+  /* Prev/next arrows */
+  const canNext = _hmMonthOffset < 0;
+  const prevBtn = `<button class="hm-nav-arrow" onclick="renderFramvindaMonth(null, ${_hmMonthOffset - 1})">‹</button>`;
+  const nextBtn = canNext
+    ? `<button class="hm-nav-arrow" onclick="renderFramvindaMonth(null, ${_hmMonthOffset + 1})">›</button>`
+    : `<button class="hm-nav-arrow" disabled>›</button>`;
+
+  let h = `<div class="hm-month-head">${prevBtn}<div class="hm-month-title">${MONTH_NAMES[month].charAt(0).toUpperCase() + MONTH_NAMES[month].slice(1)} ${year}</div>${nextBtn}</div>`;
+  h += '<div class="hm-month">';
+  h += '<div class="hm-month-lbl">M</div><div class="hm-month-lbl">Þ</div><div class="hm-month-lbl">M</div><div class="hm-month-lbl">F</div><div class="hm-month-lbl">F</div><div class="hm-month-lbl">L</div><div class="hm-month-lbl">S</div>';
+
+  /* Empty cells before first day */
+  for (let e = 0; e < firstDay; e++) h += '<div class="hm-month-cell empty"></div>';
+
+  let totalMins = 0;
+  for (let day = 1; day <= daysInMonth; day++) {
+    const d = new Date(year, month, day); d.setHours(12,0,0,0);
+    const key = dk(d);
+    const mins = _hmSessions.filter(s => nd(s.date) === key && (s.seconds||0)>=60).reduce((a,s) => a + Math.floor((s.seconds||0)/60), 0);
+    totalMins += mins;
+    const cls = mins === 0 ? '' : mins < 5 ? 'c1' : mins < 15 ? 'c2' : 'c3';
+    const isToday = key === todayKey ? ' today' : '';
+    /* Don't show future days as "not read" */
+    const isFuture = d > now;
+    const cellCls = isFuture ? 'empty' : cls;
+    h += `<div class="hm-month-cell ${cellCls}${isToday}" onclick="dayTip(this,${mins})"><span class="mc-num">${day}</span></div>`;
+  }
+  h += '</div>';
+  h += `<div class="hm-total"><div class="hm-total-l">Samtals í ${MONTH_NAMES[month]}</div><div class="hm-total-v" id="p-month-total">${totalMins} mín</div></div>`;
+  el.innerHTML = h;
+}
+
 function renderWeek(sessions) {
   const el = document.getElementById('p-week-grid');
   if (!el) return;
@@ -1570,15 +1626,35 @@ function renderStreak(sessions) {
 function renderStats(sessions, books) {
   const set = (id, v) => { const e = document.getElementById(id); if (e) e.textContent = v; };
 
-  /* Blaðsíður lesnar — nota vistað totalPagesRead (fer aldrei niður), fallback á sum */
+  /* Orð lesin — reikna úr wordsPerPage × currentPageTo per bók */
   const child = (S.parentChildren || []).find(c => c.key === _selectedChild);
-  const sumNow = books.reduce((a, b) => a + (b.currentPageTo || 0), 0);
-  const pages = Math.max(child?.totalPagesRead || 0, sumNow);
+  const wordsNow = books.reduce((a, b) => {
+    const pg = b.currentPageTo || 0;
+    const wpp = b.wordsPerPage || 150;
+    return a + (pg * wpp);
+  }, 0);
+  const totalWords = Math.max(child?.totalWordsRead || 0, wordsNow);
+  /* Vista totalWordsRead ef hærra */
+  if (totalWords > (child?.totalWordsRead || 0) && child) {
+    child.totalWordsRead = totalWords;
+  }
+
   const done = books.filter(b => b.status === 'finished').length;
   const today = new Date(); today.setHours(12,0,0,0);
   let dr = 0;
   for (let i = 0; i < 7; i++) { const d = new Date(today); d.setDate(today.getDate()-i); if (sessions.some(s => nd(s.date)===dk(d) && (s.seconds||0)>=60)) dr++; }
-  set('p-stat-pages', pages);
+
+  /* Sníða orðatölu */
+  const fmtWords = totalWords >= 1000 ? (totalWords/1000).toFixed(1).replace(/\.0$/,'') + 'k' : String(totalWords);
+  set('p-stat-words', fmtWords);
+  /* Samhengislína */
+  const ctxEl = document.getElementById('p-stat-words-ctx');
+  if (ctxEl) {
+    if (totalWords >= 50000) ctxEl.textContent = '≈ ' + Math.round(totalWords/77000*100) + '% af Harry Potter';
+    else if (totalWords >= 5000) ctxEl.textContent = '≈ ' + Math.round(totalWords/1000) + ' blaðsíður';
+    else ctxEl.textContent = '';
+  }
+
   set('p-stat-books', done);
   set('p-stat-days', dr + ' / 7');
 
@@ -1601,6 +1677,31 @@ function renderStats(sessions, books) {
   const lastWeek = weekMins(sessions, 1);
   set('ph-week-total', thisWeek + ' mín');
   updateProgressPill(thisWeek - lastWeek);
+
+  /* Hugmynd 3 — reikna wordsPerDay gagnagrunn (engin UI) */
+  calcWordsPerDay(books);
+}
+
+/* ── Hugmynd 3: Orð á dag gagnagrunnur (undirbúningur) ── */
+let _wordsPerDay = {};
+function calcWordsPerDay(books) {
+  const wpd = {};
+  books.forEach(b => {
+    const wpp = b.wordsPerPage || 150;
+    (b.journeyEntries || []).forEach(e => {
+      if (!e.pageFrom || !e.pageTo) return;
+      const words = (e.pageTo - e.pageFrom) * wpp;
+      if (words <= 0) return;
+      const key = nd(e.date || e.createdAt);
+      if (!key) return;
+      wpd[key] = (wpd[key] || 0) + words;
+    });
+  });
+  _wordsPerDay = wpd;
+  const keys = Object.keys(wpd);
+  if (keys.length > 0) {
+    console.log('📊 wordsPerDay:', wpd, '| dagar:', keys.length, '| meðaltal:', Math.round(keys.reduce((a,k) => a + wpd[k], 0) / keys.length) + ' orð/dag');
+  }
 }
 
 function weekMins(sessions, weeksAgo) {
@@ -1972,10 +2073,12 @@ function renderJourney(books) {
          </div>`
       : `<div class="rd-pct">${pct}%</div>`;
 
+    const rlLabel2 = hero.readingLoadLabel || null;
+    const rlPill2 = rlLabel2 ? `<span class="rd-load-pill">${esc(rlLabel2)}</span>` : '';
     heroEl.innerHTML = `<div class="jn-hero-cover">${coverHtml}</div>
       <div class="jn-hero-info">
         <div class="rd-title" style="font-size:15px">${esc(hero.title)}</div>
-        <div class="rd-meta">${pg}</div>
+        <div class="rd-meta">${pg}${rlPill2}</div>
         <div class="rd-prog" style="margin-top:4px"><div class="rd-bar"><div class="rd-fill" style="width:${pct}%"></div></div>${pctCol}</div>
       </div>`;
 

@@ -330,6 +330,64 @@ button{font:inherit;cursor:pointer;border:0;background:none;color:inherit}a{colo
 .custom-gold-fill{display:block;width:0;height:100%;border-radius:inherit;background:linear-gradient(90deg,var(--accent),var(--accent2));box-shadow:0 0 10px rgba(29,205,211,.55);transition:width .12s linear}
 .featured-gold-play.is-playing{background:rgba(29,205,211,.16);border-color:rgba(29,205,211,.52);color:#dffbff;box-shadow:0 0 14px rgba(29,205,211,.14)}
 .hero-gold-card{touch-action:manipulation}
+
+/* ════════ ADD-MODAL v2 (texti-flæði) ════════ */
+.add-stepper{display:flex;align-items:center;justify-content:center;gap:6px;margin:-4px 0 14px;padding:0 8px}
+.add-step{display:flex;align-items:center;gap:6px;font-size:10px;font-weight:800;letter-spacing:.4px;text-transform:uppercase}
+.add-step-dot{width:22px;height:22px;border-radius:50%;background:rgba(255,255,255,.04);border:1px solid var(--line);color:var(--soft);display:grid;place-items:center;font-size:11px;font-weight:800;transition:all .25s}
+.add-step.active .add-step-dot{background:var(--accent-dim);border-color:var(--accent);color:var(--accent);box-shadow:0 0 16px var(--accent-glow)}
+.add-step.done .add-step-dot{background:var(--accent);border-color:var(--accent);color:var(--bg)}
+.add-step-name{color:var(--soft);transition:color .25s}
+.add-step.active .add-step-name{color:var(--accent)}
+.add-step.done .add-step-name{color:var(--text)}
+.add-step-sep{width:18px;height:1px;background:var(--line);align-self:center}
+.add-step-sep.done{background:var(--accent)}
+@media(max-width:380px){.add-step-name{display:none}}
+
+.analysis-preview{background:linear-gradient(180deg,rgba(29,205,211,.07),rgba(29,205,211,.02));border:1px solid rgba(29,205,211,.22);border-radius:14px;padding:14px;margin:12px 0}
+.analysis-preview-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.analysis-preview-label{font-size:10px;font-weight:800;color:var(--soft);text-transform:uppercase;letter-spacing:.6px}
+.analysis-confidence{font-size:9px;font-weight:700;padding:2px 8px;border-radius:99px;letter-spacing:.4px;text-transform:uppercase}
+.analysis-confidence.high{background:rgba(80,200,120,.12);color:#7ec88f;border:1px solid rgba(80,200,120,.25)}
+.analysis-confidence.medium{background:rgba(29,205,211,.1);color:var(--accent);border:1px solid rgba(29,205,211,.25)}
+.analysis-confidence.low{background:rgba(255,180,0,.1);color:#f0c060;border:1px solid rgba(255,180,0,.25)}
+.analysis-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.analysis-cell{background:rgba(7,16,30,.55);border:1px solid var(--line);border-radius:10px;padding:10px}
+.analysis-cell-label{font-size:9px;font-weight:800;color:var(--soft);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}
+.analysis-cell-value{font-family:var(--serif);font-size:18px;line-height:1.1;color:var(--text);margin-bottom:2px}
+.analysis-cell-meta{font-size:10px;color:var(--soft)}
+.analysis-boundary{display:flex;gap:8px;align-items:flex-start;background:rgba(255,180,0,.06);border:1px solid rgba(255,180,0,.18);border-radius:10px;padding:9px 11px;margin-top:8px;font-size:11px;color:#f0c060;line-height:1.4}
+.analysis-boundary-icon{flex:0 0 auto;font-size:12px;margin-top:1px}
+.analysis-question{text-align:center;margin:14px 0 10px;font-size:13px;color:var(--text);font-weight:600}
+
+.confirm-actions{display:flex;flex-direction:column;gap:7px}
+.confirm-actions .dialog-btn{margin-top:0}
+.confirm-typical{background:rgba(29,205,211,.14);border-color:rgba(29,205,211,.45);color:#dffbff}
+.confirm-retake{background:transparent;border-color:var(--line);color:var(--soft);box-shadow:none}
+
+.page-preview-wrap{position:relative;border-radius:12px;overflow:hidden;border:1px solid var(--line);margin:10px 0;background:rgba(0,0,0,.25)}
+.page-preview-wrap img{width:100%;display:block;max-height:200px;object-fit:cover}
+.page-preview-spinner{position:absolute;inset:0;background:rgba(7,16,30,.78);display:none;align-items:center;justify-content:center;flex-direction:column;gap:8px}
+.page-preview-spinner.active{display:flex}
+.page-preview-spinner-ring{width:32px;height:32px;border:3px solid rgba(29,205,211,.18);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
+.page-preview-spinner-text{font-size:11px;color:var(--accent);font-weight:700;letter-spacing:.3px}
+
+.photo-advice{background:rgba(255,107,107,.07);border:1px solid rgba(255,107,107,.22);border-radius:10px;padding:10px 12px;margin:10px 0;font-size:12px;color:#f0a0a0;line-height:1.45}
+.info-card{background:rgba(7,16,30,.45);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:12px;font-size:11px;color:var(--soft);line-height:1.55}
+.info-card strong{color:var(--text);display:block;margin-bottom:4px}
+
+.add-done{text-align:center;padding:14px 0 6px}
+.add-done-check{width:64px;height:64px;margin:0 auto 12px;border-radius:50%;background:radial-gradient(circle at 50% 35%,rgba(29,205,211,.25),rgba(29,205,211,.05));border:1.5px solid var(--accent);display:grid;place-items:center;font-size:30px;color:var(--accent);box-shadow:0 0 30px var(--accent-glow)}
+.add-done-title{font-family:var(--serif);font-size:24px;margin-bottom:4px}
+.add-done-sub{font-size:12px;color:var(--soft);margin-bottom:14px}
+.add-done-summary{background:rgba(7,16,30,.55);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:14px;text-align:left;display:flex;gap:12px;align-items:center}
+.add-done-summary-cover{flex:0 0 auto;width:48px;height:64px;border-radius:6px;background:linear-gradient(140deg,var(--c1,#2b8f91),var(--c2,#0a2341));overflow:hidden}
+.add-done-summary-cover img{width:100%;height:100%;object-fit:cover}
+.add-done-summary-meta{flex:1;min-width:0}
+.add-done-summary-title{font-size:13px;font-weight:800;color:var(--text);margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.add-done-summary-author{font-size:11px;color:var(--soft);margin-bottom:6px}
+.add-done-summary-badges{display:flex;gap:5px;flex-wrap:wrap}
+.add-done-badge{font-size:9px;font-weight:800;padding:2px 7px;border-radius:99px;background:var(--accent-dim);color:var(--accent);border:1px solid var(--line)}
 </style>
 </head>
 <body>
@@ -355,19 +413,39 @@ button{font:inherit;cursor:pointer;border:0;background:none;color:inherit}a{colo
 <a href="arangur.html" class="nav-tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4h8v5a4 4 0 0 1-8 0z"/><path d="M16 6h3v2a4 4 0 0 1-4 4"/><path d="M8 6H5v2a4 4 0 0 0 4 4"/><path d="M12 13v5"/><path d="M8 21h8"/></svg>Árangur</a>
 <button class="nav-tab" id="openAdd"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5Z"/><path d="M12 8v8M8 12h8" stroke-width="1.6"/></svg>Ný bók</button>
 </nav>
+<input id="pageInput" type="file" accept="image/*" style="display:none">
 <div class="overlay" id="addModal"><section class="dialog">
-<button class="close" id="closeAdd">×</button>
+<button class="close" id="closeAdd" aria-label="Loka">×</button>
 
-<div id="addStep2">
+<!-- Stepper -->
+<div class="add-stepper" id="addStepper">
+  <div class="add-step active" data-step="1">
+    <div class="add-step-dot">1</div>
+    <span class="add-step-name">Bók</span>
+  </div>
+  <div class="add-step-sep"></div>
+  <div class="add-step" data-step="2">
+    <div class="add-step-dot">2</div>
+    <span class="add-step-name">Texti</span>
+  </div>
+  <div class="add-step-sep"></div>
+  <div class="add-step" data-step="3">
+    <div class="add-step-dot">3</div>
+    <span class="add-step-name">Lokið</span>
+  </div>
+</div>
+
+<!-- SKREF 1: Kápumynd + bóka-info -->
+<div id="addStep1">
 <h2>Ný bók</h2>
-<p class="dialog-sub" id="addStep2Sub">Taktu mynd af kápu — við finnum bókina sjálfkrafa</p>
+<p class="dialog-sub" id="addStep1Sub">Taktu mynd af kápu — við finnum bókina sjálfkrafa</p>
 <button class="dialog-btn" id="takeCoverBtn" onclick="document.getElementById('coverInput').click()" style="margin-bottom:8px">📷 Taka mynd af kápu</button>
 <div class="preview-row" id="previewRow" style="display:none">
 <div class="preview-cover" style="position:relative">
   <img id="previewImg" alt="">
   <div id="coverSpinner" style="display:none;position:absolute;inset:0;background:rgba(7,16,30,.7);border-radius:8px;display:none;align-items:center;justify-content:center;flex-direction:column;gap:6px">
     <div style="width:28px;height:28px;border:3px solid rgba(29,205,211,.2);border-top-color:var(--accent,#1dcdd3);border-radius:50%;animation:spin .8s linear infinite"></div>
-    <span style="font-size:10px;color:var(--accent,#1dcdd3);font-weight:500">Finn bókina...</span>
+    <span style="font-size:10px;color:var(--accent,#1dcdd3);font-weight:500">Finn bókina…</span>
   </div>
 </div>
 <div class="preview-info"><strong id="previewMeta"></strong></div>
@@ -376,57 +454,107 @@ button{font:inherit;cursor:pointer;border:0;background:none;color:inherit}a{colo
 <div class="field"><label>Höfundur</label><input id="bookAuthor" placeholder="valfrjálst"></div>
 <div class="field"><label>Blaðsíðufjöldi *</label><input id="bookPages" inputmode="numeric" placeholder="t.d. 120"></div>
 <div class="field"><label>Staða</label><select id="bookStatus"><option value="shelf">Á hillunni</option><option value="reading">Að lesa</option><option value="finished">Lokið</option></select></div>
-<button class="dialog-btn" id="saveBook">Vista bók</button>
+<button class="dialog-btn" id="continueToAnalysis">Halda áfram</button>
 <button class="dialog-btn secondary" id="backToCamera" style="display:none">📷 Breyta kápu</button>
 </div>
 
-<div id="addStep2b" style="display:none">
-<h2>Þyngd bókarinnar</h2>
-<p class="dialog-sub">Við getum metið þyngd bókarinnar ef þú tekur mynd af síðu</p>
-<div id="pageImgPreview" style="display:none;margin:10px 0;border-radius:10px;overflow:hidden;border:1px solid rgba(29,205,211,.2);position:relative">
-  <img id="pagePreviewImg" alt="" style="width:100%;display:block;max-height:220px;object-fit:cover">
-  <div id="pageSpinner" style="display:none;position:absolute;inset:0;background:rgba(7,16,30,.7);align-items:center;justify-content:center;flex-direction:column;gap:6px">
-    <div style="width:32px;height:32px;border:3px solid rgba(29,205,211,.2);border-top-color:var(--accent,#1dcdd3);border-radius:50%;animation:spin .8s linear infinite"></div>
-    <span style="font-size:11px;color:var(--accent,#1dcdd3);font-weight:500">Met þyngd...</span>
+<!-- SKREF 2: Meta texta -->
+<div id="addStep2" style="display:none">
+<h2>Meta texta</h2>
+<p class="dialog-sub">Taktu mynd af venjulegri textasíðu úr bókinni</p>
+
+<!-- 2a. Áður en mynd er tekin -->
+<div id="step2-take">
+  <div class="info-card">
+    <strong>Veldu dæmigerða síðu:</strong>
+    • Öll síðan sést<br>
+    • Textinn er skýr<br>
+    • Ekki forsíðu, myndasíðu eða kaflaheiti
   </div>
-</div>
-<div id="pageAnalysisResult" style="display:none;background:rgba(29,205,211,.06);border:1px solid rgba(29,205,211,.18);border-radius:10px;padding:12px;margin:10px 0">
-  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-    <span style="font-size:11px;font-weight:700;color:#7a8fa0;text-transform:uppercase;letter-spacing:.5px">Greining</span>
-    <span id="pageDifficultyBadge" style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:99px;background:rgba(29,205,211,.15);color:#1dcdd3"></span>
-  </div>
-  <div id="pageWppDisplay" style="font-size:13px;color:#c8d8e8"></div>
-</div>
-<!-- Birtist ef needsReview eða confidence != high -->
-<div id="pageReviewWarning" style="display:none;background:rgba(255,180,0,.08);border:1px solid rgba(255,180,0,.25);border-radius:10px;padding:10px 12px;margin:6px 0;font-size:12px;color:#f0c060;line-height:1.4">
-  Við erum ekki alveg viss um þessa tölu. Prófaðu að taka aðra mynd — eða sláðu inn fjöldann handvirkt.
-</div>
-<!-- Handtalið -->
-<div id="pageManualEntry" style="display:none;margin:6px 0">
-  <div style="font-size:11px;color:#7a8fa0;margin-bottom:4px">Orð á síðu (handtalið)</div>
-  <div style="display:flex;gap:8px;align-items:center">
-    <input id="pageManualCount" type="number" inputmode="numeric" min="1" max="600" placeholder="t.d. 43" style="flex:1;padding:6px 10px;border-radius:8px;border:1px solid rgba(29,205,211,.3);background:rgba(29,205,211,.05);color:#e4edf5;font-size:14px">
-    <button class="dialog-btn" style="flex:0 0 auto;padding:6px 14px;margin:0" onclick="applyManualCount()">Nota</button>
-  </div>
-</div>
-<input id="pageInput" type="file" accept="image/*" style="display:none">
-<button class="dialog-btn" id="takePagePhotoBtn" onclick="triggerPagePhoto()">📷 Taka mynd af síðu</button>
-<button class="dialog-btn secondary" id="retryPagePhotoBtn" style="display:none" onclick="retryPagePhoto()">📷 Taka aðra mynd</button>
-<button class="dialog-btn" id="saveBookAfterAnalysis" style="display:none" onclick="_doSaveBook()">Vista bók</button>
-<button class="dialog-btn secondary" id="skipPagePhotoBtn" onclick="skipPagePhoto()">Sleppa — áætla sjálfkrafa</button>
-<div id="skipPageInfo" style="font-size:11px;color:#5a7088;text-align:center;margin-top:6px;display:none"></div>
+  <button class="dialog-btn" id="takePagePhotoBtn" onclick="document.getElementById('pageInput').click()">📷 Taka mynd af síðu</button>
+  <button class="dialog-btn secondary" id="skipPagePhotoBtn">Sleppa — vista bók án textamats</button>
 </div>
 
+<!-- 2b. Á meðan greining er í gangi -->
+<div id="step2-processing" style="display:none">
+  <div class="page-preview-wrap">
+    <img id="pagePreviewImg" alt="">
+    <div class="page-preview-spinner active">
+      <div class="page-preview-spinner-ring"></div>
+      <span class="page-preview-spinner-text">Met texta…</span>
+    </div>
+  </div>
+</div>
+
+<!-- 2c. Niðurstaða — TVEIR takkar -->
+<div id="step2-result" style="display:none">
+  <div class="page-preview-wrap">
+    <img id="pagePreviewImgResult" alt="">
+  </div>
+
+  <div class="analysis-preview">
+    <div class="analysis-preview-header">
+      <span class="analysis-preview-label">Forskoðun</span>
+      <span class="analysis-confidence" id="analysisConfidence"></span>
+    </div>
+    <div class="analysis-grid">
+      <div class="analysis-cell">
+        <div class="analysis-cell-label">Texti</div>
+        <div class="analysis-cell-value" id="analysisLoadLabel">—</div>
+        <div class="analysis-cell-meta" id="analysisLoadMeta">—</div>
+      </div>
+      <div class="analysis-cell">
+        <div class="analysis-cell-label">Umfang</div>
+        <div class="analysis-cell-value" id="analysisScopeLabel">—</div>
+        <div class="analysis-cell-meta" id="analysisScopeMeta">—</div>
+      </div>
+    </div>
+    <div class="analysis-boundary" id="analysisBoundary" style="display:none">
+      <span class="analysis-boundary-icon">⚠</span>
+      <span>Bókin er nálægt mörkum tveggja flokka.</span>
+    </div>
+  </div>
+
+  <div class="analysis-question">Virðist þetta vera dæmigerð síða í bókinni?</div>
+
+  <div class="confirm-actions">
+    <button class="dialog-btn confirm-typical" id="confirmTypical">✓ Já, þetta passar</button>
+    <button class="dialog-btn confirm-retake" id="confirmRetake">📷 Taka aðra mynd</button>
+  </div>
+</div>
+
+<!-- 2d. Villuskilaboð -->
+<div id="step2-error" style="display:none">
+  <div class="page-preview-wrap" id="step2ErrorPreviewWrap" style="display:none">
+    <img id="pagePreviewImgError" alt="">
+  </div>
+  <div class="photo-advice" id="photoAdviceText"></div>
+  <button class="dialog-btn" id="errorRetakeBtn" onclick="document.getElementById('pageInput').click()">📷 Taka aðra mynd</button>
+  <button class="dialog-btn secondary" id="errorSkipBtn">Sleppa — vista án textamats</button>
+</div>
+</div>
+
+<!-- SKREF 3: Lokið -->
 <div id="addStep3" style="display:none">
-<div style="text-align:center;padding:20px 0">
-<div style="font-size:36px;margin-bottom:10px">✓</div>
-<h2>Bókin er vistuð!</h2>
+<div class="add-done">
+  <div class="add-done-check">✓</div>
+  <div class="add-done-title">Bókin er vistuð!</div>
+  <div class="add-done-sub" id="addDoneSub">Komin í hilluna þína.</div>
+
+  <div class="add-done-summary" id="addDoneSummary" style="display:none">
+    <div class="add-done-summary-cover" id="addDoneSummaryCover"></div>
+    <div class="add-done-summary-meta">
+      <div class="add-done-summary-title" id="addDoneSummaryTitle"></div>
+      <div class="add-done-summary-author" id="addDoneSummaryAuthor"></div>
+      <div class="add-done-summary-badges" id="addDoneSummaryBadges"></div>
+    </div>
+  </div>
+
+  <button class="dialog-btn" id="addAnotherBook">+ Bæta við annarri bók</button>
+  <button class="dialog-btn secondary" id="goToBookshelf">Fara í hillu</button>
 </div>
-<button class="dialog-btn" id="addAnotherBook">+ Bæta við annarri bók</button>
-<button class="dialog-btn secondary" id="goToBookshelf">Fara í hillu</button>
 </div>
 
-<button class="dialog-btn secondary" id="closeAdd2" style="margin-top:6px">Loka</button>
 </section></div>
 <div class="overlay" id="journeyModal"><section class="dialog" style="padding:0;overflow:hidden">
 <button class="close" id="closeJourney" style="position:absolute;top:12px;right:12px;z-index:2">×</button>
@@ -1348,7 +1476,8 @@ function rGrid(sid,gid,cid,list){
     const pend=isPending(b);
     const badge=pend?'<div class="celebrate-badge"><div class="celebrate-badge-icon">✓</div><div class="celebrate-badge-text">Lokið!</div></div>':'';
     const demo=b._demo?'<span class="book-demo-badge">Dæmi</span>':'';
-    const rlBadge=b.readingLoadLabel?'<span class="rl-pill">'+esc(b.readingLoadLabel)+'</span>':'';
+    const rlLabel = b.readingLoad?.label || b.readingLoadLabel;
+    const rlBadge=rlLabel?'<span class="rl-pill">'+esc(rlLabel)+'</span>':'';
     return'<div class="book-card'+(selIds.has(b.id)?' selected':'')+(pend?' book-celebrate':'')+'" data-open-book="'+b.id+'"><div class="book-cover" style="'+covS(b)+'">'+covHTML(b)+demo+badge+'</div><div class="book-info"><div class="book-name">'+esc(b.title)+'</div><div class="book-author">'+esc(b.author||'')+'</div><span class="book-chip '+chipCls(b)+'">'+chipT(b)+'</span>'+rlBadge+'</div></div>';
   }).join('')+(hasDemo?'<div class="demo-hint" style="grid-column:1/-1">Þetta eru dæmi — haltu inni til að eyða</div>':'');
 }
@@ -1384,7 +1513,8 @@ function openJourney(id){
 
   /* readingLoad chip */
   const rlChip=document.getElementById('jm-rl-chip');
-  if(b.readingLoadLabel){rlChip.textContent=b.readingLoadLabel;rlChip.style.display='';}
+  const rlLabelJm = b.readingLoad?.label || b.readingLoadLabel;
+  if(rlLabelJm){rlChip.textContent=rlLabelJm;rlChip.style.display='';}
   else rlChip.style.display='none';
 
   /* Framvinda */
@@ -1484,13 +1614,52 @@ async function compress(file,tw=180,th=270,q=.50){
   const c=document.createElement('canvas');c.width=tw;c.height=th;const ctx=c.getContext('2d');ctx.imageSmoothingQuality='high';ctx.drawImage(img,sx,sy,sw,sh,0,0,tw,th);URL.revokeObjectURL(img.src);return c.toDataURL('image/webp',q);
 }
 
-function setReady(){saving=false;const b=document.getElementById('saveBook');if(b){b.hidden=false;b.disabled=false;b.textContent='Vista bók'}}
-function showStep(n){
-  document.getElementById('addStep2').style.display  = n === 2   ? '' : 'none';
-  document.getElementById('addStep2b').style.display = n === 2.5 ? '' : 'none';
-  document.getElementById('addStep3').style.display  = n === 4   ? '' : 'none';
+function setReady(){
+  _isProcessing=false;
+  const b=document.getElementById('continueToAnalysis');
+  if(b){b.disabled=false;b.textContent='Halda áfram'}
 }
-function resetF(){curCov=null;curCovHQ=null;pendingCoverUrl=null;pendingCoverGsPath=null;['bookTitle','bookAuthor'].forEach(id=>document.getElementById(id).value='');document.getElementById('bookStatus').value='shelf';document.getElementById('bookPages').value='';document.getElementById('coverInput').value='';document.getElementById('previewImg').removeAttribute('src');document.getElementById('previewMeta').textContent='';document.getElementById('previewRow').style.display='none';document.getElementById('takeCoverBtn').style.display='';document.getElementById('backToCamera').style.display='none';const s=document.getElementById('addStep2Sub');if(s)s.textContent='Taktu mynd af kápu — við finnum bókina sjálfkrafa';showStep(2);setReady()}
+function showStep(n){
+  // n: 1, 2, 3
+  document.getElementById('addStep1').style.display = n === 1 ? '' : 'none';
+  document.getElementById('addStep2').style.display = n === 2 ? '' : 'none';
+  document.getElementById('addStep3').style.display = n === 3 ? '' : 'none';
+
+  document.querySelectorAll('.add-step').forEach(el => {
+    const step = parseInt(el.dataset.step);
+    el.classList.remove('active', 'done');
+    if (step < n) el.classList.add('done');
+    else if (step === n) el.classList.add('active');
+  });
+  document.querySelectorAll('.add-step-sep').forEach((sep, i) => {
+    sep.classList.toggle('done', i + 1 < n);
+  });
+}
+function showStep2Substep(name){
+  // name: 'take' | 'processing' | 'result' | 'error'
+  ['take', 'processing', 'result', 'error'].forEach(s => {
+    const el = document.getElementById('step2-' + s);
+    if (el) el.style.display = s === name ? '' : 'none';
+  });
+}
+function resetF(){
+  curCov=null;curCovHQ=null;pendingCoverUrl=null;pendingCoverGsPath=null;
+  _pendingBookId=null;_pendingSampleId=null;_pendingAnalysis=null;_isProcessing=false;
+  ['bookTitle','bookAuthor','bookPages'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});
+  document.getElementById('bookStatus').value='shelf';
+  document.getElementById('coverInput').value='';
+  document.getElementById('pageInput').value='';
+  document.getElementById('previewImg').removeAttribute('src');
+  document.getElementById('previewMeta').textContent='';
+  document.getElementById('previewRow').style.display='none';
+  document.getElementById('takeCoverBtn').style.display='';
+  document.getElementById('backToCamera').style.display='none';
+  const s=document.getElementById('addStep1Sub');
+  if(s)s.textContent='Taktu mynd af kápu — við finnum bókina sjálfkrafa';
+  showStep(1);
+  showStep2Substep('take');
+  setReady();
+}
 function openAddM(){
   resetF();
   openOv('addModal');
@@ -1509,7 +1678,7 @@ async function handleCoverFile(file){
   document.getElementById('previewRow').style.display='grid';
   document.getElementById('takeCoverBtn').style.display='none';
   document.getElementById('backToCamera').style.display='';
-  showStep(2);setReady();
+  showStep(1);setReady();
   if(!document.getElementById('addModal').classList.contains('open')) openOv('addModal');
 
   // ── Upload strax í Storage og kalla Gemini extension ──
@@ -1535,259 +1704,235 @@ async function handleCoverFile(file){
   }
 }
 
-/* ── classifyReadingLoad — fallback þegar Gemini er ekki til staðar ── */
-function classifyReadingLoad(wordsPerPage, totalPages) {
-  const totalWords = (wordsPerPage || 150) * (totalPages || 100);
-  const scale = [
-    { key: 'seedling', label: 'Spíra', max: 800 },
-    { key: 'growing',  label: 'Vex',   max: 3500 },
-    { key: 'reading',  label: 'Les',   max: 12000 },
-    { key: 'flowing',  label: 'Flæðir', max: 35000 },
-    { key: 'soaring',  label: 'Flýgur', max: Infinity },
-  ];
-  const entry = scale.find(s => totalWords <= s.max) || scale[scale.length - 1];
-  return {
-    totalWords,
-    readingLoadKey: entry.key,
-    readingLoadLabel: entry.label,
-    wordCountSource: 'calculated'
-  };
+/* ── State fyrir nýja flæðið ── */
+let _pendingBookId = null;
+let _pendingSampleId = null;
+let _pendingAnalysis = null;
+let _isProcessing = false;
+
+const FALLBACK_PHOTO_ADVICE =
+  'Við gátum ekki greint þessa mynd. Viltu prófa aftur með mynd af venjulegri textasíðu úr bókinni?';
+
+function formatThousands(n){
+  if(n==null)return '—';
+  return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g,'.');
 }
 
-/* ── Page photo — greining með Gemini ── */
-let _pageAnalysis = null; /* {wordsPerPage, isEstimate, confidenceLevel, method, readingLoadKey, readingLoadLabel, wordCountSource} */
-let _pendingPageGsPath = null;
-
-window.triggerPagePhoto = function() {
-  document.getElementById('pageInput').click();
-};
-
-document.getElementById('pageInput').addEventListener('change', async e => {
-  const file = e.target.files?.[0];
-  if (!file) return;
-
-  /* Sýna preview og spinner */
-  const reader = new FileReader();
-  reader.onload = ev => {
-    document.getElementById('pagePreviewImg').src = ev.target.result;
-    document.getElementById('pageImgPreview').style.display = '';
-    const sp = document.getElementById('pageSpinner');
-    if (sp) sp.style.display = 'flex';
-  };
-  reader.readAsDataURL(file);
-
-  document.getElementById('pageAnalysisResult').style.display = 'none';
-  document.getElementById('saveBookAfterAnalysis').style.display = 'none';
-  document.getElementById('takePagePhotoBtn').disabled = true;
-  document.getElementById('skipPagePhotoBtn').disabled = true;
-
-  try {
-    const compressed = await compress(file, 360, 540, 0.55);
-    const base64Data = compressed.split(',')[1];
-    const totalPages = Number(document.getElementById('bookPages').value || 0);
-
-    const analyze = httpsCallable(functions, 'analyzePageText');
-    const result = await analyze({ base64: base64Data, mimeType: 'image/jpeg', totalPages });
-    const info = result.data;
-    console.log('Page analysis:', info);
-
-    _pageAnalysis = {
-      wordsPerPage: info.wordsPerPage || 150,
-      isEstimate: info.isEstimate || false,
-      confidenceLevel: info.confidenceLevel || 'medium',
-      method: info.method || 'exact_transcription',
-      readingLoadKey: info.readingLoadKey,
-      readingLoadLabel: info.readingLoadLabel,
-      wordCountSource: info.wordCountSource || 'gemini_hybrid'
-    };
-
-    const needsReview = info.needsReview || info.confidenceLevel !== 'high';
-    const estimateTag = _pageAnalysis.isEstimate ? ' (áætlað)' : '';
-    document.getElementById('pageDifficultyBadge').textContent = (_pageAnalysis.readingLoadLabel || 'Les') + estimateTag;
-    document.getElementById('pageWppDisplay').textContent = 'Um ' + _pageAnalysis.wordsPerPage + ' orð á síðu · ' + (_pageAnalysis.method === 'exact_transcription' ? 'nákvæm talning' : 'áætlað');
-    document.getElementById('pageAnalysisResult').style.display = '';
-
-    if (needsReview) {
-      document.getElementById('pageReviewWarning').style.display = '';
-      document.getElementById('pageManualEntry').style.display = '';
-      document.getElementById('retryPagePhotoBtn').style.display = '';
-      document.getElementById('takePagePhotoBtn').style.display = 'none';
-      document.getElementById('skipPagePhotoBtn').style.display = 'none';
-      document.getElementById('saveBookAfterAnalysis').style.display = '';
-    } else {
-      document.getElementById('pageReviewWarning').style.display = 'none';
-      document.getElementById('pageManualEntry').style.display = 'none';
-      document.getElementById('retryPagePhotoBtn').style.display = 'none';
-      document.getElementById('takePagePhotoBtn').style.display = 'none';
-      document.getElementById('skipPagePhotoBtn').style.display = 'none';
-      document.getElementById('saveBookAfterAnalysis').style.display = '';
-    }
-
-  } catch(e) {
-    console.warn('Page analysis failed:', e);
-    _pageAnalysis = null;
-    const pages = Number(document.getElementById('bookPages').value || 0);
-    const fb = classifyReadingLoad(150, pages);
-    document.getElementById('pageDifficultyBadge').textContent = fb.readingLoadLabel + ' (áætlað)';
-    document.getElementById('pageWppDisplay').textContent = 'Um 150 orð á síðu · áætlað';
-    document.getElementById('pageAnalysisResult').style.display = '';
-    document.getElementById('takePagePhotoBtn').style.display = 'none';
-    document.getElementById('skipPagePhotoBtn').style.display = 'none';
-    document.getElementById('saveBookAfterAnalysis').style.display = '';
-  } finally {
-    document.getElementById('takePagePhotoBtn').disabled = false;
-    document.getElementById('skipPagePhotoBtn').disabled = false;
-    const sp = document.getElementById('pageSpinner');
-    if (sp) sp.style.display = 'none';
-  }
-});
-
-window.retryPagePhoto = function() {
-  document.getElementById('pageImgPreview').style.display = 'none';
-  document.getElementById('pageAnalysisResult').style.display = 'none';
-  document.getElementById('pageReviewWarning').style.display = 'none';
-  document.getElementById('pageManualEntry').style.display = 'none';
-  document.getElementById('retryPagePhotoBtn').style.display = 'none';
-  document.getElementById('saveBookAfterAnalysis').style.display = 'none';
-  document.getElementById('takePagePhotoBtn').style.display = '';
-  document.getElementById('skipPagePhotoBtn').style.display = '';
-  document.getElementById('pageInput').value = '';
-  _pageAnalysis = null;
-};
-
-window.applyManualCount = function() {
-  const val = parseInt(document.getElementById('pageManualCount').value);
-  if (!val || val < 1) return;
-  const pages = Number(document.getElementById('bookPages').value || 0);
-  const cl = classifyReadingLoad(val, pages);
-  _pageAnalysis = {
-    wordsPerPage: val,
-    isEstimate: false,
-    confidenceLevel: 'high',
-    method: 'manual',
-    readingLoadKey: cl.readingLoadKey,
-    readingLoadLabel: cl.readingLoadLabel,
-    wordCountSource: 'manual'
-  };
-  document.getElementById('pageDifficultyBadge').textContent = cl.readingLoadLabel;
-  document.getElementById('pageWppDisplay').textContent = val + ' orð á síðu · handtalið';
-  document.getElementById('pageReviewWarning').style.display = 'none';
-  document.getElementById('pageManualEntry').style.display = 'none';
-  document.getElementById('retryPagePhotoBtn').style.display = 'none';
-  document.getElementById('saveBookAfterAnalysis').style.display = '';
-};
-window.skipPagePhoto = function() {
-  _pageAnalysis = null;
-  const pages = Number(document.getElementById('bookPages').value || 0);
-  const fb = classifyReadingLoad(150, pages);
-  document.getElementById('pageDifficultyBadge').textContent = fb.readingLoadLabel + ' (áætlað)';
-  document.getElementById('pageWppDisplay').textContent = 'Um 150 orð á síðu · áætlað';
-  document.getElementById('pageAnalysisResult').style.display = '';
-  document.getElementById('takePagePhotoBtn').style.display = 'none';
-  document.getElementById('skipPagePhotoBtn').style.display = 'none';
-  document.getElementById('saveBookAfterAnalysis').style.display = '';
-};
-
-let _saving = false;
-
-window._doSaveBook = async function _doSaveBook() {
-  if (_saving) return;
-  _saving = true;
-  const btn = document.getElementById('saveBook');
+/* ── SKREF 1 → 2: Vista bók (án readingLoad) ── */
+document.getElementById('continueToAnalysis').addEventListener('click', async () => {
+  if (_isProcessing) return;
   const title = document.getElementById('bookTitle').value.trim();
+  const author = document.getElementById('bookAuthor').value.trim();
   const pages = Number(document.getElementById('bookPages').value || 0);
-  if (!title || !pages) return;
+  const status = document.getElementById('bookStatus').value;
+  if (!title) { alert('Settu inn nafn bókar.'); return; }
+  if (!pages || pages < 1) { alert('Settu inn blaðsíðufjölda.'); return; }
 
-  saving = true;
-  const st = document.getElementById('bookStatus').value, now = Date.now();
-  const pals = [['#2b8f91','#0a2341'],['#23814b','#0d2b23'],['#7c23df','#1d1537'],['#c4523a','#2a1418'],['#3a7bd5','#0f1f3d'],['#d4a03c','#2b1e0e']];
-  const pk = pals[Math.floor(Math.random() * pals.length)];
-
-  /* readingLoad — Gemini eða fallback */
-  let loadData;
-  if (_pageAnalysis) {
-    /* Gemini skilaði wordsPerPage — við reiknum readingLoad */
-    const cl = classifyReadingLoad(_pageAnalysis.wordsPerPage, pages);
-    loadData = {
-      wordsPerPage: _pageAnalysis.wordsPerPage,
-      totalWords: cl.totalWords,
-      readingLoadKey: _pageAnalysis.readingLoadKey || cl.readingLoadKey,
-      readingLoadLabel: _pageAnalysis.readingLoadLabel || cl.readingLoadLabel,
-      isEstimate: _pageAnalysis.isEstimate || false,
-      confidenceLevel: _pageAnalysis.confidenceLevel || 'medium',
-      method: _pageAnalysis.method || 'exact_transcription',
-      wordCountSource: _pageAnalysis.wordCountSource || 'gemini_hybrid'
-    };
-  } else {
-    /* Fallback — engin Gemini greining */
-    const cl = classifyReadingLoad(150, pages);
-    loadData = {
-      wordsPerPage: 150,
-      totalWords: cl.totalWords,
-      readingLoadKey: cl.readingLoadKey,
-      readingLoadLabel: cl.readingLoadLabel,
-      isEstimate: true,
-      confidenceLevel: 'low',
-      method: 'line_sampling_estimate',
-      wordCountSource: 'calculated'
-    };
-  }
-  console.log('💾 _doSaveBook — loadData:', loadData);
-
-  const d = {
-    familyId: FID, childKey: CK, childName: CN,
-    title, author: document.getElementById('bookAuthor').value.trim(),
-    status: st, totalPages: pages,
-    currentPageFrom: null, currentPageTo: null,
-    progressPercent: st === 'finished' ? 100 : 0,
-    coverBase64: curCov || null,
-    c1: curCov ? null : pk[0], c2: curCov ? null : pk[1],
-    note: st === 'reading' ? 'Bókin er tilbúin til að byrja að lesa.' : null,
-    lastReadAt: null, journeyEntries: [],
-    /* readingLoad */
-    wordsPerPage: loadData.wordsPerPage,
-    totalWords: loadData.totalWords,
-    readingLoadKey: loadData.readingLoadKey,
-    readingLoadLabel: loadData.readingLoadLabel,
-    isEstimate: loadData.isEstimate,
-    confidenceLevel: loadData.confidenceLevel,
-    wordCountSource: loadData.wordCountSource,
-    createdAt: now, updatedAt: now
-  };
+  _isProcessing = true;
+  const btn = document.getElementById('continueToAnalysis');
+  btn.disabled = true; btn.textContent = 'Vista bók…';
 
   try {
+    const pals = [['#2b8f91','#0a2341'],['#23814b','#0d2b23'],['#7c23df','#1d1537'],['#c4523a','#2a1418'],['#3a7bd5','#0f1f3d'],['#d4a03c','#2b1e0e']];
+    const pk = pals[Math.floor(Math.random()*pals.length)];
+
+    const d = {
+      familyId: FID, childKey: CK, childName: CN,
+      title, author: author || '',
+      status, totalPages: pages,
+      currentPageFrom: null, currentPageTo: null,
+      progressPercent: status === 'finished' ? 100 : 0,
+      coverBase64: curCov || null,
+      c1: curCov ? null : pk[0], c2: curCov ? null : pk[1],
+      note: status === 'reading' ? 'Bókin er tilbúin til að byrja að lesa.' : null,
+      lastReadAt: null, journeyEntries: [],
+      createdAt: serverTimestamp(), updatedAt: serverTimestamp()
+    };
+
     if (previewMode) {
-      d.id = 'local_' + now + '_' + Math.random().toString(36).slice(2, 6);
+      d.id = 'local_' + Date.now() + '_' + Math.random().toString(36).slice(2,6);
+      d.createdAt = Date.now(); d.updatedAt = Date.now();
       if (curCovHQ) cc[d.id] = curCovHQ; else if (curCov) cc[d.id] = curCov;
       books = books.filter(b => !b._demo); demoDismissed = true;
       books.unshift(d); render();
+      _pendingBookId = d.id;
     } else {
-      d.createdAt = serverTimestamp(); d.updatedAt = serverTimestamp();
-      try { await addBook(d); } catch(fireErr) {
-        console.warn('Firestore write failed, saving locally:', fireErr);
-        d.id = 'local_' + now + '_' + Math.random().toString(36).slice(2, 6);
-        d.createdAt = now; d.updatedAt = now;
-        if (curCovHQ) cc[d.id] = curCovHQ; else if (curCov) cc[d.id] = curCov;
-        books = books.filter(b => !b._demo);
-        books.unshift(d); render();
-      }
+      _pendingBookId = await addBook(d);
     }
-    _pageAnalysis = null;
-    _pendingPageGsPath = null;
-    _saving = false;
-    showStep(4); saving = false;
-  } catch(e) {
-    console.error(e); saving = false; _saving = false;
-    if (btn) { btn.disabled = false; btn.textContent = 'Vista bók'; }
-    alert('Villa — reyndu aftur.');
+
+    showStep(2);
+    showStep2Substep('take');
+  } catch (err) {
+    console.error('Villa við að vista bók:', err);
+    alert('Gat ekki vistað bók: ' + (err.message || 'óþekkt villa'));
+  } finally {
+    _isProcessing = false;
+    btn.disabled = false; btn.textContent = 'Halda áfram';
   }
+});
+
+/* ── SKREF 2: Síðumynd → analyzePageText ── */
+document.getElementById('pageInput').addEventListener('change', async e => {
+  const file = e.target.files?.[0];
+  if (!file) return;
+  if (_isProcessing) return;
+  if (!_pendingBookId) { alert('Engin bók valin. Reyndu aftur.'); return; }
+  if (previewMode) {
+    // Í preview-mode keyrum við ekki Gemini — bara skip
+    goToDoneStep();
+    return;
+  }
+
+  _isProcessing = true;
+  try {
+    const reader = new FileReader();
+    const dataUrl = await new Promise((res, rej) => {
+      reader.onload = ev => res(ev.target.result);
+      reader.onerror = rej;
+      reader.readAsDataURL(file);
+    });
+    document.getElementById('pagePreviewImg').src = dataUrl;
+    showStep2Substep('processing');
+
+    const base64 = dataUrl.split(',')[1];
+    const analyze = httpsCallable(functions, 'analyzePageText');
+    const result = await analyze({
+      base64, mimeType: file.type || 'image/jpeg',
+      totalPages: Number(document.getElementById('bookPages').value || 0),
+      bookId: _pendingBookId
+    });
+
+    _pendingAnalysis = result.data;
+    _pendingSampleId = result.data.sampleId;
+    renderAnalysisPreview(result.data, dataUrl);
+    showStep2Substep('result');
+  } catch (err) {
+    console.error('analyzePageText villa:', err);
+    const details = err.details || {};
+    if (details.code === 'unsuitable_page' || err.code === 'failed-precondition') {
+      const advice = details.advice || err.message || FALLBACK_PHOTO_ADVICE;
+      document.getElementById('photoAdviceText').textContent = advice;
+      const reader2 = new FileReader();
+      reader2.onload = ev => {
+        document.getElementById('pagePreviewImgError').src = ev.target.result;
+        document.getElementById('step2ErrorPreviewWrap').style.display = '';
+      };
+      reader2.readAsDataURL(file);
+      showStep2Substep('error');
+    } else {
+      document.getElementById('photoAdviceText').textContent = FALLBACK_PHOTO_ADVICE;
+      document.getElementById('step2ErrorPreviewWrap').style.display = 'none';
+      showStep2Substep('error');
+    }
+  } finally {
+    _isProcessing = false;
+    document.getElementById('pageInput').value = '';
+  }
+});
+
+/* ── Birting forskoðunar ── */
+function renderAnalysisPreview(data, dataUrl) {
+  document.getElementById('pagePreviewImgResult').src = dataUrl;
+  document.getElementById('analysisLoadLabel').textContent = data.readingLoad.label;
+  document.getElementById('analysisLoadMeta').textContent =
+    'Um ' + data.readingLoad.wordsPerPage + ' orð á síðu';
+
+  if (data.scope) {
+    document.getElementById('analysisScopeLabel').textContent = data.scope.label;
+    document.getElementById('analysisScopeMeta').textContent =
+      data.scope.totalPages + ' bls. (~' + formatThousands(data.scope.totalWordsEstimate) + ' orð)';
+  } else {
+    document.getElementById('analysisScopeLabel').textContent = '—';
+    document.getElementById('analysisScopeMeta').textContent = 'Vantar blaðsíðufjölda';
+  }
+
+  const conf = data.confidence || 'medium';
+  const confEl = document.getElementById('analysisConfidence');
+  confEl.className = 'analysis-confidence ' + conf;
+  confEl.textContent = conf === 'high' ? 'Áreiðanlegt'
+                     : conf === 'medium' ? 'Sæmilegt'
+                     : 'Óvíst';
+
+  document.getElementById('analysisBoundary').style.display =
+    data.readingLoad.boundaryRisk ? '' : 'none';
+}
+
+/* ── Confirm-takkar (2 valkostir) ── */
+document.getElementById('confirmTypical').addEventListener('click', () => handleConfirm('typical'));
+document.getElementById('confirmRetake').addEventListener('click', () => handleConfirm('retake'));
+
+async function handleConfirm(decision) {
+  if (_isProcessing) return;
+  if (!_pendingSampleId || !_pendingBookId) { alert('Vantar gögn til staðfestingar.'); return; }
+
+  _isProcessing = true;
+  ['confirmTypical', 'confirmRetake'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.disabled = true;
+  });
+
+  try {
+    const confirmFn = httpsCallable(functions, 'confirmPageSample');
+    await confirmFn({
+      bookId: _pendingBookId,
+      sampleId: _pendingSampleId,
+      decision
+    });
+
+    if (decision === 'retake') {
+      _pendingSampleId = null;
+      _pendingAnalysis = null;
+      document.getElementById('pageInput').value = '';
+      showStep2Substep('take');
+    } else {
+      goToDoneStep();
+    }
+  } catch (err) {
+    console.error('confirmPageSample villa:', err);
+    alert('Villa við staðfestingu: ' + (err.message || 'óþekkt villa'));
+  } finally {
+    _isProcessing = false;
+    ['confirmTypical', 'confirmRetake'].forEach(id => {
+      const el = document.getElementById(id); if (el) el.disabled = false;
+    });
+  }
+}
+
+/* ── Skip ── */
+document.getElementById('skipPagePhotoBtn').addEventListener('click', () => goToDoneStep());
+document.getElementById('errorSkipBtn').addEventListener('click', () => goToDoneStep());
+
+/* ── Skref 3: Lokið ── */
+function goToDoneStep() {
+  const title = document.getElementById('bookTitle').value.trim();
+  const author = document.getElementById('bookAuthor').value.trim();
+  const cover = curCovHQ || curCov || pendingCoverUrl;
+
+  document.getElementById('addDoneSummary').style.display = '';
+  document.getElementById('addDoneSummaryTitle').textContent = title;
+  document.getElementById('addDoneSummaryAuthor').textContent = author || '';
+
+  const coverEl = document.getElementById('addDoneSummaryCover');
+  coverEl.innerHTML = cover ? '<img src="' + cover + '" alt="">' : '';
+
+  const badgesEl = document.getElementById('addDoneSummaryBadges');
+  const badges = [];
+  if (_pendingAnalysis?.readingLoad) badges.push(_pendingAnalysis.readingLoad.label);
+  if (_pendingAnalysis?.scope) badges.push(_pendingAnalysis.scope.label);
+  if (badges.length === 0) badges.push('Ekki metið');
+  badgesEl.innerHTML = badges.map(b => '<span class="add-done-badge">' + b + '</span>').join('');
+
+  document.getElementById('addDoneSub').textContent = badges.includes('Ekki metið')
+    ? 'Komin í hilluna. Þú getur metið texta seinna.'
+    : 'Komin í hilluna með mati á texta.';
+
+  showStep(3);
 }
 
 async function identifyBookCover(gsPath){
   const titleEl=document.getElementById('bookTitle');
   const authorEl=document.getElementById('bookAuthor');
   const metaEl=document.getElementById('previewMeta');
-  const subEl=document.getElementById('addStep2Sub');
+  const subEl=document.getElementById('addStep1Sub');
   const spinner=document.getElementById('coverSpinner');
   if(!titleEl||!metaEl)return;
 
@@ -1819,33 +1964,6 @@ async function identifyBookCover(gsPath){
 }
 
 document.getElementById('coverInput').addEventListener('change',e=>handleCoverFile(e.target.files?.[0]));
-
-document.getElementById('saveBook').addEventListener('click', async () => {
-  const title = document.getElementById('bookTitle').value.trim();
-  const pages = Number(document.getElementById('bookPages').value || 0);
-  if (!title) { alert('Settu inn nafn bókar.'); return; }
-  if (!pages || pages < 1) { alert('Settu inn blaðsíðufjölda.'); return; }
-
-  /* Reikna fallback til að sýna í skip-texta */
-  const birthYear = CS?.birthYear || null;
-  const fb = classifyReadingLoad(150, pages);
-  document.getElementById('skipPageInfo').textContent =
-    'Áætlað: ' + fb.readingLoadLabel + ' · ~150 orð/síðu';
-  document.getElementById('skipPageInfo').style.display = '';
-
-  /* Fara í síðumynd-step */
-  _pageAnalysis = null;
-  document.getElementById('pageImgPreview').style.display = 'none';
-  document.getElementById('pageAnalysisResult').style.display = 'none';
-  document.getElementById('pageReviewWarning').style.display = 'none';
-  document.getElementById('pageManualEntry').style.display = 'none';
-  document.getElementById('retryPagePhotoBtn').style.display = 'none';
-  document.getElementById('pageInput').value = '';
-  document.getElementById('takePagePhotoBtn').style.display = '';
-  document.getElementById('skipPagePhotoBtn').style.display = '';
-  document.getElementById('saveBookAfterAnalysis').style.display = 'none';
-  showStep(2.5);
-});
 
 // ── Goal modal ──
 let goalSelType='books',goalSelPeriod='week';
@@ -1964,7 +2082,6 @@ document.addEventListener('click',e=>{
 document.getElementById('openAdd').addEventListener('click',openAddM);
 if(location.hash==='#add')setTimeout(openAddM,120);
 document.getElementById('closeAdd').addEventListener('click',()=>{resetF();closeOv('addModal')});
-document.getElementById('closeAdd2').addEventListener('click',()=>{resetF();closeOv('addModal')});
 document.getElementById('backToCamera').addEventListener('click',()=>{ resetF(); });
 document.getElementById('addAnotherBook').addEventListener('click',()=>{ closeOv('addModal'); resetF(); openAddM(); });
 document.getElementById('goToBookshelf').addEventListener('click',()=>{resetF();closeOv('addModal')});

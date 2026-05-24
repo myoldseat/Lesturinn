@@ -569,6 +569,7 @@ button{font:inherit;cursor:pointer;border:0;background:none;color:inherit}a{colo
       <span id="jm-status-chip" style="font-size:9px;font-weight:800;padding:2px 8px;border-radius:99px;background:rgba(29,205,211,.1);border:1px solid rgba(29,205,211,.25);color:#1dcdd3"></span>
       <span id="jm-rl-chip" style="font-size:9px;font-weight:800;padding:2px 8px;border-radius:99px;background:rgba(29,205,211,.1);border:1px solid rgba(29,205,211,.25);color:#1dcdd3;display:none"></span>
     </div>
+    <div id="jm-stats" style="display:none;margin-top:6px;font-size:10px;color:#7a8fa0;line-height:1.4"></div>
     <div id="jm-prog-row" style="display:none;margin-top:6px">
       <div style="display:flex;align-items:center;gap:6px">
         <div style="flex:1;height:4px;border-radius:99px;background:rgba(148,164,180,.1);overflow:hidden">
@@ -582,20 +583,8 @@ button{font:inherit;cursor:pointer;border:0;background:none;color:inherit}a{colo
 </div>
 
 <!-- Takkar -->
-<div id="jm-actions" style="display:flex;gap:8px;padding:10px 16px;border-bottom:1px solid rgba(29,205,211,.08)">
-  <button class="dialog-btn" id="jm-btn-read" style="flex:1;padding:8px;font-size:12px;display:none" onclick="jmStartReading()">Byrja að lesa</button>
-  <button class="dialog-btn secondary" id="jm-btn-edit" style="flex:1;padding:8px;font-size:12px" onclick="closeOv('journeyModal');openEditBook(selBookId)">Breyta</button>
-</div>
-
-<!-- Blaðsíðuuppfærsla -->
-<div id="journeyPageUpdate" style="display:none;padding:12px 16px;border-bottom:1px solid rgba(29,205,211,.08)">
-  <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:#7a8fa0;margin-bottom:6px">Uppfæra framvindu</div>
-  <div style="display:flex;align-items:center;gap:10px">
-    <input id="journeyPageInput" inputmode="numeric" placeholder="Blaðsíða" style="flex:1;background:rgba(7,18,33,.96);border:1px solid rgba(29,205,211,.2);border-radius:8px;padding:8px 12px;font-size:15px;color:#e4edf5;outline:none">
-    <span style="font-size:11px;color:#5a7088">af <span id="journeyTotalPages" style="color:#c8d8e8;font-weight:600"></span></span>
-    <button class="dialog-btn" id="journeyUpdateBtn" style="flex:0 0 auto;padding:8px 14px;margin:0;font-size:12px">Vista</button>
-  </div>
-  <div id="journeyUpdateResult" style="display:none;margin-top:6px;font-size:12px;font-weight:700;color:#1dcdd3;text-align:center"></div>
+<div id="jm-actions" style="display:none;padding:10px 16px;border-bottom:1px solid rgba(29,205,211,.08)">
+  <button class="dialog-btn" id="jm-btn-read" style="width:100%;padding:8px;font-size:12px" onclick="jmStartReading()">Byrja að lesa</button>
 </div>
 
 <!-- Ferðalagsfærslur -->
@@ -674,11 +663,22 @@ function ensureAuth(){
     const unsub=onAuthStateChanged(auth,async(user)=>{
       unsub();
       if(!user){window.location.href='index.html';reject(new Error('not-authenticated'));return;}
+      // ── PERF: Read cached token first (no network). Only force-refresh if claims missing. ──
+      // Tokens last 1 hour and Firebase auto-refreshes in background.
+      // Force-refresh is only needed right after setParentClaims (one-time bootstrap).
+      try{
+        const cachedToken=await user.getIdTokenResult(false);
+        if(cachedToken.claims.role&&cachedToken.claims.familyId){
+          resolve({user,role:cachedToken.claims.role,familyId:cachedToken.claims.familyId});
+          return;
+        }
+      }catch(e){/* fall through to force-refresh loop */}
+
+      // Cached token missing claims — try force-refresh with backoff (post-login bootstrap)
       const delays=[0,250,750,1500,3000];
       for(let i=0;i<delays.length;i++){
         if(delays[i]>0) await new Promise(r=>setTimeout(r,delays[i]));
         try{
-          // Always force-refresh so freshly-set custom claims are visible before redirecting.
           const token=await user.getIdTokenResult(true);
           const role=token.claims.role;
           if(role&&token.claims.familyId){
@@ -808,6 +808,29 @@ async function ensureLocalCover(b){
     return b.coverUrl;
   }
   return null;
+}
+
+// ── PERF: Preload ALL cached covers from IndexedDB into memory.
+// Runs in parallel with auth so cc{} is warm when Firestore data arrives.
+// Eliminates the placeholder→cover "flash" on bookshelf open.
+async function preloadAllCovers(){
+  try{
+    const x=await odb();
+    if(!x)return;
+    const tx=x.transaction(IDS,'readonly').objectStore(IDS);
+    // Open cursor to walk all entries
+    await new Promise(resolve=>{
+      const req=tx.openCursor();
+      req.onsuccess=(e)=>{
+        const cur=e.target.result;
+        if(cur){
+          if(isDataImg(cur.value))cc[cur.key]=cur.value;
+          cur.continue();
+        }else resolve();
+      };
+      req.onerror=()=>resolve();
+    });
+  }catch(e){/* silent — render will fall back to placeholder */}
 }
 
 // ── Cover upload to Firebase Storage ──
@@ -1490,6 +1513,11 @@ function renderLR(){
 
 function openOv(id){document.getElementById(id).classList.add('open');document.body.style.overflow='hidden'}
 function closeOv(id){document.getElementById(id).classList.remove('open');document.body.style.overflow=''}
+function formatThousandsJm(n){
+  if(n==null)return '—';
+  return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g,'.');
+}
+
 function openJourney(id){
   const b=books.find(x=>x.id===id);if(!b)return;selBookId=id;
 
@@ -1517,6 +1545,24 @@ function openJourney(id){
   if(rlLabelJm){rlChip.textContent=rlLabelJm;rlChip.style.display='';}
   else rlChip.style.display='none';
 
+  /* Stats: orð/síða · síður · heildarorð */
+  const statsEl=document.getElementById('jm-stats');
+  const wpp = b.readingLoad?.wordsPerPageEstimate;
+  const totalWords = b.scope?.totalWordsEstimate;
+  const scopeLbl = b.scope?.label;
+  const totalPages = b.totalPages;
+  const parts = [];
+  if(wpp) parts.push('~'+wpp+' orð á síðu');
+  if(totalPages) parts.push(totalPages + ' bls.');
+  if(totalWords) parts.push('~'+formatThousandsJm(totalWords)+' orð alls');
+  else if(scopeLbl) parts.push(scopeLbl);
+  if(parts.length){
+    statsEl.textContent = parts.join(' · ');
+    statsEl.style.display='';
+  }else{
+    statsEl.style.display='none';
+  }
+
   /* Framvinda */
   const progRow=document.getElementById('jm-prog-row');
   if(b.status==='reading'){
@@ -1528,19 +1574,12 @@ function openJourney(id){
     progRow.style.display='none';
   }
 
-  /* Takkar */
-  document.getElementById('jm-btn-read').style.display=b.status==='shelf'?'':'none';
-
-  /* Blaðsíðuuppfærsla */
-  const pageUpdate=document.getElementById('journeyPageUpdate');
-  const resultEl=document.getElementById('journeyUpdateResult');
-  resultEl.style.display='none';
-  if(b.status==='reading'){
-    pageUpdate.style.display='';
-    document.getElementById('journeyPageInput').value=b.currentPageTo||'';
-    document.getElementById('journeyTotalPages').textContent=b.totalPages||'?';
+  /* Takkar — birta aðeins þegar bók er á hillu */
+  const actionsEl=document.getElementById('jm-actions');
+  if(b.status==='shelf'){
+    actionsEl.style.display='';
   }else{
-    pageUpdate.style.display='none';
+    actionsEl.style.display='none';
   }
 
   /* Ferðalagsfærslur */
@@ -1580,32 +1619,6 @@ async function deleteJourneyReaction(entryIndex,reactionIndex){
     render();openJourney(b.id);
   }catch(err){console.error('Delete reaction failed:',err);alert('Villa við að eyða kommenti.')}
 }
-
-document.getElementById('journeyUpdateBtn').addEventListener('click',async()=>{
-  const b=books.find(x=>x.id===selBookId);if(!b)return;
-  const newPage=Number(document.getElementById('journeyPageInput').value);
-  const resultEl=document.getElementById('journeyUpdateResult');
-  if(!newPage||newPage<1){resultEl.textContent='Sláðu inn blaðsíðu.';resultEl.style.display='block';return}
-  const total=Number(b.totalPages)||newPage;
-  const pct=Math.min(100,Math.round((newPage/total)*100));
-  const status=pct>=100?'finished':'reading';
-  const updates={currentPageTo:newPage,progressPercent:pct,status,lastReadAt:Date.now()};
-
-  try{
-    if(b._demo){
-      Object.assign(b,updates);render();
-    }else if(previewMode){
-      Object.assign(b,updates);render();
-    }else{
-      await updBook(b.id,updates);
-    }
-    resultEl.textContent=pct>=100?'Lokið! 🎉':'Uppfært — '+pct+'% lokið ✓';
-    resultEl.style.display='block';
-    document.getElementById('journeySub').textContent='bls. '+newPage+' af '+total+' · '+pct+'% lokið';
-  }catch(e){
-    console.error(e);resultEl.textContent='Villa — reyndu aftur.';resultEl.style.display='block';
-  }
-});
 
 async function compress(file,tw=180,th=270,q=.50){
   const img=await new Promise((ok,no)=>{const i=new Image();i.onload=()=>ok(i);i.onerror=no;i.src=URL.createObjectURL(file)});
@@ -1725,6 +1738,7 @@ document.getElementById('continueToAnalysis').addEventListener('click', async ()
   const author = document.getElementById('bookAuthor').value.trim();
   const pages = Number(document.getElementById('bookPages').value || 0);
   const status = document.getElementById('bookStatus').value;
+
   if (!title) { alert('Settu inn nafn bókar.'); return; }
   if (!pages || pages < 1) { alert('Settu inn blaðsíðufjölda.'); return; }
 
@@ -1739,7 +1753,8 @@ document.getElementById('continueToAnalysis').addEventListener('click', async ()
     const d = {
       familyId: FID, childKey: CK, childName: CN,
       title, author: author || '',
-      status, totalPages: pages,
+      status,
+      totalPages: pages,
       currentPageFrom: null, currentPageTo: null,
       progressPercent: status === 'finished' ? 100 : 0,
       coverBase64: curCov || null,
@@ -2198,7 +2213,12 @@ if(previewMode){
   achievements=[];
   books=[...demoBooks];render();
 }else{
-  ensureAuth().then(()=>{
+  // ── PERF: Start IndexedDB cover preload IN PARALLEL with auth.
+  // By the time auth + Firestore resolve, cc{} is warm and the first
+  // render shows real covers immediately — no placeholder flash.
+  const coverPreload=preloadAllCovers();
+
+  Promise.all([ensureAuth(),coverPreload]).then(()=>{
     loadGoal();render();
     startListener();startSessionsListener();startGoalsListener();
   }).catch(()=>{});

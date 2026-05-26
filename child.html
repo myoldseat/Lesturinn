@@ -87,6 +87,20 @@ body{font-family:'DM Sans','Manrope',-apple-system,BlinkMacSystemFont,sans-serif
 .login-card button{width:100%;padding:12px;border-radius:var(--r-sm);border:none;background:var(--accent);color:#061018;font:inherit;font-size:14px;font-weight:600;cursor:pointer;transition:filter .15s}
 .login-card button:active{filter:brightness(.85)}
 
+/* ── Context action button (4th nav slot — warm/gold) ── */
+.child-nav-context{
+  display:flex;align-items:center;justify-content:center;
+  border:0;cursor:pointer;font-family:inherit;
+  font-size:11px;font-weight:800;letter-spacing:.02em;
+  color:#f0c94d;
+  background:rgba(240,201,77,.10);
+  border-radius:12px;
+  margin:10px 6px;
+  padding:0 12px;
+  transition:background .18s,color .18s,transform .12s;
+}
+.child-nav-context:active{transform:scale(.95);background:rgba(240,201,77,.18)}
+
 /* ── Toast ── */
 .toast{position:fixed;bottom:calc(var(--nav-h) + var(--safe) + 16px);left:50%;transform:translateX(-50%) translateY(20px);background:var(--surface);border:1px solid var(--border-hl);color:var(--text);padding:10px 20px;border-radius:12px;font-size:13px;font-weight:600;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;z-index:200;text-align:center;max-width:min(90vw,360px)}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0);pointer-events:auto}
@@ -837,6 +851,394 @@ body{font-family:'DM Sans','Manrope',-apple-system,BlinkMacSystemFont,sans-serif
       position: absolute; opacity: 0; pointer-events: none; user-select: none; color: var(--bg);
     }
 
+
+/* ══════════════════════════════════════════
+   BOOKSHELF CSS (scoped to #screen-child-bookshelf)
+   ══════════════════════════════════════════ */
+
+#screen-child-bookshelf {
+  --bg:#0a0f18;--surface:rgba(7,16,30,.72);--card:rgba(12,22,38,.85);
+  --line:rgba(29,205,211,.14);--line-hot:rgba(29,205,211,.38);
+  --text:#d9e5ef;--soft:#7a8fa0;--accent:#1dcdd3;--accent2:#18bcc2;
+  --accent-dim:rgba(29,205,211,.08);--accent-glow:rgba(29,205,211,.22);
+  --danger:#ff6b6b;--serif:'DM Serif Display',Georgia,serif;
+  --sans:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;
+  background:radial-gradient(ellipse 600px 340px at 30% 0%,rgba(29,205,211,.07),transparent 60%),radial-gradient(ellipse 400px 280px at 80% 12%,rgba(62,130,173,.05),transparent 55%),var(--bg);
+  color:var(--text);font-family:var(--sans);
+}
+
+.app{width:min(100%,430px);min-height:100dvh;margin:0 auto;padding:0 16px;padding-bottom:calc(var(--nav-h) + var(--safe) + 24px);position:relative}
+.header{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:10px;padding:18px 0 6px}
+.header-left{display:contents}
+.header-brand{font-size:20px;font-weight:800;letter-spacing:-.4px;line-height:1;flex-shrink:0;justify-self:start}
+.header-brand-upp{color:var(--accent)}
+.header-brand-hatt{color:var(--text)}
+.header-title{font-family:var(--serif);font-size:20px;font-weight:400;letter-spacing:-.3px;line-height:1.1;color:var(--soft);justify-self:center;text-align:center;white-space:nowrap;margin-left:0}
+.header-edit{width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:var(--surface);display:grid;place-items:center;transition:border-color .18s,box-shadow .18s}
+.header-edit:hover,.header-edit:focus-visible{border-color:var(--line-hot);box-shadow:0 0 18px var(--accent-glow);outline:none}
+.header-edit.active{border-color:rgba(29,205,211,.7);box-shadow:0 0 24px rgba(29,205,211,.3)}
+.header-edit svg{width:16px;height:16px;color:var(--soft)}
+.header-right{display:flex;align-items:center;gap:8px;justify-self:end}
+.header-avatar{width:36px;height:36px;border-radius:50%;border:1.5px solid var(--line-hot);background:radial-gradient(circle at 50% 35%,rgba(29,205,211,.18),rgba(8,19,31,.95) 68%);display:grid;place-items:center;transition:border-color .18s,box-shadow .18s}
+.header-avatar:hover,.header-avatar:focus-visible{border-color:rgba(29,205,211,.5);box-shadow:0 0 16px rgba(29,205,211,.2);outline:none}
+.header-avatar span{font-size:11px;font-weight:900;color:#dff8fb;letter-spacing:.3px}
+.edit-bar{position:fixed;bottom:calc(var(--nav-h) + var(--safe) + 8px);left:50%;transform:translateX(-50%);width:min(calc(100% - 32px),410px);padding:10px 14px;border-radius:16px;border:1px solid rgba(29,205,211,.32);background:rgba(6,14,26,.94);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;z-index:38;box-shadow:0 -4px 24px rgba(0,0,0,.4),0 0 20px rgba(29,205,211,.08)}
+.edit-bar[hidden]{display:none!important}
+.edit-bar span{color:var(--text);font-size:12px;font-weight:800}
+.edit-bar-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:6px}
+.edit-move,.edit-finish,.edit-danger,.edit-cancel{height:30px;border-radius:99px;padding:0 10px;font-size:11px;font-weight:800;border:1px solid var(--line);background:var(--surface);color:var(--soft);transition:border-color .15s,color .15s}
+.edit-danger{border-color:rgba(255,107,107,.25);color:rgba(255,107,107,.7)}
+.edit-move:disabled,.edit-finish:disabled,.edit-danger:disabled{opacity:.4;cursor:not-allowed}
+.edit-state-select{height:30px;border-radius:99px;padding:0 10px;font-size:11px;font-weight:800;border:1px solid var(--line);background:var(--surface);color:var(--soft);-webkit-appearance:none;appearance:none;cursor:pointer;transition:border-color .15s,color .15s}
+.edit-state-select:disabled{opacity:.4;cursor:not-allowed}
+.edit-state-select:not(:disabled):focus{border-color:var(--line-hot);color:var(--accent);outline:none}
+/* ── Edit book modal ── */
+.edit-modal-form{display:flex;flex-direction:column;gap:14px;padding:4px 0}
+.edit-modal-label{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--soft);margin-bottom:4px;display:block}
+.edit-modal-input{width:100%;background:rgba(0,0,0,.3);border:1px solid var(--line);border-radius:10px;padding:11px 13px;color:var(--text);font-size:14px;-webkit-appearance:none}
+.edit-modal-input:focus{outline:none;border-color:var(--line-hot);box-shadow:0 0 12px var(--accent-glow)}
+.edit-modal-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.edit-modal-save{width:100%;height:44px;border-radius:12px;background:var(--accent);color:var(--bg);font-weight:800;font-size:14px;border:none;cursor:pointer;margin-top:4px}
+/* ── Desktop rail arrows ── */
+.rail-wrap{position:relative}
+.rail-arrow{display:none;position:absolute;top:50%;transform:translateY(-50%);width:36px;height:36px;border-radius:50%;background:var(--surface);border:1px solid var(--line);color:var(--soft);z-index:5;align-items:center;justify-content:center;cursor:pointer;transition:border-color .15s,color .15s}
+.rail-arrow:hover{border-color:var(--line-hot);color:var(--accent)}
+.rail-arrow-left{left:-18px}
+.rail-arrow-right{right:-18px}
+.rail-arrow svg{width:16px;height:16px}
+@media(min-width:700px){.rail-arrow{display:flex}}
+.featured{margin:14px 0 22px;background:var(--card);border:1px solid var(--line);border-radius:20px;padding:16px;position:relative;overflow:hidden;box-shadow:0 20px 50px rgba(0,0,0,.3),0 0 40px rgba(29,205,211,.04)}
+.featured::before{content:"";position:absolute;top:0;left:12%;right:12%;height:1px;background:linear-gradient(90deg,rgba(29,205,211,0),rgba(29,205,211,.45),rgba(29,205,211,0))}
+.featured-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:9px;border:1px solid rgba(29,205,211,.22);background:rgba(29,205,211,.06);color:var(--accent);font-size:12px;font-weight:800;margin-bottom:12px}
+.featured-grid{display:grid;grid-template-columns:150px 1fr;gap:16px;align-items:start}
+.featured-cover{width:150px;aspect-ratio:2/3;border-radius:12px;overflow:hidden;position:relative;background:linear-gradient(140deg,var(--c1,#2b8f91),var(--c2,#0a2341));box-shadow:0 16px 32px rgba(0,0,0,.35),0 0 24px rgba(29,205,211,.1);transform:perspective(600px) rotateY(-4deg);cursor:pointer}
+.featured-cover img{width:100%;height:100%;object-fit:cover;display:block}
+.featured-cover::after{content:"";position:absolute;left:0;top:0;bottom:0;width:14px;background:linear-gradient(90deg,rgba(0,0,0,.35),rgba(255,255,255,.08),transparent);border-right:1px solid rgba(255,255,255,.06);pointer-events:none}
+.featured-cover-title{position:absolute;left:14px;right:8px;top:36px;z-index:2;font-size:13px;font-weight:800;letter-spacing:-.3px;line-height:1.05;color:#eaf3fb;text-shadow:0 2px 10px rgba(0,0,0,.4)}
+.featured-cover-author{position:absolute;left:14px;right:8px;top:68px;z-index:2;color:rgba(217,229,239,.7);font-size:9px;font-weight:700}
+.featured-meta{display:flex;flex-direction:column;gap:7px;padding-top:2px}
+.featured-title{font-family:var(--serif);font-size:21px;line-height:1.1;letter-spacing:-.3px}
+.featured-author{font-size:13px;color:var(--soft);font-weight:500}
+.featured-stats{display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--soft)}
+.featured-pct{color:var(--accent);font-weight:800;font-size:14px}
+.progress-bar{height:5px;border-radius:99px;background:rgba(255,255,255,.06);overflow:hidden}
+.progress-fill{height:100%;border-radius:inherit;background:linear-gradient(90deg,var(--accent),var(--accent2));box-shadow:0 0 12px rgba(29,205,211,.3);transition:width .4s ease}
+.featured-quote{font-style:italic;font-family:Georgia,'Times New Roman',serif;font-size:13px;color:rgba(217,229,239,.7);line-height:1.35;padding:9px 11px;border-radius:10px;background:rgba(255,255,255,.025);border:1px solid rgba(122,187,218,.08)}
+.featured-reaction{font-size:12px;color:rgba(217,229,239,.65);padding:6px 10px;border-radius:8px;background:rgba(255,255,255,.03);border:1px solid rgba(122,187,218,.06);margin-top:2px}
+.featured-gold{display:flex;flex-direction:column;gap:4px;padding:10px 12px;border-radius:10px;background:rgba(29,205,211,.05);border:1px solid rgba(29,205,211,.12);margin-top:6px}
+.featured-gold-top{display:flex;align-items:center;gap:8px}
+.featured-gold-info{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+.featured-gold-label{font-size:12px;font-weight:700;color:#1dcdd3}
+.featured-gold-saver{font-size:10px;font-weight:600;color:rgba(217,229,239,.5)}
+.featured-gold-play{background:none;border:1px solid rgba(29,205,211,.3);border-radius:8px;padding:5px 12px;font-size:11px;font-weight:700;color:#1dcdd3;cursor:pointer;white-space:nowrap;flex-shrink:0;transition:background .15s}
+.featured-gold-play:hover{background:rgba(29,205,211,.1)}
+.featured-gold-play:disabled{opacity:.5;cursor:default}
+.featured-gold-player{min-height:0}
+.featured-arrow{position:absolute;top:16px;right:16px;width:28px;height:28px;border-radius:50%;border:1px solid var(--line);background:var(--surface);display:grid;place-items:center;color:var(--soft);font-size:16px}
+.section{margin-bottom:26px}
+.section-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px}
+.section-title{font-family:var(--serif);font-size:19px;letter-spacing:-.2px}
+.section-count{font-size:11px;font-weight:700;color:var(--soft);background:var(--accent-dim);padding:3px 9px;border-radius:99px;border:1px solid var(--line)}
+.book-rail{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;padding-bottom:6px;margin:0 -16px;padding-left:16px;padding-right:16px}
+.book-rail::-webkit-scrollbar{display:none}
+.book-rail .book-card{flex:0 0 120px;scroll-snap-align:start}
+.book-card{position:relative;border-radius:12px;overflow:hidden;background:var(--card);border:1px solid var(--line);transition:transform .15s,box-shadow .2s;cursor:pointer}
+.book-card:active{transform:scale(.97);box-shadow:0 8px 24px rgba(0,0,0,.4),0 0 20px var(--accent-glow)}
+.book-card.selected{border-color:rgba(29,205,211,.6);box-shadow:0 0 0 2px rgba(29,205,211,.2),0 0 20px rgba(29,205,211,.15)}
+.goal-ring{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.goal-ring svg{width:48px;height:48px;flex-shrink:0}
+.goal-ring-text{font-size:12px;color:var(--soft);line-height:1.3}
+.goal-ring-count{font-size:18px;font-weight:800;color:var(--text);display:block}
+.goal-ring-label{font-size:10px;text-transform:uppercase;letter-spacing:.5px;font-weight:700;color:var(--accent);display:block;margin-bottom:1px}
+.book-cover{width:100%;aspect-ratio:2/3;position:relative;background:linear-gradient(140deg,var(--c1,#2b8f91),var(--c2,#0a2341));overflow:hidden}
+.book-cover img{width:100%;height:100%;object-fit:cover;display:block}
+.book-cover::after{content:"";position:absolute;left:0;top:0;bottom:0;width:9px;background:linear-gradient(90deg,rgba(0,0,0,.3),rgba(255,255,255,.06),transparent);pointer-events:none}
+.book-cover-title{position:absolute;left:10px;right:6px;top:30px;z-index:2;font-size:10px;font-weight:800;line-height:1.05;color:#eaf3fb;text-shadow:0 2px 8px rgba(0,0,0,.5)}
+.book-cover-author{position:absolute;left:10px;right:6px;top:56px;z-index:2;color:rgba(255,255,255,.65);font-size:8px;font-weight:650}
+.book-info{padding:8px 8px 10px}
+.book-name{font-size:11px;font-weight:800;line-height:1.15;margin-bottom:2px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.book-author{font-size:10px;color:var(--soft);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.book-chip{display:inline-flex;align-items:center;margin-top:5px;padding:2px 8px;border-radius:99px;font-size:9px;font-weight:800;background:var(--accent-dim);border:1px solid var(--line);color:var(--accent)}
+.book-chip.done{background:rgba(29,205,211,.15)}
+.rl-pill{display:inline-flex;align-items:center;margin-top:5px;margin-left:5px;padding:2px 8px;border-radius:99px;font-size:9px;font-weight:800;background:var(--accent-dim);border:1px solid var(--line);color:var(--accent)}
+.empty-state{text-align:center;padding:28px 16px}
+.empty-icon{width:64px;height:64px;margin:0 auto 14px;border-radius:50%;border:1px dashed var(--line-hot);background:var(--accent-dim);display:grid;place-items:center;font-size:28px;color:var(--accent)}
+.empty-title{font-family:var(--serif);font-size:19px;margin-bottom:6px}
+.empty-sub{font-size:13px;color:var(--soft);line-height:1.4}
+/* .bottom-nav, .nav-tab: handled by shell CSS */
+.overlay{position:fixed;inset:0;background:rgba(3,8,15,.7);backdrop-filter:blur(9px);z-index:80;display:none;place-items:center;padding:16px}
+.overlay.open{display:grid}
+.dialog{width:min(94vw,400px);max-height:92dvh;overflow:auto;background:rgba(6,14,26,.985);border:1px solid rgba(29,205,211,.18);border-radius:20px;box-shadow:0 32px 80px rgba(0,0,0,.6);padding:20px;position:relative}
+.dialog::before{content:"";position:absolute;top:0;left:10%;right:10%;height:1px;background:linear-gradient(90deg,rgba(29,205,211,0),rgba(29,205,211,.45),rgba(29,205,211,0))}
+.close{position:absolute;top:12px;right:12px;width:30px;height:30px;border-radius:50%;background:var(--surface);border:1px solid var(--line);color:var(--soft);font-size:18px;display:grid;place-items:center}
+.dialog h2{margin:2px 0 4px;text-align:center;font-family:var(--serif);font-size:22px;font-weight:400}
+.dialog-sub{text-align:center;margin:0 0 16px;color:var(--soft);font-size:12px}
+.field{margin-bottom:12px}.field label{display:block;font-size:10px;font-weight:800;color:var(--text);margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px}
+.field input,.field select{width:100%;background:rgba(7,18,33,.96);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:14px;color:var(--text);outline:none;transition:border-color .18s,box-shadow .18s}
+.field input:focus,.field select:focus{border-color:rgba(29,205,211,.6);box-shadow:0 0 0 3px rgba(29,205,211,.1)}
+.field input::placeholder{color:rgba(148,164,180,.4)}.field select{color-scheme:dark}
+.file-card{border:1px dashed rgba(29,205,211,.22);border-radius:14px;padding:14px;background:rgba(7,18,33,.96);text-align:center;margin-bottom:12px}
+.file-card input{display:none}.file-card label{display:block;color:var(--accent);font-weight:800;font-size:13px;cursor:pointer}
+.hint{font-size:11px;color:var(--soft);margin-top:4px}
+.preview-row{display:grid;grid-template-columns:100px 1fr;gap:12px;align-items:center;margin:10px 0 12px}
+.preview-cover{width:100px;aspect-ratio:2/3;border-radius:10px;overflow:hidden;background:rgba(255,255,255,.04);border:1px solid var(--line)}
+.preview-cover img{width:100%;height:100%;object-fit:cover}
+.preview-info{font-size:11px;color:var(--soft);line-height:1.4}.preview-info strong{display:block;color:var(--text);font-size:12px;margin-bottom:3px}
+.dialog-btn{width:100%;padding:11px;border:0;border-radius:10px;font-weight:800;font-size:14px;margin-top:7px;background:rgba(29,205,211,.1);border:1px solid rgba(29,205,211,.3);color:#dffbff;box-shadow:0 0 18px rgba(29,205,211,.1);transition:background .15s}
+.dialog-btn:active{transform:scale(.985)}
+.dialog-btn.secondary{background:rgba(255,255,255,.025);border-color:var(--line);color:var(--soft);box-shadow:none}
+.dialog-btn.danger{background:rgba(255,107,107,.08);border-color:rgba(255,107,107,.25);color:rgba(255,107,107,.8);box-shadow:none}
+.dialog-btn[disabled]{opacity:.5;cursor:not-allowed}
+.entry{border-left:2px dotted rgba(29,205,211,.25);padding-left:14px;margin-left:6px}
+.event{position:relative;background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:12px;padding:10px 11px;margin-bottom:8px}
+.event::before{content:"";position:absolute;left:-22px;top:14px;width:9px;height:9px;border-radius:50%;background:var(--accent);box-shadow:0 0 10px var(--accent)}
+.event-date{font-size:11px;color:var(--accent);font-weight:800;margin-bottom:3px}
+.event p{margin:0 0 6px;font-size:13px;line-height:1.35}
+.event-quote{font-style:italic;font-family:Georgia,'Times New Roman',serif;font-size:14px!important;line-height:1.45!important;color:var(--fg)}
+.reactions{display:flex;flex-wrap:wrap;gap:5px}
+.react{font-size:10px;color:rgba(217,229,239,.85);background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.07);padding:4px 7px;border-radius:99px}
+.add-save-result,.share-result{display:none;margin-top:8px;padding:10px;border-radius:10px;background:rgba(29,205,211,.08);border:1px solid rgba(29,205,211,.2);color:var(--accent);font-size:12px;font-weight:700;text-align:center}
+.add-save-result.show,.share-result.show{display:block}
+.add-save-actions{display:none;grid-template-columns:1fr;gap:7px;margin-top:8px}.add-save-actions.show{display:grid}
+.delete-warning{text-align:center}
+.delete-warning-icon{width:52px;height:52px;margin:0 auto 12px;border-radius:50%;display:grid;place-items:center;border:1px solid rgba(255,107,107,.3);background:rgba(255,107,107,.06);color:#ff8a8a;font-size:22px;font-weight:900}
+.delete-warning-copy{margin:6px 0 14px;color:rgba(217,229,239,.75);font-size:13px;line-height:1.4}
+.delete-book-name{display:block;margin:8px 0 0;color:var(--text);font-weight:800}
+.delete-confirm{background:rgba(255,107,107,.08)!important;border-color:rgba(255,107,107,.3)!important;color:#ff8a8a!important}
+.child-initials{width:38px;height:38px;border-radius:50%;border:1.5px solid var(--line-hot);background:radial-gradient(circle at 50% 35%,rgba(29,205,211,.18),rgba(8,19,31,.96) 68%);color:#dff8fb;font-size:12px;font-weight:900;display:grid;place-items:center;box-shadow:0 0 12px rgba(29,205,211,.2)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+.featured{animation:fadeUp .4s ease both}.section{animation:fadeUp .4s ease both}
+.book-demo-badge{position:absolute;top:6px;right:6px;z-index:3;font-size:8px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;padding:2px 6px;border-radius:6px;background:rgba(255,255,255,.12);color:rgba(255,255,255,.7);backdrop-filter:blur(4px)}
+.demo-hint{text-align:center;padding:6px 0 14px;font-size:11px;color:var(--soft);font-style:italic}
+.goal-ring-arrow{width:28px;height:28px;border-radius:50%;border:1px solid var(--line);background:var(--surface);display:grid;place-items:center;color:var(--soft);font-size:16px;cursor:pointer;flex-shrink:0;margin-left:auto;transition:border-color .18s,box-shadow .18s}
+.goal-ring-arrow:hover,.goal-ring-arrow:focus-visible{border-color:var(--line-hot);box-shadow:0 0 14px var(--accent-glow);outline:none}
+.goals-strip{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:center;margin-bottom:14px;min-width:0;overflow:hidden}
+.goal-mini{min-width:0;max-width:100%;min-height:58px;border:1px solid var(--line);background:rgba(12,22,38,.72);border-radius:16px;padding:8px 9px;display:flex;align-items:center;gap:10px;color:var(--text);text-align:left;overflow:hidden;box-shadow:0 14px 34px rgba(0,0,0,.22),0 0 22px rgba(29,205,211,.035),inset 0 1px 0 rgba(255,255,255,.025);transition:border-color .18s,box-shadow .18s,transform .15s}
+.goal-mini:active{transform:scale(.985);border-color:var(--line-hot);box-shadow:0 10px 26px rgba(0,0,0,.28),0 0 20px rgba(29,205,211,.14)}
+.goal-mini-ring{width:46px;height:46px;flex:0 0 46px;filter:drop-shadow(0 0 8px rgba(29,205,211,.20))}
+.goal-mini-ring .ring-bg{stroke:rgba(29,205,211,.12)}
+.goal-mini-ring .ring-fill{stroke:var(--accent);transition:stroke-dashoffset .55s ease,stroke .25s ease;filter:drop-shadow(0 0 7px rgba(29,205,211,.45))}
+.goal-mini-ring.done{filter:drop-shadow(0 0 10px rgba(255,184,48,.26))}.goal-mini-ring.done .ring-fill{stroke:#FFB830;filter:drop-shadow(0 0 7px rgba(255,184,48,.50))}
+.goal-mini-ring text{font-size:9px;font-weight:900;fill:var(--text);letter-spacing:-.2px}
+.goal-mini-copy{min-width:0;max-width:100%;display:block;overflow:hidden}.goal-mini-title{display:block;color:var(--text);font-size:12px;font-weight:900;line-height:1.05;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.goal-mini-sub{display:block;font-size:9.5px;color:var(--soft);font-weight:700;line-height:1.15;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.goal-mini-pct{display:block;font-size:9px;color:var(--accent);font-weight:900;margin-top:3px}.goal-mini.done .goal-mini-pct{color:#FFB830}
+.goal-mini-placeholder{grid-column:span 1;min-height:58px;justify-content:center;text-align:center;border-style:dashed;background:rgba(12,22,38,.55);color:var(--soft)}
+.achievement-head{display:flex;align-items:center;justify-content:space-between;margin:14px 0 8px}.achievement-title{font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.6px;color:var(--text)}.achievement-count{font-size:10px;color:var(--accent);font-weight:800}.achievement-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px}.achievement-badge{border:1px solid rgba(29,205,211,.18);background:rgba(29,205,211,.045);border-radius:14px;padding:10px 6px;text-align:center;min-height:86px;display:flex;flex-direction:column;align-items:center;justify-content:center}.achievement-badge-icon{font-size:22px;margin-bottom:5px}.achievement-badge-title{font-size:10px;font-weight:900;line-height:1.1;color:var(--text)}.achievement-badge-sub{font-size:9px;color:var(--soft);margin-top:4px;line-height:1.15}.achievement-empty{border:1px dashed rgba(29,205,211,.18);border-radius:14px;padding:12px;color:var(--soft);font-size:12px;text-align:center;margin-bottom:14px}
+.goal-current-list{display:grid;gap:8px;margin-bottom:8px}.goal-current-row{border:1px solid var(--line);border-radius:14px;padding:12px;display:flex;align-items:center;gap:10px;background:rgba(12,22,38,.72);box-shadow:0 0 22px rgba(29,205,211,.035)}.goal-current-ring{width:52px;height:52px;flex:0 0 52px;filter:drop-shadow(0 0 8px rgba(29,205,211,.20))}.goal-current-ring .ring-bg{stroke:rgba(29,205,211,.12)}.goal-current-ring .ring-fill{stroke:var(--accent);filter:drop-shadow(0 0 7px rgba(29,205,211,.45))}.goal-current-ring.done{filter:drop-shadow(0 0 10px rgba(255,184,48,.28))}.goal-current-ring.done .ring-fill{stroke:#FFB830;filter:drop-shadow(0 0 7px rgba(255,184,48,.50))}.goal-current-ring text{font-size:10px;font-weight:900;fill:var(--text);letter-spacing:-.3px}.goal-current-delete{margin-left:auto;color:rgba(255,107,107,.75);font-size:11px;font-weight:900;padding:6px 8px;border-radius:99px;border:1px solid rgba(255,107,107,.18);background:rgba(255,107,107,.05)}
+@media(max-width:420px){.achievement-grid{grid-template-columns:1fr 1fr}.goal-mini{padding:7px 7px;gap:7px}.goal-mini-ring{width:42px;height:42px;flex-basis:42px}.goal-mini-title{font-size:12px}.goal-mini-sub{font-size:9px}.goal-mini-pct{font-size:8.5px}}
+
+.goal-type-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
+.goal-type-card{border:1.5px solid var(--line);border-radius:14px;padding:14px 10px;text-align:center;background:var(--accent-dim);cursor:pointer;transition:border-color .18s,box-shadow .18s,background .18s}
+.goal-type-card:hover{border-color:var(--line-hot)}
+.goal-type-card.selected{border-color:rgba(29,205,211,.7);box-shadow:0 0 18px rgba(29,205,211,.2);background:rgba(29,205,211,.12)}
+.goal-type-icon{font-size:24px;margin-bottom:4px;display:flex;align-items:center;justify-content:center;height:32px}
+.goal-type-name{font-size:12px;font-weight:800;color:var(--text)}
+.goal-type-desc{font-size:10px;color:var(--soft);margin-top:2px}
+.goal-period-toggle{display:flex;gap:0;border-radius:10px;overflow:hidden;border:1px solid var(--line);margin-bottom:14px}
+.goal-period-btn{flex:1;padding:10px;font-size:13px;font-weight:800;background:var(--accent-dim);color:var(--soft);border:none;cursor:pointer;transition:background .15s,color .15s}
+.goal-period-btn.selected{background:rgba(29,205,211,.18);color:var(--accent)}
+.goal-current{border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:14px;display:flex;align-items:center;gap:12px;background:rgba(29,205,211,.04)}
+.goal-current-ring{width:52px;height:52px;flex-shrink:0}
+.goal-current-info{flex:1}
+.goal-current-title{font-size:15px;font-weight:800;color:var(--text);margin-bottom:2px}
+.goal-current-sub{font-size:12px;color:var(--soft)}
+.goal-current-pct{font-size:13px;font-weight:800;color:var(--accent);margin-top:3px}
+.goal-divider{height:1px;background:var(--line);margin:14px 0}
+.goal-delete{font-size:12px;color:rgba(255,107,107,.7);font-weight:700;cursor:pointer;background:none;border:none;padding:6px 0;margin-top:4px}
+.goal-delete:hover{color:var(--danger)}
+.goal-presets{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.goal-preset{padding:5px 12px;border-radius:99px;border:1px solid var(--line);background:var(--accent-dim);color:var(--soft);font-size:12px;font-weight:700;cursor:pointer;transition:border-color .15s,color .15s}
+.goal-preset:hover,.goal-preset.selected{border-color:var(--line-hot);color:var(--accent)}
+.book-celebrate{border-color:rgba(255,184,48,.5)!important;animation:celebrate-breathe 2s ease-in-out infinite}
+@keyframes celebrate-breathe{0%,100%{box-shadow:0 0 8px rgba(255,184,48,.15),0 0 20px rgba(255,184,48,.08)}50%{box-shadow:0 0 16px rgba(255,184,48,.35),0 0 36px rgba(255,184,48,.15)}}
+.celebrate-badge{position:absolute;inset:0;z-index:4;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(0,0,0,.55);backdrop-filter:blur(2px);border-radius:0}
+.celebrate-badge-icon{font-size:28px;margin-bottom:4px}
+.celebrate-badge-text{font-size:11px;font-weight:800;color:#fff;text-shadow:0 1px 6px rgba(0,0,0,.5)}
+.celebrate-flash{animation:celebrate-flash-pulse .6s ease-out 1!important;border-color:rgba(255,184,48,.8)!important}
+@keyframes celebrate-flash-pulse{0%{box-shadow:0 0 0 rgba(255,184,48,0);transform:scale(1)}30%{box-shadow:0 0 28px rgba(255,184,48,.5),0 0 50px rgba(255,184,48,.2);transform:scale(1.04)}100%{box-shadow:0 0 12px rgba(255,184,48,.2);transform:scale(1)}}
+.celebrate-move{transition:transform .7s cubic-bezier(.4,0,.2,1),opacity .7s cubic-bezier(.4,0,.2,1)!important;transform:scale(.35) translateY(60px)!important;opacity:0!important;pointer-events:none}
+
+.goal-ring-celebrating circle:last-of-type{transition:stroke-dashoffset 2s cubic-bezier(.34,1.56,.64,1)!important}
+@keyframes ring-glow{0%{filter:drop-shadow(0 0 4px rgba(29,205,211,.2))}50%{filter:drop-shadow(0 0 16px rgba(29,205,211,.6)) drop-shadow(0 0 30px rgba(29,205,211,.3))}100%{filter:drop-shadow(0 0 4px rgba(29,205,211,.2))}}
+@keyframes ring-glow-gold{0%{filter:drop-shadow(0 0 4px rgba(255,184,48,.2))}50%{filter:drop-shadow(0 0 18px rgba(255,184,48,.7)) drop-shadow(0 0 34px rgba(255,184,48,.3))}100%{filter:drop-shadow(0 0 4px rgba(255,184,48,.2))}}
+.goal-ring-glow svg{animation:ring-glow .8s ease-in-out 1}
+.goal-ring-glow-gold svg{animation:ring-glow-gold 1.2s ease-in-out 1}
+@media(min-width:700px){.app{width:min(100%,760px);padding:0 28px;padding-bottom:calc(var(--nav-h) + var(--safe) + 30px)}.bottom-nav{width:min(760px,100vw)}.featured-grid{grid-template-columns:170px 1fr;gap:20px}.featured-cover{width:170px}.book-rail .book-card{flex:0 0 140px}}
+
+
+/* === UppHátt bookshelf redesign: compact goals strip + book hero + goal overview modal === */
+.featured{margin:10px 0 22px;background:transparent;border:0;border-radius:0;padding:0;overflow:visible;box-shadow:none;animation:fadeUp .4s ease both}
+.featured::before{display:none}
+.goals-strip{width:100%;border:1px solid rgba(29,205,211,.16);background:rgba(7,16,30,.78);border-radius:16px;padding:10px 12px;margin:4px 0 14px;display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;text-align:left;box-shadow:0 16px 38px rgba(0,0,0,.22),0 0 22px rgba(29,205,211,.035);color:var(--text)}
+.goals-strip:active{transform:scale(.99);border-color:rgba(29,205,211,.34)}
+.goals-strip-main{min-width:0;display:grid;gap:8px}
+.goals-strip-title{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:800;color:rgba(217,229,239,.68);letter-spacing:-.1px;line-height:1}
+.goals-strip-icon{color:var(--accent);font-size:11px;filter:drop-shadow(0 0 5px rgba(29,205,211,.45))}
+.goals-strip-items{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start;position:relative}
+.goals-strip-items::before{content:"";position:absolute;left:50%;top:4px;bottom:4px;width:1px;background:rgba(122,187,218,.09)}
+.goal-mini{border:0;background:transparent;border-radius:0;box-shadow:none;min-height:0;padding:0;display:grid;grid-template-columns:22px minmax(0,1fr);gap:8px;align-items:center;color:var(--text);overflow:visible;text-align:left}
+.goal-mini:active{transform:none;border-color:transparent;box-shadow:none}
+.goal-mini-icon{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;background:rgba(29,205,211,.075);border:1px solid rgba(29,205,211,.13);color:var(--accent);overflow:hidden}
+.goal-mini-icon svg{width:14px!important;height:14px!important;filter:none!important}
+.goal-mini-copy{min-width:0;display:grid;gap:4px;overflow:hidden}
+.goal-mini-title{font-size:11px;font-weight:800;color:rgba(217,229,239,.88);line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.goal-mini-sub,.goal-mini-pct{display:none!important}
+.goal-mini-line{height:4px;border-radius:99px;background:rgba(255,255,255,.07);overflow:hidden;max-width:100%}
+.goal-mini-fill{display:block;height:100%;width:0;border-radius:inherit;background:linear-gradient(90deg,var(--accent),var(--accent2));box-shadow:0 0 10px rgba(29,205,211,.50)}
+.goals-strip-chevron{width:22px;height:22px;display:grid;place-items:center;color:rgba(217,229,239,.55);font-size:22px;font-weight:700;line-height:1}
+.goal-mini-placeholder{display:grid;grid-template-columns:22px minmax(0,1fr);border:0;border-style:none;background:transparent;color:var(--soft);justify-content:start;text-align:left;min-height:0}
+.book-hero-card{border:1px solid rgba(29,205,211,.20);background:rgba(7,16,30,.78);border-radius:18px;padding:14px;position:relative;overflow:hidden;box-shadow:0 18px 44px rgba(0,0,0,.30),0 0 36px rgba(29,205,211,.035);cursor:pointer;transition:transform .15s ease,border-color .18s ease,box-shadow .18s ease}
+.book-hero-card:active{transform:scale(.992);border-color:rgba(29,205,211,.34);box-shadow:0 14px 34px rgba(0,0,0,.34),0 0 30px rgba(29,205,211,.08)}
+.book-hero-card::before{content:"";position:absolute;top:0;left:10%;right:10%;height:1px;background:linear-gradient(90deg,rgba(29,205,211,0),rgba(29,205,211,.34),rgba(29,205,211,0))}
+.book-hero-main{display:grid;grid-template-columns:148px 1fr;gap:14px;align-items:start}
+.book-hero-card .featured-cover{width:148px;border-radius:11px;transform:none;box-shadow:0 16px 32px rgba(0,0,0,.32),0 0 20px rgba(29,205,211,.08)}
+.book-hero-card .featured-meta{gap:8px;padding-top:0;min-width:0}
+.book-title-row{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.progress-row{display:flex;align-items:center;gap:8px;margin-top:-1px}
+.progress-row .progress-bar{flex:1;min-width:0}
+.progress-row .featured-pct{flex:0 0 auto;white-space:nowrap;line-height:1}
+.book-hero-card .featured-title{font-size:26px;line-height:1.02;color:#eef6ff;margin-top:0}
+.book-hero-card .featured-badge{margin:0;width:max-content;padding:4px 8px;border-radius:999px;font-size:10px;line-height:1}
+.book-hero-card .featured-stats{font-size:12px;color:rgba(217,229,239,.62)}
+.book-hero-card .featured-pct{font-size:13px;color:var(--accent);font-weight:900}
+.book-hero-card .progress-bar{height:4px;background:rgba(255,255,255,.07)}
+.reading-moment{display:grid;gap:5px;margin-top:4px}
+.moment-label{display:flex;align-items:center;gap:6px;color:var(--accent);font-size:10px;font-weight:800;letter-spacing:-.1px}
+.book-hero-card .featured-quote{border:0;background:transparent;padding:0;font-size:12px;color:rgba(217,229,239,.70);line-height:1.25;font-family:Georgia,'Times New Roman',serif;font-style:italic}
+.reaction-block{display:grid;gap:6px;margin-top:3px}
+.book-hero-card .featured-reaction{font-size:11px;line-height:1.35;color:rgba(217,229,239,.72);padding:8px 9px;border-radius:9px;background:rgba(255,255,255,.035);border:1px solid rgba(122,187,218,.08);margin-top:0}
+.book-hero-card .featured-gold{margin-top:6px;display:block;padding:9px 10px;border-radius:11px;background:rgba(29,205,211,.055);border:1px solid rgba(29,205,211,.12)}
+.book-hero-card .featured-gold-top{display:flex;align-items:center;gap:8px;min-width:0}
+.book-hero-card .featured-gold-label{font-size:11px;font-weight:900;color:var(--accent)}
+.book-hero-card .featured-gold-saver{font-size:9.5px;color:rgba(217,229,239,.55)}
+.book-hero-card .featured-gold-play{border-radius:8px;padding:5px 10px;font-size:10px;font-weight:900;background:rgba(8,19,31,.35);border-color:rgba(29,205,211,.32)}
+.book-hero-card .featured-gold-player{grid-column:1/-1}
+.goal-overview-dialog{padding:18px 16px 14px;border-color:rgba(29,205,211,.22);background:rgba(6,14,26,.985)}
+.goal-overview-icon{display:grid;place-items:center;margin:0 auto 8px;width:24px;height:24px;color:var(--accent);filter:drop-shadow(0 0 8px rgba(29,205,211,.45))}
+.goal-overview-dialog h2{font-size:22px;margin-top:0}
+.goal-overview-list{border:1px solid rgba(29,205,211,.12);border-radius:14px;background:rgba(12,22,38,.58);padding:10px;margin:12px 0 10px}
+.goal-overview-row{display:grid;grid-template-columns:52px 1fr 50px;gap:10px;align-items:center;padding:7px 0}
+.goal-overview-row+.goal-overview-row{border-top:1px solid rgba(122,187,218,.08);padding-top:12px;margin-top:4px}
+.goal-overview-icon-pill{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:rgba(29,205,211,.075);border:1px solid rgba(29,205,211,.13);color:var(--accent);overflow:hidden}
+.goal-overview-icon-pill svg{width:24px!important;height:24px!important;filter:none!important}
+.goal-overview-info{min-width:0;display:grid;gap:5px}
+.goal-overview-title{font-size:13px;font-weight:900;color:var(--text);line-height:1.05}
+.goal-overview-sub{font-size:11px;color:rgba(217,229,239,.68);font-weight:700}
+.goal-overview-msg{display:flex;align-items:center;gap:5px;color:var(--accent);font-size:10.5px;font-weight:800;margin-top:2px}
+.goal-overview-msg::before{content:"♡";font-size:12px;line-height:1}
+.goal-overview-bar{height:5px;background:rgba(255,255,255,.07);border-radius:999px;overflow:hidden}
+.goal-overview-fill{height:100%;border-radius:inherit;background:linear-gradient(90deg,var(--accent),var(--accent2));box-shadow:0 0 10px rgba(29,205,211,.35)}
+.goal-overview-ring{width:46px;height:46px;filter:drop-shadow(0 0 8px rgba(29,205,211,.18))}
+.goal-overview-ring .ring-bg{stroke:rgba(217,229,239,.16)}
+.goal-overview-ring .ring-fill{stroke:var(--accent);filter:drop-shadow(0 0 6px rgba(29,205,211,.45))}
+.goal-overview-ring text{font-size:10px;font-weight:900;fill:var(--accent)}
+.goal-overview-actions{display:grid;grid-template-columns:1fr 1.05fr;gap:10px;margin-top:8px}
+.goal-overview-actions .dialog-btn{margin-top:0}
+.goal-overview-actions .dialog-btn.primary{background:linear-gradient(135deg,var(--accent),var(--accent2));border-color:transparent;color:#061018;box-shadow:0 0 18px rgba(29,205,211,.25)}
+@media(max-width:420px){.book-hero-main{grid-template-columns:132px 1fr;gap:12px}.book-hero-card .featured-cover{width:132px}.book-hero-card{padding:12px}.book-hero-card .featured-title{font-size:24px}.goals-strip{padding:9px 10px}.goals-strip-items{gap:12px}.goal-overview-dialog{width:min(94vw,400px)}}
+@media(min-width:700px){.book-hero-main{grid-template-columns:170px 1fr;gap:20px}.book-hero-card .featured-cover{width:170px}}
+
+
+/* === Journey comment readability + delete comments === */
+#journeyEntries .event{padding:12px 12px;margin-bottom:10px;border-radius:14px;background:rgba(255,255,255,.035);border-color:rgba(29,205,211,.12)}
+#journeyEntries .event-date{font-size:12px;line-height:1.25;margin-bottom:6px}
+#journeyEntries .event-quote{font-size:16px!important;line-height:1.35!important;margin-bottom:10px;color:rgba(238,246,255,.92)!important}
+#journeyEntries .reactions{display:grid;gap:8px;margin-top:8px}
+#journeyEntries .react{width:100%;display:flex;align-items:flex-start;justify-content:space-between;gap:9px;padding:9px 10px;border-radius:13px;font-size:13.5px;line-height:1.35;color:rgba(238,246,255,.88);background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.075)}
+#journeyEntries .react-text{flex:1;min-width:0;overflow-wrap:anywhere}
+#journeyEntries .react-delete{width:24px;height:24px;flex:0 0 24px;border-radius:999px;border:1px solid rgba(255,107,107,.24);background:rgba(255,107,107,.08);color:rgba(255,145,145,.9);display:grid;place-items:center;font-size:15px;font-weight:900;line-height:1;cursor:pointer;opacity:.78}
+#journeyEntries .react-delete:active{transform:scale(.94);opacity:1;background:rgba(255,107,107,.16)}
+@media(max-width:420px){#journeyEntries .react{font-size:13px;padding:8px 9px}#journeyEntries .event-quote{font-size:15px!important}}
+
+
+
+/* === Final hero/audio refinements: pill above cover + custom gold player === */
+.hero-cover-stack{display:grid;gap:8px;align-content:start;justify-items:start;min-width:0}
+.hero-cover-stack .featured-badge{margin:0;justify-self:start}
+.book-hero-card .featured-cover{grid-column:auto;grid-row:auto}
+.book-hero-card .featured-meta{display:flex;flex-direction:column;min-width:0}
+.book-hero-card .featured-badge{margin:0;width:max-content;padding:4px 8px;border-radius:999px;font-size:10px;line-height:1}
+.hero-gold-card{width:100%;text-align:left;cursor:pointer;appearance:none;-webkit-appearance:none;color:inherit;font:inherit}
+.book-hero-card .featured-gold.hero-gold-card{margin-top:8px;display:block;padding:9px 10px;border-radius:11px;background:rgba(29,205,211,.055);border:1px solid rgba(29,205,211,.14);transition:border-color .16s ease,box-shadow .16s ease,background .16s ease,transform .12s ease}
+.book-hero-card .featured-gold.hero-gold-card:active{transform:scale(.985);border-color:rgba(29,205,211,.34);background:rgba(29,205,211,.075)}
+.book-hero-card .featured-gold.hero-gold-card.is-playing{border-color:rgba(29,205,211,.42);box-shadow:0 0 18px rgba(29,205,211,.12)}
+.hero-gold-state{width:28px;height:28px;border-radius:999px;display:grid;place-items:center;flex:0 0 28px;color:#061018;background:linear-gradient(135deg,var(--accent),var(--accent2));font-size:11px;font-weight:900;line-height:1;box-shadow:0 0 16px rgba(29,205,211,.25)}
+.hero-gold-progress{height:3px;margin-top:8px;border-radius:999px;background:rgba(255,255,255,.08);overflow:hidden}
+.hero-gold-progress span{display:block;width:0;height:100%;border-radius:inherit;background:linear-gradient(90deg,var(--accent),var(--accent2));box-shadow:0 0 10px rgba(29,205,211,.45);transition:width .12s linear}
+@media(max-width:420px){
+  .book-hero-main{grid-template-columns:132px minmax(0,1fr);gap:12px;align-items:start}
+  .hero-cover-stack{gap:7px}
+  .hero-cover-stack .featured-badge{font-size:10px;padding:4px 8px}
+  .book-hero-card .featured-gold.hero-gold-card{margin-top:8px;padding:9px}
+  .hero-gold-state{width:26px;height:26px;flex-basis:26px;font-size:10px}
+}
+
+
+/* === Custom audio player fixes === */
+.custom-gold-player{margin-top:7px}
+.custom-gold-progress{height:4px;border-radius:999px;background:rgba(255,255,255,.09);overflow:hidden}
+.custom-gold-fill{display:block;width:0;height:100%;border-radius:inherit;background:linear-gradient(90deg,var(--accent),var(--accent2));box-shadow:0 0 10px rgba(29,205,211,.55);transition:width .12s linear}
+.featured-gold-play.is-playing{background:rgba(29,205,211,.16);border-color:rgba(29,205,211,.52);color:#dffbff;box-shadow:0 0 14px rgba(29,205,211,.14)}
+.hero-gold-card{touch-action:manipulation}
+
+/* ════════ ADD-MODAL v2 (texti-flæði) ════════ */
+.add-stepper{display:flex;align-items:center;justify-content:center;gap:6px;margin:-4px 0 14px;padding:0 8px}
+.add-step{display:flex;align-items:center;gap:6px;font-size:10px;font-weight:800;letter-spacing:.4px;text-transform:uppercase}
+.add-step-dot{width:22px;height:22px;border-radius:50%;background:rgba(255,255,255,.04);border:1px solid var(--line);color:var(--soft);display:grid;place-items:center;font-size:11px;font-weight:800;transition:all .25s}
+.add-step.active .add-step-dot{background:var(--accent-dim);border-color:var(--accent);color:var(--accent);box-shadow:0 0 16px var(--accent-glow)}
+.add-step.done .add-step-dot{background:var(--accent);border-color:var(--accent);color:var(--bg)}
+.add-step-name{color:var(--soft);transition:color .25s}
+.add-step.active .add-step-name{color:var(--accent)}
+.add-step.done .add-step-name{color:var(--text)}
+.add-step-sep{width:18px;height:1px;background:var(--line);align-self:center}
+.add-step-sep.done{background:var(--accent)}
+@media(max-width:380px){.add-step-name{display:none}}
+
+.analysis-preview{background:linear-gradient(180deg,rgba(29,205,211,.07),rgba(29,205,211,.02));border:1px solid rgba(29,205,211,.22);border-radius:14px;padding:14px;margin:12px 0}
+.analysis-preview-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.analysis-preview-label{font-size:10px;font-weight:800;color:var(--soft);text-transform:uppercase;letter-spacing:.6px}
+.analysis-confidence{font-size:9px;font-weight:700;padding:2px 8px;border-radius:99px;letter-spacing:.4px;text-transform:uppercase}
+.analysis-confidence.high{background:rgba(80,200,120,.12);color:#7ec88f;border:1px solid rgba(80,200,120,.25)}
+.analysis-confidence.medium{background:rgba(29,205,211,.1);color:var(--accent);border:1px solid rgba(29,205,211,.25)}
+.analysis-confidence.low{background:rgba(255,180,0,.1);color:#f0c060;border:1px solid rgba(255,180,0,.25)}
+.analysis-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.analysis-cell{background:rgba(7,16,30,.55);border:1px solid var(--line);border-radius:10px;padding:10px}
+.analysis-cell-label{font-size:9px;font-weight:800;color:var(--soft);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}
+.analysis-cell-value{font-family:var(--serif);font-size:18px;line-height:1.1;color:var(--text);margin-bottom:2px}
+.analysis-cell-meta{font-size:10px;color:var(--soft)}
+.analysis-boundary{display:flex;gap:8px;align-items:flex-start;background:rgba(255,180,0,.06);border:1px solid rgba(255,180,0,.18);border-radius:10px;padding:9px 11px;margin-top:8px;font-size:11px;color:#f0c060;line-height:1.4}
+.analysis-boundary-icon{flex:0 0 auto;font-size:12px;margin-top:1px}
+.analysis-question{text-align:center;margin:14px 0 10px;font-size:13px;color:var(--text);font-weight:600}
+
+.confirm-actions{display:flex;flex-direction:column;gap:7px}
+.confirm-actions .dialog-btn{margin-top:0}
+.confirm-typical{background:rgba(29,205,211,.14);border-color:rgba(29,205,211,.45);color:#dffbff}
+.confirm-retake{background:transparent;border-color:var(--line);color:var(--soft);box-shadow:none}
+
+.page-preview-wrap{position:relative;border-radius:12px;overflow:hidden;border:1px solid var(--line);margin:10px 0;background:rgba(0,0,0,.25)}
+.page-preview-wrap img{width:100%;display:block;max-height:200px;object-fit:cover}
+.page-preview-spinner{position:absolute;inset:0;background:rgba(7,16,30,.78);display:none;align-items:center;justify-content:center;flex-direction:column;gap:8px}
+.page-preview-spinner.active{display:flex}
+.page-preview-spinner-ring{width:32px;height:32px;border:3px solid rgba(29,205,211,.18);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
+.page-preview-spinner-text{font-size:11px;color:var(--accent);font-weight:700;letter-spacing:.3px}
+
+.photo-advice{background:rgba(255,107,107,.07);border:1px solid rgba(255,107,107,.22);border-radius:10px;padding:10px 12px;margin:10px 0;font-size:12px;color:#f0a0a0;line-height:1.45}
+.info-card{background:rgba(7,16,30,.45);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:12px;font-size:11px;color:var(--soft);line-height:1.55}
+.info-card strong{color:var(--text);display:block;margin-bottom:4px}
+
+.add-done{text-align:center;padding:14px 0 6px}
+.add-done-check{width:64px;height:64px;margin:0 auto 12px;border-radius:50%;background:radial-gradient(circle at 50% 35%,rgba(29,205,211,.25),rgba(29,205,211,.05));border:1.5px solid var(--accent);display:grid;place-items:center;font-size:30px;color:var(--accent);box-shadow:0 0 30px var(--accent-glow)}
+.add-done-title{font-family:var(--serif);font-size:24px;margin-bottom:4px}
+.add-done-sub{font-size:12px;color:var(--soft);margin-bottom:14px}
+.add-done-summary{background:rgba(7,16,30,.55);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:14px;text-align:left;display:flex;gap:12px;align-items:center}
+.add-done-summary-cover{flex:0 0 auto;width:48px;height:64px;border-radius:6px;background:linear-gradient(140deg,var(--c1,#2b8f91),var(--c2,#0a2341));overflow:hidden}
+.add-done-summary-cover img{width:100%;height:100%;object-fit:cover}
+.add-done-summary-meta{flex:1;min-width:0}
+.add-done-summary-title{font-size:13px;font-weight:800;color:var(--text);margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.add-done-summary-author{font-size:11px;color:var(--soft);margin-bottom:6px}
+.add-done-summary-badges{display:flex;gap:5px;flex-wrap:wrap}
+.add-done-badge{font-size:9px;font-weight:800;padding:2px 7px;border-radius:99px;background:var(--accent-dim);color:var(--accent);border:1px solid var(--line)}
 </style>
 </head>
 <body>
@@ -1045,15 +1447,255 @@ body{font-family:'DM Sans','Manrope',-apple-system,BlinkMacSystemFont,sans-serif
 
 <!-- ═══════════════════════════════════════════
      SCREEN: BÓKAHILLA (bookshelf)
-     Placeholder — verður skipt út í Skrefi 3
      ═══════════════════════════════════════════ -->
-
 <main class="scr" data-child-screen="bookshelf" id="screen-child-bookshelf">
-  <div class="placeholder-screen">
-    <div class="icon">📚</div>
-    <h2>Bókahilla</h2>
-    <p>bookshelf.html kemur hingað í Skrefi 3</p>
+<div class="app">
+<header class="header" id="bsHeader">
+<div class="header-left"><div class="header-brand"><span class="header-brand-upp">Upp</span><span class="header-brand-hatt">Hátt</span></div><h1 class="header-title">Bókahillan mín</h1></div>
+<div class="header-right">
+<button class="header-edit" id="toggleEditBooks" aria-label="Breyta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4.2L18.8 9.4a2.2 2.2 0 0 0 0-3.1l-1.1-1.1a2.2 2.2 0 0 0-3.1 0L4 15.8V20Z"/><path d="M13.5 6.5l4 4"/></svg></button>
+<button class="header-avatar" id="openProfile" aria-label="Prófíll"><span id="navAvatar">KK</span></button>
+</div>
+</header>
+<div class="edit-bar" id="editBar" hidden><span id="editCount">0 valdar</span><div class="edit-bar-actions"><select id="editStateSelect" class="edit-state-select" disabled><option value="">Færa ↓</option><option value="reading">Að lesa</option><option value="shelf">Á hillu</option><option value="finished">Lokið</option></select><button id="editSelectedBook" class="edit-move" disabled>✎ Breyta</button><button id="deleteSelectedBooks" class="edit-danger" disabled>Eyða</button><button id="cancelEditBooks" class="edit-cancel">Hætta við</button></div></div>
+<section id="featuredCard"></section>
+<section class="section" id="readingSection" style="display:none"><div class="section-head"><h2 class="section-title">Að lesa</h2><span class="section-count" id="readingCount">0</span></div><div class="rail-wrap"><button class="rail-arrow rail-arrow-left" data-rail="readingGrid" data-dir="-1"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10 3L5 8l5 5"/></svg></button><div class="book-rail" id="readingGrid"></div><button class="rail-arrow rail-arrow-right" data-rail="readingGrid" data-dir="1"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 3l5 5-5 5"/></svg></button></div></section>
+<section class="section" id="shelfSection" style="display:none"><div class="section-head"><h2 class="section-title">Á hillunni</h2><span class="section-count" id="shelfCount">0</span></div><div class="rail-wrap"><button class="rail-arrow rail-arrow-left" data-rail="shelfGrid" data-dir="-1"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10 3L5 8l5 5"/></svg></button><div class="book-rail" id="shelfGrid"></div><button class="rail-arrow rail-arrow-right" data-rail="shelfGrid" data-dir="1"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 3l5 5-5 5"/></svg></button></div></section>
+<section class="section" id="finishedSection" style="display:none"><div class="section-head"><h2 class="section-title">Lokið</h2><span class="section-count" id="finishedCount">0</span></div><div class="rail-wrap"><button class="rail-arrow rail-arrow-left" data-rail="finishedGrid" data-dir="-1"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10 3L5 8l5 5"/></svg></button><div class="book-rail" id="finishedGrid"></div><button class="rail-arrow rail-arrow-right" data-rail="finishedGrid" data-dir="1"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 3l5 5-5 5"/></svg></button></div></section>
+</main>
+<!-- Hidden file input — triggered by Bók tab -->
+<input id="coverInput" type="file" accept="image/*" style="display:none">
+<input id="pageInput" type="file" accept="image/*" style="display:none">
+<div class="overlay" id="addModal"><section class="dialog">
+<button class="close" id="closeAdd" aria-label="Loka">×</button>
+
+<!-- Stepper -->
+<div class="add-stepper" id="addStepper">
+  <div class="add-step active" data-step="1">
+    <div class="add-step-dot">1</div>
+    <span class="add-step-name">Bók</span>
   </div>
+  <div class="add-step-sep"></div>
+  <div class="add-step" data-step="2">
+    <div class="add-step-dot">2</div>
+    <span class="add-step-name">Texti</span>
+  </div>
+  <div class="add-step-sep"></div>
+  <div class="add-step" data-step="3">
+    <div class="add-step-dot">3</div>
+    <span class="add-step-name">Lokið</span>
+  </div>
+</div>
+
+<!-- SKREF 1: Kápumynd + bóka-info -->
+<div id="addStep1">
+<h2>Ný bók</h2>
+<p class="dialog-sub" id="addStep1Sub">Taktu mynd af kápu — við finnum bókina sjálfkrafa</p>
+<button class="dialog-btn" id="takeCoverBtn" onclick="document.getElementById('coverInput').click()" style="margin-bottom:8px">📷 Taka mynd af kápu</button>
+<div class="preview-row" id="previewRow" style="display:none">
+<div class="preview-cover" style="position:relative">
+  <img id="previewImg" alt="">
+  <div id="coverSpinner" style="display:none;position:absolute;inset:0;background:rgba(7,16,30,.7);border-radius:8px;display:none;align-items:center;justify-content:center;flex-direction:column;gap:6px">
+    <div style="width:28px;height:28px;border:3px solid rgba(29,205,211,.2);border-top-color:var(--accent,#1dcdd3);border-radius:50%;animation:spin .8s linear infinite"></div>
+    <span style="font-size:10px;color:var(--accent,#1dcdd3);font-weight:500">Finn bókina…</span>
+  </div>
+</div>
+<div class="preview-info"><strong id="previewMeta"></strong></div>
+</div>
+<div class="field"><label>Nafn bókar *</label><input id="bookTitle" placeholder="t.d. Drekastormur"></div>
+<div class="field"><label>Höfundur</label><input id="bookAuthor" placeholder="valfrjálst"></div>
+<div class="field"><label>Blaðsíðufjöldi *</label><input id="bookPages" inputmode="numeric" placeholder="t.d. 120"></div>
+<div class="field"><label>Staða</label><select id="bookStatus"><option value="shelf">Á hillunni</option><option value="reading">Að lesa</option><option value="finished">Lokið</option></select></div>
+<button class="dialog-btn" id="continueToAnalysis">Halda áfram</button>
+<button class="dialog-btn secondary" id="backToCamera" style="display:none">📷 Breyta kápu</button>
+</div>
+
+<!-- SKREF 2: Meta texta -->
+<div id="addStep2" style="display:none">
+<h2>Meta texta</h2>
+<p class="dialog-sub">Taktu mynd af venjulegri textasíðu úr bókinni</p>
+
+<!-- 2a. Áður en mynd er tekin -->
+<div id="step2-take">
+  <div class="info-card">
+    <strong>Veldu dæmigerða síðu:</strong>
+    • Öll síðan sést<br>
+    • Textinn er skýr<br>
+    • Ekki forsíðu, myndasíðu eða kaflaheiti
+  </div>
+  <button class="dialog-btn" id="takePagePhotoBtn" onclick="document.getElementById('pageInput').click()">📷 Taka mynd af síðu</button>
+  <button class="dialog-btn secondary" id="skipPagePhotoBtn">Sleppa — vista bók án textamats</button>
+</div>
+
+<!-- 2b. Á meðan greining er í gangi -->
+<div id="step2-processing" style="display:none">
+  <div class="page-preview-wrap">
+    <img id="pagePreviewImg" alt="">
+    <div class="page-preview-spinner active">
+      <div class="page-preview-spinner-ring"></div>
+      <span class="page-preview-spinner-text">Met texta…</span>
+    </div>
+  </div>
+</div>
+
+<!-- 2c. Niðurstaða — TVEIR takkar -->
+<div id="step2-result" style="display:none">
+  <div class="page-preview-wrap">
+    <img id="pagePreviewImgResult" alt="">
+  </div>
+
+  <div class="analysis-preview">
+    <div class="analysis-preview-header">
+      <span class="analysis-preview-label">Forskoðun</span>
+      <span class="analysis-confidence" id="analysisConfidence"></span>
+    </div>
+    <div class="analysis-grid">
+      <div class="analysis-cell">
+        <div class="analysis-cell-label">Texti</div>
+        <div class="analysis-cell-value" id="analysisLoadLabel">—</div>
+        <div class="analysis-cell-meta" id="analysisLoadMeta">—</div>
+      </div>
+      <div class="analysis-cell">
+        <div class="analysis-cell-label">Umfang</div>
+        <div class="analysis-cell-value" id="analysisScopeLabel">—</div>
+        <div class="analysis-cell-meta" id="analysisScopeMeta">—</div>
+      </div>
+    </div>
+    <div class="analysis-boundary" id="analysisBoundary" style="display:none">
+      <span class="analysis-boundary-icon">⚠</span>
+      <span>Bókin er nálægt mörkum tveggja flokka.</span>
+    </div>
+  </div>
+
+  <div class="analysis-question">Virðist þetta vera dæmigerð síða í bókinni?</div>
+
+  <div class="confirm-actions">
+    <button class="dialog-btn confirm-typical" id="confirmTypical">✓ Já, þetta passar</button>
+    <button class="dialog-btn confirm-retake" id="confirmRetake">📷 Taka aðra mynd</button>
+  </div>
+</div>
+
+<!-- 2d. Villuskilaboð -->
+<div id="step2-error" style="display:none">
+  <div class="page-preview-wrap" id="step2ErrorPreviewWrap" style="display:none">
+    <img id="pagePreviewImgError" alt="">
+  </div>
+  <div class="photo-advice" id="photoAdviceText"></div>
+  <button class="dialog-btn" id="errorRetakeBtn" onclick="document.getElementById('pageInput').click()">📷 Taka aðra mynd</button>
+  <button class="dialog-btn secondary" id="errorSkipBtn">Sleppa — vista án textamats</button>
+</div>
+</div>
+
+<!-- SKREF 3: Lokið -->
+<div id="addStep3" style="display:none">
+<div class="add-done">
+  <div class="add-done-check">✓</div>
+  <div class="add-done-title">Bókin er vistuð!</div>
+  <div class="add-done-sub" id="addDoneSub">Komin í hilluna þína.</div>
+
+  <div class="add-done-summary" id="addDoneSummary" style="display:none">
+    <div class="add-done-summary-cover" id="addDoneSummaryCover"></div>
+    <div class="add-done-summary-meta">
+      <div class="add-done-summary-title" id="addDoneSummaryTitle"></div>
+      <div class="add-done-summary-author" id="addDoneSummaryAuthor"></div>
+      <div class="add-done-summary-badges" id="addDoneSummaryBadges"></div>
+    </div>
+  </div>
+
+  <button class="dialog-btn" id="addAnotherBook">+ Bæta við annarri bók</button>
+  <button class="dialog-btn secondary" id="goToBookshelf">Fara í hillu</button>
+</div>
+</div>
+
+</section></div>
+<div class="overlay" id="journeyModal"><section class="dialog" style="padding:0;overflow:hidden">
+<button class="close" id="closeJourney" style="position:absolute;top:12px;right:12px;z-index:2">×</button>
+
+<!-- Bókahero -->
+<div id="jm-hero" style="display:flex;gap:12px;padding:20px 16px 14px;background:rgba(13,24,42,.98);border-bottom:1px solid rgba(29,205,211,.1)">
+  <div id="jm-cover" style="flex:0 0 72px;width:72px;height:100px;border-radius:8px;overflow:hidden;background:linear-gradient(145deg,#2b8f91,#0a2341);display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:700;color:rgba(255,255,255,.9)"></div>
+  <div style="flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;gap:4px">
+    <div id="jm-title" style="font-size:16px;font-weight:700;color:#e4edf5;line-height:1.2"></div>
+    <div id="jm-author" style="font-size:12px;color:#5a7088"></div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px">
+      <span id="jm-status-chip" style="font-size:9px;font-weight:800;padding:2px 8px;border-radius:99px;background:rgba(29,205,211,.1);border:1px solid rgba(29,205,211,.25);color:#1dcdd3"></span>
+      <span id="jm-rl-chip" style="font-size:9px;font-weight:800;padding:2px 8px;border-radius:99px;background:rgba(29,205,211,.1);border:1px solid rgba(29,205,211,.25);color:#1dcdd3;display:none"></span>
+    </div>
+    <div id="jm-stats" style="display:none;margin-top:6px;font-size:10px;color:#7a8fa0;line-height:1.4"></div>
+    <div id="jm-prog-row" style="display:none;margin-top:6px">
+      <div style="display:flex;align-items:center;gap:6px">
+        <div style="flex:1;height:4px;border-radius:99px;background:rgba(148,164,180,.1);overflow:hidden">
+          <div id="jm-prog-fill" style="height:100%;border-radius:inherit;background:#1dcdd3;transition:width .3s"></div>
+        </div>
+        <span id="jm-pct" style="font-size:10px;font-weight:700;color:#1dcdd3"></span>
+      </div>
+      <div id="jm-pages" style="font-size:11px;color:#5a7088;margin-top:3px"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Takkar -->
+<div id="jm-actions" style="display:none;padding:10px 16px;border-bottom:1px solid rgba(29,205,211,.08)">
+  <button class="dialog-btn" id="jm-btn-read" style="width:100%;padding:8px;font-size:12px" onclick="jmStartReading()">Byrja að lesa</button>
+</div>
+
+<!-- Ferðalagsfærslur -->
+<div style="padding:12px 16px 6px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:#7a8fa0">Lestrarferðalag</div>
+<div class="entry" id="journeyEntries" style="padding:0 16px 16px;max-height:260px;overflow-y:auto"></div>
+
+<div style="padding:0 16px 16px">
+  <button class="dialog-btn secondary" id="closeJourney2" style="width:100%">Loka</button>
+</div>
+</section></div>
+<div class="overlay" id="profileModal"><section class="dialog" style="text-align:center"><button class="close" id="closeProfile">×</button><div class="child-initials" id="profileInitials" style="width:64px;height:64px;margin:5px auto 12px;font-size:20px">KK</div><h2 id="profileName">Barn</h2><p class="dialog-sub">Bókahillan mín</p><div class="card" style="padding:14px;text-align:left;margin-bottom:14px" id="lastReadCard"></div><p class="dialog-sub" style="margin-bottom:8px">Deila síðasta lestri?</p><button class="dialog-btn" id="shareLastReading">Deila</button><button class="dialog-btn secondary" id="closeProfile2">Loka</button><div class="share-result" id="shareResult">Tilbúið — tengjum push seinna.</div></section></div>
+<div class="overlay" id="editBookModal"><section class="dialog"><button class="close" id="closeEditBook">×</button><h2>Breyta bók</h2><p class="dialog-sub" id="editBookSub">Laga titil, höfund eða blaðsíðufjölda.</p><div class="edit-modal-form"><div><label class="edit-modal-label" for="editBookTitle">Titill</label><input class="edit-modal-input" type="text" id="editBookTitle" placeholder="Titill bókar"></div><div><label class="edit-modal-label" for="editBookAuthor">Höfundur</label><input class="edit-modal-input" type="text" id="editBookAuthor" placeholder="Höfundur"></div><div class="edit-modal-row"><div><label class="edit-modal-label" for="editBookPages">Blaðsíður</label><input class="edit-modal-input" type="number" id="editBookPages" placeholder="120" inputmode="numeric"></div><div><label class="edit-modal-label" for="editBookStatus">Staða</label><select class="edit-modal-input" id="editBookStatus"><option value="shelf">Á hillu</option><option value="reading">Að lesa</option><option value="finished">Lokið</option></select></div></div><button class="edit-modal-save" id="saveEditBook">Vista breytingar</button></div></section></div>
+<div class="overlay" id="deleteBooksModal"><section class="dialog delete-warning"><button class="close" id="closeDeleteBooks">×</button><div class="delete-warning-icon">!</div><h2>Eyða bókum?</h2><p class="delete-warning-copy">Þetta eyðir öllu.<span class="delete-book-name" id="deleteBooksName"></span></p><p class="delete-warning-copy">Ertu viss?</p><button class="dialog-btn delete-confirm" id="confirmDeleteBooks">Eyða</button><button class="dialog-btn secondary" id="cancelDeleteBooks">Hætta við</button></section></div>
+
+<div class="overlay" id="goalOverviewModal"><section class="dialog goal-overview-dialog">
+<button class="close" id="closeGoalOverview">×</button>
+<div class="goal-overview-icon">◎</div>
+<h2>Markmið mánaðarins</h2>
+<p class="dialog-sub">Staðan í þessum mánuði</p>
+<div class="goal-overview-list" id="goalOverviewList"></div>
+<div class="goal-overview-actions">
+<button class="dialog-btn secondary" id="closeGoalOverview2">Loka</button>
+<button class="dialog-btn primary" id="editGoalsFromOverview">◎ Breyta markmiði</button>
+</div>
+</section></div>
+
+<div class="overlay" id="goalModal"><section class="dialog">
+<button class="close" id="closeGoal">×</button>
+<h2>Markmið</h2>
+<p class="dialog-sub">Settu þér markmið og fylgstu með</p>
+
+<div id="goalCurrentWrap"></div>
+
+<div id="goalEditor">
+<div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--text);margin-bottom:8px">Tegund</div>
+<div class="goal-type-grid" id="goalTypeGrid">
+<button class="goal-type-card selected" data-goal-type="books"><div class="goal-type-icon"><svg width="28" height="28" viewBox="0 0 44 44" fill="none"><rect x="14" y="10" width="18" height="23" rx="3" fill="rgba(29,205,211,0.35)" stroke="#1dcdd3" stroke-width="1.2"/><rect x="11" y="12" width="18" height="23" rx="3" fill="#1dcdd3"/><line x1="16" y1="12" x2="16" y2="35" stroke="#050f1a" stroke-width="1.8" stroke-opacity="0.5"/><line x1="19" y1="18" x2="26" y2="18" stroke="#050f1a" stroke-width="1.3" stroke-opacity="0.45"/><line x1="19" y1="22" x2="26" y2="22" stroke="#050f1a" stroke-width="1.3" stroke-opacity="0.45"/><line x1="19" y1="26" x2="24" y2="26" stroke="#050f1a" stroke-width="1.3" stroke-opacity="0.45"/><path d="M27 10 L27 17 L24.5 15 L22 17 L22 10 Z" fill="rgba(5,15,26,0.6)"/></svg></div><div class="goal-type-name">Bækur</div><div class="goal-type-desc">Kláraðar bækur</div></button>
+<button class="goal-type-card" data-goal-type="pages"><div class="goal-type-icon"><svg width="28" height="28" viewBox="0 0 44 44" fill="none"><path d="M12 9 L28 9 L32 13 L32 36 L12 36 Z" fill="none" stroke="#1dcdd3" stroke-width="1.8" stroke-linejoin="round"/><path d="M28 9 L28 13 L32 13" fill="none" stroke="#1dcdd3" stroke-width="1.8" stroke-linejoin="round"/><line x1="16" y1="19" x2="28" y2="19" stroke="#1dcdd3" stroke-width="1.6" stroke-linecap="round"/><line x1="16" y1="23.5" x2="28" y2="23.5" stroke="#1dcdd3" stroke-width="1.6" stroke-linecap="round"/><line x1="16" y1="28" x2="23" y2="28" stroke="#1dcdd3" stroke-width="1.6" stroke-linecap="round"/></svg></div><div class="goal-type-name">Blaðsíður</div><div class="goal-type-desc">Lesnar blaðsíður</div></button>
+<button class="goal-type-card" data-goal-type="minutes"><div class="goal-type-icon"><svg width="28" height="28" viewBox="0 0 44 44" fill="none"><circle cx="22" cy="22" r="13" fill="none" stroke="#1dcdd3" stroke-width="1.8"/><path d="M22 9 A13 13 0 0 1 33.26 28.5" fill="none" stroke="#1dcdd3" stroke-width="3" stroke-linecap="round" opacity="0.35"/><line x1="22" y1="22" x2="22" y2="14" stroke="#1dcdd3" stroke-width="2" stroke-linecap="round"/><line x1="22" y1="22" x2="28" y2="26" stroke="#1dcdd3" stroke-width="1.6" stroke-linecap="round"/><circle cx="22" cy="22" r="2" fill="#1dcdd3"/></svg></div><div class="goal-type-name">Mínútur</div><div class="goal-type-desc">Lestartími</div></button>
+<button class="goal-type-card" data-goal-type="days"><div class="goal-type-icon"><svg width="28" height="28" viewBox="0 0 44 44" fill="none"><rect x="9" y="13" width="26" height="22" rx="3.5" fill="none" stroke="#1dcdd3" stroke-width="1.8"/><rect x="9" y="13" width="26" height="7.5" rx="3.5" fill="#1dcdd3" opacity="0.9"/><rect x="9" y="17" width="26" height="3.5" fill="#1dcdd3" opacity="0.9"/><line x1="15" y1="10" x2="15" y2="15" stroke="#1dcdd3" stroke-width="2" stroke-linecap="round"/><line x1="29" y1="10" x2="29" y2="15" stroke="#1dcdd3" stroke-width="2" stroke-linecap="round"/><circle cx="15" cy="27" r="2.5" fill="#1dcdd3"/><circle cx="22" cy="27" r="2.5" fill="#1dcdd3"/><circle cx="29" cy="27" r="2.5" fill="#1dcdd3"/><circle cx="15" cy="33.5" r="2.5" fill="#1dcdd3"/><circle cx="22" cy="33.5" r="2.5" fill="none" stroke="#1dcdd3" stroke-width="1.4" opacity="0.4"/><circle cx="29" cy="33.5" r="2.5" fill="none" stroke="#1dcdd3" stroke-width="1.4" opacity="0.4"/></svg></div><div class="goal-type-name">Dagar</div><div class="goal-type-desc">Dagar í röð</div></button>
+</div>
+
+<div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--text);margin-bottom:8px">Tímabil</div>
+<div class="goal-period-toggle" id="goalPeriodToggle">
+<button class="goal-period-btn selected" data-goal-period="week">Á viku</button>
+<button class="goal-period-btn" data-goal-period="month">Á mánuði</button>
+</div>
+
+<div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--text);margin-bottom:8px" id="goalTargetLabel">Hversu margar bækur?</div>
+<div class="goal-presets" id="goalPresets"></div>
+<div class="field"><input id="goalTargetInput" inputmode="numeric" placeholder="t.d. 5" style="text-align:center;font-size:18px;font-weight:800"></div>
+
+<button class="dialog-btn" id="saveGoalBtn">Vista markmið</button>
+<div id="goalSaveResult" style="display:none;margin-top:8px;text-align:center;font-size:12px;font-weight:700;color:var(--accent)"></div>
+</div>
+
+<button class="dialog-btn secondary" id="closeGoal2" style="margin-top:8px">Loka</button>
+</section></div>
+</div>
 </main>
 
 
@@ -1088,9 +1730,8 @@ body{font-family:'DM Sans','Manrope',-apple-system,BlinkMacSystemFont,sans-serif
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4h8v5a4 4 0 0 1-8 0z"/><path d="M16 6h3v2a4 4 0 0 1-4 4"/><path d="M8 6H5v2a4 4 0 0 0 4 4"/><path d="M12 13v5"/><path d="M8 21h8"/></svg>
     Árangur
   </button>
-  <button class="child-nav-tab" type="button" data-nav="add-book">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5Z"/><path d="M12 8v8M8 12h8" stroke-width="1.6"/></svg>
-    Ný bók
+  <button class="child-nav-context" type="button" id="navContextBtn" data-nav="context">
+    <span id="navContextLabel">Velja bók</span>
   </button>
 </nav>
 
@@ -1159,15 +1800,32 @@ function getChildSession() {
 }
 
 let currentScreen = 'read';
+const contextLabels = { read: 'Velja bók', bookshelf: '+ Ný bók', arangur: 'Markmið' };
+
 function go(tab) {
-  if (tab === 'add-book') {
-    go('bookshelf');
-    // TODO: opna add-book modal þegar bookshelf er flutt inn
+  if (tab === 'context') {
+    // Context button pressed — trigger action based on current screen
+    if (currentScreen === 'read') {
+      // Open book picker modal (child-v2)
+      const modal = document.getElementById('child-reading-modal');
+      if (modal) { modal.classList.add('open'); modal.setAttribute('aria-hidden','false'); }
+    } else if (currentScreen === 'bookshelf') {
+      // Open add book (bookshelf) — TODO: wire up in Skref 3
+      const addOverlay = document.getElementById('addBookOverlay');
+      if (addOverlay) addOverlay.style.display = 'grid';
+    } else if (currentScreen === 'arangur') {
+      // Open goal modal (arangur) — TODO: wire up in Skref 4
+      const goalModal = document.getElementById('goalOverlay');
+      if (goalModal) goalModal.style.display = 'grid';
+    }
     return;
   }
   currentScreen = tab;
   document.querySelectorAll('[data-nav]').forEach(b => b.classList.toggle('on', b.dataset.nav === tab));
   document.querySelectorAll('[data-child-screen]').forEach(s => s.classList.toggle('on', s.dataset.childScreen === tab));
+  // Update context button label
+  const ctxLabel = document.getElementById('navContextLabel');
+  if (ctxLabel) ctxLabel.textContent = contextLabels[tab] || '';
   window.scrollTo(0, 0);
 }
 
@@ -2749,6 +3407,1549 @@ window._child = { auth, db, storage, functions, CS, ensureAuth, getChildSession,
 
 </script>
 
+
+<!-- ═══════════════════════════════════════════
+     SCRIPT: BOOKSHELF (module)
+     Notar window._child.{auth,db,storage,functions}
+     ═══════════════════════════════════════════ -->
+
+<script type="module">
+import{collection,addDoc,doc,deleteDoc,setDoc,onSnapshot,query,where,serverTimestamp,updateDoc}from'https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js';
+import{ref as storageRef,getDownloadURL,uploadBytes}from'https://www.gstatic.com/firebasejs/12.11.0/firebase-storage.js';
+import{getFunctions,httpsCallable}from'https://www.gstatic.com/firebasejs/12.11.0/firebase-functions.js';
+
+const {auth,db,storage:bsStorage,functions,ensureAuth}=window._child;
+
+
+// Audio URL cache (15 min TTL)
+const _bsAudioCache={};
+async function _getCachedAudioUrl(path){
+  if(!path)return null;
+  const now=Date.now();
+  if(_bsAudioCache[path]&&_bsAudioCache[path].exp>now)return _bsAudioCache[path].url;
+  try{const url=await getDownloadURL(storageRef(bsStorage,path));_bsAudioCache[path]={url,exp:now+15*60000};return url}
+  catch(e){console.warn('Audio fetch fail:',e);return null}
+}
+
+function getChildSession(){try{const r=localStorage.getItem('upphatt_child');if(!r)return null;const d=JSON.parse(r);return d&&d.familyId&&d.childKey&&d.childName?d:null}catch(e){return null}}
+function getViewerSession(){try{const p=new URLSearchParams(window.location.search);const fid=p.get('family'),ck=p.get('child');const cn=p.get('name')||ck;const isParent=p.has('parent')||document.referrer.includes('index.html')||document.referrer.endsWith('/');if(fid&&ck)return{familyId:fid,childKey:ck,childName:cn,_viewer:!isParent,_parent:isParent};return null}catch(e){return null}}
+const CS=getViewerSession()||getChildSession();
+const viewerMode=!!CS?._viewer;
+const previewMode=!CS;
+const FID=CS?.familyId||'PREVIEW',CK=CS?.childKey||'preview',CN=CS?.childName||'Lesandi';
+{const ini=CN.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);document.getElementById('navAvatar').textContent=ini;document.getElementById('profileInitials').textContent=ini;document.getElementById('profileName').textContent=CN}
+
+// ── Viewer mode: hide edit/add/delete UI ──
+if(viewerMode){
+  const editBtn=document.getElementById('toggleEditBooks');if(editBtn)editBtn.style.display='none';
+  const addBtn=document.getElementById('openAdd');if(addBtn)addBtn.style.display='none';
+  document.querySelector('.header-title').textContent='Bókasafn '+CN;
+}
+
+const IDB='upphatt_covers',IDS='covers';let _idb=null;
+function odb(){return new Promise(r=>{if(_idb){r(_idb);return}const q=indexedDB.open(IDB,1);q.onupgradeneeded=()=>q.result.createObjectStore(IDS);q.onsuccess=()=>{_idb=q.result;r(_idb)};q.onerror=()=>r(null)})}
+async function cacheC(id,d){try{const x=await odb();if(x)x.transaction(IDS,'readwrite').objectStore(IDS).put(d,id)}catch(e){}}
+async function getC(id){try{const x=await odb();if(!x)return null;return new Promise(r=>{const q=x.transaction(IDS,'readonly').objectStore(IDS).get(id);q.onsuccess=()=>r(q.result||null);q.onerror=()=>r(null)})}catch(e){return null}}
+async function delC(id){try{const x=await odb();if(x)x.transaction(IDS,'readwrite').objectStore(IDS).delete(id)}catch(e){}}
+
+// ── Local cover cache helpers ──
+function isDataImg(s){return typeof s==='string'&&s.startsWith('data:image/')}
+
+// Migration tracking — never retry same book twice in a session
+const _migrating=new Set();
+const _migrateFailed=new Set();
+
+// Throttled migration queue — max 2 concurrent canvas conversions
+const _migrateQueue=[];
+let _migrateRunning=0;
+const _MIGRATE_MAX=2;
+
+function _runMigrateQueue(){
+  while(_migrateRunning<_MIGRATE_MAX&&_migrateQueue.length){
+    const job=_migrateQueue.shift();
+    _migrateRunning++;
+    job().finally(()=>{_migrateRunning--;_runMigrateQueue()});
+  }
+}
+
+function queueMigrate(bookId,src){
+  if(_migrating.has(bookId)||_migrateFailed.has(bookId))return;
+  _migrating.add(bookId);
+  _migrateQueue.push(async()=>{
+    const local=await makeLocalThumb(src);
+    if(local&&isDataImg(local)){
+      cc[bookId]=local;
+      await cacheC(bookId,local);
+      render();
+    }else{
+      _migrateFailed.add(bookId);
+    }
+    _migrating.delete(bookId);
+  });
+  _runMigrateQueue();
+}
+
+function makeLocalThumb(src){
+  return new Promise(ok=>{
+    const img=new Image();
+    img.crossOrigin='anonymous';
+    img.onload=()=>{
+      try{
+        const tw=180,th=270,sr=img.naturalWidth/img.naturalHeight,tr=tw/th;
+        let sx=0,sy=0,sw=img.naturalWidth,sh=img.naturalHeight;
+        if(sr>tr){sw=img.naturalHeight*tr;sx=(img.naturalWidth-sw)/2}
+        else{sh=img.naturalWidth/tr;sy=(img.naturalHeight-sh)/2}
+        const c=document.createElement('canvas');c.width=tw;c.height=th;
+        const ctx=c.getContext('2d');ctx.imageSmoothingQuality='high';
+        ctx.drawImage(img,sx,sy,sw,sh,0,0,tw,th);
+        ok(c.toDataURL('image/webp',0.70));
+      }catch(e){ok(null)}
+    };
+    img.onerror=()=>ok(null);
+    img.src=src;
+  });
+}
+
+async function ensureLocalCover(b){
+  if(!b||!b.id||b._demo)return null;
+  // Already have data:image in memory — done
+  if(cc[b.id]&&isDataImg(cc[b.id]))return cc[b.id];
+  // Check IndexedDB for local thumbnail
+  const cached=await getC(b.id);
+  if(cached&&isDataImg(cached)){cc[b.id]=cached;return cached}
+  // Have remote URL cached — use it now, queue background migration
+  if(cached){
+    cc[b.id]=cached;
+    queueMigrate(b.id,b.coverUrl||cached);
+    return cached;
+  }
+  // Have base64 in Firestore doc — use and cache it
+  if(b.coverBase64&&isDataImg(b.coverBase64)){
+    cc[b.id]=b.coverBase64;cacheC(b.id,b.coverBase64);return b.coverBase64;
+  }
+  // Have coverUrl but no cache — use URL now, queue background migration
+  if(b.coverUrl){
+    cc[b.id]=b.coverUrl;
+    queueMigrate(b.id,b.coverUrl);
+    return b.coverUrl;
+  }
+  return null;
+}
+
+// ── PERF: Preload ALL cached covers from IndexedDB into memory.
+// Runs in parallel with auth so cc{} is warm when Firestore data arrives.
+// Eliminates the placeholder→cover "flash" on bookshelf open.
+async function preloadAllCovers(){
+  try{
+    const x=await odb();
+    if(!x)return;
+    const tx=x.transaction(IDS,'readonly').objectStore(IDS);
+    // Open cursor to walk all entries
+    await new Promise(resolve=>{
+      const req=tx.openCursor();
+      req.onsuccess=(e)=>{
+        const cur=e.target.result;
+        if(cur){
+          if(isDataImg(cur.value))cc[cur.key]=cur.value;
+          cur.continue();
+        }else resolve();
+      };
+      req.onerror=()=>resolve();
+    });
+  }catch(e){/* silent — render will fall back to placeholder */}
+}
+
+// ── Cover upload to Firebase Storage ──
+function base64ToBlob(b64){
+  const parts=b64.split(',');if(parts.length<2)return null;
+  const mimeMatch=parts[0].match(/data:([^;]+)/);
+  const mime=mimeMatch?mimeMatch[1]:'image/webp';
+  const bin=atob(parts[1]);const arr=new Uint8Array(bin.length);
+  for(let i=0;i<bin.length;i++)arr[i]=bin.charCodeAt(i);
+  return new Blob([arr],{type:mime});
+}
+async function uploadCover(bookId,b64){
+  try{
+    const blob=base64ToBlob(b64);if(!blob)return null;
+    const path='covers/'+FID+'/'+CK+'/'+bookId+'.webp';
+    const sRef=storageRef(bsStorage,path);
+    await uploadBytes(sRef,blob,{contentType:blob.type});
+    const url=await getDownloadURL(sRef);
+    return url;
+  }catch(e){console.warn('Cover upload failed:',e);return null}
+}
+
+let books=[],cc={},curCov=null,curCovHQ=null,selBookId=null,editMode=false,selIds=new Set(),saving=false,unsub=null;
+let pendingCoverUrl=null,pendingCoverGsPath=null;
+let _booksLoaded=false;
+let demoDismissed=false;
+const DEMO_KEY='upphatt_bookshelf_demo_dismissed';
+
+// ── Goal system ──
+let currentGoals=[]; // up to two active goals: [{type,target,period,createdAt}]
+let achievements=[]; // completed goal badges
+const MAX_GOALS=2;
+let sessions=[];
+let sessionsUnsub=null;
+let goalsUnsub=null;
+const _GOAL_SVG={
+  books:`<svg width="16" height="16" viewBox="0 0 44 44" fill="none" style="display:inline-block;vertical-align:middle;filter:drop-shadow(0 0 3px rgba(29,205,211,0.5))"><rect x="14" y="10" width="18" height="23" rx="3" fill="rgba(29,205,211,0.35)" stroke="#1dcdd3" stroke-width="1.2"/><rect x="11" y="12" width="18" height="23" rx="3" fill="#1dcdd3"/><line x1="16" y1="12" x2="16" y2="35" stroke="#050f1a" stroke-width="1.8" stroke-opacity="0.5"/><line x1="19" y1="18" x2="26" y2="18" stroke="#050f1a" stroke-width="1.3" stroke-opacity="0.45"/><line x1="19" y1="22" x2="26" y2="22" stroke="#050f1a" stroke-width="1.3" stroke-opacity="0.45"/><path d="M27 10 L27 17 L24.5 15 L22 17 L22 10 Z" fill="rgba(5,15,26,0.6)"/></svg>`,
+  pages:`<svg width="16" height="16" viewBox="0 0 44 44" fill="none" style="display:inline-block;vertical-align:middle;filter:drop-shadow(0 0 3px rgba(29,205,211,0.5))"><path d="M12 9 L28 9 L32 13 L32 36 L12 36 Z" fill="none" stroke="#1dcdd3" stroke-width="1.8" stroke-linejoin="round"/><path d="M28 9 L28 13 L32 13" fill="none" stroke="#1dcdd3" stroke-width="1.8" stroke-linejoin="round"/><line x1="16" y1="19" x2="28" y2="19" stroke="#1dcdd3" stroke-width="1.6" stroke-linecap="round"/><line x1="16" y1="23.5" x2="28" y2="23.5" stroke="#1dcdd3" stroke-width="1.6" stroke-linecap="round"/><line x1="16" y1="28" x2="23" y2="28" stroke="#1dcdd3" stroke-width="1.6" stroke-linecap="round"/></svg>`,
+  minutes:`<svg width="16" height="16" viewBox="0 0 44 44" fill="none" style="display:inline-block;vertical-align:middle;filter:drop-shadow(0 0 3px rgba(29,205,211,0.5))"><circle cx="22" cy="22" r="13" fill="none" stroke="#1dcdd3" stroke-width="1.8"/><path d="M22 9 A13 13 0 0 1 33.26 28.5" fill="none" stroke="#1dcdd3" stroke-width="3" stroke-linecap="round" opacity="0.35"/><line x1="22" y1="22" x2="22" y2="14" stroke="#1dcdd3" stroke-width="2" stroke-linecap="round"/><line x1="22" y1="22" x2="28" y2="26" stroke="#1dcdd3" stroke-width="1.6" stroke-linecap="round"/><circle cx="22" cy="22" r="2" fill="#1dcdd3"/></svg>`,
+  days:`<svg width="16" height="16" viewBox="0 0 44 44" fill="none" style="display:inline-block;vertical-align:middle;filter:drop-shadow(0 0 3px rgba(29,205,211,0.5))"><rect x="9" y="13" width="26" height="22" rx="3.5" fill="none" stroke="#1dcdd3" stroke-width="1.8"/><rect x="9" y="13" width="26" height="7.5" rx="3.5" fill="#1dcdd3" opacity="0.9"/><rect x="9" y="17" width="26" height="3.5" fill="#1dcdd3" opacity="0.9"/><line x1="15" y1="10" x2="15" y2="15" stroke="#1dcdd3" stroke-width="2" stroke-linecap="round"/><line x1="29" y1="10" x2="29" y2="15" stroke="#1dcdd3" stroke-width="2" stroke-linecap="round"/><circle cx="15" cy="27" r="2.5" fill="#1dcdd3"/><circle cx="22" cy="27" r="2.5" fill="#1dcdd3"/><circle cx="29" cy="27" r="2.5" fill="#1dcdd3"/><circle cx="15" cy="33.5" r="2.5" fill="#1dcdd3"/><circle cx="22" cy="33.5" r="2.5" fill="none" stroke="#1dcdd3" stroke-width="1.4" opacity="0.4"/><circle cx="29" cy="33.5" r="2.5" fill="none" stroke="#1dcdd3" stroke-width="1.4" opacity="0.4"/></svg>`
+};
+const GOAL_TYPES={
+  books:  {icon:_GOAL_SVG.books,  name:'Bækur',     desc:'Kláraðar bækur',    unit:'bækur',  unitSingle:'bók',   labelQ:'Hversu margar bækur?',    presets:[2,3,5,8,10]},
+  pages:  {icon:_GOAL_SVG.pages,  name:'Blaðsíður', desc:'Lesnar blaðsíður',  unit:'bls.',   unitSingle:'bls.',  labelQ:'Hversu margar blaðsíður?', presets:[50,100,200,500,1000]},
+  minutes:{icon:_GOAL_SVG.minutes,name:'Mínútur',   desc:'Lestartími',        unit:'mín.',   unitSingle:'mín.',  labelQ:'Hversu margar mínútur?',   presets:[30,60,120,300,500]},
+  days:   {icon:_GOAL_SVG.days,   name:'Dagar',     desc:'Dagar sem lesið er', unit:'dagar', unitSingle:'dagur', labelQ:'Hversu marga daga?',       presets:[3,5,7,14,21]}
+};
+const PERIOD_LABELS={week:'vikunnar',month:'mánaðarins'};
+const PERIOD_LABELS_SHORT={week:'á viku',month:'á mánuði'};
+
+function goalDocRef(){return doc(db,'goals',FID+'_'+CK)}
+function goalsLocalKey(){return 'upphatt_goals_'+FID+'_'+CK}
+function saveGoalsLocal(){
+  try{localStorage.setItem(goalsLocalKey(),JSON.stringify({goals:currentGoals,achievements}))}catch(e){}
+}
+function loadGoalsLocal(){
+  try{
+    const d=JSON.parse(localStorage.getItem(goalsLocalKey())||'{}');
+    return {goals:Array.isArray(d.goals)?d.goals:[],achievements:Array.isArray(d.achievements)?d.achievements:[]};
+  }catch(e){return {goals:[],achievements:[]}}
+}
+
+function normalizeGoalsFromDoc(d){
+  if(!d)return[];
+  if(Array.isArray(d.goals))return d.goals.slice(0,MAX_GOALS);
+  if(d.type)return[{type:d.type,target:d.target,period:d.period||'week',createdAt:d.createdAt||Date.now()}];
+  return[];
+}
+
+function loadGoal(){
+  if(previewMode){
+    currentGoals=[
+      {type:'days',target:5,period:'week',createdAt:Date.now()},
+      {type:'pages',target:100,period:'week',createdAt:Date.now()}
+    ];
+    achievements=[];
+    return;
+  }
+  // Load from localStorage cache immediately
+  const local=loadGoalsLocal();
+  currentGoals=local.goals;
+  achievements=local.achievements;
+}
+
+function startGoalsListener(){
+  if(!FID||!CK||previewMode)return;
+  if(goalsUnsub)goalsUnsub();
+  try{
+    goalsUnsub=onSnapshot(goalDocRef(),snap=>{
+      if(snap.exists()){
+        const d=snap.data();
+        currentGoals=normalizeGoalsFromDoc(d);
+        achievements=Array.isArray(d.achievements)?d.achievements:[];
+      }
+      saveGoalsLocal();
+      render();
+    },e=>{
+      console.warn('Goals listener error:',e);
+    });
+  }catch(e){console.warn('Goals listener failed:',e)}
+}
+
+async function persistGoals(){
+  saveGoalsLocal();
+  if(previewMode){render();return}
+  try{
+    await setDoc(goalDocRef(),{goals:currentGoals,achievements,familyId:FID,childKey:CK,childName:CN,updatedAt:serverTimestamp()},{merge:true});
+  }catch(e){console.error('Goal persist failed:',e)}
+  render();
+}
+
+async function saveGoal(g){
+  const existingIndex=currentGoals.findIndex(x=>x.type===g.type&&x.period===g.period);
+  if(existingIndex>=0){currentGoals[existingIndex]={...currentGoals[existingIndex],...g}}
+  else if(currentGoals.length>=MAX_GOALS){currentGoals[currentGoals.length-1]=g}
+  else{currentGoals.push(g)}
+  await persistGoals();
+}
+
+async function deleteGoal(index=null){
+  if(index===null)currentGoals=[];else currentGoals.splice(index,1);
+  await persistGoals();
+}
+
+function startSessionsListener(){
+  if(!FID||!CK||previewMode)return;
+  try{
+    const q2=query(collection(db,'sessions'),where('familyId','==',FID),where('childKey','==',CK));
+    sessionsUnsub=onSnapshot(q2,snap=>{sessions=snap.docs.map(d=>({id:d.id,...d.data()}));render()},e=>console.warn('Sessions listener:',e));
+  }catch(e){console.warn('Sessions query failed:',e)}
+}
+
+function getPeriodStart(period){
+  const now=new Date();
+  if(period==='week'){const d=new Date(now);const day=d.getDay();const diff=day===0?6:day-1;d.setDate(d.getDate()-diff);d.setHours(0,0,0,0);return d.getTime()}
+  const d=new Date(now.getFullYear(),now.getMonth(),1);return d.getTime();
+}
+
+function getPeriodKey(period){
+  const start=new Date(getPeriodStart(period));
+  if(period==='week')return start.getFullYear()+'-W'+Math.ceil((((start-new Date(start.getFullYear(),0,1))/86400000)+1)/7);
+  return start.getFullYear()+'-'+String(start.getMonth()+1).padStart(2,'0');
+}
+
+function getGoalProgress(g=currentGoals[0]){
+  if(!g)return{done:0,target:5,pct:0};
+  const start=Math.max(getPeriodStart(g.period),g.createdAt||0);const target=g.target||1;
+  let done=0;
+  if(g.type==='books'){
+    done=books.filter(b=>b.status==='finished'&&ts(b,'lastReadAt')>=start).length;
+  }else if(g.type==='pages'){
+    done=books.filter(b=>b.status==='finished'&&ts(b,'lastReadAt')>=start).reduce((s,b)=>s+(Number(b.totalPages)||0),0);
+  }else if(g.type==='minutes'){
+    done=Math.floor(sessions.filter(s=>{const t=s.timestamp||ts(s,'createdAt');return t>=start&&(s.seconds||0)>=60}).reduce((s,x)=>s+(x.seconds||0),0)/60);
+  }else if(g.type==='days'){
+    const daySet=new Set();
+    sessions.filter(s=>{const t=s.timestamp||ts(s,'createdAt');return t>=start&&(s.seconds||0)>=60}).forEach(s=>{
+      const d=s.date||new Date(s.timestamp||ts(s,'createdAt')).toISOString().slice(0,10);daySet.add(d);
+    });
+    done=daySet.size;
+  }
+  return{done,target,pct:Math.min(100,Math.round((done/target)*100))};
+}
+
+function achievementKey(g){return g.type+'_'+g.period+'_'+g.target+'_'+getPeriodKey(g.period)}
+function achievementLabel(g){const info=GOAL_TYPES[g.type];return g.target+' '+info.unit+' '+PERIOD_LABELS_SHORT[g.period]}
+function achievementDate(){try{return new Intl.DateTimeFormat('is-IS',{day:'numeric',month:'short'}).format(new Date())}catch(e){return new Date().toISOString().slice(0,10)}}
+async function checkAchievements(){
+  let changed=false;
+  currentGoals.forEach(g=>{
+    const p=getGoalProgress(g);const key=achievementKey(g);
+    if(p.pct>=100&&!achievements.some(a=>a.key===key)){
+      const info=GOAL_TYPES[g.type];
+      achievements.unshift({key,type:g.type,target:g.target,period:g.period,done:p.done,label:achievementLabel(g),icon:info.icon,achievedAt:Date.now(),dateLabel:achievementDate()});
+      changed=true;
+    }
+  });
+  if(changed){
+    achievements=achievements.slice(0,24);
+    saveGoalsLocal();
+    if(!previewMode){try{await setDoc(goalDocRef(),{achievements,goals:currentGoals,familyId:FID,childKey:CK,childName:CN,updatedAt:serverTimestamp()},{merge:true})}catch(e){console.warn('Achievement save failed:',e)}}
+  }
+}
+
+// ── Celebration system ──
+function isPending(b){return b.status==='finished'&&!b.celebratedAt}
+
+function markCelebrated(id){
+  const b=books.find(x=>x.id===id);
+  if(b){b.celebratedAt=Date.now()}
+  if(!previewMode&&!b?._demo){updBook(id,{celebratedAt:Date.now()}).catch(e=>console.warn('markCelebrated failed:',e))}
+}
+
+function playMilestoneSound(){
+  try{
+    const ctx=new(window.AudioContext||window.webkitAudioContext)();const now=ctx.currentTime;
+    // Warm "achievement unlocked" chime — softer, deeper, more satisfying
+    const notes=[[392,0,.15],[523,.12,.15],[659,.24,.18],[784,.38,.22],[1047,.55,.30]];
+    notes.forEach(([f,dl,dur])=>{
+      const o=ctx.createOscillator(),g=ctx.createGain();
+      o.connect(g);g.connect(ctx.destination);
+      o.frequency.value=f;o.type='sine';
+      g.gain.setValueAtTime(0,now+dl);
+      g.gain.linearRampToValueAtTime(.18,now+dl+.02);
+      g.gain.exponentialRampToValueAtTime(.001,now+dl+dur);
+      o.start(now+dl);o.stop(now+dl+dur+.1);
+    });
+  }catch(e){}
+}
+
+let celebrating=false;
+function celebrateBook(bookId){
+  if(celebrating)return;celebrating=true;
+  const card=document.querySelector('.book-celebrate[data-open-book="'+bookId+'"]');
+  const ringWrap=document.querySelector('.goal-ring');
+
+  // ── Phase 1: Gold flash on the card (the "moment") ──
+  // 0ms — card pulses gold, child feels "this is done"
+  if(card){
+    card.classList.remove('celebrate-breathe');
+    card.classList.add('celebrate-flash');
+  }
+
+  // ── Phase 2: Book slides away toward "Lokið" ──
+  // 600ms — after flash lands, card shrinks + slides down + fades
+  setTimeout(()=>{
+    if(card)card.classList.add('celebrate-move');
+  },600);
+
+  // ── Phase 3: Pause — let the move land ──
+  // 1400ms — card is gone, brief stillness before ring starts
+
+  // ── Phase 4: Ring slowly fills ──
+  // 1600ms — mark celebrated, calculate new progress, animate ring
+  setTimeout(()=>{
+    markCelebrated(bookId);
+    const {done,target,pct}=getGoalProgress();
+    const isGoalComplete=pct>=100;
+
+    if(ringWrap){
+      const svg=ringWrap.querySelector('svg');
+      const circle=svg?.querySelectorAll('circle')[1];
+      const text=svg?.querySelector('text');
+      if(circle){
+        const r=19;const circ=2*Math.PI*r;const newOffset=circ-(pct/100)*circ;
+        ringWrap.classList.add('goal-ring-celebrating');
+        circle.setAttribute('stroke-dashoffset',newOffset);
+        if(isGoalComplete)circle.setAttribute('stroke','#FFB830');
+        if(text)text.textContent=done+'/'+target;
+      }
+
+      // Update the ring label text too
+      const countEl=ringWrap.querySelector('.goal-ring-count');
+      const info=currentGoals[0]?GOAL_TYPES[currentGoals[0].type]:null;
+      const unit=info?info.unit:'bókum';
+      if(countEl)countEl.textContent=done+' af '+target+' '+unit;
+    }
+
+    // ── Phase 5: Ring blink + sound ──
+    // 3600ms (1600 + 2000 ring fill) — ring finishes filling, blink + ding
+    const isGoalComplete2=pct>=100;
+    setTimeout(()=>{
+      playMilestoneSound();
+      if(ringWrap)ringWrap.classList.add(isGoalComplete2?'goal-ring-glow-gold':'goal-ring-glow');
+    },2000);
+
+    // ── Phase 6: Cleanup ──
+    // 4600ms — after ring glow lands, clean up and re-render
+    setTimeout(()=>{
+      if(ringWrap)ringWrap.classList.remove('goal-ring-celebrating','goal-ring-glow','goal-ring-glow-gold');
+      celebrating=false;
+      render();
+    },3000);
+  },1600);
+}
+
+const demoBooks=[
+  {id:'demo_1',title:'Drekastormur',author:'Rick Riordan',status:'reading',totalPages:120,currentPageFrom:21,currentPageTo:29,progressPercent:58,coverBase64:null,c1:'#2b8f91',c2:'#0a2341',note:'Þau fundu hellinn.',lastReadAt:Date.now()-400000,createdAt:Date.now()-900000,journeyEntries:[
+    {date:'28. apríl',pageFrom:21,pageTo:29,note:'Þau fundu hellinn.',reactions:['Mamma ❤️','Pabbi: Spennandi!']},
+    {date:'27. apríl',pageFrom:15,pageTo:20,note:'Þau heyrðu undarlegt hljóð.',reactions:['Amma ❤️']}
+  ],_demo:true},
+  {id:'demo_2',title:'Leyndarmál Skógarins',author:'Jón Magnússon',status:'shelf',totalPages:95,progressPercent:0,coverBase64:null,c1:'#23814b',c2:'#0d2b23',note:null,lastReadAt:null,createdAt:Date.now()-700000,journeyEntries:[],_demo:true},
+  {id:'demo_3',title:'Geimferðin Loks',author:'Anna Kristín',status:'shelf',totalPages:140,progressPercent:0,coverBase64:null,c1:'#7c23df',c2:'#1d1537',note:null,lastReadAt:null,createdAt:Date.now()-600000,journeyEntries:[],_demo:true}
+];
+
+function isDemoDismissed(){try{return localStorage.getItem(DEMO_KEY)==='1'}catch(e){return false}}
+function dismissDemo(){try{localStorage.setItem(DEMO_KEY,'1')}catch(e){}demoDismissed=true}
+
+function ts(b,f){const v=b[f];if(!v)return 0;if(typeof v==='number')return v;if(v.toMillis)return v.toMillis();if(v.seconds)return v.seconds*1000;return 0}
+
+function startListener(){
+  if(!FID||!CK)return;if(unsub)unsub();
+  demoDismissed=isDemoDismissed();
+  let q;
+  try{
+    q=query(collection(db,'books'),where('familyId','==',FID),where('childKey','==',CK));
+  }catch(e){
+    console.warn('Query build failed, showing demo:',e);
+    books=[...demoBooks];render();return;
+  }
+  unsub=onSnapshot(q,async snap=>{
+    const real=snap.docs.map(d=>({id:d.id,...d.data()}));
+    if(real.length>0){
+      if(!demoDismissed)dismissDemo();
+      books=real;
+    }else if(!demoDismissed){
+      books=[...demoBooks];
+    }else{
+      books=[];
+    }
+    for(const b of books){await ensureLocalCover(b)}
+    _booksLoaded=true;
+    render();
+  },e=>{
+    console.error('Books listener error:',e);
+    // On permission/index error, show demo books as fallback
+    if(!books.length&&!demoDismissed){books=[...demoBooks];render()}
+  });
+}
+
+async function addBook(d){
+  // Set coverUrl directly in doc if already uploaded
+  if(pendingCoverUrl){
+    d.coverUrl=pendingCoverUrl;
+    d.coverBase64=null;
+  }
+  const ref=await addDoc(collection(db,'books'),d);
+  // Cache local base64 thumbnail (not URL) for instant render
+  const localSrc=curCovHQ||curCov;
+  if(localSrc&&isDataImg(localSrc)){
+    cc[ref.id]=localSrc;
+    await cacheC(ref.id,localSrc);
+  }else if(pendingCoverUrl){
+    cc[ref.id]=pendingCoverUrl;
+    // Convert to local thumbnail in background
+    makeLocalThumb(pendingCoverUrl).then(local=>{
+      if(local&&isDataImg(local)){cc[ref.id]=local;cacheC(ref.id,local)}
+    });
+  }
+  return ref.id;
+}
+async function updBook(id,u){await updateDoc(doc(db,'books',id),{...u,updatedAt:serverTimestamp()})}
+async function delBook(id){
+  const b=books.find(x=>x.id===id);
+  if(b&&b._demo){
+    // Demo book — just remove from local array
+    books=books.filter(x=>x.id!==id);
+    if(!books.some(x=>x._demo))dismissDemo();
+    render();return;
+  }
+  await deleteDoc(doc(db,'books',id));await delC(id);delete cc[id];
+}
+
+function esc(s=""){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function toMillis(v){if(!v)return 0;if(typeof v==='number')return v;if(v.toMillis)return v.toMillis();if(v.seconds)return v.seconds*1000;if(typeof v==='string'){const direct=Date.parse(v);if(Number.isFinite(direct))return direct;const p=v.split('-').map(Number);if(p.length>=3&&p.every(Number.isFinite))return new Date(p[0],p[1]-1,p[2]).getTime()}return 0}
+function entryTs(e,i=0){return toMillis(e?.createdAt)||toMillis(e?.savedAt)||toMillis(e?.timestamp)||toMillis(e?.updatedAt)||toMillis(e?.date)||i}
+function reactionTs(r,e,i=0){return toMillis(r?.createdAt)||toMillis(r?.timestamp)||toMillis(r?.sentAt)||(entryTs(e)?entryTs(e)+i:i)}
+function fmtDT(ts){if(!ts)return'';const d=new Date(ts);if(!Number.isFinite(d.getTime()))return'';return d.toLocaleDateString('is-IS',{day:'numeric',month:'short'})+' '+d.toLocaleTimeString('is-IS',{hour:'2-digit',minute:'2-digit'})}
+function reactionText(r){if(typeof r==='string')return r;if(!r)return'';const name=r.name||r.authorName||r.listenerName||r.by||r.savedBy||'';const text=r.text||r.comment||r.message||'';return name&&text?name+': '+text:(text||name||'')}
+function chipT(b){if(isPending(b))return'Lokið — ýttu!';if(b.status==='finished')return'Lokið ✓';if(b.status==='reading')return(b.progressPercent||0)+'%';return'Á hillu'}
+function chipCls(b){return(b.status==='finished')?'done':''}
+function covHTML(b){const u=cc[b.id]||b.coverUrl||b.coverBase64;if(u)return'<img src="'+u+'" alt="">';return'<span class="book-cover-title">'+esc(b.title)+'</span><span class="book-cover-author">'+esc(b.author||'')+'</span>'}
+function covS(b){return'--c1:'+(b.c1||'#2b8f91')+';--c2:'+(b.c2||'#0a2341')}
+function latestNote(b){if(b?.journeyEntries?.length){const e=[...b.journeyEntries].sort((a,b)=>entryTs(b)-entryTs(a)).find(x=>x?.note);if(e?.note)return e.note}return b?.note||'Bókin er komin á hilluna.'}
+
+function _getLastReaction(hero) {
+  if (!hero?.journeyEntries?.length) return '';
+  const hit=hero.journeyEntries
+    .flatMap((e,ei)=>(e.reactions||[]).map((r,ri)=>({r,ts:reactionTs(r,e,ri),ei})))
+    .filter(x=>x.r)
+    .sort((a,b)=>(b.ts-a.ts)||(b.ei-a.ei))[0];
+  return hit?'<div class="featured-reaction">'+esc(reactionText(hit.r))+'</div>':'';
+}
+
+function _getGoldMomentData(hero){
+  // Firestore/book journey is the source of truth.
+  const entry=(hero?.journeyEntries||[]).find(e=>e&&e.type==='gold_moment'&&e.clipPath);
+  if(entry){
+    return{
+      saver:entry.savedBy||'Foreldri',
+      clipPath:entry.clipPath,
+      clipKey:entry.clipKey||'gold',
+      sessionId:entry.sessionId||'',
+      bookId:hero.id||'',
+      bookTitle:hero.title||'',
+      date:entry.date||''
+    };
+  }
+
+  // Fallback only: local cache/bridge for older moments or repeat playback.
+  try{
+    const raw=localStorage.getItem('upphatt_child');
+    if(!raw)return null;
+    const child=JSON.parse(raw);
+    const fid=child?.familyId,ck=child?.childKey;
+    if(!fid||!ck)return null;
+    const gm=localStorage.getItem('upphatt_gm_'+fid+'_'+ck);
+    if(!gm)return null;
+    const data=JSON.parse(gm);
+    if(!data?.saver||!data?.clipPath)return null;
+    if(data.bookId&&hero?.id&&data.bookId!==hero.id)return null;
+    if(data.bookTitle&&hero?.title&&data.bookTitle!==hero.title)return null;
+    return data;
+  }catch(e){return null}
+}
+
+function _cacheHeroGoldMoment(data){
+  try{
+    const raw=localStorage.getItem('upphatt_child');
+    if(!raw||!data?.clipPath)return;
+    const child=JSON.parse(raw);
+    if(!child?.familyId||!child?.childKey)return;
+    localStorage.setItem('upphatt_gm_'+child.familyId+'_'+child.childKey,JSON.stringify(data));
+  }catch(e){}
+}
+
+function _getHeroGoldMoment(hero) {
+  const data=_getGoldMomentData(hero);
+  if(!data)return '';
+  _cacheHeroGoldMoment(data);
+  return '<button class="featured-gold hero-gold-card" id="hero-gm-card" data-hero-gold-play="1" type="button">'
+    + '<div class="featured-gold-top">'
+    + '<svg width="16" height="16" viewBox="0 0 24 24" fill="#1dcdd3" stroke="none"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>'
+    + '<div class="featured-gold-info"><span class="featured-gold-label">Varðveitt upptaka</span><span class="featured-gold-saver">' + esc(data.saver) + ' geymdi lesturinn þinn</span></div>'
+    + '<span class="hero-gold-state" id="hero-gm-state">▶</span>'
+    + '</div>'
+    + '<div class="hero-gold-progress"><span id="hero-gm-progress"></span></div>'
+    + '</button>';
+}
+
+let heroGoldAudio=null;
+let heroGoldTimer=null;
+let heroGoldUrl=null;
+let heroGoldClipPath=null;
+
+async function _toggleHeroGold(){
+  const card=document.getElementById('hero-gm-card');
+  const state=document.getElementById('hero-gm-state');
+  const fill=document.getElementById('hero-gm-progress');
+  try{
+    const hero=books.find(b=>b.status==='reading')||[...books].sort((a,b)=>ts(b,'lastReadAt')-ts(a,'lastReadAt'))[0];
+    const data=_getGoldMomentData(hero);
+    if(!data?.clipPath)return;
+    _cacheHeroGoldMoment(data);
+
+    if(heroGoldClipPath!==data.clipPath){
+      if(heroGoldAudio){heroGoldAudio.pause();heroGoldAudio=null;}
+      clearInterval(heroGoldTimer);
+      heroGoldTimer=null;
+      heroGoldUrl=null;
+      heroGoldClipPath=data.clipPath;
+      if(fill)fill.style.width='0%';
+    }
+
+    if(!heroGoldUrl){
+      if(state)state.textContent='…';
+      heroGoldUrl=await _getCachedAudioUrl(data.clipPath);
+    }
+    if(!heroGoldUrl){
+      if(state)state.textContent='!';
+      return;
+    }
+
+    if(!heroGoldAudio){
+      heroGoldAudio=new Audio(heroGoldUrl);
+      heroGoldAudio.preload='auto';
+      heroGoldAudio.addEventListener('play',()=>{
+        if(state)state.textContent='❚❚';
+        if(card)card.classList.add('is-playing');
+        clearInterval(heroGoldTimer);
+        heroGoldTimer=setInterval(()=>{
+          if(!fill||!heroGoldAudio||!heroGoldAudio.duration)return;
+          fill.style.width=Math.min(100,(heroGoldAudio.currentTime/heroGoldAudio.duration)*100)+'%';
+        },120);
+      });
+      heroGoldAudio.addEventListener('pause',()=>{
+        if(state)state.textContent='▶';
+        if(card)card.classList.remove('is-playing');
+        clearInterval(heroGoldTimer);
+      });
+      heroGoldAudio.addEventListener('ended',()=>{
+        if(state)state.textContent='▶';
+        if(card)card.classList.remove('is-playing');
+        if(fill)fill.style.width='0%';
+        clearInterval(heroGoldTimer);
+        if(heroGoldAudio)heroGoldAudio.currentTime=0;
+      });
+    }
+
+    if(heroGoldAudio.paused){
+      await heroGoldAudio.play();
+    }else{
+      heroGoldAudio.pause();
+    }
+  }catch(e){
+    if(state)state.textContent='!';
+    if(card)card.classList.remove('is-playing');
+  }
+}
+window._toggleHeroGold=_toggleHeroGold;
+window._playHeroGold=_toggleHeroGold;
+
+document.addEventListener('click',function(e){
+  const heroGold=e.target.closest('[data-hero-gold-play]');
+  if(!heroGold)return;
+  e.preventDefault();
+  e.stopPropagation();
+  _toggleHeroGold();
+},true);
+
+let journeyGoldAudio=null;
+let journeyGoldTimer=null;
+let journeyGoldBtn=null;
+let journeyGoldPlayer=null;
+let journeyGoldPath=null;
+
+function _resetJourneyGoldUI(){
+  clearInterval(journeyGoldTimer);
+  if(journeyGoldBtn){journeyGoldBtn.disabled=false;journeyGoldBtn.classList.remove('is-playing');journeyGoldBtn.innerHTML='► Hlusta';}
+  if(journeyGoldPlayer){const fill=journeyGoldPlayer.querySelector('.custom-gold-fill');if(fill)fill.style.width='0%';}
+}
+
+async function _playJourneyGold(clipPath,playerId,btnId){
+  const player=document.getElementById(playerId);
+  const btn=document.getElementById(btnId);
+  if(!clipPath||!player)return;
+
+  if(journeyGoldAudio && journeyGoldPath===clipPath && journeyGoldPlayer===player){
+    if(journeyGoldAudio.paused){
+      await journeyGoldAudio.play().catch(()=>{});
+    }else{
+      journeyGoldAudio.pause();
+    }
+    return;
+  }
+
+  if(journeyGoldAudio){journeyGoldAudio.pause();}
+  _resetJourneyGoldUI();
+  journeyGoldAudio=null;
+  journeyGoldPath=clipPath;
+  journeyGoldBtn=btn;
+  journeyGoldPlayer=player;
+
+  if(btn){btn.disabled=true;btn.textContent='Hleð...';}
+  player.innerHTML='<div class="custom-gold-player"><div class="custom-gold-progress"><span class="custom-gold-fill"></span></div></div>';
+  const fill=player.querySelector('.custom-gold-fill');
+
+  const url=await _getCachedAudioUrl(clipPath);
+  if(!url){
+    player.innerHTML='<div style="font-size:11px;color:#ff6b6b;margin-top:6px">Ekki tókst að hlaða</div>';
+    if(btn){btn.disabled=false;btn.innerHTML='► Hlusta';}
+    return;
+  }
+
+  journeyGoldAudio=new Audio(url);
+  journeyGoldAudio.preload='auto';
+
+  journeyGoldAudio.addEventListener('play',()=>{
+    if(btn){btn.disabled=false;btn.classList.add('is-playing');btn.innerHTML='❚❚ Spilar';}
+    clearInterval(journeyGoldTimer);
+    journeyGoldTimer=setInterval(()=>{
+      if(!fill||!journeyGoldAudio?.duration)return;
+      fill.style.width=Math.min(100,(journeyGoldAudio.currentTime/journeyGoldAudio.duration)*100)+'%';
+    },120);
+  });
+
+  journeyGoldAudio.addEventListener('pause',()=>{
+    if(btn){btn.classList.remove('is-playing');btn.innerHTML='► Hlusta';}
+    clearInterval(journeyGoldTimer);
+  });
+
+  journeyGoldAudio.addEventListener('ended',()=>{
+    if(fill)fill.style.width='0%';
+    if(journeyGoldAudio)journeyGoldAudio.currentTime=0;
+    _resetJourneyGoldUI();
+  });
+
+  await journeyGoldAudio.play().catch(()=>{
+    if(btn){btn.disabled=false;btn.innerHTML='► Hlusta';}
+  });
+}
+window._playJourneyGold=_playJourneyGold;
+
+function progressRingSVG(done,target,pct,icon,ringClass='goal-mini-ring',size=48,r=19){
+  const circ=2*Math.PI*r;
+  const offset=circ-(Math.min(100,Math.max(0,pct||0))/100)*circ;
+  const doneCls=(pct>=100?' done':'');
+  const center=size/2;
+  const text=(done+'/'+target).length<=5?done+'/'+target:Math.round(pct||0)+'%';
+  return '<svg class="'+ringClass+doneCls+'" viewBox="0 0 '+size+' '+size+'" aria-hidden="true"><circle class="ring-bg" cx="'+center+'" cy="'+center+'" r="'+r+'" fill="none" stroke-width="5"/><circle class="ring-fill" cx="'+center+'" cy="'+center+'" r="'+r+'" fill="none" stroke-width="5" stroke-linecap="round" stroke-dasharray="'+circ+'" stroke-dashoffset="'+offset+'" transform="rotate(-90 '+center+' '+center+')"/><text x="'+center+'" y="'+(center+3)+'" text-anchor="middle">'+text+'</text></svg>';
+}
+
+function goalOverviewPercentRingSVG(pct,ringClass='goal-overview-ring',size=46,r=18){
+  const cleanPct=Math.min(100,Math.max(0,Number(pct)||0));
+  const circ=2*Math.PI*r;
+  const offset=circ-(cleanPct/100)*circ;
+  const center=size/2;
+  const doneCls=(cleanPct>=100?' done':'');
+  return '<svg class="'+ringClass+doneCls+'" viewBox="0 0 '+size+' '+size+'" aria-hidden="true"><circle class="ring-bg" cx="'+center+'" cy="'+center+'" r="'+r+'" fill="none" stroke-width="5"/><circle class="ring-fill" cx="'+center+'" cy="'+center+'" r="'+r+'" fill="none" stroke-width="5" stroke-linecap="round" stroke-dasharray="'+circ+'" stroke-dashoffset="'+offset+'" transform="rotate(-90 '+center+' '+center+')"/><text x="'+center+'" y="'+(center+3)+'" text-anchor="middle">'+Math.round(cleanPct)+'%</text></svg>';
+}
+
+function goalRingHTML(){
+  const itemHTML=(g,i)=>{
+    const info=GOAL_TYPES[g.type]||GOAL_TYPES.books;
+    const p=getGoalProgress(g);
+    const pct=Math.max(0,Math.min(100,p.pct||0));
+    const title=(p.done||0)+'/'+(p.target||g.target||0)+' '+info.unit;
+    return '<div class="goal-mini" data-goal-index="'+i+'"><span class="goal-mini-icon">'+info.icon+'</span><span class="goal-mini-copy"><span class="goal-mini-title">'+esc(title)+'</span><span class="goal-mini-line"><span class="goal-mini-fill" style="width:'+pct+'%;min-width:'+(pct>0?'10px':'0')+'"></span></span></span></div>';
+  };
+  let items=currentGoals.slice(0,2).map(itemHTML).join('');
+  if(currentGoals.length===1){
+    items+='<div class="goal-mini goal-mini-placeholder"><span class="goal-mini-icon">＋</span><span class="goal-mini-copy"><span class="goal-mini-title">Bæta við</span><span class="goal-mini-line"><span class="goal-mini-fill" style="width:0%"></span></span></span></div>';
+  }
+  if(!currentGoals.length){
+    items='<div class="goal-mini goal-mini-placeholder"><span class="goal-mini-icon">＋</span><span class="goal-mini-copy"><span class="goal-mini-title">Settu markmið</span><span class="goal-mini-line"><span class="goal-mini-fill" style="width:0%"></span></span></span></div><div class="goal-mini goal-mini-placeholder"><span class="goal-mini-icon">＋</span><span class="goal-mini-copy"><span class="goal-mini-title">Allt að 2 virk</span><span class="goal-mini-line"><span class="goal-mini-fill" style="width:0%"></span></span></span></div>';
+  }
+  return '<button class="goals-strip" type="button" data-open-goals="1"><div class="goals-strip-main"><div class="goals-strip-title"><span class="goals-strip-icon">◎</span>Markmið mánaðarins</div><div class="goals-strip-items">'+items+'</div></div><span class="goals-strip-chevron">›</span></button>';
+}
+
+function render(){
+  if(celebrating)return; // Don't re-render during celebration animation
+  const sorted=[...books].sort((a,b)=>ts(b,'lastReadAt')-ts(a,'lastReadAt'));
+  const pending=sorted.filter(b=>isPending(b));
+  const reading=[...sorted.filter(b=>b.status==='reading'),...pending];
+  const shelf=books.filter(b=>b.status==='shelf');
+  const finished=books.filter(b=>b.status==='finished'&&b.celebratedAt);
+  const hero=reading[0]||sorted[0];
+  const fc=document.getElementById('featuredCard');
+  checkAchievements();
+  if(!hero||!books.length){
+    if(!_booksLoaded){
+      fc.className='';fc.innerHTML='<div class="empty-state"><div class="empty-icon">📚</div><div class="empty-title">Sæki bækurnar þínar...</div></div>';
+      return;
+    }
+    fc.className='';fc.innerHTML='<div class="empty-state"><div class="empty-icon">📚</div><div class="empty-title">Bókahillan er tóm</div><div class="empty-sub">Ýttu á <strong>Bók</strong> neðst og bættu fyrstu bókinni við!</div></div>';
+  }else{
+    const u=cc[hero.id]||hero.coverUrl||hero.coverBase64;const ci=u?'<img src="'+u+'" alt="">':'<span class="featured-cover-title">'+esc(hero.title)+'</span><span class="featured-cover-author">'+esc(hero.author||'')+'</span>';
+    fc.className='featured';
+    // Last reaction from family
+    const lastReaction = _getLastReaction(hero);
+    // Gold moment check
+    const goldMoment = _getHeroGoldMoment(hero);
+    fc.innerHTML=goalRingHTML()+'<div class="book-hero-card" data-open-book="'+hero.id+'"><div class="book-hero-main"><div class="hero-cover-stack"><div class="featured-badge">⚡ '+(hero.status==='reading'?'Að lesa':'Á hillunni')+'</div><div class="featured-cover" style="'+covS(hero)+'">'+ci+'</div></div><div class="featured-meta"><div class="book-title-row"><div class="featured-title">'+esc(hero.title)+'</div></div><div class="featured-stats"><span>'+(hero.currentPageFrom?'bls. '+hero.currentPageFrom+'–'+hero.currentPageTo:'Á hillunni')+'</span></div><div class="progress-row"><div class="progress-bar"><div class="progress-fill" style="width:'+(hero.progressPercent||0)+'%"></div></div><span class="featured-pct">'+(hero.progressPercent||0)+'%</span></div><div class="reading-moment"><div class="moment-label"></div><div class="featured-quote">\u201C'+esc(latestNote(hero))+'\u201D</div></div><div class="reaction-block"><div class="moment-label"></div>'+lastReaction+'</div>'+goldMoment+'</div></div></div>';
+  }
+  rGrid('readingSection','readingGrid','readingCount',reading);
+  rGrid('shelfSection','shelfGrid','shelfCount',shelf);
+  rGrid('finishedSection','finishedGrid','finishedCount',finished);
+  // Wire up click handlers
+  document.querySelectorAll('[data-open-book]').forEach(el=>el.addEventListener('click',e=>{
+    if(e.target.closest('[data-hero-gold-play]'))return;
+    const id=el.dataset.openBook;
+    if(editMode){e.preventDefault();e.stopPropagation();toggleSel(id);return}
+    // Check if this is a pending celebration book
+    const b=books.find(x=>x.id===id);
+    if(b&&isPending(b)){e.preventDefault();e.stopPropagation();celebrateBook(id);return}
+    openJourney(id);
+  }));
+  document.querySelectorAll('[data-open-goals]').forEach(goalBtn=>goalBtn.addEventListener('click',e=>{e.stopPropagation();openGoalOverviewModal()}));
+  attachLP();
+}
+function rGrid(sid,gid,cid,list){
+  const s=document.getElementById(sid),g=document.getElementById(gid),c=document.getElementById(cid);
+  if(!list.length){s.style.display='none';return}s.style.display='';c.textContent=list.length;
+  const hasDemo=list.some(b=>b._demo);
+  g.innerHTML=list.map(b=>{
+    const pend=isPending(b);
+    const badge=pend?'<div class="celebrate-badge"><div class="celebrate-badge-icon">✓</div><div class="celebrate-badge-text">Lokið!</div></div>':'';
+    const demo=b._demo?'<span class="book-demo-badge">Dæmi</span>':'';
+    const rlLabel = b.readingLoad?.label || b.readingLoadLabel;
+    const rlBadge=rlLabel?'<span class="rl-pill">'+esc(rlLabel)+'</span>':'';
+    return'<div class="book-card'+(selIds.has(b.id)?' selected':'')+(pend?' book-celebrate':'')+'" data-open-book="'+b.id+'"><div class="book-cover" style="'+covS(b)+'">'+covHTML(b)+demo+badge+'</div><div class="book-info"><div class="book-name">'+esc(b.title)+'</div><div class="book-author">'+esc(b.author||'')+'</div><span class="book-chip '+chipCls(b)+'">'+chipT(b)+'</span>'+rlBadge+'</div></div>';
+  }).join('')+(hasDemo?'<div class="demo-hint" style="grid-column:1/-1">Þetta eru dæmi — haltu inni til að eyða</div>':'');
+}
+function renderLR(){
+  const b=[...books].filter(b=>ts(b,'lastReadAt')>0).sort((a,b)=>ts(b,'lastReadAt')-ts(a,'lastReadAt'))[0];
+  const box=document.getElementById('lastReadCard');
+  if(!b){box.innerHTML='<div style="color:var(--soft);font-size:13px">Enginn lestur enn.</div>';return}
+  box.innerHTML='<div style="color:var(--accent);font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px">Síðasti lestur</div><div style="font-size:16px;font-weight:800;margin-bottom:3px">'+esc(b.title)+'</div><div style="color:var(--soft);font-size:12px;margin-bottom:8px">'+(b.currentPageFrom?'bls. '+b.currentPageFrom+'–'+b.currentPageTo:'Á hillunni')+' · '+(b.progressPercent||0)+'% lokið</div><div style="border-left:2px solid rgba(29,205,211,.45);padding-left:9px;font-style:italic;font-size:13px;color:rgba(217,229,239,.7)">"'+esc(b.note||'')+'"</div>';
+}
+
+function openOv(id){document.getElementById(id).classList.add('open');document.body.style.overflow='hidden'}
+function closeOv(id){document.getElementById(id).classList.remove('open');document.body.style.overflow=''}
+function formatThousandsJm(n){
+  if(n==null)return '—';
+  return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g,'.');
+}
+
+function openJourney(id){
+  const b=books.find(x=>x.id===id);if(!b)return;selBookId=id;
+
+  /* Kápa */
+  const coverEl=document.getElementById('jm-cover');
+  if(b.coverUrl||b.coverBase64){
+    coverEl.innerHTML=`<img src="${esc(b.coverUrl||b.coverBase64)}" style="width:100%;height:100%;object-fit:cover">`;
+  } else {
+    const c1=b.c1||'#2b8f91',c2=b.c2||'#0a2341';
+    coverEl.style.background=`linear-gradient(145deg,${c1},${c2})`;
+    coverEl.textContent=(b.title||'?')[0];
+  }
+
+  /* Titill og höfundur */
+  document.getElementById('jm-title').textContent=b.title||'';
+  document.getElementById('jm-author').textContent=b.author||'';
+
+  /* Status chip */
+  const statusMap={reading:'Að lesa',shelf:'Á hillunni',finished:'Lokið'};
+  document.getElementById('jm-status-chip').textContent=statusMap[b.status]||b.status||'';
+
+  /* readingLoad chip */
+  const rlChip=document.getElementById('jm-rl-chip');
+  const rlLabelJm = b.readingLoad?.label || b.readingLoadLabel;
+  if(rlLabelJm){rlChip.textContent=rlLabelJm;rlChip.style.display='';}
+  else rlChip.style.display='none';
+
+  /* Stats: orð/síða · síður · heildarorð */
+  const statsEl=document.getElementById('jm-stats');
+  const wpp = b.readingLoad?.wordsPerPageEstimate;
+  const totalWords = b.scope?.totalWordsEstimate;
+  const scopeLbl = b.scope?.label;
+  const totalPages = b.totalPages;
+  const parts = [];
+  if(wpp) parts.push('~'+wpp+' orð á síðu');
+  if(totalPages) parts.push(totalPages + ' bls.');
+  if(totalWords) parts.push('~'+formatThousandsJm(totalWords)+' orð alls');
+  else if(scopeLbl) parts.push(scopeLbl);
+  if(parts.length){
+    statsEl.textContent = parts.join(' · ');
+    statsEl.style.display='';
+  }else{
+    statsEl.style.display='none';
+  }
+
+  /* Framvinda */
+  const progRow=document.getElementById('jm-prog-row');
+  if(b.status==='reading'){
+    progRow.style.display='';
+    document.getElementById('jm-prog-fill').style.width=(b.progressPercent||0)+'%';
+    document.getElementById('jm-pct').textContent=(b.progressPercent||0)+'%';
+    document.getElementById('jm-pages').textContent=b.currentPageTo?'bls. '+(b.currentPageFrom||1)+'–'+b.currentPageTo+' af '+(b.totalPages||'?'):'';
+  } else {
+    progRow.style.display='none';
+  }
+
+  /* Takkar — birta aðeins þegar bók er á hillu */
+  const actionsEl=document.getElementById('jm-actions');
+  if(b.status==='shelf'){
+    actionsEl.style.display='';
+  }else{
+    actionsEl.style.display='none';
+  }
+
+  /* Ferðalagsfærslur */
+  const ent=(b.journeyEntries?.length?b.journeyEntries:[{date:'Í dag',createdAt:Date.now(),pageFrom:b.currentPageFrom||'',pageTo:b.currentPageTo||'',note:b.note||'Bókin var sett á hilluna.',reactions:[]}])
+    .map((entry,originalIndex)=>({entry,originalIndex,ts:entryTs(entry,originalIndex)}))
+    .sort((a,b)=>(b.ts-a.ts)||(b.originalIndex-a.originalIndex));
+  document.getElementById('journeyEntries').innerHTML=ent.map(({entry:e,originalIndex:i,ts})=>{
+    const meta=esc((ts?fmtDT(ts):(e.date||''))+(e.pageFrom?' · bls. '+e.pageFrom+'–'+e.pageTo:''));
+    if(e.type==='gold_moment'&&e.clipPath){
+      const pid='journey-gm-player-'+i;
+      const bid='journey-gm-btn-'+i;
+      return '<article class="event"><div class="event-date">'+meta+'</div><p class="event-quote">'+esc(e.text||((e.savedBy||'Foreldri')+' geymdi lesturinn þinn'))+'</p><button class="featured-gold-play" id="'+bid+'" onclick="event.stopPropagation();_playJourneyGold(\''+esc(e.clipPath)+'\',\''+pid+'\',\''+bid+'\')" type="button">► Hlusta</button><div class="featured-gold-player" id="'+pid+'"></div></article>';
+    }
+    return'<article class="event"><div class="event-date">'+meta+'</div>'+(e.note?'<p class="event-quote">\u201C'+esc(e.note)+'\u201D</p>':'')+'<div class="reactions">'+(e.reactions||[]).map((r,ri)=>'<span class="react"><span class="react-text">'+esc(reactionText(r))+(fmtDT(toMillis(r?.createdAt)||toMillis(r?.timestamp)||toMillis(r?.sentAt))?'<small style="display:block;margin-top:3px;color:rgba(148,164,180,.75);font-weight:700">'+esc(fmtDT(toMillis(r?.createdAt)||toMillis(r?.timestamp)||toMillis(r?.sentAt)))+'</small>':'')+'</span><button class="react-delete" type="button" data-delete-reaction="'+i+':'+ri+'" aria-label="Eyða kommenti">×</button></span>').join('')+'</div></article>'
+  }).join('');
+
+  openOv('journeyModal');
+}
+
+window.jmStartReading = function() {
+  const b=books.find(x=>x.id===selBookId);if(!b)return;
+  updBook(b.id,{status:'reading',updatedAt:Date.now()}).then(()=>{
+    b.status='reading';render();openJourney(b.id);
+  }).catch(e=>console.error(e));
+};
+
+async function deleteJourneyReaction(entryIndex,reactionIndex){
+  const b=books.find(x=>x.id===selBookId);if(!b||!Array.isArray(b.journeyEntries))return;
+  const entries=b.journeyEntries.map(e=>({...e,reactions:Array.isArray(e.reactions)?[...e.reactions]:[]}));
+  if(!entries[entryIndex]||!entries[entryIndex].reactions||entries[entryIndex].reactions[reactionIndex]===undefined)return;
+  if(!confirm('Eyða kommenti?'))return;
+  entries[entryIndex].reactions.splice(reactionIndex,1);
+  try{
+    if(b._demo){b.journeyEntries=entries;render();openJourney(b.id);return}
+    await updBook(b.id,{journeyEntries:entries});
+    b.journeyEntries=entries;
+    render();openJourney(b.id);
+  }catch(err){console.error('Delete reaction failed:',err);alert('Villa við að eyða kommenti.')}
+}
+
+async function compress(file,tw=180,th=270,q=.50){
+  const img=await new Promise((ok,no)=>{const i=new Image();i.onload=()=>ok(i);i.onerror=no;i.src=URL.createObjectURL(file)});
+  const sr=img.width/img.height,tr=tw/th;let sx=0,sy=0,sw=img.width,sh=img.height;
+  if(sr>tr){sw=img.height*tr;sx=(img.width-sw)/2}else{sh=img.width/tr;sy=(img.height-sh)/2}
+  const c=document.createElement('canvas');c.width=tw;c.height=th;const ctx=c.getContext('2d');ctx.imageSmoothingQuality='high';ctx.drawImage(img,sx,sy,sw,sh,0,0,tw,th);URL.revokeObjectURL(img.src);return c.toDataURL('image/webp',q);
+}
+
+function setReady(){
+  _isProcessing=false;
+  const b=document.getElementById('continueToAnalysis');
+  if(b){b.disabled=false;b.textContent='Halda áfram'}
+}
+function showStep(n){
+  // n: 1, 2, 3
+  document.getElementById('addStep1').style.display = n === 1 ? '' : 'none';
+  document.getElementById('addStep2').style.display = n === 2 ? '' : 'none';
+  document.getElementById('addStep3').style.display = n === 3 ? '' : 'none';
+
+  document.querySelectorAll('.add-step').forEach(el => {
+    const step = parseInt(el.dataset.step);
+    el.classList.remove('active', 'done');
+    if (step < n) el.classList.add('done');
+    else if (step === n) el.classList.add('active');
+  });
+  document.querySelectorAll('.add-step-sep').forEach((sep, i) => {
+    sep.classList.toggle('done', i + 1 < n);
+  });
+}
+function showStep2Substep(name){
+  // name: 'take' | 'processing' | 'result' | 'error'
+  ['take', 'processing', 'result', 'error'].forEach(s => {
+    const el = document.getElementById('step2-' + s);
+    if (el) el.style.display = s === name ? '' : 'none';
+  });
+}
+function resetF(){
+  curCov=null;curCovHQ=null;pendingCoverUrl=null;pendingCoverGsPath=null;
+  _pendingBookId=null;_pendingSampleId=null;_pendingAnalysis=null;_isProcessing=false;
+  ['bookTitle','bookAuthor','bookPages'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});
+  document.getElementById('bookStatus').value='shelf';
+  document.getElementById('coverInput').value='';
+  document.getElementById('pageInput').value='';
+  document.getElementById('previewImg').removeAttribute('src');
+  document.getElementById('previewMeta').textContent='';
+  document.getElementById('previewRow').style.display='none';
+  document.getElementById('takeCoverBtn').style.display='';
+  document.getElementById('backToCamera').style.display='none';
+  const s=document.getElementById('addStep1Sub');
+  if(s)s.textContent='Taktu mynd af kápu — við finnum bókina sjálfkrafa';
+  showStep(1);
+  showStep2Substep('take');
+  setReady();
+}
+function openAddM(){
+  resetF();
+  openOv('addModal');
+  setTimeout(()=>document.getElementById('bookTitle')?.focus(),100);
+}
+
+// ── Handle image from camera or gallery ──
+async function handleCoverFile(file){
+  if(!file)return;
+  const bk=Math.round(file.size/1024);
+  curCovHQ=await compress(file,180,270,.66);
+  curCov=await compress(file,180,270,.50);
+  const ak=Math.round((curCov.length*.75)/1024);
+  document.getElementById('previewImg').src=curCovHQ;
+  document.getElementById('previewMeta').textContent=bk+'KB → ~'+ak+'KB';
+  document.getElementById('previewRow').style.display='grid';
+  document.getElementById('takeCoverBtn').style.display='none';
+  document.getElementById('backToCamera').style.display='';
+  showStep(1);setReady();
+  if(!document.getElementById('addModal').classList.contains('open')) openOv('addModal');
+
+  // ── Upload strax í Storage og kalla Gemini extension ──
+  if(!previewMode){
+    try{
+      const ts=Date.now();
+      const path='covers/'+FID+'/'+CK+'/'+ts+'.jpg';
+      // Re-compress as JPEG for Gemini compatibility
+      const img=await new Promise((ok,no)=>{const i=new Image();i.onload=()=>ok(i);i.onerror=no;i.src=curCovHQ||curCov});
+      const c=document.createElement('canvas');c.width=img.width;c.height=img.height;
+      const ctx=c.getContext('2d');ctx.drawImage(img,0,0);
+      const jpegB64=c.toDataURL('image/jpeg',0.85);
+      const blob=base64ToBlob(jpegB64);
+      if(blob){
+        const sRef=storageRef(bsStorage,path);
+        await uploadBytes(sRef,blob,{contentType:'image/jpeg'});
+        pendingCoverUrl=await getDownloadURL(sRef);
+        pendingCoverGsPath='gs://lesum-22e85.firebasestorage.app/'+path;
+        console.log('Cover uploaded:',pendingCoverGsPath);
+        identifyBookCover(pendingCoverGsPath);
+      }
+    }catch(e){console.warn('Early cover upload failed:',e);pendingCoverUrl=null;pendingCoverGsPath=null}
+  }
+}
+
+/* ── State fyrir nýja flæðið ── */
+let _pendingBookId = null;
+let _pendingSampleId = null;
+let _pendingAnalysis = null;
+let _isProcessing = false;
+
+const FALLBACK_PHOTO_ADVICE =
+  'Við gátum ekki greint þessa mynd. Viltu prófa aftur með mynd af venjulegri textasíðu úr bókinni?';
+
+function formatThousands(n){
+  if(n==null)return '—';
+  return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g,'.');
+}
+
+/* ── SKREF 1 → 2: Vista bók (án readingLoad) ── */
+document.getElementById('continueToAnalysis').addEventListener('click', async () => {
+  if (_isProcessing) return;
+  const title = document.getElementById('bookTitle').value.trim();
+  const author = document.getElementById('bookAuthor').value.trim();
+  const pages = Number(document.getElementById('bookPages').value || 0);
+  const status = document.getElementById('bookStatus').value;
+
+  if (!title) { alert('Settu inn nafn bókar.'); return; }
+  if (!pages || pages < 1) { alert('Settu inn blaðsíðufjölda.'); return; }
+
+  _isProcessing = true;
+  const btn = document.getElementById('continueToAnalysis');
+  btn.disabled = true; btn.textContent = 'Vista bók…';
+
+  try {
+    const pals = [['#2b8f91','#0a2341'],['#23814b','#0d2b23'],['#7c23df','#1d1537'],['#c4523a','#2a1418'],['#3a7bd5','#0f1f3d'],['#d4a03c','#2b1e0e']];
+    const pk = pals[Math.floor(Math.random()*pals.length)];
+
+    const d = {
+      familyId: FID, childKey: CK, childName: CN,
+      title, author: author || '',
+      status,
+      totalPages: pages,
+      currentPageFrom: null, currentPageTo: null,
+      progressPercent: status === 'finished' ? 100 : 0,
+      coverBase64: curCov || null,
+      c1: curCov ? null : pk[0], c2: curCov ? null : pk[1],
+      note: status === 'reading' ? 'Bókin er tilbúin til að byrja að lesa.' : null,
+      lastReadAt: null, journeyEntries: [],
+      createdAt: serverTimestamp(), updatedAt: serverTimestamp()
+    };
+
+    if (previewMode) {
+      d.id = 'local_' + Date.now() + '_' + Math.random().toString(36).slice(2,6);
+      d.createdAt = Date.now(); d.updatedAt = Date.now();
+      if (curCovHQ) cc[d.id] = curCovHQ; else if (curCov) cc[d.id] = curCov;
+      books = books.filter(b => !b._demo); demoDismissed = true;
+      books.unshift(d); render();
+      _pendingBookId = d.id;
+    } else {
+      _pendingBookId = await addBook(d);
+    }
+
+    showStep(2);
+    showStep2Substep('take');
+  } catch (err) {
+    console.error('Villa við að vista bók:', err);
+    alert('Gat ekki vistað bók: ' + (err.message || 'óþekkt villa'));
+  } finally {
+    _isProcessing = false;
+    btn.disabled = false; btn.textContent = 'Halda áfram';
+  }
+});
+
+/* ── SKREF 2: Síðumynd → analyzePageText ── */
+document.getElementById('pageInput').addEventListener('change', async e => {
+  const file = e.target.files?.[0];
+  if (!file) return;
+  if (_isProcessing) return;
+  if (!_pendingBookId) { alert('Engin bók valin. Reyndu aftur.'); return; }
+  if (previewMode) {
+    // Í preview-mode keyrum við ekki Gemini — bara skip
+    goToDoneStep();
+    return;
+  }
+
+  _isProcessing = true;
+  try {
+    const reader = new FileReader();
+    const dataUrl = await new Promise((res, rej) => {
+      reader.onload = ev => res(ev.target.result);
+      reader.onerror = rej;
+      reader.readAsDataURL(file);
+    });
+    document.getElementById('pagePreviewImg').src = dataUrl;
+    showStep2Substep('processing');
+
+    const base64 = dataUrl.split(',')[1];
+    const analyze = httpsCallable(functions, 'analyzePageText');
+    const result = await analyze({
+      base64, mimeType: file.type || 'image/jpeg',
+      totalPages: Number(document.getElementById('bookPages').value || 0),
+      bookId: _pendingBookId
+    });
+
+    _pendingAnalysis = result.data;
+    _pendingSampleId = result.data.sampleId;
+    renderAnalysisPreview(result.data, dataUrl);
+    showStep2Substep('result');
+  } catch (err) {
+    console.error('analyzePageText villa:', err);
+    const details = err.details || {};
+    if (details.code === 'unsuitable_page' || err.code === 'failed-precondition') {
+      const advice = details.advice || err.message || FALLBACK_PHOTO_ADVICE;
+      document.getElementById('photoAdviceText').textContent = advice;
+      const reader2 = new FileReader();
+      reader2.onload = ev => {
+        document.getElementById('pagePreviewImgError').src = ev.target.result;
+        document.getElementById('step2ErrorPreviewWrap').style.display = '';
+      };
+      reader2.readAsDataURL(file);
+      showStep2Substep('error');
+    } else {
+      document.getElementById('photoAdviceText').textContent = FALLBACK_PHOTO_ADVICE;
+      document.getElementById('step2ErrorPreviewWrap').style.display = 'none';
+      showStep2Substep('error');
+    }
+  } finally {
+    _isProcessing = false;
+    document.getElementById('pageInput').value = '';
+  }
+});
+
+/* ── Birting forskoðunar ── */
+function renderAnalysisPreview(data, dataUrl) {
+  document.getElementById('pagePreviewImgResult').src = dataUrl;
+  document.getElementById('analysisLoadLabel').textContent = data.readingLoad.label;
+  document.getElementById('analysisLoadMeta').textContent =
+    'Um ' + data.readingLoad.wordsPerPage + ' orð á síðu';
+
+  if (data.scope) {
+    document.getElementById('analysisScopeLabel').textContent = data.scope.label;
+    document.getElementById('analysisScopeMeta').textContent =
+      data.scope.totalPages + ' bls. (~' + formatThousands(data.scope.totalWordsEstimate) + ' orð)';
+  } else {
+    document.getElementById('analysisScopeLabel').textContent = '—';
+    document.getElementById('analysisScopeMeta').textContent = 'Vantar blaðsíðufjölda';
+  }
+
+  const conf = data.confidence || 'medium';
+  const confEl = document.getElementById('analysisConfidence');
+  confEl.className = 'analysis-confidence ' + conf;
+  confEl.textContent = conf === 'high' ? 'Áreiðanlegt'
+                     : conf === 'medium' ? 'Sæmilegt'
+                     : 'Óvíst';
+
+  document.getElementById('analysisBoundary').style.display =
+    data.readingLoad.boundaryRisk ? '' : 'none';
+}
+
+/* ── Confirm-takkar (2 valkostir) ── */
+document.getElementById('confirmTypical').addEventListener('click', () => handleConfirm('typical'));
+document.getElementById('confirmRetake').addEventListener('click', () => handleConfirm('retake'));
+
+async function handleConfirm(decision) {
+  if (_isProcessing) return;
+  if (!_pendingSampleId || !_pendingBookId) { alert('Vantar gögn til staðfestingar.'); return; }
+
+  _isProcessing = true;
+  ['confirmTypical', 'confirmRetake'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.disabled = true;
+  });
+
+  try {
+    const confirmFn = httpsCallable(functions, 'confirmPageSample');
+    await confirmFn({
+      bookId: _pendingBookId,
+      sampleId: _pendingSampleId,
+      decision
+    });
+
+    if (decision === 'retake') {
+      _pendingSampleId = null;
+      _pendingAnalysis = null;
+      document.getElementById('pageInput').value = '';
+      showStep2Substep('take');
+    } else {
+      goToDoneStep();
+    }
+  } catch (err) {
+    console.error('confirmPageSample villa:', err);
+    alert('Villa við staðfestingu: ' + (err.message || 'óþekkt villa'));
+  } finally {
+    _isProcessing = false;
+    ['confirmTypical', 'confirmRetake'].forEach(id => {
+      const el = document.getElementById(id); if (el) el.disabled = false;
+    });
+  }
+}
+
+/* ── Skip ── */
+document.getElementById('skipPagePhotoBtn').addEventListener('click', () => goToDoneStep());
+document.getElementById('errorSkipBtn').addEventListener('click', () => goToDoneStep());
+
+/* ── Skref 3: Lokið ── */
+function goToDoneStep() {
+  const title = document.getElementById('bookTitle').value.trim();
+  const author = document.getElementById('bookAuthor').value.trim();
+  const cover = curCovHQ || curCov || pendingCoverUrl;
+
+  document.getElementById('addDoneSummary').style.display = '';
+  document.getElementById('addDoneSummaryTitle').textContent = title;
+  document.getElementById('addDoneSummaryAuthor').textContent = author || '';
+
+  const coverEl = document.getElementById('addDoneSummaryCover');
+  coverEl.innerHTML = cover ? '<img src="' + cover + '" alt="">' : '';
+
+  const badgesEl = document.getElementById('addDoneSummaryBadges');
+  const badges = [];
+  if (_pendingAnalysis?.readingLoad) badges.push(_pendingAnalysis.readingLoad.label);
+  if (_pendingAnalysis?.scope) badges.push(_pendingAnalysis.scope.label);
+  if (badges.length === 0) badges.push('Ekki metið');
+  badgesEl.innerHTML = badges.map(b => '<span class="add-done-badge">' + b + '</span>').join('');
+
+  document.getElementById('addDoneSub').textContent = badges.includes('Ekki metið')
+    ? 'Komin í hilluna. Þú getur metið texta seinna.'
+    : 'Komin í hilluna með mati á texta.';
+
+  showStep(3);
+}
+
+async function identifyBookCover(gsPath){
+  const titleEl=document.getElementById('bookTitle');
+  const authorEl=document.getElementById('bookAuthor');
+  const metaEl=document.getElementById('previewMeta');
+  const subEl=document.getElementById('addStep1Sub');
+  const spinner=document.getElementById('coverSpinner');
+  if(!titleEl||!metaEl)return;
+
+  /* Sýna spinner yfir myndina */
+  if(spinner) spinner.style.display='flex';
+  const origMeta=metaEl.textContent;
+  metaEl.textContent='🔍 Finn bókina þína...';
+  titleEl.placeholder='Augnablik...';
+
+  try{
+    const identify=httpsCallable(functions,'identifyBookCover');
+    const result=await identify({gsPath});
+    const info=result.data;
+    console.log('Gemini result:',info);
+    if(info.title&&!titleEl.value){titleEl.value=info.title;metaEl.textContent='\u2728 '+info.title}
+    if(info.author&&authorEl&&!authorEl.value) authorEl.value=info.author;
+    titleEl.placeholder='t.d. Drekastormur';
+    if(!info.title) metaEl.textContent=origMeta;
+    if(subEl && info.title){
+      subEl.textContent='Við fundum bókina — lestu yfir og lagfærðu ef þarf. Gleymdu ekki blaðsíðufjölda.';
+    }
+  }catch(e){
+    console.warn('identifyBookCover failed:',e);
+    metaEl.textContent=origMeta;
+    titleEl.placeholder='t.d. Drekastormur';
+  } finally {
+    if(spinner) spinner.style.display='none';
+  }
+}
+
+document.getElementById('coverInput').addEventListener('change',e=>handleCoverFile(e.target.files?.[0]));
+
+// ── Goal modal ──
+let goalSelType='books',goalSelPeriod='week';
+
+function goalOverviewMessage(p,g,info){
+  const done=Number(p.done)||0;
+  if((Number(p.pct)||0)>=100)return 'Markmið náð! 🎉';
+  if(done<=0)return 'Þú ert á góðri leið';
+  if(g?.type==='days')return done===1?'Frábært — 1 lestrardagur kominn!':'Þú ert á góðri leið';
+  const unit=done===1?(info?.unitSingle||info?.unit||'skref'):(info?.unit||'skref');
+  return 'Frábært — '+done+' '+unit+' komin!';
+}
+function renderGoalOverview(){
+  const wrap=document.getElementById('goalOverviewList');
+  if(!wrap)return;
+  if(!currentGoals.length){
+    wrap.innerHTML='<div class="achievement-empty" style="margin:0">Engin virk markmið enn. Settu markmið til að fylgjast með mánuðinum.</div>';
+    return;
+  }
+  wrap.innerHTML=currentGoals.map((g,i)=>{
+    const info=GOAL_TYPES[g.type]||GOAL_TYPES.books;
+    const p=getGoalProgress(g);
+    const pct=Math.max(0,Math.min(100,p.pct||0));
+    return '<div class="goal-overview-row"><div class="goal-overview-icon-pill">'+info.icon+'</div><div class="goal-overview-info"><div class="goal-overview-title">Lesa '+esc(String(p.target||g.target||0))+' '+esc(info.unit)+'</div><div class="goal-overview-sub">'+esc(String(p.done||0))+'/'+esc(String(p.target||g.target||0))+' lokið</div><div class="goal-overview-bar"><div class="goal-overview-fill" style="width:'+pct+'%;min-width:'+(pct>0?'10px':'0')+'"></div></div><div class="goal-overview-msg">'+esc(goalOverviewMessage(p,g,info))+'</div></div>'+goalOverviewPercentRingSVG(p.pct)+'</div>';
+  }).join('');
+}
+function openGoalOverviewModal(){
+  renderGoalOverview();
+  openOv('goalOverviewModal');
+}
+
+function openGoalModal(){
+  const g=currentGoals[0];
+  goalSelType=g?.type||'books';
+  goalSelPeriod=g?.period||'week';
+  renderGoalCurrent();
+  renderGoalEditor();
+  openOv('goalModal');
+}
+
+function renderGoalCurrent(){
+  const wrap=document.getElementById('goalCurrentWrap');
+  const active=currentGoals.map((g,i)=>{
+    const info=GOAL_TYPES[g.type];const p=getGoalProgress(g);const r=21;const circ=2*Math.PI*r;const offset=circ-(p.pct/100)*circ;const ringColor=p.pct>=100?'#FFB830':'var(--accent)';
+    return'<div class="goal-current-row">'+progressRingSVG(p.done,p.target,p.pct,info.icon,'goal-current-ring',52,21)+'<div class="goal-current-info"><div class="goal-current-title">'+p.done+' af '+p.target+' '+info.unit+'</div><div class="goal-current-sub">'+info.name+' '+PERIOD_LABELS_SHORT[g.period]+'</div><div class="goal-current-pct">'+(p.pct>=100?'Markmið náð! 🎉':p.pct+'% lokið')+'</div></div><button class="goal-current-delete" data-delete-goal="'+i+'">Eyða</button></div>';
+  }).join('');
+  const ach=achievements.slice(0,9);
+  const achHTML=ach.length?'<div class="achievement-grid">'+ach.map(a=>'<div class="achievement-badge"><div class="achievement-badge-icon">'+(a.icon||'🏆')+'</div><div class="achievement-badge-title">'+esc(a.label||achievementLabel(a))+'</div><div class="achievement-badge-sub">Náð '+esc(a.dateLabel||'')+'</div></div>').join('')+'</div>':'<div class="achievement-empty">Engin verðlaun enn — þau birtast hér þegar markmið næst.</div>';
+  wrap.innerHTML=(currentGoals.length?'<div class="goal-current-list">'+active+'</div>':'')+'<div class="achievement-head"><div class="achievement-title">Verðlaunasafn</div><div class="achievement-count">'+achievements.length+' náð</div></div>'+achHTML+'<div class="goal-divider"></div>';
+  wrap.querySelectorAll('[data-delete-goal]').forEach(btn=>btn.addEventListener('click',async()=>{if(confirm('Eyða markmiði?')){await deleteGoal(Number(btn.dataset.deleteGoal));renderGoalCurrent();renderGoalEditor()}}));
+}
+
+function renderGoalEditor(){
+  // Type cards
+  document.querySelectorAll('[data-goal-type]').forEach(el=>{el.classList.toggle('selected',el.dataset.goalType===goalSelType)});
+  // Period buttons
+  document.querySelectorAll('[data-goal-period]').forEach(el=>{el.classList.toggle('selected',el.dataset.goalPeriod===goalSelPeriod)});
+  // Target label & presets
+  const info=GOAL_TYPES[goalSelType];
+  document.getElementById('goalTargetLabel').textContent=info.labelQ;
+  const presetWrap=document.getElementById('goalPresets');
+  const input=document.getElementById('goalTargetInput');
+  presetWrap.innerHTML=info.presets.map(p=>'<button class="goal-preset'+(input.value==String(p)?' selected':'')+'" data-preset="'+p+'">'+p+'</button>').join('');
+  presetWrap.querySelectorAll('[data-preset]').forEach(el=>el.addEventListener('click',()=>{
+    input.value=el.dataset.preset;
+    presetWrap.querySelectorAll('.goal-preset').forEach(b=>b.classList.remove('selected'));
+    el.classList.add('selected');
+  }));
+  // Pre-fill from current goal if type matches
+  const existing=currentGoals.find(x=>x.type===goalSelType&&x.period===goalSelPeriod);
+  if(existing){input.value=existing.target}
+}
+
+// Type card clicks
+document.getElementById('goalTypeGrid').addEventListener('click',e=>{
+  const card=e.target.closest('[data-goal-type]');if(!card)return;
+  goalSelType=card.dataset.goalType;
+  document.getElementById('goalTargetInput').value='';
+  renderGoalEditor();
+});
+
+// Period toggle clicks
+document.getElementById('goalPeriodToggle').addEventListener('click',e=>{
+  const btn=e.target.closest('[data-goal-period]');if(!btn)return;
+  goalSelPeriod=btn.dataset.goalPeriod;
+  renderGoalEditor();
+});
+
+// Save goal
+document.getElementById('saveGoalBtn').addEventListener('click',async()=>{
+  const target=Number(document.getElementById('goalTargetInput').value);
+  if(!target||target<1){alert('Settu inn tölu.');return}
+  const resultEl=document.getElementById('goalSaveResult');
+  const btn=document.getElementById('saveGoalBtn');
+  btn.disabled=true;btn.textContent='Vista...';
+  await saveGoal({type:goalSelType,target,period:goalSelPeriod,createdAt:(currentGoals.find(x=>x.type===goalSelType&&x.period===goalSelPeriod)?.createdAt)||Date.now()});
+  renderGoalCurrent();
+  resultEl.textContent='Markmið vistað ✓';resultEl.style.display='block';
+  btn.textContent='Vista markmið';btn.disabled=false;
+  setTimeout(()=>{resultEl.style.display='none';closeOv('goalModal')},1200);
+});
+
+document.getElementById('closeGoalOverview').addEventListener('click',()=>closeOv('goalOverviewModal'));
+document.getElementById('closeGoalOverview2').addEventListener('click',()=>closeOv('goalOverviewModal'));
+document.getElementById('editGoalsFromOverview').addEventListener('click',()=>{closeOv('goalOverviewModal');openGoalModal()});
+document.getElementById('closeGoal').addEventListener('click',()=>closeOv('goalModal'));
+document.getElementById('closeGoal2').addEventListener('click',()=>closeOv('goalModal'));
+
+document.addEventListener('click',e=>{
+  const btn=e.target.closest('[data-delete-reaction]');if(!btn)return;
+  e.preventDefault();e.stopPropagation();
+  const parts=String(btn.dataset.deleteReaction||'').split(':').map(Number);
+  if(parts.length===2&&Number.isFinite(parts[0])&&Number.isFinite(parts[1]))deleteJourneyReaction(parts[0],parts[1]);
+});
+
+document.getElementById('openAdd').addEventListener('click',openAddM);
+if(location.hash==='#add')setTimeout(openAddM,120);
+document.getElementById('closeAdd').addEventListener('click',()=>{resetF();closeOv('addModal')});
+document.getElementById('backToCamera').addEventListener('click',()=>{ resetF(); });
+document.getElementById('addAnotherBook').addEventListener('click',()=>{ closeOv('addModal'); resetF(); openAddM(); });
+document.getElementById('goToBookshelf').addEventListener('click',()=>{resetF();closeOv('addModal')});
+document.getElementById('closeJourney').addEventListener('click',()=>closeOv('journeyModal'));
+document.getElementById('closeJourney2').addEventListener('click',()=>closeOv('journeyModal'));
+document.getElementById('openProfile').addEventListener('click',()=>{document.getElementById('shareResult').classList.remove('show');renderLR();openOv('profileModal')});
+document.getElementById('closeProfile').addEventListener('click',()=>closeOv('profileModal'));
+document.getElementById('closeProfile2').addEventListener('click',()=>closeOv('profileModal'));
+document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o){if(o.id==='addModal')setReady();closeOv(o.id)}}));
+document.getElementById('shareLastReading').addEventListener('click',()=>document.getElementById('shareResult').classList.add('show'));
+document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelectorAll('.overlay.open').forEach(o=>closeOv(o.id))});
+
+function updEUI(){const bar=document.getElementById('editBar'),cnt=document.getElementById('editCount'),tog=document.getElementById('toggleEditBooks');if(bar)bar.hidden=!editMode;if(tog)tog.classList.toggle('active',editMode);const c=selIds.size;if(cnt)cnt.textContent=c===1?'1 valin':c+' valdar';const sel=document.getElementById('editStateSelect');if(sel)sel.disabled=c===0;const editBtn=document.getElementById('editSelectedBook');if(editBtn)editBtn.disabled=c!==1;const delBtn=document.getElementById('deleteSelectedBooks');if(delBtn)delBtn.disabled=c===0;if(sel)sel.value=''}
+function setEM(v){editMode=Boolean(v);if(!editMode)selIds.clear();updEUI();render()}
+function toggleSel(id){if(selIds.has(id))selIds.delete(id);else selIds.add(id);updEUI();render()}
+
+async function markReading(){if(!selIds.size)return;try{for(const id of selIds){const b=books.find(x=>x.id===id);if(!b)continue;const tp=Number(b.totalPages||0),fr=b.currentPageFrom||1,to=b.currentPageTo||Math.min(10,tp||10),pc=tp?Math.min(99,Math.max(1,Math.round((to/tp)*100))):(b.progressPercent||1);await updBook(id,{status:'reading',currentPageFrom:fr,currentPageTo:to,progressPercent:pc,lastReadAt:b.lastReadAt||Date.now()})}}catch(e){alert('Villa.')}selIds.clear();setEM(false)}
+async function moveShelf(){if(!selIds.size)return;try{for(const id of selIds)await updBook(id,{status:'shelf'})}catch(e){alert('Villa.')}selIds.clear();setEM(false)}
+async function markFinished(){if(!selIds.size)return;try{for(const id of selIds){const b=books.find(x=>x.id===id);if(!b)continue;await updBook(id,{status:'finished',progressPercent:100,currentPageTo:Number(b.totalPages||0)||b.currentPageTo||null,lastReadAt:b.lastReadAt||Date.now()})}}catch(e){alert('Villa.')}selIds.clear();setEM(false)}
+function openDelM(){if(!selIds.size)return;const n=books.filter(b=>selIds.has(b.id)).map(b=>b.title).slice(0,3);const el=document.getElementById('deleteBooksName');if(el){const ex=selIds.size>3?' + '+(selIds.size-3)+' í viðbót':'';el.textContent=n.join(', ')+ex}openOv('deleteBooksModal')}
+
+let lpT=null,lpF=false;
+function attachLP(){document.querySelectorAll('[data-open-book]').forEach(el=>{if(el.dataset.lp==='1')return;el.dataset.lp='1';el.addEventListener('contextmenu',e=>e.preventDefault());el.addEventListener('pointerdown',()=>{lpF=false;clearTimeout(lpT);lpT=setTimeout(()=>{lpF=true;const id=el.dataset.openBook;if(editMode)toggleSel(id);else{selIds=new Set([id]);openDelM()}},650)});['pointerup','pointercancel','pointerleave'].forEach(ev=>el.addEventListener(ev,()=>clearTimeout(lpT)));el.addEventListener('click',e=>{if(lpF){e.preventDefault();e.stopPropagation();lpF=false}},true)})}
+
+document.getElementById('toggleEditBooks').addEventListener('click',()=>setEM(!editMode));
+document.getElementById('cancelEditBooks').addEventListener('click',()=>setEM(false));
+// State dropdown — change status of selected books
+document.getElementById('editStateSelect').addEventListener('change',async function(){
+  const val=this.value;if(!val||!selIds.size)return;
+  try{
+    for(const id of selIds){
+      const b=books.find(x=>x.id===id);if(!b)continue;
+      if(val==='reading'){
+        const tp=Number(b.totalPages||0),fr=b.currentPageFrom||1,to=b.currentPageTo||Math.min(10,tp||10),pc=tp?Math.min(99,Math.max(1,Math.round((to/tp)*100))):(b.progressPercent||1);
+        await updBook(id,{status:'reading',currentPageFrom:fr,currentPageTo:to,progressPercent:pc,lastReadAt:b.lastReadAt||Date.now()});
+      }else if(val==='shelf'){
+        await updBook(id,{status:'shelf'});
+      }else if(val==='finished'){
+        await updBook(id,{status:'finished',progressPercent:100,currentPageTo:Number(b.totalPages||0)||b.currentPageTo||null,lastReadAt:b.lastReadAt||Date.now()});
+      }
+    }
+  }catch(e){alert('Villa.')}
+  selIds.clear();setEM(false);
+});
+// Edit modal — open with selected book data
+document.getElementById('editSelectedBook').addEventListener('click',()=>{
+  if(selIds.size!==1)return;
+  const id=[...selIds][0];
+  const b=books.find(x=>x.id===id);if(!b)return;
+  document.getElementById('editBookTitle').value=b.title||'';
+  document.getElementById('editBookAuthor').value=b.author||'';
+  document.getElementById('editBookPages').value=b.totalPages||'';
+  document.getElementById('editBookStatus').value=b.status||'shelf';
+  document.getElementById('editBookSub').textContent=b.title||'Breyta bók';
+  openOv('editBookModal');
+});
+document.getElementById('closeEditBook').addEventListener('click',()=>closeOv('editBookModal'));
+document.getElementById('saveEditBook').addEventListener('click',async()=>{
+  if(selIds.size!==1)return;
+  const id=[...selIds][0];
+  const title=document.getElementById('editBookTitle').value.trim();
+  const author=document.getElementById('editBookAuthor').value.trim();
+  const pages=Number(document.getElementById('editBookPages').value)||null;
+  const status=document.getElementById('editBookStatus').value||'shelf';
+  if(!title){alert('Titill vantar.');return}
+  const updates={title,author,status};
+  if(pages)updates.totalPages=pages;
+  // Recalculate progress if pages changed
+  const b=books.find(x=>x.id===id);
+  if(b&&pages&&b.currentPageTo){
+    updates.progressPercent=Math.min(100,Math.round((b.currentPageTo/pages)*100));
+    if(updates.progressPercent>=100)updates.status='finished';
+  }
+  try{await updBook(id,updates)}catch(e){alert('Villa.')}
+  closeOv('editBookModal');selIds.clear();setEM(false);
+});
+document.getElementById('deleteSelectedBooks').addEventListener('click',openDelM);
+document.getElementById('closeDeleteBooks').addEventListener('click',()=>closeOv('deleteBooksModal'));
+document.getElementById('cancelDeleteBooks').addEventListener('click',()=>closeOv('deleteBooksModal'));
+document.getElementById('confirmDeleteBooks').addEventListener('click', async () => {
+  if (!selIds.size) return;
+
+  try {
+    for (const id of selIds) {
+      console.log("Deleting book:", id);
+      await delBook(id);
+    }
+
+    selIds.clear();
+    closeOv('deleteBooksModal');
+    setEM(false);
+
+  } catch (e) {
+    console.error("DELETE BOOK ERROR:", e);
+    console.error("code:", e?.code);
+    console.error("message:", e?.message);
+    alert(`Villa við að eyða bók: ${e?.code || e?.message || "óþekkt villa"}`);
+  }
+});
+
+// ── Desktop rail arrows ──
+document.querySelectorAll('.rail-arrow').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    const rail=document.getElementById(btn.dataset.rail);
+    if(!rail)return;
+    const dir=Number(btn.dataset.dir)||1;
+    rail.scrollBy({left:dir*200,behavior:'smooth'});
+  });
+});
+
+if(previewMode){
+  // Preview mode — show demo books, no Firestore
+  currentGoals=[{type:'days',target:5,period:'week',createdAt:Date.now()},{type:'pages',target:100,period:'week',createdAt:Date.now()}];
+  achievements=[];
+  books=[...demoBooks];render();
+}else{
+  // ── PERF: Start IndexedDB cover preload IN PARALLEL with auth.
+  // By the time auth + Firestore resolve, cc{} is warm and the first
+  // render shows real covers immediately — no placeholder flash.
+  const coverPreload=preloadAllCovers();
+
+  Promise.all([ensureAuth(),coverPreload]).then(()=>{
+    loadGoal();render();
+    startListener();startSessionsListener();startGoalsListener();
+  }).catch(()=>{});
+}
+</script>
 
 <!-- ═══════════════════════════════════════════
      SCRIPT 3: SHELL (nav, dev login, toast)

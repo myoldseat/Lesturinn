@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="is">
 <head>
 <meta charset="utf-8">
@@ -4399,11 +4399,11 @@ function resetF(){
   setReady();
 }
 function openAddM(){
-window._bsOpenAdd=openAddM;
   resetF();
   openOv('addModal');
   setTimeout(()=>document.getElementById('bookTitle')?.focus(),100);
 }
+window._bsOpenAdd=openAddM;
 
 // ── Handle image from camera or gallery ──
 async function handleCoverFile(file){

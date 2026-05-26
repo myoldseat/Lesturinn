@@ -1979,49 +1979,57 @@ body{font-family:'DM Sans','Manrope',-apple-system,BlinkMacSystemFont,sans-serif
 /* ── Chart modal ── */
 #screen-child-arangur .chart-overlay{
   position: fixed; inset: 0;
-  background: rgba(3,7,13,0.88);
+  background: radial-gradient(circle at 50% 0%, rgba(36,214,223,0.14), transparent 34%), rgba(3,7,13,0.94);
   backdrop-filter: blur(12px);
   z-index: 100;
-  display: flex; align-items: center; justify-content: center;
-  padding: 14px;
+  display: flex; align-items: stretch; justify-content: center;
+  padding: max(10px, env(safe-area-inset-top)) 10px max(10px, env(safe-area-inset-bottom));
   opacity: 0; pointer-events: none;
   transition: opacity 250ms ease;
 }
 #screen-child-arangur .chart-overlay.open{ opacity: 1; pointer-events: auto; }
 #screen-child-arangur .chart-box{
-  width: min(400px, 100%);
-  border-radius: 22px;
-  border: 1px solid var(--line);
-  background: linear-gradient(180deg, rgba(13,31,49,0.96), rgba(6,16,28,0.96));
-  box-shadow: 0 30px 80px rgba(0,0,0,0.5), 0 0 60px rgba(36,214,223,0.08);
-  padding: 18px 16px 24px;
-  transform: translateY(12px) scale(0.97);
+  width: min(980px, 100%);
+  min-height: min(720px, 100%);
+  border-radius: 20px;
+  border: 1px solid rgba(36,214,223,0.24);
+  background: linear-gradient(180deg, rgba(13,31,49,0.98), rgba(5,13,24,0.98));
+  box-shadow: 0 30px 80px rgba(0,0,0,0.55), 0 0 70px rgba(36,214,223,0.10);
+  padding: 16px 14px 14px;
+  transform: translateY(12px) scale(0.98);
   transition: transform 250ms ease;
   position: relative;
+  display:flex; flex-direction:column;
 }
 #screen-child-arangur .chart-overlay.open .chart-box{ transform: translateY(0) scale(1); }
 #screen-child-arangur .chart-close{
   position: absolute; top: 10px; right: 12px;
-  width: 28px; height: 28px; border-radius: 50%;
-  border: 1px solid rgba(122,187,218,0.2);
-  background: rgba(7,18,32,0.6);
-  color: var(--text-soft); font-size: 1rem; font-weight: 600;
-  display: grid; place-items: center; cursor: pointer;
+  width: 34px; height: 34px; border-radius: 50%;
+  border: 1px solid rgba(122,187,218,0.28);
+  background: rgba(7,18,32,0.72);
+  color: var(--text); font-size: 1.2rem; font-weight: 700;
+  display: grid; place-items: center; cursor: pointer; z-index:4;
 }
 #screen-child-arangur .chart-title{
-  font-size: 0.95rem; font-weight: 900; margin: 0 0 2px; letter-spacing: -0.3px;
+  font-size: clamp(1rem, 2.2vw, 1.35rem); font-weight: 900; margin: 0 42px 3px 0; letter-spacing: -0.2px;
 }
 #screen-child-arangur .chart-sub{
-  font-size: 0.7rem; color: var(--text-soft); font-weight: 600; margin: 0 0 14px;
+  font-size: clamp(0.74rem, 1.5vw, 0.9rem); color: var(--text-soft); font-weight: 700; margin: 0 42px 8px 0; line-height:1.35;
+}
+#screen-child-arangur .chart-hint{
+  display:flex; align-items:center; gap:7px; width:max-content; max-width:100%;
+  margin:0 0 10px; padding:6px 10px; border-radius:999px;
+  border:1px solid rgba(36,214,223,0.22); background:rgba(36,214,223,0.08);
+  color:var(--teal); font-size:0.72rem; font-weight:800;
 }
 #screen-child-arangur .chart-area{
-  position: relative; width: 100%; padding-bottom: 60%;
+  position: relative; width: 100%; flex:1; min-height:390px;
 }
 #screen-child-arangur .chart-area svg{
   position: absolute; inset: 0; width: 100%; height: 100%;
 }
 #screen-child-arangur .chart-line-done{
-  fill: none; stroke: var(--teal); stroke-width: 2.5;
+  fill: none; stroke: var(--teal); stroke-width: 4;
   stroke-linecap: round; stroke-linejoin: round;
   filter: drop-shadow(0 0 6px rgba(36,214,223,0.4));
 }
@@ -2033,18 +2041,18 @@ body{font-family:'DM Sans','Manrope',-apple-system,BlinkMacSystemFont,sans-serif
 @keyframes draw-chart-line { to { stroke-dashoffset: 0; } }
 #screen-child-arangur .chart-line-future{
   fill: none; stroke: rgba(122,187,218,0.15);
-  stroke-width: 1.5; stroke-dasharray: 5 5; stroke-linecap: round;
+  stroke-width: 3; stroke-dasharray: 7 7; stroke-linecap: round;
 }
-#screen-child-arangur .chart-grid{ stroke: rgba(122,187,218,0.06); stroke-width: 1; }
+#screen-child-arangur .chart-grid{ stroke: rgba(122,187,218,0.10); stroke-width: 1; }
 #screen-child-arangur .chart-node-ring{
-  fill: var(--bg); stroke: var(--teal); stroke-width: 2;
+  fill: var(--bg); stroke: var(--teal); stroke-width: 3;
 }
 #screen-child-arangur .chart-node-ring.locked{
   stroke: rgba(122,187,218,0.15); stroke-dasharray: 3 3;
   opacity: 0.35;
 }
 #screen-child-arangur .chart-node-ring.gold{ stroke: var(--gold); }
-#screen-child-arangur .chart-emoji{ font-size: 10px; text-anchor: middle; dominant-baseline: central; }
+#screen-child-arangur .chart-emoji{ font-size: 18px; text-anchor: middle; dominant-baseline: central; }
 #screen-child-arangur .chart-emoji.locked{ opacity: 0.3; filter: grayscale(1); }
 #screen-child-arangur .chart-label{
   font-size: 7.5px; fill: var(--text-muted); font-weight: 700;
@@ -2074,14 +2082,21 @@ body{font-family:'DM Sans','Manrope',-apple-system,BlinkMacSystemFont,sans-serif
 }
 /* Zoom/pan container */
 #screen-child-arangur .chart-area{
-  position: relative; width: 100%; padding-bottom: 65%;
   overflow: hidden; touch-action: none;
-  border-radius: 8px;
+  border-radius: 14px;
+  border:1px solid rgba(122,187,218,0.10);
+  background:linear-gradient(180deg, rgba(255,255,255,0.025), rgba(255,255,255,0.005));
 }
 #screen-child-arangur .chart-area svg{
   position: absolute; top: 0; left: 0;
   transform-origin: 0 0;
   transition: transform 120ms ease-out;
+}
+@media (orientation: landscape){
+  #screen-child-arangur .chart-overlay{ padding:8px max(10px, env(safe-area-inset-right)) 8px max(10px, env(safe-area-inset-left)); }
+  #screen-child-arangur .chart-box{ width:100%; min-height:100%; border-radius:16px; padding:12px; }
+  #screen-child-arangur .chart-hint{ display:none; }
+  #screen-child-arangur .chart-area{ min-height:0; }
 }
 #screen-child-arangur .chart-zoom-controls{
   position: absolute; bottom: 8px; right: 8px;
@@ -2142,6 +2157,7 @@ body{font-family:'DM Sans','Manrope',-apple-system,BlinkMacSystemFont,sans-serif
       <g id="frozen-lines"></g>
       <path id="listen-line" class="listen-line" d="M 0 0 L 0 0"></path>
     </svg>
+    <div id="listen-toast" class="toast" aria-live="polite"></div>
 
     <section class="panel">
       <div class="top-bar">
@@ -2688,6 +2704,7 @@ body{font-family:'DM Sans','Manrope',-apple-system,BlinkMacSystemFont,sans-serif
     <button class="chart-close" id="chartClose" type="button">&times;</button>
     <div class="chart-title">Lestrarferðalagið þitt</div>
     <div class="chart-sub" id="chartSub">Hæð × tími — hver síða er 20 cm</div>
+    <div class="chart-hint">Snúðu símanum til hliðar til að sjá ferðalagið betur</div>
     <div class="chart-area" id="chartArea">
       <div class="chart-tooltip" id="chartTooltip"></div>
       <div class="chart-zoom-controls">
@@ -3010,6 +3027,8 @@ window._child = { auth, db, storage, functions, CS, ensureAuth, getChildSession,
   var finishedBooksCount = 0;
   var listenCount = 0;
   var sessionDatesFromFirestore = [];
+  var sessionHistoryFromFirestore = [];
+  var arangurStartedAt = 0;
 
   async function loadArangurTotals() {
     try {
@@ -3024,6 +3043,8 @@ window._child = { auth, db, storage, functions, CS, ensureAuth, getChildSession,
       var booksSnap = await fs.getDocs(fs.query(fs.collection(shell.db, "books"), fs.where("familyId", "==", fid), fs.where("childKey", "==", ck)));
       var pages = 0;
       var finished = 0;
+      var finishedAfterBaseline = 0;
+      var bookRows = [];
       booksSnap.forEach(function (docSnap) {
         var data = docSnap.data() || {};
         var totalPages = Number(data.totalPages || data.pages || 0);
@@ -3033,21 +3054,44 @@ window._child = { auth, db, storage, functions, CS, ensureAuth, getChildSession,
         else if (typeof data.currentPage === "number") readPages = data.currentPage;
         else if (typeof data.progressPercent === "number" && totalPages) readPages = Math.round(totalPages * data.progressPercent / 100);
         if (data.status === "finished") { finished++; readPages = Math.max(readPages, totalPages); }
-        pages += Math.max(0, Math.min(readPages || 0, totalPages || readPages || 0));
+        var clampedPages = Math.max(0, Math.min(readPages || 0, totalPages || readPages || 0));
+        pages += clampedPages;
+        bookRows.push({ data: data, pages: clampedPages, totalPages: totalPages });
       });
-      totalPagesRead = pages;
-      finishedBooksCount = finished;
+
+      var baselineKey = "upphatt_arangur_baseline_v1_" + fid + "_" + ck;
+      var baseline = null;
+      try { baseline = JSON.parse(localStorage.getItem(baselineKey) || "null"); } catch (e) { baseline = null; }
+      if (!baseline || typeof baseline.pages !== "number" || typeof baseline.startedAt !== "number") {
+        baseline = { pages: pages, startedAt: Date.now() };
+        try { localStorage.setItem(baselineKey, JSON.stringify(baseline)); } catch (e) {}
+      }
+      arangurStartedAt = Number(baseline.startedAt || Date.now());
+      totalPagesRead = Math.max(0, pages - Number(baseline.pages || 0));
+
+      bookRows.forEach(function (row) {
+        var data = row.data || {};
+        var finishedAt = data.finishedAt || data.lastReadAt || data.updatedAt || data.createdAt;
+        var finishedDate = finishedAt && typeof finishedAt.toDate === "function" ? finishedAt.toDate() : (finishedAt ? new Date(finishedAt) : null);
+        if (data.status === "finished" && finishedDate && !isNaN(finishedDate.getTime()) && finishedDate.getTime() >= arangurStartedAt) finishedAfterBaseline++;
+      });
+      finishedBooksCount = finishedAfterBaseline;
+
       try {
         var sessionsSnap = await fs.getDocs(fs.query(fs.collection(shell.db, "sessions"), fs.where("familyId", "==", fid), fs.where("childKey", "==", ck)));
         var seconds = 0;
         var count = 0;
         sessionsSnap.forEach(function (docSnap) {
           var data = docSnap.data() || {};
-          seconds += Number(data.seconds || data.durationSeconds || 0);
-          count++;
           var rawDate = data.date || data.createdAt || data.timestamp;
           var dateObj = rawDate && typeof rawDate.toDate === "function" ? rawDate.toDate() : (rawDate ? new Date(rawDate) : null);
-          if (dateObj && !isNaN(dateObj.getTime())) sessionDatesFromFirestore.push(dateObj);
+          if (!dateObj || isNaN(dateObj.getTime()) || dateObj.getTime() < arangurStartedAt) return;
+          var pagesRead = Number(data.pagesRead || data.pages || 0);
+          if (!pagesRead && Number(data.pageTo || 0) && Number(data.pageFrom || 0)) pagesRead = Math.max(0, Number(data.pageTo) - Number(data.pageFrom) + 1);
+          seconds += Number(data.seconds || data.durationSeconds || 0);
+          count++;
+          sessionDatesFromFirestore.push(dateObj);
+          sessionHistoryFromFirestore.push({ date: dateObj, pagesRead: pagesRead });
         });
         totalMinutesRead = Math.round(seconds / 60);
         listenCount = count;
@@ -3354,12 +3398,23 @@ window._child = { auth, db, storage, functions, CS, ensureAuth, getChildSession,
       var cumulative = 0;
       sessions2.forEach(function (s) {
         if (s && s.pagesRead) {
+          var localDate = new Date(s.date || Date.now());
+          if (arangurStartedAt && localDate.getTime() < arangurStartedAt) return;
           cumulative += Number(s.pagesRead);
-          readingHistory.push({ date: new Date(s.date || Date.now()), totalPages: cumulative });
+          readingHistory.push({ date: localDate, totalPages: cumulative });
         }
       });
     }
   } catch (e) {}
+
+  if (sessionHistoryFromFirestore.length) {
+    readingHistory = [];
+    var firestoreCumulative = 0;
+    sessionHistoryFromFirestore.sort(function (a, b) { return a.date - b.date; }).forEach(function (s) {
+      firestoreCumulative += Number(s.pagesRead || 0);
+      readingHistory.push({ date: s.date, totalPages: firestoreCumulative });
+    });
+  }
 
   // Fallback: show nothing if no real data (no fake demo line)
   if (readingHistory.length === 0) {
@@ -3408,8 +3463,8 @@ window._child = { auth, db, storage, functions, CS, ensureAuth, getChildSession,
   }
 
   function renderChart() {
-    var W = 380, H = 248;
-    var PAD = { top: 18, right: 20, bottom: 28, left: 36 };
+    var W = 760, H = 420;
+    var PAD = { top: 34, right: 42, bottom: 50, left: 64 };
     var plotW = W - PAD.left - PAD.right;
     var plotH = H - PAD.top - PAD.bottom;
 
@@ -3437,13 +3492,14 @@ window._child = { auth, db, storage, functions, CS, ensureAuth, getChildSession,
 
     var svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" xmlns="http://www.w3.org/2000/svg" id="chartSvg">';
 
-    // Y grid + labels (even: 0, 10, 20, 30, 40)
+    // Y grid + labels: 1 sÃ­Ã°a = 20 cm = 0,2 m
     var ySteps = [0, 10, 20, 30, 40];
     for (var yi = 0; yi < ySteps.length; yi++) {
       var gy = yPos(ySteps[yi] / 0.2);
       svg += '<line class="chart-grid" x1="' + PAD.left + '" y1="' + gy + '" x2="' + (W - PAD.right) + '" y2="' + gy + '"/>';
-      svg += '<text class="chart-y-text" x="' + (PAD.left - 4) + '" y="' + gy + '">' + ySteps[yi] + 'm</text>';
+      svg += '<text class="chart-y-text" x="' + (PAD.left - 8) + '" y="' + gy + '">' + ySteps[yi] + ' m</text>';
     }
+    svg += '<text class="chart-y-text" x="' + PAD.left + '" y="18" text-anchor="start">1 sÃ­Ã°a = 20 cm</text>';
 
     // X axis labels: whole days, format "9/5"
     // Show 4-6 labels evenly spaced
@@ -3537,18 +3593,22 @@ window._child = { auth, db, storage, functions, CS, ensureAuth, getChildSession,
 
       nodePositions.push({ x: mx, y: my, idx: mi, unlocked: mUnlocked, name: mms.name, desc: mms.desc, icon: mms.icon, pages: mt.pages });
 
-      var nodeR = 10;
+      var nodeR = mUnlocked ? 17 : 15;
       var ringCls = mUnlocked ? (isGold2 ? "chart-node-ring gold" : "chart-node-ring") : "chart-node-ring locked";
       var emojiCls = mUnlocked ? "chart-emoji" : "chart-emoji locked";
 
       // Wrap node in clickable group
       svg += '<g class="chart-node-tap" data-node="' + mi + '" style="cursor:pointer">';
       // Invisible larger hit area
-      svg += '<circle cx="' + mx.toFixed(1) + '" cy="' + my.toFixed(1) + '" r="18" fill="transparent"/>';
+      svg += '<circle cx="' + mx.toFixed(1) + '" cy="' + my.toFixed(1) + '" r="28" fill="transparent"/>';
       svg += '<circle class="' + ringCls + '" cx="' + mx.toFixed(1) + '" cy="' + my.toFixed(1) + '" r="' + nodeR + '"/>';
       svg += '<text class="' + emojiCls + '" x="' + mx.toFixed(1) + '" y="' + my.toFixed(1) + '">' + mms.icon + '</text>';
       svg += '</g>';
-      // No labels — name only shown on tap
+      if (mi === lastCompletedIdx || mi === nextLockedIdx) {
+        var labelY = my + 32;
+        svg += '<text class="chart-label" x="' + mx.toFixed(1) + '" y="' + labelY.toFixed(1) + '">' + mt.pages + ' bls</text>';
+      }
+      // Full name is shown on tap
     }
 
     // Crosshair lines group (rendered empty, filled on tap)
@@ -3790,11 +3850,21 @@ window._child = { auth, db, storage, functions, CS, ensureAuth, getChildSession,
       var frozenLinesEl = document.getElementById("frozen-lines");
       var listenLineEl = document.getElementById("listen-line");
       var toastEl = document.getElementById("listen-toast");
+      function ensureListenToast() {
+        if (!toastEl && screenEl) {
+          toastEl = document.createElement("div");
+          toastEl.id = "listen-toast";
+          toastEl.className = "toast";
+          toastEl.setAttribute("aria-live", "polite");
+          screenEl.appendChild(toastEl);
+        }
+        return toastEl;
+      }
 
       // ── Constants ──
       var LISTEN_STORAGE_KEY = "upphatt_listen_connections_v1_" + childStorageKey;
-      var FROZEN_FULL_BRIGHT_MS = 5 * 1000;
-      var FROZEN_FADE_MS = 24 * 60 * 60 * 1000;
+      var FROZEN_FULL_BRIGHT_MS = 30 * 60 * 1000;
+      var FROZEN_FADE_MS = 48 * 60 * 60 * 1000;
       var CONNECTION_LIFETIME_MS = FROZEN_FULL_BRIGHT_MS + FROZEN_FADE_MS;
       var GOAL_STORAGE_KEY = "upphatt_monthly_goal_achieved_" + childStorageKey;
       var GOAL_VISIBLE_MS = 48 * 60 * 60 * 1000;
@@ -4303,6 +4373,7 @@ window._child = { auth, db, storage, functions, CS, ensureAuth, getChildSession,
         }
 
         renderResumeCard(activeBook, { currentPage: currentPage, totalPages: totalPages, pct: pct });
+        refreshListenGeometry();
       }
 
       // ── Resume card (hero) renderer ──
@@ -4375,7 +4446,8 @@ window._child = { auth, db, storage, functions, CS, ensureAuth, getChildSession,
             img.src = coverUrl;
             img.alt = "";
             img.loading = "lazy";
-            img.onerror = function () { img.remove(); };
+            img.onload = refreshListenGeometry;
+            img.onerror = function () { img.remove(); refreshListenGeometry(); };
             resumeCoverEl.insertBefore(img, resumeCoverEl.firstChild);
             if (resumeCoverFallbackEl) resumeCoverFallbackEl.style.opacity = "0";
           } else if (resumeCoverFallbackEl) {
@@ -4879,11 +4951,12 @@ window._child = { auth, db, storage, functions, CS, ensureAuth, getChildSession,
         var age = Date.now() - Number(timestamp || 0); if (age < 0) age = 0;
         if (age <= FROZEN_FULL_BRIGHT_MS) return 1;
         var fadeAge = age - FROZEN_FULL_BRIGHT_MS;
-        return Math.max(0, Math.min(1, 0.25 * (1 - fadeAge / FROZEN_FADE_MS)));
+        return Math.max(0, Math.min(1, 0.65 * (1 - fadeAge / FROZEN_FADE_MS)));
       }
 
       function renderFrozenConnections() {
         var items = pruneFrozenConnections();
+        if (!frozenLinesEl) return;
         frozenLinesEl.innerHTML = "";
         resetStarStates();
         items.forEach(function (item) {
@@ -4902,6 +4975,12 @@ window._child = { auth, db, storage, functions, CS, ensureAuth, getChildSession,
           path.style.filter = "drop-shadow(0 0 " + (2 + strength * 8).toFixed(1) + "px rgba(168,245,255," + (0.12 + strength * 0.46).toFixed(3) + ")) drop-shadow(0 0 " + (6 + strength * 18).toFixed(1) + "px rgba(168,245,255," + (0.06 + strength * 0.24).toFixed(3) + "))";
           frozenLinesEl.appendChild(path);
         });
+      }
+
+      function refreshListenGeometry() {
+        if (window.requestAnimationFrame) requestAnimationFrame(renderFrozenConnections);
+        setTimeout(renderFrozenConnections, 80);
+        setTimeout(renderFrozenConnections, 320);
       }
 
       function persistFrozenConnection(starIndex, listenerName) {
@@ -4934,6 +5013,7 @@ window._child = { auth, db, storage, functions, CS, ensureAuth, getChildSession,
       }
 
       function showListenToastNearStar(star, listenerName, timestamp) {
+        if (!star || !screenEl || !recordBtn || !ensureListenToast()) return;
         var sr = screenEl.getBoundingClientRect();
         var cr = recordBtn.getBoundingClientRect();
         var str = star.getBoundingClientRect();
@@ -5027,7 +5107,7 @@ window._child = { auth, db, storage, functions, CS, ensureAuth, getChildSession,
         });
       });
 
-      window.addEventListener("resize", function () { renderFrozenConnections(); });
+      window.addEventListener("resize", refreshListenGeometry);
       window.addEventListener("beforeunload", function () { cleanupAudio(); });
       document.addEventListener("keydown", function (e) { if (e.key === "Escape") closePostSavePopup(); });
 

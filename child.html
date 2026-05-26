@@ -87,19 +87,20 @@ body{font-family:'DM Sans','Manrope',-apple-system,BlinkMacSystemFont,sans-serif
 .login-card button{width:100%;padding:12px;border-radius:var(--r-sm);border:none;background:var(--accent);color:#061018;font:inherit;font-size:14px;font-weight:600;cursor:pointer;transition:filter .15s}
 .login-card button:active{filter:brightness(.85)}
 
-/* ── Context action button (4th nav slot — warm/gold) ── */
+/* ── Context action button (4th nav slot) ── */
 .child-nav-context{
   display:flex;align-items:center;justify-content:center;
   border:0;cursor:pointer;font-family:inherit;
   font-size:11px;font-weight:800;letter-spacing:.02em;
-  color:#f0c94d;
-  background:rgba(240,201,77,.10);
+  color:var(--accent);
+  background:rgba(36,214,223,.10);
+  border:1px solid rgba(36,214,223,.22);
   border-radius:12px;
   margin:10px 6px;
   padding:0 12px;
   transition:background .18s,color .18s,transform .12s;
 }
-.child-nav-context:active{transform:scale(.95);background:rgba(240,201,77,.18)}
+.child-nav-context:active{transform:scale(.95);background:rgba(36,214,223,.18)}
 
 /* ── Toast ── */
 .toast{position:fixed;bottom:calc(var(--nav-h) + var(--safe) + 16px);left:50%;transform:translateX(-50%) translateY(20px);background:var(--surface);border:1px solid var(--border-hl);color:var(--text);padding:10px 20px;border-radius:12px;font-size:13px;font-weight:600;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;z-index:200;text-align:center;max-width:min(90vw,360px)}
@@ -1810,9 +1811,8 @@ function go(tab) {
       const modal = document.getElementById('child-reading-modal');
       if (modal) { modal.classList.add('open'); modal.setAttribute('aria-hidden','false'); }
     } else if (currentScreen === 'bookshelf') {
-      // Open add book (bookshelf) — TODO: wire up in Skref 3
-      const addOverlay = document.getElementById('addBookOverlay');
-      if (addOverlay) addOverlay.style.display = 'grid';
+      // Open add book (bookshelf)
+      if (typeof window._bsOpenAdd === 'function') window._bsOpenAdd();
     } else if (currentScreen === 'arangur') {
       // Open goal modal (arangur) — TODO: wire up in Skref 4
       const goalModal = document.getElementById('goalOverlay');
@@ -4400,6 +4400,7 @@ function resetF(){
   setReady();
 }
 function openAddM(){
+window._bsOpenAdd=openAddM;
   resetF();
   openOv('addModal');
   setTimeout(()=>document.getElementById('bookTitle')?.focus(),100);
@@ -4820,7 +4821,8 @@ document.addEventListener('click',e=>{
   if(parts.length===2&&Number.isFinite(parts[0])&&Number.isFinite(parts[1]))deleteJourneyReaction(parts[0],parts[1]);
 });
 
-document.getElementById('openAdd').addEventListener('click',openAddM);
+const _openAddEl=document.getElementById('openAdd');
+if(_openAddEl)_openAddEl.addEventListener('click',openAddM);
 if(location.hash==='#add')setTimeout(openAddM,120);
 document.getElementById('closeAdd').addEventListener('click',()=>{resetF();closeOv('addModal')});
 document.getElementById('backToCamera').addEventListener('click',()=>{ resetF(); });

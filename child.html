@@ -1,0 +1,417 @@
+<!doctype html>
+<html lang="is">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
+<!-- PWA + Favicon -->
+<meta name="theme-color" content="#07101e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="UppHátt">
+<link rel="apple-touch-icon" href="/icon-180.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png">
+<link rel="icon" href="/favicon.ico">
+<link rel="manifest" href="/manifest.json">
+<title>UppHátt — Barn</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,700;0,9..40,800;1,9..40,400&family=DM+Serif+Display&family=Manrope:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+
+/* ══════════════════════════════════════════
+   CHILD.HTML — SHELL
+   Sama mynstur og parent.html: login overlay,
+   shared bottom nav, screen switching via go()
+   ══════════════════════════════════════════ */
+
+*,*::before,*::after{box-sizing:border-box}
+html,body{margin:0;padding:0;background:#070d16;min-height:100%;min-height:100dvh;min-height:-webkit-fill-available;overflow-x:hidden}
+body{font-family:'DM Sans','Manrope',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-font-smoothing:antialiased;color:#e5edf6}
+
+:root{
+  --bg:#070d16;
+  --surface:rgba(13,24,42,.85);
+  --border:rgba(29,205,211,.12);
+  --border-hl:rgba(29,205,211,.25);
+  --text:#e5edf6;
+  --text-bright:#e5edf6;
+  --muted:#5a7088;
+  --accent:#24d6df;
+  --accent-dim:rgba(29,205,211,.08);
+  --accent-glow:rgba(29,205,211,.22);
+  --danger:#ff6b6b;
+  --gold:#f0c94d;
+  --r-sm:10px;
+  --r-md:14px;
+  --safe:env(safe-area-inset-bottom,0px);
+  --nav-h:68px;
+}
+
+/* ── Screen switching ── */
+.scr{display:none;flex-direction:column;min-height:100dvh}
+.scr.on{display:flex}
+
+/* ── Shared bottom nav ── */
+.child-bottom-nav{
+  position:fixed;bottom:0;left:50%;transform:translateX(-50%);
+  width:min(430px,100vw);height:calc(var(--nav-h) + var(--safe));
+  padding-bottom:var(--safe);
+  background:rgba(6,14,26,.96);border-top:1px solid var(--border);
+  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  display:grid;grid-template-columns:repeat(4,1fr);
+  z-index:40;
+}
+.child-nav-tab{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:3px;color:var(--muted);font-size:11px;font-weight:700;
+  position:relative;text-decoration:none;border:0;background:none;cursor:pointer;
+  font-family:inherit;
+}
+.child-nav-tab svg{width:22px;height:22px;stroke:currentColor;fill:none}
+.child-nav-tab.on{color:var(--accent)}
+.child-nav-tab.on::after{
+  content:"";position:absolute;bottom:4px;width:28px;height:3px;
+  border-radius:99px;background:var(--accent);box-shadow:0 0 10px rgba(29,205,211,.4);
+}
+
+/* ── Login overlay (dev) ── */
+.login-overlay{
+  position:fixed;inset:0;z-index:300;
+  background:rgba(7,13,22,.97);
+  display:grid;place-items:center;
+  padding:20px;
+}
+.login-overlay.hidden{display:none}
+.login-card{
+  width:min(340px,100%);
+  background:var(--surface);border:1px solid var(--border-hl);
+  border-radius:18px;padding:28px 24px;
+}
+.login-card h2{
+  text-align:center;font-size:22px;font-weight:600;margin:0 0 4px;color:var(--text);
+}
+.login-card h2 span{color:var(--accent)}
+.login-card .sub{
+  text-align:center;font-size:12px;color:var(--muted);margin-bottom:20px;
+}
+.login-card label{
+  display:block;font-size:10px;color:var(--muted);
+  text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;
+}
+.login-card input{
+  width:100%;padding:10px 12px;border:1px solid var(--border);
+  background:rgba(0,0,0,.3);color:var(--text-bright);
+  border-radius:var(--r-sm);font:inherit;font-size:14px;outline:0;
+  margin-bottom:12px;
+}
+.login-card input:focus{border-color:var(--accent)}
+.login-card .error{font-size:12px;color:var(--danger);margin-bottom:10px;min-height:16px}
+.login-card button{
+  width:100%;padding:12px;border-radius:var(--r-sm);border:none;
+  background:var(--accent);color:#061018;font:inherit;font-size:14px;
+  font-weight:600;cursor:pointer;transition:filter .15s;
+}
+.login-card button:active{filter:brightness(.85)}
+
+/* ── Toast ── */
+.toast{
+  position:fixed;bottom:calc(var(--nav-h) + var(--safe) + 16px);
+  left:50%;transform:translateX(-50%) translateY(20px);
+  background:var(--surface);border:1px solid var(--border-hl);
+  color:var(--text);padding:10px 20px;border-radius:12px;
+  font-size:13px;font-weight:600;opacity:0;pointer-events:none;
+  transition:opacity .25s,transform .25s;z-index:200;
+  text-align:center;max-width:min(90vw,360px);
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);pointer-events:auto}
+
+/* ── Placeholder screens (until real views are moved in) ── */
+.placeholder-screen{
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:40px 20px;padding-bottom:calc(var(--nav-h) + var(--safe) + 40px);
+  text-align:center;gap:12px;
+}
+.placeholder-screen .icon{font-size:48px;opacity:.6}
+.placeholder-screen h2{font-size:20px;font-weight:800;margin:0;color:var(--text)}
+.placeholder-screen p{font-size:14px;color:var(--muted);margin:0;max-width:280px}
+
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════
+     DEV LOGIN OVERLAY
+     Sama mynstur og parent.html — barnakóði login
+     Fjarlægt þegar child.html tengist index.html
+     ═══════════════════════════════════════════ -->
+
+<div class="login-overlay" id="c-login-overlay">
+  <div class="login-card">
+    <h2><span>Upp</span>Hátt</h2>
+    <div class="sub">Skráðu þig inn með barnakóða</div>
+    <div>
+      <label for="c-login-code">Barnakóði</label>
+      <input id="c-login-code" type="text" maxlength="8" autocomplete="off"
+             placeholder="T.d. KOLL1234" style="text-transform:uppercase;letter-spacing:1px">
+    </div>
+    <div class="error" id="c-login-error"></div>
+    <button id="c-login-btn" type="button">Byrja að lesa</button>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════
+     SCREEN: LESA (child-v2)
+     Placeholder — verður skipt út í Skrefi 2
+     ═══════════════════════════════════════════ -->
+
+<main class="scr on" data-child-screen="read" id="screen-child-read">
+  <div class="placeholder-screen">
+    <div class="icon">📖</div>
+    <h2>Lesa</h2>
+    <p>child-v2.html kemur hingað í Skrefi 2</p>
+  </div>
+</main>
+
+
+<!-- ═══════════════════════════════════════════
+     SCREEN: BÓKAHILLA (bookshelf)
+     Placeholder — verður skipt út í Skrefi 3
+     ═══════════════════════════════════════════ -->
+
+<main class="scr" data-child-screen="bookshelf" id="screen-child-bookshelf">
+  <div class="placeholder-screen">
+    <div class="icon">📚</div>
+    <h2>Bókahilla</h2>
+    <p>bookshelf.html kemur hingað í Skrefi 3</p>
+  </div>
+</main>
+
+
+<!-- ═══════════════════════════════════════════
+     SCREEN: ÁRANGUR (arangur)
+     Placeholder — verður skipt út í Skrefi 4
+     ═══════════════════════════════════════════ -->
+
+<main class="scr" data-child-screen="arangur" id="screen-child-arangur">
+  <div class="placeholder-screen">
+    <div class="icon">🏆</div>
+    <h2>Árangur</h2>
+    <p>arangur.html kemur hingað í Skrefi 4</p>
+  </div>
+</main>
+
+
+<!-- ═══════════════════════════════════════════
+     SHARED BOTTOM NAV
+     Eins og bookshelf/child-v2 bottom nav en
+     notar data-nav + go() í stað <a href>
+     ═══════════════════════════════════════════ -->
+
+<nav class="child-bottom-nav" id="childBottomNav">
+  <button class="child-nav-tab on" type="button" data-nav="read">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 5.5v13.2c0 .4.4.7.8.5 2.1-.9 4.4-.8 6.2.4.3.2.7 0 .7-.4V7.1c0-.5-.2-.9-.6-1.1-2-1.1-4.6-1.2-6.8-.2-.2.1-.3.3-.3.5Z"/><path d="M19.5 5.5v13.2c0 .4-.4.7-.8.5-2.1-.9-4.4-.8-6.2.4-.3.2-.7 0-.7-.4V7.1c0-.5.2-.9.6-1.1 2-1.1 4.6-1.2 6.8-.2.2.1.3.3.3.5Z"/></svg>
+    Lesa
+  </button>
+  <button class="child-nav-tab" type="button" data-nav="bookshelf">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+    Bókahilla
+  </button>
+  <button class="child-nav-tab" type="button" data-nav="arangur">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4h8v5a4 4 0 0 1-8 0z"/><path d="M16 6h3v2a4 4 0 0 1-4 4"/><path d="M8 6H5v2a4 4 0 0 0 4 4"/><path d="M12 13v5"/><path d="M8 21h8"/></svg>
+    Árangur
+  </button>
+  <button class="child-nav-tab" type="button" data-nav="add-book">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5Z"/><path d="M12 8v8M8 12h8" stroke-width="1.6"/></svg>
+    Ný bók
+  </button>
+</nav>
+
+<!-- Toast -->
+<div class="toast" id="app-toast"></div>
+
+
+<!-- ═══════════════════════════════════════════
+     JAVASCRIPT — Firebase init + auth + navigation
+     ═══════════════════════════════════════════ -->
+
+<script type="module">
+
+// ── Firebase imports (einu sinni — sameinar allar þrjár skrár) ──
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js';
+import { getAuth, onAuthStateChanged, signInAnonymously, signOut } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js';
+import { getFirestore, doc, getDoc, collection, query, where, onSnapshot, setDoc, addDoc, deleteDoc, updateDoc, serverTimestamp, getDocs } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js';
+import { getStorage, ref as storageRef, getDownloadURL, uploadBytes } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-storage.js';
+import { getFunctions, httpsCallable } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-functions.js';
+
+const app = initializeApp({
+  apiKey: 'AIzaSyAgTY3Uxd9_ZxixjqLj-sH8V3OhFAzg6DU',
+  authDomain: 'lesum-22e85.firebaseapp.com',
+  projectId: 'lesum-22e85',
+  storageBucket: 'lesum-22e85.firebasestorage.app',
+  messagingSenderId: '204392598388',
+  appId: '1:204392598388:web:2dbbe3f476cd78d2ffba21'
+});
+
+const auth = getAuth(app);
+const db = getFirestore(app);
+const storage = getStorage(app);
+const functions = getFunctions(app, 'europe-west1');
+
+// ── Shared state ──
+const CS = { familyId: null, childKey: null, childName: null };
+
+// ── ensureAuth (bookshelf pattern — retry delays for fresh custom claims) ──
+function ensureAuth() {
+  return new Promise((resolve, reject) => {
+    const unsub = onAuthStateChanged(auth, async (user) => {
+      unsub();
+      if (!user) { reject(new Error('not-authenticated')); return; }
+      const delays = [0, 250, 750, 1500, 3000];
+      for (let i = 0; i < delays.length; i++) {
+        if (delays[i] > 0) await new Promise(r => setTimeout(r, delays[i]));
+        try {
+          const token = await user.getIdTokenResult(i > 0);
+          const cachedToken = await user.getIdTokenResult(false);
+          if (cachedToken.claims.role && cachedToken.claims.familyId) {
+            resolve({ user, role: cachedToken.claims.role, familyId: cachedToken.claims.familyId });
+            return;
+          }
+          const role = token.claims.role;
+          if (role && token.claims.familyId) {
+            resolve({ user, role, familyId: token.claims.familyId });
+            return;
+          }
+        } catch (e) {
+          if (i === delays.length - 1) { reject(e); return; }
+        }
+      }
+      reject(new Error('No role after retries'));
+    });
+  });
+}
+
+// ── Get child session from localStorage (same as bookshelf/child-v2) ──
+function getChildSession() {
+  try {
+    const r = localStorage.getItem('upphatt_child');
+    if (!r) return null;
+    const d = JSON.parse(r);
+    return d && d.familyId && d.childKey && d.childName ? d : null;
+  } catch (e) { return null; }
+}
+
+// ── Screen switching (sama mynstur og parent.html go()) ──
+let currentScreen = 'read';
+
+function go(tab) {
+  if (tab === 'add-book') {
+    // Ný bók — fer á bookshelf og opnar add modal
+    go('bookshelf');
+    // TODO: kalla á openAddBookModal() þegar bookshelf JS er flutt inn
+    toast('Ný bók — kemur í Skrefi 3');
+    return;
+  }
+  currentScreen = tab;
+  document.querySelectorAll('[data-nav]').forEach(b => b.classList.toggle('on', b.dataset.nav === tab));
+  document.querySelectorAll('[data-child-screen]').forEach(s => s.classList.toggle('on', s.dataset.childScreen === tab));
+  window.scrollTo(0, 0);
+}
+
+// Nav click handlers
+document.querySelectorAll('[data-nav]').forEach(b => {
+  b.addEventListener('click', () => go(b.dataset.nav));
+});
+
+// ── Toast ──
+function toast(msg, ms = 2500) {
+  const t = document.getElementById('app-toast');
+  if (!t) return;
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.classList.remove('show'), ms);
+}
+
+// ── Dev login (barnakóði — same flow as auth.js childLogin) ──
+const loginOverlay = document.getElementById('c-login-overlay');
+const loginBtn = document.getElementById('c-login-btn');
+const loginCode = document.getElementById('c-login-code');
+const loginError = document.getElementById('c-login-error');
+
+async function devChildLogin() {
+  const rawCode = loginCode.value.toUpperCase().replace(/[^A-Z0-9]/g, '').trim();
+  loginError.textContent = '';
+  if (rawCode.length < 4) { loginError.textContent = 'Sláðu inn barnakóða.'; return; }
+
+  loginBtn.textContent = 'Skrá inn...';
+  loginBtn.disabled = true;
+
+  try {
+    // Sign in anonymously
+    const cred = await signInAnonymously(auth);
+
+    // Cloud Function: verifyChildCode
+    const result = await httpsCallable(functions, 'verifyChildCode')({ code: rawCode });
+    const data = result.data;
+
+    // Force refresh token for custom claims
+    await cred.user.getIdToken(true);
+
+    // Save to localStorage (same format as auth.js)
+    CS.familyId = data.familyId;
+    CS.childKey = data.childKey;
+    CS.childName = data.childName;
+    localStorage.setItem('upphatt_child', JSON.stringify({
+      familyId: data.familyId,
+      childKey: data.childKey,
+      childName: data.childName,
+      code: rawCode
+    }));
+    localStorage.setItem('childName', data.childName);
+
+    // Hide login overlay
+    loginOverlay.classList.add('hidden');
+    toast('Velkomin, ' + data.childName + '! 🎉');
+    console.log('✅ Child login OK:', data.childName, data.familyId, data.childKey);
+
+  } catch (e) {
+    console.error('❌ Child login villa:', e);
+    await signOut(auth).catch(() => {});
+    loginError.textContent = e.code === 'functions/not-found'
+      ? 'Kóðinn fannst ekki — athugaðu með foreldri.'
+      : 'Villa: ' + (e.message || e.code);
+    loginBtn.textContent = 'Byrja að lesa';
+    loginBtn.disabled = false;
+  }
+}
+
+loginBtn.addEventListener('click', devChildLogin);
+loginCode.addEventListener('keydown', e => { if (e.key === 'Enter') devChildLogin(); });
+
+// ── Auto-login: check if already logged in ──
+(async function init() {
+  const saved = getChildSession();
+  if (saved) {
+    try {
+      await ensureAuth();
+      CS.familyId = saved.familyId;
+      CS.childKey = saved.childKey;
+      CS.childName = saved.childName;
+      loginOverlay.classList.add('hidden');
+      toast('Hæ, ' + saved.childName + '! 👋');
+      console.log('✅ Auto-login OK:', saved.childName);
+    } catch (e) {
+      console.warn('Auto-login failed, showing login:', e.message);
+      // Sýna login overlay
+    }
+  }
+})();
+
+// ── Make things globally accessible for future screen scripts ──
+window._child = { auth, db, storage, functions, CS, go, toast, ensureAuth, getChildSession };
+
+</script>
+</body>
+</html>

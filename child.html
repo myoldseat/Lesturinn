@@ -47,8 +47,8 @@ body{font-family:'DM Sans','Manrope',-apple-system,BlinkMacSystemFont,sans-serif
 }
 
 /* ── Screen switching ── */
-.scr{display:none;flex-direction:column;min-height:100dvh}
-.scr.on{display:flex}
+.scr{display:none!important;flex-direction:column;min-height:100dvh}
+.scr.on{display:flex!important}
 
 /* ── Shared bottom nav ── */
 .child-bottom-nav{
@@ -128,7 +128,6 @@ body{font-family:'DM Sans','Manrope',-apple-system,BlinkMacSystemFont,sans-serif
 
     #screen-child-read {
       min-height: 100dvh;
-      display: flex;
       flex-direction: column;
       background:
         radial-gradient(circle at 50% 15%, rgba(35,214,223,.07), transparent 34%),

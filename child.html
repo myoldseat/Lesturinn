@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="is">
 <head>
 <meta charset="utf-8">
@@ -587,20 +587,21 @@ body{font-family:'DM Sans','Manrope',-apple-system,BlinkMacSystemFont,sans-serif
     .child-action-overlay {
       position: fixed; inset: 0; z-index: 90;
       display: none; place-items: end center;
-      padding: 18px calc(16px + env(safe-area-inset-right)) calc(18px + env(safe-area-inset-bottom)) calc(16px + env(safe-area-inset-left));
+      padding: 10px calc(10px + env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom)) calc(10px + env(safe-area-inset-left));
       background: rgba(2,7,13,0.68);
       backdrop-filter: blur(8px);
     }
     .child-action-overlay.open { display: grid; }
     .child-action-modal {
       width: min(100%, 420px);
-      max-height: min(84svh, 620px);
+      height: min(720px, calc(100svh - 20px - env(safe-area-inset-bottom)));
+      max-height: calc(100svh - 20px - env(safe-area-inset-bottom));
       overflow: auto;
       position: relative;
       background: rgba(6,14,26,0.985);
       border: 1px solid rgba(29,205,211,0.20);
       border-radius: 22px;
-      padding: 22px 22px calc(22px + 80px);
+      padding: 22px 22px 18px;
       color: #d9e5ef;
       box-shadow: 0 32px 80px rgba(0,0,0,0.62), 0 0 60px rgba(29,205,211,0.08);
     }
@@ -644,13 +645,13 @@ body{font-family:'DM Sans','Manrope',-apple-system,BlinkMacSystemFont,sans-serif
     }
     .child-book-list { display: flex; flex-direction: column; gap: 8px; }
     .child-book-option {
-      width: 100%; min-height: 74px; border-radius: 12px;
+      width: 100%; min-height: 84px; border-radius: 12px;
       border: 1px solid rgba(122,187,218,0.16);
       background: rgba(7,18,33,0.96);
       color: #d9e5ef; text-align: left;
-      padding: 13px; font-size: 15px; font-weight: 700;
+      padding: 10px 12px; font-size: 15px; font-weight: 700;
       cursor: pointer;
-      display: grid; grid-template-columns: minmax(0,1fr) auto;
+      display: grid; grid-template-columns: 44px minmax(0,1fr) auto;
       column-gap: 12px; align-items: center;
       transition: border-color 180ms ease, box-shadow 180ms ease, background 180ms ease;
       font-family: inherit;
@@ -661,6 +662,15 @@ body{font-family:'DM Sans','Manrope',-apple-system,BlinkMacSystemFont,sans-serif
       background: linear-gradient(180deg, rgba(29,205,211,0.14), rgba(29,205,211,0.08)), rgba(9,25,43,0.98);
       box-shadow: 0 0 0 2px rgba(29,205,211,0.12), 0 0 22px rgba(29,205,211,0.30);
     }
+    .child-book-thumb {
+      width: 44px; height: 62px; border-radius: 7px; overflow: hidden;
+      display: flex; align-items: center; justify-content: center;
+      color: rgba(255,255,255,0.82); font-size: 16px; font-weight: 900;
+      box-shadow: 0 8px 18px rgba(0,0,0,0.26);
+      background: linear-gradient(145deg,#2b8f91,#0a2341);
+    }
+    .child-book-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .child-book-thumb span { padding: 0 4px; text-align: center; line-height: 1; }
     .child-book-option-main { display: flex; flex-direction: column; gap: 7px; min-width: 0; }
     .child-book-option-title { color: #d9e5ef; line-height: 1.14; white-space: normal; }
     .child-book-option-meta {
@@ -700,6 +710,14 @@ body{font-family:'DM Sans','Manrope',-apple-system,BlinkMacSystemFont,sans-serif
       cursor: pointer;
       box-shadow: 0 0 0 1px rgba(29,205,211,0.05), 0 0 18px rgba(29,205,211,0.16);
       transition: transform 140ms ease, border-color 180ms ease, box-shadow 180ms ease;
+    }
+    #child-reading-save {
+      position: sticky;
+      bottom: 0;
+      z-index: 4;
+      margin-top: 12px;
+      background: linear-gradient(180deg, rgba(29,205,211,0.22), rgba(29,205,211,0.12)), rgba(7,18,33,0.98);
+      backdrop-filter: blur(10px);
     }
     .child-modal-btn:active {
       transform: scale(0.985);
@@ -4738,6 +4756,17 @@ window._child = { auth, db, storage, functions, CS, ensureAuth, getChildSession,
       }
       function updateChildReadingPreview() { /* kept for compat but hidden */ }
 
+      function childBookEscape(value) {
+        return String(value == null ? "" : value).replace(/[&<>"']/g, function (ch) {
+          return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch];
+        });
+      }
+
+      function childBookInitial(title) {
+        var cleaned = String(title || "B").trim();
+        return (cleaned.charAt(0) || "B").toUpperCase();
+      }
+
       function readBookshelfBooksForChildModal() {
         var allBooks = window._firestoreBooks || [];
         if (!allBooks.length) {
@@ -4752,7 +4781,7 @@ window._child = { auth, db, storage, functions, CS, ensureAuth, getChildSession,
             id: String(b.id), title: String(b.title), status: b.status || "shelf",
             progressPercent: Number(b.progressPercent || 0), totalPages: Number(b.totalPages || 0),
             pageFrom: b.currentPageFrom || "", pageTo: b.currentPageTo || "",
-            coverUrl: b.coverUrl || b.coverImage || b.imagePath || b.imageUrl || null
+            coverUrl: b.coverUrl || b.coverBase64 || b.coverImage || b.imagePath || b.imageUrl || null
           };
         });
       }
@@ -4773,9 +4802,13 @@ window._child = { auth, db, storage, functions, CS, ensureAuth, getChildSession,
           var isSelected = book.id === (previousSelectedId || activeBook.id);
           var meta = book.status === "reading" ? "Að lesa" : book.status === "finished" ? "Lokið" : "Á hillunni";
           var suggestedStart = book.pageTo ? String(Number(book.pageTo) + 1) : (book.pageFrom ? String(book.pageFrom) : "");
-          return '<button class="child-book-option' + (isSelected ? " selected" : "") + '" type="button" data-book-id="' + book.id.replace(/"/g, "&quot;") + '" data-book-title="' + book.title.replace(/"/g, "&quot;") + '" data-page-from="' + String(book.pageFrom).replace(/"/g, "&quot;") + '" data-page-to="' + String(book.pageTo).replace(/"/g, "&quot;") + '" aria-selected="' + (isSelected ? "true" : "false") + '">' +
-            '<span class="child-book-option-main"><span class="child-book-option-title">' + book.title + '</span><span class="child-book-option-meta">' + meta + (book.progressPercent ? " · " + book.progressPercent + "%" : "") + '</span></span>' +
-            '<span class="child-book-page-control"><span class="child-book-page-label">Bls.</span><input class="child-book-page-input" inputmode="numeric" value="' + suggestedStart.replace(/"/g, "&quot;") + '" aria-label="Byrja á blaðsíðu"></span></button>';
+          var cover = book.coverUrl
+            ? '<span class="child-book-thumb"><img src="' + childBookEscape(book.coverUrl) + '" alt=""></span>'
+            : '<span class="child-book-thumb" style="background:' + childBookEscape(pickCoverPalette(book)) + '"><span>' + childBookEscape(childBookInitial(book.title)) + '</span></span>';
+          return '<button class="child-book-option' + (isSelected ? " selected" : "") + '" type="button" data-book-id="' + childBookEscape(book.id) + '" data-book-title="' + childBookEscape(book.title) + '" data-page-from="' + childBookEscape(book.pageFrom) + '" data-page-to="' + childBookEscape(book.pageTo) + '" aria-selected="' + (isSelected ? "true" : "false") + '">' +
+            cover +
+            '<span class="child-book-option-main"><span class="child-book-option-title">' + childBookEscape(book.title) + '</span><span class="child-book-option-meta">' + childBookEscape(meta + (book.progressPercent ? " · " + book.progressPercent + "%" : "")) + '</span></span>' +
+            '<span class="child-book-page-control"><span class="child-book-page-label">Bls.</span><input class="child-book-page-input" inputmode="numeric" value="' + childBookEscape(suggestedStart) + '" aria-label="Byrja á blaðsíðu"></span></button>';
         }).join("");
 
         childBookOptions = Array.prototype.slice.call(document.querySelectorAll(".child-book-option"));

@@ -197,10 +197,10 @@ body{font-family:'DM Sans','Manrope',-apple-system,BlinkMacSystemFont,sans-serif
       0%   { opacity: 0.32; filter: drop-shadow(0 0 5px rgba(160,240,255,0.28)) drop-shadow(0 0 11px rgba(130,225,255,0.16)); }
       100% { opacity: 0.64; filter: drop-shadow(0 0 10px rgba(216,252,255,0.54)) drop-shadow(0 0 22px rgba(168,245,255,0.34)); }
     }
-    .listen-line.frozen { stroke: rgba(150,222,240,0.26); stroke-width: 2.2; opacity: 0.42; filter: drop-shadow(0 0 4px rgba(122,233,255,0.14)); }
+    .listen-line.frozen { stroke: rgba(188,245,255,0.55); stroke-width: 3; opacity: 0.72; filter: drop-shadow(0 0 4px rgba(122,233,255,0.14)); }
     .listen-line.flash { stroke: rgba(255,255,255,1); stroke-width: 4.1; opacity: 1; filter: drop-shadow(0 0 16px rgba(255,255,255,1)) drop-shadow(0 0 36px rgba(168,245,255,1)); }
 
-    .toast {
+    .listen-toast {
       position: absolute;
       left: 50%; top: 50%;
       transform: translateY(18px);
@@ -212,9 +212,9 @@ body{font-family:'DM Sans','Manrope',-apple-system,BlinkMacSystemFont,sans-serif
       font-size: 0.9rem; font-weight: 600;
       opacity: 0; pointer-events: none;
       transition: opacity 1.7s cubic-bezier(0.22,0.61,0.36,1), transform 1.7s cubic-bezier(0.22,0.61,0.36,1);
-      z-index: 9; white-space: nowrap;
+      z-index: 9; white-space: nowrap; width: max-content; max-width: min(220px, calc(100vw - 28px)); text-align: left;
     }
-    .toast.show { opacity: 1; transform: translateY(0); }
+    .listen-toast.show { opacity: 1; transform: translateY(0); }
 
     /* ── Panel layout ── */
     .panel {
@@ -2157,7 +2157,7 @@ body{font-family:'DM Sans','Manrope',-apple-system,BlinkMacSystemFont,sans-serif
       <g id="frozen-lines"></g>
       <path id="listen-line" class="listen-line" d="M 0 0 L 0 0"></path>
     </svg>
-    <div id="listen-toast" class="toast" aria-live="polite"></div>
+    <div id="listen-toast" class="listen-toast" aria-live="polite"></div>
 
     <section class="panel">
       <div class="top-bar">
@@ -2831,6 +2831,10 @@ function go(tab) {
   const ctxLabel = document.getElementById('navContextLabel');
   if (ctxLabel) ctxLabel.textContent = contextLabels[tab] || '';
   window.scrollTo(0, 0);
+  if (tab === 'read' && typeof window._refreshListenGeometry === 'function') {
+    setTimeout(window._refreshListenGeometry, 40);
+    setTimeout(window._refreshListenGeometry, 260);
+  }
 }
 
 function toast(msg, ms = 2500) {
@@ -3854,7 +3858,7 @@ window._child = { auth, db, storage, functions, CS, ensureAuth, getChildSession,
         if (!toastEl && screenEl) {
           toastEl = document.createElement("div");
           toastEl.id = "listen-toast";
-          toastEl.className = "toast";
+          toastEl.className = "listen-toast";
           toastEl.setAttribute("aria-live", "polite");
           screenEl.appendChild(toastEl);
         }
@@ -4969,9 +4973,9 @@ window._child = { auth, db, storage, functions, CS, ensureAuth, getChildSession,
           var path = document.createElementNS("http://www.w3.org/2000/svg", "path");
           path.setAttribute("d", buildListenPath(star));
           path.setAttribute("class", "listen-line frozen");
-          path.style.opacity = String(0.04 + strength * 0.96);
-          path.style.strokeWidth = String(1.4 + strength * 2.4);
-          path.style.stroke = "rgba(188,245,255," + (0.1 + strength * 0.9).toFixed(3) + ")";
+          path.style.opacity = String(0.18 + strength * 0.82);
+          path.style.strokeWidth = String(2.2 + strength * 2.2);
+          path.style.stroke = "rgba(188,245,255," + (0.28 + strength * 0.72).toFixed(3) + ")";
           path.style.filter = "drop-shadow(0 0 " + (2 + strength * 8).toFixed(1) + "px rgba(168,245,255," + (0.12 + strength * 0.46).toFixed(3) + ")) drop-shadow(0 0 " + (6 + strength * 18).toFixed(1) + "px rgba(168,245,255," + (0.06 + strength * 0.24).toFixed(3) + "))";
           frozenLinesEl.appendChild(path);
         });
@@ -4982,6 +4986,7 @@ window._child = { auth, db, storage, functions, CS, ensureAuth, getChildSession,
         setTimeout(renderFrozenConnections, 80);
         setTimeout(renderFrozenConnections, 320);
       }
+      window._refreshListenGeometry = refreshListenGeometry;
 
       function persistFrozenConnection(starIndex, listenerName) {
         var items = pruneFrozenConnections().filter(function (i) { return i.starIndex !== starIndex; });

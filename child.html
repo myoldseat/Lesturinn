@@ -20,9 +20,7 @@
 <style>
 
 /* ══════════════════════════════════════════
-   CHILD.HTML — SHELL
-   Sama mynstur og parent.html: login overlay,
-   shared bottom nav, screen switching via go()
+   CHILD.HTML — SHELL CSS
    ══════════════════════════════════════════ */
 
 *,*::before,*::after{box-sizing:border-box}
@@ -76,74 +74,775 @@ body{font-family:'DM Sans','Manrope',-apple-system,BlinkMacSystemFont,sans-serif
 }
 
 /* ── Login overlay (dev) ── */
-.login-overlay{
-  position:fixed;inset:0;z-index:300;
-  background:rgba(7,13,22,.97);
-  display:grid;place-items:center;
-  padding:20px;
-}
+.login-overlay{position:fixed;inset:0;z-index:300;background:rgba(7,13,22,.97);display:grid;place-items:center;padding:20px}
 .login-overlay.hidden{display:none}
-.login-card{
-  width:min(340px,100%);
-  background:var(--surface);border:1px solid var(--border-hl);
-  border-radius:18px;padding:28px 24px;
-}
-.login-card h2{
-  text-align:center;font-size:22px;font-weight:600;margin:0 0 4px;color:var(--text);
-}
+.login-card{width:min(340px,100%);background:var(--surface);border:1px solid var(--border-hl);border-radius:18px;padding:28px 24px}
+.login-card h2{text-align:center;font-size:22px;font-weight:600;margin:0 0 4px;color:var(--text)}
 .login-card h2 span{color:var(--accent)}
-.login-card .sub{
-  text-align:center;font-size:12px;color:var(--muted);margin-bottom:20px;
-}
-.login-card label{
-  display:block;font-size:10px;color:var(--muted);
-  text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;
-}
-.login-card input{
-  width:100%;padding:10px 12px;border:1px solid var(--border);
-  background:rgba(0,0,0,.3);color:var(--text-bright);
-  border-radius:var(--r-sm);font:inherit;font-size:14px;outline:0;
-  margin-bottom:12px;
-}
+.login-card .sub{text-align:center;font-size:12px;color:var(--muted);margin-bottom:20px}
+.login-card label{display:block;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px}
+.login-card input{width:100%;padding:10px 12px;border:1px solid var(--border);background:rgba(0,0,0,.3);color:var(--text-bright);border-radius:var(--r-sm);font:inherit;font-size:14px;outline:0;margin-bottom:12px}
 .login-card input:focus{border-color:var(--accent)}
 .login-card .error{font-size:12px;color:var(--danger);margin-bottom:10px;min-height:16px}
-.login-card button{
-  width:100%;padding:12px;border-radius:var(--r-sm);border:none;
-  background:var(--accent);color:#061018;font:inherit;font-size:14px;
-  font-weight:600;cursor:pointer;transition:filter .15s;
-}
+.login-card button{width:100%;padding:12px;border-radius:var(--r-sm);border:none;background:var(--accent);color:#061018;font:inherit;font-size:14px;font-weight:600;cursor:pointer;transition:filter .15s}
 .login-card button:active{filter:brightness(.85)}
 
 /* ── Toast ── */
-.toast{
-  position:fixed;bottom:calc(var(--nav-h) + var(--safe) + 16px);
-  left:50%;transform:translateX(-50%) translateY(20px);
-  background:var(--surface);border:1px solid var(--border-hl);
-  color:var(--text);padding:10px 20px;border-radius:12px;
-  font-size:13px;font-weight:600;opacity:0;pointer-events:none;
-  transition:opacity .25s,transform .25s;z-index:200;
-  text-align:center;max-width:min(90vw,360px);
-}
+.toast{position:fixed;bottom:calc(var(--nav-h) + var(--safe) + 16px);left:50%;transform:translateX(-50%) translateY(20px);background:var(--surface);border:1px solid var(--border-hl);color:var(--text);padding:10px 20px;border-radius:12px;font-size:13px;font-weight:600;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;z-index:200;text-align:center;max-width:min(90vw,360px)}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0);pointer-events:auto}
 
-/* ── Placeholder screens (until real views are moved in) ── */
-.placeholder-screen{
-  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
-  padding:40px 20px;padding-bottom:calc(var(--nav-h) + var(--safe) + 40px);
-  text-align:center;gap:12px;
-}
+/* ── Placeholder screens (for bookshelf/arangur until moved in) ── */
+.placeholder-screen{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px;padding-bottom:calc(var(--nav-h) + var(--safe) + 40px);text-align:center;gap:12px}
 .placeholder-screen .icon{font-size:48px;opacity:.6}
 .placeholder-screen h2{font-size:20px;font-weight:800;margin:0;color:var(--text)}
 .placeholder-screen p{font-size:14px;color:var(--muted);margin:0;max-width:280px}
+
+/* ══════════════════════════════════════════
+   CHILD-V2 (LESA) CSS
+   ══════════════════════════════════════════ */
+
+/* child-v2 additional vars */
+:root {
+  --panel-border: rgba(122, 187, 218, 0.22);
+  --text-strong: #e5edf6;
+  --text-soft: #9eacba;
+  --teal: #24d6df;
+  --teal-glow: rgba(36, 214, 223, 0.3);
+  --gold-glow: rgba(240, 201, 77, 0.3);
+}
+
+    #screen-child-read {
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      background:
+        radial-gradient(circle at 50% 15%, rgba(35,214,223,.07), transparent 34%),
+        radial-gradient(circle at 42% 62%, rgba(35,214,223,.08), transparent 30%),
+        linear-gradient(180deg, #070d16 0%, #0b111c 58%, #090f18 100%);
+      color: var(--text-strong);
+      padding: 14px 14px calc(72px + env(safe-area-inset-bottom, 0px));
+      position: relative;
+      overflow: hidden;
+      isolation: isolate;
+    }
+
+    /* ── Constellation background ── */
+    .constellation {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+      background:
+        radial-gradient(circle at 20% 25%, rgba(62,130,173,0.10), transparent 40%),
+        radial-gradient(circle at 82% 32%, rgba(47,184,187,0.08), transparent 38%),
+        radial-gradient(circle at 62% 78%, rgba(98,116,170,0.08), transparent 44%);
+    }
+
+    .star {
+      position: absolute;
+      width: 14px; height: 14px;
+      border: 0; border-radius: 999px;
+      background: radial-gradient(circle at 40% 40%, rgba(220,243,255,0.86), rgba(126,205,224,0.45) 44%, rgba(126,205,224,0.04) 72%, transparent);
+      box-shadow: 0 0 8px rgba(108,214,238,0.12);
+      opacity: 0;
+      transition: opacity 240ms ease, transform 240ms ease, box-shadow 260ms ease;
+      pointer-events: none;
+      cursor: pointer;
+      z-index: 8;
+      mix-blend-mode: screen;
+    }
+    .star.active { opacity: 0.22; pointer-events: auto; }
+    .star.frozen { opacity: 0.42; pointer-events: auto; box-shadow: 0 0 12px rgba(120,240,255,0.24), 0 0 28px rgba(120,240,255,0.1); }
+    .star:hover { opacity: 0.45; }
+    .star.listened { opacity: 0.96; transform: scale(1.35); box-shadow: 0 0 14px rgba(120,240,255,0.65), 0 0 32px rgba(120,240,255,0.35); }
+    .star.flash { opacity: 1; transform: scale(1.8); box-shadow: 0 0 28px rgba(255,255,255,1), 0 0 60px rgba(168,245,255,1); }
+
+    .star-1 { top: 8%; left: 14%; }
+    .star-2 { top: 14%; left: 78%; }
+    .star-3 { top: 22%; left: 42%; }
+    .star-4 { top: 32%; left: 88%; }
+    .star-5 { top: 48%; left: 12%; }
+    .star-6 { top: 52%; left: 86%; }
+    .star-7 { top: 76%; left: 8%; }
+    .star-8 { top: 82%; left: 48%; }
+    .star-9 { top: 78%; left: 84%; }
+
+    .constellation-lines {
+      position: absolute; inset: 0; z-index: 7;
+      pointer-events: none; overflow: visible;
+    }
+
+    .listen-line {
+      stroke: rgba(140,226,246,0.3); stroke-width: 1.9;
+      stroke-linecap: round; stroke-linejoin: round;
+      opacity: 0; fill: none;
+      filter: drop-shadow(0 0 5px rgba(122,233,255,0.34)) drop-shadow(0 0 12px rgba(122,233,255,0.18));
+    }
+    .listen-line.animating { animation: lightning-flicker 180ms ease-in-out infinite alternate; }
+    @keyframes lightning-flicker {
+      0%   { opacity: 0.32; filter: drop-shadow(0 0 5px rgba(160,240,255,0.28)) drop-shadow(0 0 11px rgba(130,225,255,0.16)); }
+      100% { opacity: 0.64; filter: drop-shadow(0 0 10px rgba(216,252,255,0.54)) drop-shadow(0 0 22px rgba(168,245,255,0.34)); }
+    }
+    .listen-line.frozen { stroke: rgba(150,222,240,0.26); stroke-width: 2.2; opacity: 0.42; filter: drop-shadow(0 0 4px rgba(122,233,255,0.14)); }
+    .listen-line.flash { stroke: rgba(255,255,255,1); stroke-width: 4.1; opacity: 1; filter: drop-shadow(0 0 16px rgba(255,255,255,1)) drop-shadow(0 0 36px rgba(168,245,255,1)); }
+
+    .toast {
+      position: absolute;
+      left: 50%; top: 50%;
+      transform: translateY(18px);
+      padding: 10px 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(147,217,236,0.35);
+      background: rgba(9,27,43,0.88);
+      color: #d8edf8;
+      font-size: 0.9rem; font-weight: 600;
+      opacity: 0; pointer-events: none;
+      transition: opacity 1.7s cubic-bezier(0.22,0.61,0.36,1), transform 1.7s cubic-bezier(0.22,0.61,0.36,1);
+      z-index: 9; white-space: nowrap;
+    }
+    .toast.show { opacity: 1; transform: translateY(0); }
+
+    /* ── Panel layout ── */
+    .panel {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      justify-content: flex-start;
+      gap: 10px;
+      position: relative;
+      z-index: 3;
+      padding-top: max(8px, env(safe-area-inset-top));
+    }
+
+    /* ── Top bar ── */
+    .top-bar {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex: 0 0 auto;
+      position: relative;
+      z-index: 10;
+    }
+    .home-btn {
+      width: 36px; height: 36px;
+      border-radius: 999px;
+      border: 1px solid rgba(122,187,218,0.28);
+      background: rgba(15,29,47,0.66);
+      color: #c7d8e7;
+      display: inline-flex;
+      align-items: center; justify-content: center;
+      cursor: pointer;
+      transition: background 220ms ease, border-color 220ms ease;
+      flex: 0 0 auto;
+    }
+    .home-btn:hover { background: rgba(33,50,74,0.62); border-color: rgba(200,223,244,0.36); }
+    .greeting {
+      margin: 0;
+      font-size: 1rem; font-weight: 850;
+      color: var(--text-strong);
+      line-height: 1.1;
+    }
+    .greeting-name { color: var(--teal); }
+
+    /* ── Resume card (replaces book pill - hero with cover) ── */
+    .resume-card {
+      width: 100%;
+      border-radius: 18px;
+      background:
+        linear-gradient(180deg, rgba(36,214,223,0.08), rgba(36,214,223,0)),
+        rgba(7,18,32,0.85);
+      border: 1px solid rgba(36,214,223,0.25);
+      padding: 13px 14px;
+      cursor: pointer;
+      font-family: inherit;
+      color: inherit;
+      text-align: left;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.3), 0 0 24px rgba(36,214,223,0.06);
+      transition: border-color 180ms ease, box-shadow 220ms ease, transform 180ms ease;
+      z-index: 6;
+    }
+    .resume-card:active { transform: scale(0.99); }
+    .resume-card::before {
+      content: ""; position: absolute; top: 0; left: 14%; right: 14%; height: 1px;
+      background: linear-gradient(90deg, rgba(36,214,223,0), rgba(36,214,223,0.6), rgba(36,214,223,0));
+    }
+    .resume-tag {
+      font-size: 0.62rem; font-weight: 900; color: var(--teal);
+      letter-spacing: 1px; text-transform: uppercase;
+      display: flex; align-items: center; gap: 6px;
+      margin-bottom: 10px;
+    }
+    .resume-tag::before {
+      content: ""; width: 6px; height: 6px; border-radius: 50%;
+      background: var(--teal); box-shadow: 0 0 8px var(--teal);
+      animation: resume-pulse 2.4s ease-in-out infinite;
+    }
+    @keyframes resume-pulse {
+      0%, 100% { opacity: 0.5; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.3); }
+    }
+    .resume-row {
+      display: grid;
+      grid-template-columns: 68px 1fr auto;
+      gap: 12px;
+      align-items: center;
+    }
+    .resume-cover {
+      width: 68px; height: 94px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #5a2d6b, #3d1a52);
+      box-shadow: 0 6px 14px rgba(0,0,0,0.4), inset 2px 0 0 rgba(255,255,255,0.12);
+      position: relative;
+      overflow: hidden;
+      display: grid;
+      place-items: center;
+      flex-shrink: 0;
+    }
+    .resume-cover-img {
+      position: absolute; inset: 0;
+      width: 100%; height: 100%;
+      object-fit: cover;
+    }
+    .resume-cover-fallback {
+      position: relative;
+      font-size: 0.62rem; font-weight: 900; color: #fff;
+      text-align: center; padding: 0 5px; line-height: 1.1;
+      text-shadow: 0 1px 4px rgba(0,0,0,0.5);
+      letter-spacing: 0.2px;
+    }
+    .resume-cover-art {
+      position: absolute; inset: 0;
+      background: radial-gradient(circle at 40% 30%, rgba(240,201,77,0.3), transparent 50%);
+      pointer-events: none;
+    }
+    .resume-info {
+      display: flex; flex-direction: column; gap: 4px;
+      min-width: 0;
+    }
+    .resume-title {
+      font-size: 0.98rem; font-weight: 900;
+      letter-spacing: -0.25px; line-height: 1.1;
+      color: var(--text-strong);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .resume-page {
+      font-size: 0.76rem; color: var(--text-soft); font-weight: 700;
+    }
+    .resume-page strong {
+      color: var(--text-strong); font-weight: 900; font-size: 0.9rem;
+    }
+    .resume-progress {
+      margin-top: 4px;
+      display: flex; align-items: center; gap: 6px;
+      font-size: 0.64rem; color: var(--text-muted); font-weight: 700;
+    }
+    .resume-bar {
+      flex: 1; height: 4px; border-radius: 99px;
+      background: rgba(122,187,218,0.14);
+      overflow: hidden;
+    }
+    .resume-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--teal), #43f1ef);
+      border-radius: 99px;
+      transition: width 600ms ease;
+      width: 0%;
+    }
+    .resume-action {
+      background: transparent;
+      border: 1px solid rgba(36,214,223,0.4);
+      color: var(--teal);
+      font: inherit; font-weight: 800; font-size: 0.68rem;
+      padding: 6px 11px;
+      border-radius: 99px;
+      cursor: pointer;
+      letter-spacing: 0.4px;
+      text-transform: uppercase;
+      flex-shrink: 0;
+      font-family: inherit;
+    }
+    .resume-action:active { background: rgba(36,214,223,0.1); }
+
+    /* Empty state when no "reading" book exists */
+    .resume-card.empty .resume-row { grid-template-columns: 1fr auto; }
+    .resume-card.empty .resume-cover,
+    .resume-card.empty .resume-progress { display: none; }
+    .resume-card.empty .resume-page { color: var(--text-muted); }
+
+    /* Star field container - holds the existing stars but positioned in the dead-zone */
+    .star-field {
+      position: absolute;
+      top: 190px;
+      left: 0; right: 0; bottom: 64px;
+      z-index: 6;
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    /* ── Legacy book pill kept hidden for backwards compat (in case anything else references it) ── */
+    .book-pill {
+      display: none;
+    }
+
+    /* ── Recording area ── */
+    .rec-area {
+      position: relative;
+      width: 180px; height: 180px;
+      display: grid;
+      place-items: center;
+      margin: auto auto 0;
+      flex: 0 0 180px;
+      min-height: 180px;
+      max-height: 180px;
+      z-index: 5;
+    }
+    .aura-reactive {
+      position: absolute;
+      top: 50%; left: 50%;
+      width: 150px; height: 150px;
+      transform: translate(-50%, -50%) scale(1);
+      opacity: 0.7;
+      transition: opacity 260ms ease;
+      pointer-events: none;
+      z-index: 5;
+    }
+    .aura-breathe {
+      width: 100%; height: 100%;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(36,214,223,0.28) 0%, rgba(36,214,223,0.12) 38%, rgba(36,214,223,0.04) 63%, transparent 74%);
+      animation: breathe 6.8s ease-in-out infinite;
+    }
+    @keyframes breathe {
+      0%, 100% { transform: scale(0.94); }
+      50%      { transform: scale(1.08); }
+    }
+
+    .rec-btn {
+      width: 108px; height: 108px;
+      border: 2px solid rgba(215,255,255,0.6);
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 25%, #43f1ef, #26d3dc 50%, #18bfc8);
+      color: #081012;
+      font-size: 1.05rem; font-weight: 950;
+      cursor: pointer; outline: none;
+      box-shadow: 0 0 36px var(--teal-glow), 0 0 0 14px rgba(36,214,223,0.06);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 4px;
+      position: relative; z-index: 9;
+      transition: transform 240ms ease, box-shadow 300ms ease, background 400ms ease, border-color 400ms ease;
+      -webkit-tap-highlight-color: transparent;
+      font-family: inherit;
+    }
+    .rec-btn:active { transform: scale(0.95); }
+
+    /* Voice-reactive glow ring layer behind the button - amplifies feedback when child is reading */
+    .rec-glow-ring {
+      position: absolute;
+      top: 50%; left: 50%;
+      width: 100px; height: 100px;
+      transform: translate(-50%, -50%) scale(1);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 4;
+      opacity: 0;
+      background: radial-gradient(circle, rgba(67,241,239,0.5) 0%, rgba(36,214,223,0.25) 35%, rgba(36,214,223,0.08) 60%, transparent 78%);
+      transition: opacity 280ms ease;
+      filter: blur(2px);
+    }
+    .rec-glow-ring.active { opacity: 1; }
+
+    /* Button mask: hides stars behind button so they don't show through */
+    .rec-btn-mask {
+      position: absolute;
+      top: 50%; left: 50%;
+      width: 180px; height: 180px;
+      transform: translate(-50%, -50%);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 4;
+      background: radial-gradient(circle, var(--bg) 32%, rgba(7,13,22,0.85) 50%, rgba(7,13,22,0) 72%);
+    }
+
+    .rec-btn--saving {
+      background: radial-gradient(circle at 35% 25%, #f5d96b, #d4a422 50%, #b8901a) !important;
+      border-color: rgba(255,224,130,0.6) !important;
+      box-shadow: 0 0 32px var(--gold-glow), 0 0 0 12px rgba(240,201,77,0.06) !important;
+    }
+    .rec-btn--uploading {
+      background: radial-gradient(circle at 35% 25%, #f5d96b, #d4a422 50%, #b8901a) !important;
+      border-color: rgba(255,224,130,0.6) !important;
+      animation: uploadPulse 1.2s ease-in-out infinite alternate !important;
+    }
+    @keyframes uploadPulse {
+      0%   { opacity: 0.7; box-shadow: 0 0 24px var(--gold-glow); }
+      100% { opacity: 1.0; box-shadow: 0 0 42px var(--gold-glow); }
+    }
+
+    .mic-mark {
+      width: 22px; height: 22px;
+      display: inline-block; line-height: 1;
+    }
+    .mic-mark svg { width: 100%; height: 100%; display: block; stroke: #051219; }
+    .btn-label { line-height: 1; font-size: 0.92rem; }
+    .btn-countdown {
+      font-size: 1.1rem; font-weight: 950;
+      font-variant-numeric: tabular-nums;
+      line-height: 1;
+    }
+
+    /* Progress ring around button (timer mode) */
+    .progress-ring {
+      position: absolute;
+      top: 50%; left: 50%;
+      width: 130px; height: 130px;
+      transform: translate(-50%, -50%) rotate(-90deg);
+      pointer-events: none;
+      z-index: 3;
+      opacity: 0;
+      transition: opacity 300ms ease;
+    }
+    .progress-ring.active { opacity: 1; }
+    .progress-ring-bg {
+      stroke: rgba(122,187,218,0.12);
+      fill: none; stroke-width: 3;
+    }
+    .progress-ring-fill {
+      stroke: var(--teal);
+      fill: none; stroke-width: 3;
+      stroke-linecap: round;
+      transition: stroke-dashoffset 500ms linear;
+    }
+
+    /* ── Helper text ── */
+    .helper {
+      margin: 10px 0 auto;
+      text-align: center;
+      color: rgba(221,231,239,0.7);
+      font-size: 0.82rem;
+      min-height: 18px;
+    }
+    .helper[hidden] {
+      display: block;
+      visibility: hidden;
+    }
+
+    /* ── Goal toast - floats above bottom nav, fades in then out ── */
+    .goal-toast {
+      position: fixed;
+      left: 50%;
+      bottom: calc(76px + env(safe-area-inset-bottom, 0px));
+      transform: translateX(-50%) translateY(8px);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 18px;
+      border-radius: 99px;
+      border: 1px solid rgba(240,201,77,0.4);
+      background: linear-gradient(180deg, rgba(240,201,77,0.18), rgba(240,201,77,0.08)), rgba(7,13,22,0.96);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4), 0 0 30px rgba(240,201,77,0.2);
+      font-size: 0.82rem; font-weight: 800;
+      color: var(--gold);
+      white-space: nowrap;
+      opacity: 0;
+      z-index: 150;
+      pointer-events: none;
+      transition: opacity 600ms ease, transform 600ms ease;
+    }
+    .goal-toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+    .goal-toast[hidden] { display: none; }
+    .goal-toast-icon { font-size: 1rem; filter: drop-shadow(0 0 6px rgba(240,201,77,0.5)); }
+    .goal-toast.teal {
+      border-color: rgba(36,214,223,0.4);
+      background: linear-gradient(180deg, rgba(36,214,223,0.18), rgba(36,214,223,0.08)), rgba(7,13,22,0.96);
+      color: var(--teal);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4), 0 0 30px rgba(36,214,223,0.25);
+    }
+    .goal-toast.teal .goal-toast-icon { filter: drop-shadow(0 0 6px rgba(36,214,223,0.5)); }
+
+    /* ── Bottom nav: handled by shell CSS above ── */
+
+    /* ── Book picker modal ── */
+    .child-action-overlay {
+      position: fixed; inset: 0; z-index: 90;
+      display: none; place-items: end center;
+      padding: 18px calc(16px + env(safe-area-inset-right)) calc(18px + env(safe-area-inset-bottom)) calc(16px + env(safe-area-inset-left));
+      background: rgba(2,7,13,0.68);
+      backdrop-filter: blur(8px);
+    }
+    .child-action-overlay.open { display: grid; }
+    .child-action-modal {
+      width: min(100%, 420px);
+      max-height: min(84svh, 620px);
+      overflow: auto;
+      position: relative;
+      background: rgba(6,14,26,0.985);
+      border: 1px solid rgba(29,205,211,0.20);
+      border-radius: 22px;
+      padding: 22px 22px calc(22px + 80px);
+      color: #d9e5ef;
+      box-shadow: 0 32px 80px rgba(0,0,0,0.62), 0 0 60px rgba(29,205,211,0.08);
+    }
+    .child-action-modal::before {
+      content: ""; position: absolute; top: 0; left: 10%; right: 10%; height: 1px;
+      background: linear-gradient(90deg, rgba(29,205,211,0), rgba(29,205,211,0.55), rgba(29,205,211,0));
+    }
+    .child-action-close {
+      position: absolute; top: 13px; right: 13px;
+      width: 30px; height: 30px; border-radius: 50%;
+      border: 1px solid rgba(122,187,218,0.16);
+      background: rgba(255,255,255,0.06);
+      color: rgba(148,164,180,0.86);
+      display: grid; place-items: center;
+      cursor: pointer; font-size: 18px;
+    }
+    .child-action-modal h2 {
+      margin: 2px 0 4px; font-size: 24px; line-height: 1.1;
+      letter-spacing: -0.6px; text-align: center;
+    }
+    .child-action-sub {
+      margin: 0 0 20px;
+      color: rgba(148,164,180,0.78);
+      font-size: 13px; text-align: center;
+    }
+    .child-field { margin-bottom: 13px; }
+    .child-field label {
+      display: block; margin-bottom: 6px;
+      color: #d9e5ef; font-size: 11px; font-weight: 800; letter-spacing: 0.25px;
+    }
+    .child-input {
+      width: 100%; min-height: 42px; border-radius: 10px;
+      border: 1px solid rgba(122,187,218,0.18);
+      background: rgba(7,18,33,0.96);
+      color: #d9e5ef; padding: 10px 12px; font-size: 15px; outline: none;
+      transition: border-color 180ms ease, box-shadow 180ms ease;
+    }
+    .child-input:focus {
+      border-color: rgba(29,205,211,0.70);
+      box-shadow: 0 0 0 3px rgba(29,205,211,0.14), 0 0 18px rgba(29,205,211,0.32);
+    }
+    .child-book-list { display: flex; flex-direction: column; gap: 8px; }
+    .child-book-option {
+      width: 100%; min-height: 74px; border-radius: 12px;
+      border: 1px solid rgba(122,187,218,0.16);
+      background: rgba(7,18,33,0.96);
+      color: #d9e5ef; text-align: left;
+      padding: 13px; font-size: 15px; font-weight: 700;
+      cursor: pointer;
+      display: grid; grid-template-columns: minmax(0,1fr) auto;
+      column-gap: 12px; align-items: center;
+      transition: border-color 180ms ease, box-shadow 180ms ease, background 180ms ease;
+      font-family: inherit;
+    }
+    .child-book-option:active { transform: scale(0.985); }
+    .child-book-option.selected {
+      border-color: rgba(29,205,211,0.72);
+      background: linear-gradient(180deg, rgba(29,205,211,0.14), rgba(29,205,211,0.08)), rgba(9,25,43,0.98);
+      box-shadow: 0 0 0 2px rgba(29,205,211,0.12), 0 0 22px rgba(29,205,211,0.30);
+    }
+    .child-book-option-main { display: flex; flex-direction: column; gap: 7px; min-width: 0; }
+    .child-book-option-title { color: #d9e5ef; line-height: 1.14; white-space: normal; }
+    .child-book-option-meta {
+      color: rgba(148,164,180,0.78); font-size: 12px; font-weight: 800; letter-spacing: 0.15px;
+    }
+    .child-book-option.selected .child-book-option-meta { color: var(--teal); }
+    .child-book-page-control { display: none; min-width: 92px; text-align: right; }
+    .child-book-option.selected .child-book-page-control { display: block; }
+    .child-book-page-label {
+      display: block; margin-bottom: 5px;
+      color: rgba(217,229,239,0.72); font-size: 10px; font-weight: 850;
+      letter-spacing: 0.25px; text-transform: uppercase;
+    }
+    .child-book-page-input {
+      width: 78px; height: 40px; border-radius: 11px;
+      border: 1px solid rgba(29,205,211,0.36);
+      background: rgba(7,18,33,0.96);
+      color: #d9e5ef; padding: 8px 10px;
+      font: inherit; font-size: 17px; font-weight: 800;
+      text-align: center; outline: none;
+    }
+    .child-book-page-input:focus {
+      border-color: rgba(29,205,211,0.72);
+      box-shadow: 0 0 0 3px rgba(29,205,211,0.14), 0 0 18px rgba(29,205,211,0.32);
+    }
+    .child-book-empty {
+      padding: 14px 13px; border-radius: 12px;
+      border: 1px dashed rgba(29,205,211,0.25);
+      background: rgba(29,205,211,0.045);
+      color: rgba(217,229,239,0.78); font-size: 14px; line-height: 1.35;
+    }
+    .child-modal-btn {
+      width: 100%; min-height: 44px; border-radius: 11px;
+      border: 1px solid rgba(29,205,211,0.34);
+      background: rgba(29,205,211,0.10);
+      color: #dffbff; font-size: 15px; font-weight: 800;
+      cursor: pointer;
+      box-shadow: 0 0 0 1px rgba(29,205,211,0.05), 0 0 18px rgba(29,205,211,0.16);
+      transition: transform 140ms ease, border-color 180ms ease, box-shadow 180ms ease;
+    }
+    .child-modal-btn:active {
+      transform: scale(0.985);
+      background: rgba(29,205,211,0.22);
+    }
+    .child-modal-result {
+      display: none; margin-top: 10px; padding: 10px 12px;
+      border-radius: 12px; background: rgba(29,205,211,0.08);
+      border: 1px solid rgba(29,205,211,0.22);
+      color: var(--teal); font-size: 13px; font-weight: 700; text-align: center;
+    }
+    .child-modal-result.show { display: block; }
+    .child-action-preview-text { display: none; }
+
+    /* ── Timer selector pills ── */
+    .timer-selector {
+      margin-bottom: 16px;
+    }
+    .timer-selector label {
+      display: block; margin-bottom: 8px;
+      color: #d9e5ef; font-size: 11px; font-weight: 800; letter-spacing: 0.25px;
+    }
+    .timer-mode-toggle {
+      display: flex; gap: 6px; margin-bottom: 10px;
+    }
+    .timer-mode-btn {
+      flex: 1; padding: 8px 12px; border-radius: 10px;
+      border: 1px solid rgba(122,187,218,0.22);
+      background: rgba(7,18,32,0.6);
+      color: var(--text-soft);
+      font: inherit; font-size: 0.76rem; font-weight: 700;
+      cursor: pointer; transition: all 180ms ease;
+      text-align: center;
+    }
+    .timer-mode-btn.selected {
+      border-color: rgba(36,214,223,0.5);
+      background: rgba(36,214,223,0.12);
+      color: var(--teal);
+      box-shadow: 0 0 12px rgba(36,214,223,0.15);
+    }
+    .timer-mode-btn .mode-title {
+      display: block; font-weight: 800; font-size: 0.8rem; margin-bottom: 2px;
+    }
+    .timer-mode-btn .mode-desc {
+      display: block; font-size: 0.68rem; opacity: 0.8; font-weight: 600;
+    }
+    .timer-pills {
+      display: flex; gap: 6px; flex-wrap: wrap;
+    }
+    .timer-pill {
+      padding: 8px 14px; border-radius: 99px;
+      border: 1px solid rgba(122,187,218,0.18);
+      background: rgba(7,18,33,0.96);
+      color: var(--text-soft); font-size: 13px; font-weight: 800;
+      cursor: pointer; font-family: inherit;
+      transition: border-color 180ms ease, background 180ms ease, color 180ms ease;
+    }
+    .timer-pill:active { transform: scale(0.96); }
+    .timer-pill.selected {
+      border-color: rgba(29,205,211,0.72);
+      background: rgba(29,205,211,0.12);
+      color: var(--teal);
+      box-shadow: 0 0 14px rgba(29,205,211,0.20);
+    }
+
+    /* ── Post-save popup ── */
+    .post-save-overlay {
+      position: fixed; inset: 0; z-index: 11000;
+      display: none; place-items: center;
+      padding: 18px;
+      background: rgba(2,7,13,0.66);
+      backdrop-filter: blur(8px);
+    }
+    .post-save-overlay.open { display: grid; }
+    .post-save-card {
+      width: min(92vw, 390px);
+      position: relative; border-radius: 22px;
+      border: 1px solid rgba(29,205,211,0.22);
+      background: rgba(6,14,26,0.985);
+      color: #d9e5ef;
+      padding: 24px 22px 22px;
+      box-shadow: 0 32px 80px rgba(0,0,0,0.62), 0 0 60px rgba(29,205,211,0.09);
+      text-align: center;
+    }
+    .post-save-card::before {
+      content: ""; position: absolute; top: 0; left: 12%; right: 12%; height: 1px;
+      background: linear-gradient(90deg, rgba(29,205,211,0), rgba(29,205,211,0.60), rgba(29,205,211,0));
+    }
+    .post-save-icon {
+      width: 58px; height: 58px; margin: 0 auto 13px;
+      border-radius: 50%; display: grid; place-items: center;
+      border: 1px solid rgba(29,205,211,0.42);
+      background: radial-gradient(circle at 50% 36%, rgba(29,205,211,0.25), rgba(8,19,31,0.96) 68%);
+      color: var(--teal); font-size: 25px;
+      box-shadow: 0 0 22px rgba(29,205,211,0.30), 0 0 44px rgba(29,205,211,0.16);
+    }
+    .post-save-card h2 { margin: 0 0 7px; font-size: 24px; line-height: 1.1; letter-spacing: -0.55px; }
+    .post-save-card p { margin: 0 0 18px; color: rgba(148,164,180,0.84); font-size: 14px; line-height: 1.42; }
+    .post-save-actions { display: grid; gap: 10px; }
+    .post-save-btn {
+      width: 100%; min-height: 44px; border-radius: 11px;
+      border: 1px solid rgba(29,205,211,0.34);
+      background: rgba(29,205,211,0.10);
+      color: #dffbff; font-size: 15px; font-weight: 800;
+      cursor: pointer; font-family: inherit;
+      transition: transform 140ms ease, border-color 180ms ease;
+    }
+    .post-save-btn:active { transform: scale(0.985); background: rgba(29,205,211,0.22); }
+    .post-save-btn.secondary {
+      background: rgba(255,255,255,0.025);
+      border-color: rgba(122,187,218,0.18);
+      color: rgba(217,229,239,0.82); box-shadow: none;
+    }
+    .post-save-tagline {
+      margin: 0 0 9px; color: var(--teal); font-size: 12px; font-weight: 800;
+      letter-spacing: 0.45px; text-transform: uppercase;
+    }
+    .post-save-intro { margin-bottom: 16px; }
+    .post-save-field { text-align: left; margin-bottom: 13px; }
+    .post-save-field label {
+      display: block; margin-bottom: 6px;
+      color: #d9e5ef; font-size: 11px; font-weight: 800; letter-spacing: 0.2px;
+    }
+    .post-save-field input,
+    .post-save-field textarea {
+      width: 100%; border-radius: 11px;
+      border: 1px solid rgba(122,187,218,0.18);
+      background: rgba(7,18,33,0.96);
+      color: #d9e5ef; padding: 11px 12px;
+      font: inherit; font-size: 15px; outline: none; resize: vertical;
+      transition: border-color 180ms ease, box-shadow 180ms ease;
+    }
+    .post-save-field input:focus,
+    .post-save-field textarea:focus {
+      border-color: rgba(29,205,211,0.70);
+      box-shadow: 0 0 0 3px rgba(29,205,211,0.14), 0 0 18px rgba(29,205,211,0.32);
+    }
+    .post-save-field textarea::placeholder,
+    .post-save-field input::placeholder { color: rgba(148,164,180,0.48); }
+    .post-save-note {
+      display: none; margin-top: 10px; padding: 10px 12px;
+      border-radius: 12px; background: rgba(29,205,211,0.08);
+      border: 1px solid rgba(29,205,211,0.22);
+      color: var(--teal); font-size: 13px; font-weight: 700;
+    }
+    .post-save-note.show { display: block; }
+
+    .dependency-node {
+      position: absolute; opacity: 0; pointer-events: none; user-select: none; color: var(--bg);
+    }
 
 </style>
 </head>
 <body>
 
 <!-- ═══════════════════════════════════════════
-     DEV LOGIN OVERLAY
-     Sama mynstur og parent.html — barnakóði login
-     Fjarlægt þegar child.html tengist index.html
+     DEV LOGIN OVERLAY — barnakóði
      ═══════════════════════════════════════════ -->
 
 <div class="login-overlay" id="c-login-overlay">
@@ -163,15 +862,184 @@ body{font-family:'DM Sans','Manrope',-apple-system,BlinkMacSystemFont,sans-serif
 
 <!-- ═══════════════════════════════════════════
      SCREEN: LESA (child-v2)
-     Placeholder — verður skipt út í Skrefi 2
      ═══════════════════════════════════════════ -->
 
 <main class="scr on" data-child-screen="read" id="screen-child-read">
-  <div class="placeholder-screen">
-    <div class="icon">📖</div>
-    <h2>Lesa</h2>
-    <p>child-v2.html kemur hingað í Skrefi 2</p>
-  </div>
+    <div class="constellation" aria-hidden="true"></div>
+
+    <!-- Star field: stars positioned within this dead-zone between resume-card and bottom-nav -->
+    <div class="star-field" id="star-field" aria-hidden="true">
+      <button class="star star-1" type="button" aria-label="Star"></button>
+      <button class="star star-2" type="button" aria-label="Star"></button>
+      <button class="star star-3" type="button" aria-label="Star"></button>
+      <button class="star star-4" type="button" aria-label="Star"></button>
+      <button class="star star-5" type="button" aria-label="Star"></button>
+      <button class="star star-6" type="button" aria-label="Star"></button>
+      <button class="star star-7" type="button" aria-label="Star"></button>
+      <button class="star star-8" type="button" aria-label="Star"></button>
+      <button class="star star-9" type="button" aria-label="Star"></button>
+    </div>
+
+    <svg class="constellation-lines" width="100%" height="100%" aria-hidden="true">
+      <g id="frozen-lines"></g>
+      <path id="listen-line" class="listen-line" d="M 0 0 L 0 0"></path>
+    </svg>
+
+    <section class="panel">
+      <div class="top-bar">
+        <button id="home-btn" class="home-btn" type="button" aria-label="Go home">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M4 11.5L12 5L20 11.5V19C20 19.5523 19.5523 20 19 20H15V14H9V20H5C4.44772 20 4 19.5523 4 19V11.5Z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+        <p class="greeting">Hæ, <span id="greeting-name" class="greeting-name">Lesari</span>!</p>
+      </div>
+
+      <!-- Resume card: hero book display with cover, replaces old book-pill -->
+      <button id="resume-card" class="resume-card empty" type="button" aria-label="Velja bók">
+        <div class="resume-tag" id="resume-tag">Veldu bók</div>
+        <div class="resume-row">
+          <div class="resume-cover" id="resume-cover" hidden>
+            <div class="resume-cover-art"></div>
+            <div class="resume-cover-fallback" id="resume-cover-fallback">Bók</div>
+          </div>
+          <div class="resume-info">
+            <div class="resume-title" id="resume-title">Veldu bók</div>
+            <div class="resume-page" id="resume-page">Opnaðu bókahilluna</div>
+            <div class="resume-progress" id="resume-progress" hidden>
+              <span id="resume-percent">0%</span>
+              <div class="resume-bar"><div class="resume-bar-fill" id="resume-bar-fill"></div></div>
+              <span id="resume-total"></span>
+            </div>
+          </div>
+          <span class="resume-action">Breyta</span>
+        </div>
+      </button>
+
+      <!-- Hidden legacy book-pill (kept for backward compat with any external references) -->
+      <button id="book-pill" class="book-pill" type="button" aria-label="Velja bók" hidden>
+        <span class="book-pill-progress">
+          <svg viewBox="0 0 40 40">
+            <circle class="arc-bg" cx="20" cy="20" r="16"/>
+            <circle id="pill-arc" class="arc-fill" cx="20" cy="20" r="16"
+                    stroke-dasharray="100.53" stroke-dashoffset="100.53"
+                    transform="rotate(-90 20 20)"/>
+          </svg>
+        </span>
+        <span class="book-pill-info">
+          <span id="pill-title" class="book-pill-title">Veldu bók</span>
+          <span id="pill-page" class="book-pill-page">Opnaðu bókahilluna</span>
+        </span>
+        <span class="book-pill-action">Breyta</span>
+      </button>
+
+      <div class="rec-area">
+        <div class="rec-btn-mask" aria-hidden="true"></div>
+
+        <div id="aura-reactive" class="aura-reactive" aria-hidden="true">
+          <div class="aura-breathe"></div>
+        </div>
+
+        <!-- Extra reactive glow ring: intensifies when child is reading -->
+        <div id="rec-glow-ring" class="rec-glow-ring" aria-hidden="true"></div>
+
+        <svg id="progress-ring" class="progress-ring" viewBox="0 0 130 130">
+          <circle class="progress-ring-bg" cx="65" cy="65" r="62.5"/>
+          <circle id="progress-ring-fill" class="progress-ring-fill" cx="65" cy="65" r="62.5"
+                  stroke-dasharray="392.7" stroke-dashoffset="0"/>
+        </svg>
+
+        <button id="record-btn" class="rec-btn" type="button" aria-label="Byrja upptoku">
+          <span id="mic-mark" class="mic-mark" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none">
+              <path d="M12 3.5C10.067 3.5 8.5 5.067 8.5 7V12C8.5 13.933 10.067 15.5 12 15.5C13.933 15.5 15.5 13.933 15.5 12V7C15.5 5.067 13.933 3.5 12 3.5Z" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M5.5 11.5C5.5 15.09 8.41 18 12 18C15.59 18 18.5 15.09 18.5 11.5" stroke-width="2.4" stroke-linecap="round"/>
+              <path d="M12 18V21" stroke-width="2.4" stroke-linecap="round"/>
+            </svg>
+          </span>
+          <span id="record-btn-label" class="btn-label">Byrja</span>
+          <span id="record-btn-countdown" class="btn-countdown" hidden></span>
+        </button>
+      </div>
+
+      <p id="helper-text" class="helper">Ýttu á takkann til að byrja að lesa upphátt</p>
+    </section>
+
+    <!-- Goal toast: floats above bottom-nav, timer-controlled fade in/out -->
+    <section id="goal-toast" class="goal-toast" hidden>
+      <span class="goal-toast-icon">&#127942;</span>
+      <span id="goal-toast-text" class="goal-toast-text"></span>
+    </section>
+
+    <!-- Book picker modal -->
+    <div id="child-reading-modal" class="child-action-overlay" aria-hidden="true">
+      <section class="child-action-modal" role="dialog" aria-modal="true" aria-labelledby="child-reading-modal-title">
+        <button id="child-reading-modal-close" class="child-action-close" type="button" aria-label="Loka">&times;</button>
+        <h2 id="child-reading-modal-title">Veldu bók</h2>
+        <p class="child-action-sub">Veldu bók og blaðsíðu þar sem þú byrjar.</p>
+
+        <div class="child-field">
+          <label>Bók</label>
+          <div id="child-book-list" class="child-book-list" role="listbox" aria-label="Veldu bók"></div>
+        </div>
+
+        <div class="timer-selector">
+          <label>Tími</label>
+          <div class="timer-mode-toggle" id="timer-mode-toggle">
+            <button class="timer-mode-btn" type="button" data-mode="countdown">
+              <span class="mode-title">Niðurtalning</span>
+              <span class="mode-desc">Sjá mínútur eftir</span>
+            </button>
+            <button class="timer-mode-btn selected" type="button" data-mode="ring">
+              <span class="mode-title">Soft ring</span>
+              <span class="mode-desc">Rólegur hringur</span>
+            </button>
+          </div>
+          <div id="timer-pills" class="timer-pills">
+            <button class="timer-pill" type="button" data-minutes="5">5 min</button>
+            <button class="timer-pill" type="button" data-minutes="10">10 min</button>
+            <button class="timer-pill" type="button" data-minutes="15">15 min</button>
+            <button class="timer-pill" type="button" data-minutes="20">20 min</button>
+            <button class="timer-pill selected" type="button" data-minutes="0">Engin</button>
+          </div>
+        </div>
+
+        <input id="child-page-from" type="hidden" value="">
+        <input id="child-page-to" type="hidden" value="">
+        <p id="child-reading-preview" class="child-action-preview-text" hidden></p>
+
+        <button id="child-reading-save" class="child-modal-btn" type="button">Vista</button>
+        <div id="child-reading-result" class="child-modal-result">Vistað fyrir næsta lestur.</div>
+      </section>
+    </div>
+
+    <!-- Post-save popup -->
+    <div id="post-save-overlay" class="post-save-overlay" aria-hidden="true">
+      <section class="post-save-card" role="dialog" aria-modal="true" aria-labelledby="post-save-title">
+        <div class="post-save-icon" aria-hidden="true">&#10003;</div>
+        <p id="post-save-tagline" class="post-save-tagline">Smá lestrarspor verða að stærri ferð.</p>
+        <h2 id="post-save-title">Lestur vistaður</h2>
+        <p class="post-save-intro">Bættu einu atriði við lestrarferðalagið.</p>
+
+        <div class="post-save-field">
+          <label for="post-save-note-input">Ein setning um það sem gerðist í bókinni í dag</label>
+          <textarea id="post-save-note-input" rows="3" placeholder="T.d. Þau fundu hellinn."></textarea>
+        </div>
+
+        <div class="post-save-field">
+          <label for="post-save-end-page">Ég endaði á bls.</label>
+          <input id="post-save-end-page" inputmode="numeric" placeholder="29">
+        </div>
+
+        <div class="post-save-actions">
+          <button id="post-save-save-journey" class="post-save-btn" type="button">Vista lestrarferðalag</button>
+          <button id="post-save-close" class="post-save-btn secondary" type="button">Loka</button>
+        </div>
+        <div id="post-save-note" class="post-save-note">Vistað í lestrarferðalaginu.</div>
+      </section>
+    </div>
+
+    <span id="recording-dependency" class="dependency-node" aria-hidden="true">recording active</span>
 </main>
 
 
@@ -205,8 +1073,6 @@ body{font-family:'DM Sans','Manrope',-apple-system,BlinkMacSystemFont,sans-serif
 
 <!-- ═══════════════════════════════════════════
      SHARED BOTTOM NAV
-     Eins og bookshelf/child-v2 bottom nav en
-     notar data-nav + go() í stað <a href>
      ═══════════════════════════════════════════ -->
 
 <nav class="child-bottom-nav" id="childBottomNav">
@@ -233,17 +1099,16 @@ body{font-family:'DM Sans','Manrope',-apple-system,BlinkMacSystemFont,sans-serif
 
 
 <!-- ═══════════════════════════════════════════
-     JAVASCRIPT — Firebase init + auth + navigation
+     SCRIPT 0: FIREBASE INIT + SHARED GLOBALS
+     Sett upp einu sinni — allir aðrir scripts nota window._child
      ═══════════════════════════════════════════ -->
 
 <script type="module">
-
-// ── Firebase imports (einu sinni — sameinar allar þrjár skrár) ──
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js';
-import { getAuth, onAuthStateChanged, signInAnonymously, signOut } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js';
-import { getFirestore, doc, getDoc, collection, query, where, onSnapshot, setDoc, addDoc, deleteDoc, updateDoc, serverTimestamp, getDocs } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js';
-import { getStorage, ref as storageRef, getDownloadURL, uploadBytes } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-storage.js';
-import { getFunctions, httpsCallable } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-functions.js';
+import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js';
+import { getFirestore } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js';
+import { getStorage } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-storage.js';
+import { getFunctions } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-functions.js';
 
 const app = initializeApp({
   apiKey: 'AIzaSyAgTY3Uxd9_ZxixjqLj-sH8V3OhFAzg6DU',
@@ -259,10 +1124,8 @@ const db = getFirestore(app);
 const storage = getStorage(app);
 const functions = getFunctions(app, 'europe-west1');
 
-// ── Shared state ──
 const CS = { familyId: null, childKey: null, childName: null };
 
-// ── ensureAuth (bookshelf pattern — retry delays for fresh custom claims) ──
 function ensureAuth() {
   return new Promise((resolve, reject) => {
     const unsub = onAuthStateChanged(auth, async (user) => {
@@ -273,14 +1136,8 @@ function ensureAuth() {
         if (delays[i] > 0) await new Promise(r => setTimeout(r, delays[i]));
         try {
           const token = await user.getIdTokenResult(i > 0);
-          const cachedToken = await user.getIdTokenResult(false);
-          if (cachedToken.claims.role && cachedToken.claims.familyId) {
-            resolve({ user, role: cachedToken.claims.role, familyId: cachedToken.claims.familyId });
-            return;
-          }
-          const role = token.claims.role;
-          if (role && token.claims.familyId) {
-            resolve({ user, role, familyId: token.claims.familyId });
+          if (token.claims.role && token.claims.familyId) {
+            resolve({ user, role: token.claims.role, familyId: token.claims.familyId });
             return;
           }
         } catch (e) {
@@ -292,7 +1149,6 @@ function ensureAuth() {
   });
 }
 
-// ── Get child session from localStorage (same as bookshelf/child-v2) ──
 function getChildSession() {
   try {
     const r = localStorage.getItem('upphatt_child');
@@ -302,15 +1158,11 @@ function getChildSession() {
   } catch (e) { return null; }
 }
 
-// ── Screen switching (sama mynstur og parent.html go()) ──
 let currentScreen = 'read';
-
 function go(tab) {
   if (tab === 'add-book') {
-    // Ný bók — fer á bookshelf og opnar add modal
     go('bookshelf');
-    // TODO: kalla á openAddBookModal() þegar bookshelf JS er flutt inn
-    toast('Ný bók — kemur í Skrefi 3');
+    // TODO: opna add-book modal þegar bookshelf er flutt inn
     return;
   }
   currentScreen = tab;
@@ -319,12 +1171,6 @@ function go(tab) {
   window.scrollTo(0, 0);
 }
 
-// Nav click handlers
-document.querySelectorAll('[data-nav]').forEach(b => {
-  b.addEventListener('click', () => go(b.dataset.nav));
-});
-
-// ── Toast ──
 function toast(msg, ms = 2500) {
   const t = document.getElementById('app-toast');
   if (!t) return;
@@ -334,7 +1180,1587 @@ function toast(msg, ms = 2500) {
   t._timer = setTimeout(() => t.classList.remove('show'), ms);
 }
 
-// ── Dev login (barnakóði — same flow as auth.js childLogin) ──
+// Nav click handlers
+document.querySelectorAll('[data-nav]').forEach(b => {
+  b.addEventListener('click', () => go(b.dataset.nav));
+});
+
+// Global export
+window._child = { auth, db, storage, functions, CS, ensureAuth, getChildSession, go, toast };
+</script>
+
+
+<!-- ═══════════════════════════════════════════
+     SCRIPT 1: CHILD-V2 UI LOGIC (IIFE)
+     Hljóðupptaka, mic, snippets, timer, book picker, glow
+     ═══════════════════════════════════════════ -->
+
+<script>
+    (function () {
+      // ── Child session data ──
+      var childSession = (function () {
+        try { var raw = localStorage.getItem("upphatt_child"); return raw ? JSON.parse(raw) : null; }
+        catch (e) { return null; }
+      })();
+      var childName = localStorage.getItem("childName") || (childSession && childSession.childName ? childSession.childName : null) || "Lesari";
+      var childStorageKey = childSession && childSession.childKey ? String(childSession.childKey) : "unknown";
+      var childBooksCacheKey = childSession && childSession.familyId && childSession.childKey
+        ? "upphatt_child_books_cache_" + childSession.familyId + "_" + childSession.childKey
+        : null;
+
+      function readChildBooksCache() {
+        if (!childBooksCacheKey) return [];
+        try {
+          var raw = localStorage.getItem(childBooksCacheKey);
+          var parsed = raw ? JSON.parse(raw) : null;
+          return parsed && Array.isArray(parsed.books) ? parsed.books : [];
+        } catch (e) { return []; }
+      }
+
+      window.cacheChildBooks = function (books) {
+        if (!childBooksCacheKey || !Array.isArray(books)) return;
+        try { localStorage.setItem(childBooksCacheKey, JSON.stringify({ savedAt: Date.now(), books: books })); }
+        catch (e) { /* no-op */ }
+      };
+
+      var cachedChildBooks = readChildBooksCache();
+      if (cachedChildBooks.length && !window._firestoreBooks) window._firestoreBooks = cachedChildBooks;
+
+      document.getElementById("greeting-name").textContent = childName;
+
+      // ── DOM refs ──
+      var homeBtn = document.getElementById("home-btn");
+      var screenEl = document.getElementById("screen-child-read");
+      var recordBtn = document.getElementById("record-btn");
+      var recordBtnLabel = document.getElementById("record-btn-label");
+      var recordBtnCountdown = document.getElementById("record-btn-countdown");
+      var micMarkEl = document.getElementById("mic-mark");
+      var helperTextEl = document.getElementById("helper-text");
+      var auraReactiveEl = document.getElementById("aura-reactive");
+      var bookPillEl = document.getElementById("book-pill");
+      var pillTitleEl = document.getElementById("pill-title");
+      var pillPageEl = document.getElementById("pill-page");
+      var pillArcEl = document.getElementById("pill-arc");
+
+      // Resume card refs (new hero)
+      var resumeCardEl = document.getElementById("resume-card");
+      var resumeTagEl = document.getElementById("resume-tag");
+      var resumeCoverEl = document.getElementById("resume-cover");
+      var resumeCoverFallbackEl = document.getElementById("resume-cover-fallback");
+      var resumeTitleEl = document.getElementById("resume-title");
+      var resumePageEl = document.getElementById("resume-page");
+      var resumeProgressEl = document.getElementById("resume-progress");
+      var resumePercentEl = document.getElementById("resume-percent");
+      var resumeBarFillEl = document.getElementById("resume-bar-fill");
+      var resumeTotalEl = document.getElementById("resume-total");
+
+      // Reactive glow ring (audio response amplifier)
+      var recGlowRingEl = document.getElementById("rec-glow-ring");
+      var progressRingEl = document.getElementById("progress-ring");
+      var progressRingFill = document.getElementById("progress-ring-fill");
+      var goalToastEl = document.getElementById("goal-toast");
+      var goalToastText = document.getElementById("goal-toast-text");
+      var starEls = Array.prototype.slice.call(document.querySelectorAll(".star"));
+      var frozenLinesEl = document.getElementById("frozen-lines");
+      var listenLineEl = document.getElementById("listen-line");
+      var toastEl = document.getElementById("listen-toast");
+
+      // ── Constants ──
+      var LISTEN_STORAGE_KEY = "upphatt_listen_connections_v1_" + childStorageKey;
+      var FROZEN_FULL_BRIGHT_MS = 5 * 1000;
+      var FROZEN_FADE_MS = 24 * 60 * 60 * 1000;
+      var CONNECTION_LIFETIME_MS = FROZEN_FULL_BRIGHT_MS + FROZEN_FADE_MS;
+      var GOAL_STORAGE_KEY = "upphatt_monthly_goal_achieved_" + childStorageKey;
+      var GOAL_VISIBLE_MS = 48 * 60 * 60 * 1000;
+      var PROGRESS_RING_CIRCUMFERENCE = 392.7;
+      var PILL_ARC_CIRCUMFERENCE = 100.53;
+
+      // ── State ──
+      var buttonState = "idle"; // idle | recording | saving | uploading
+      var isRecording = false;
+      var glowLevel = 0;
+      var smoothedInput = 0;
+      var stream = null;
+      var audioContext = null;
+      var analyser = null;
+      var mediaRecorder = null;
+      var recordingStartedAt = 0;
+      var snippetCaptureTimers = [];
+      var activeSnippetRecorders = [];
+      var snippetClips = {
+        min1: { chunks: [], mimeType: "" },
+        min2: { chunks: [], mimeType: "" },
+        min5: { chunks: [], mimeType: "" },
+        min8: { chunks: [], mimeType: "" },
+        min10: { chunks: [], mimeType: "" }
+      };
+      var rafId = null;
+      var settleTimer = null;
+      var listenTimeout = null;
+      var toastTimeout = null;
+      var lineFadeTimeout = null;
+      var flashTimeout = null;
+      var pendingSavePayload = null;
+      var saveInFlight = false;
+      var listenEventQueue = [];
+      var listenAnimationRunning = false;
+      var listenAnimationStartedAt = 0;
+      var timerMinutes = 0;
+      var timerMode = "ring"; // "countdown" | "ring"
+      var timerInterval = null;
+      var timerEndMs = 0;
+
+      // ── Wake Lock ──
+      var _wakeLock = null;
+      async function requestWakeLock() {
+        if (!("wakeLock" in navigator)) return;
+        try {
+          _wakeLock = await navigator.wakeLock.request("screen");
+          _wakeLock.addEventListener("release", function () { if (isRecording) requestWakeLock(); });
+        } catch (e) { /* no-op */ }
+      }
+      function releaseWakeLock() {
+        if (_wakeLock && _wakeLock.released === false) _wakeLock.release().catch(function () {});
+        _wakeLock = null;
+      }
+      document.addEventListener("visibilitychange", function () {
+        if (document.visibilityState === "visible" && isRecording) requestWakeLock();
+      });
+
+      // ── Haptics & sound cues ──
+      function triggerHaptic(pattern) {
+        try { if (navigator.vibrate) navigator.vibrate(pattern); } catch (e) { /* no-op */ }
+      }
+
+      function playMicCue(kind) {
+        try {
+          var Ctx = window.AudioContext || window.webkitAudioContext;
+          if (!Ctx) return;
+          var ctx = new Ctx();
+          var now = ctx.currentTime;
+          if (kind === "on") {
+            [{ f: 620, t: 0.0, d: 0.055 }, { f: 880, t: 0.06, d: 0.075 }].forEach(function (tone) {
+              var osc = ctx.createOscillator(); var gain = ctx.createGain();
+              osc.type = "triangle"; osc.frequency.value = tone.f;
+              gain.gain.setValueAtTime(0.0001, now + tone.t);
+              gain.gain.exponentialRampToValueAtTime(0.024, now + tone.t + 0.01);
+              gain.gain.exponentialRampToValueAtTime(0.0001, now + tone.t + tone.d);
+              osc.connect(gain); gain.connect(ctx.destination);
+              osc.start(now + tone.t); osc.stop(now + tone.t + tone.d + 0.01);
+            });
+          } else {
+            [{ f0: 520, f1: 460, t: 0.0, d: 0.08, a: 0.015 }, { f0: 420, f1: 360, t: 0.085, d: 0.11, a: 0.013 }].forEach(function (tone) {
+              var osc = ctx.createOscillator(); var gain = ctx.createGain();
+              osc.type = "sine";
+              osc.frequency.setValueAtTime(tone.f0, now + tone.t);
+              osc.frequency.exponentialRampToValueAtTime(tone.f1, now + tone.t + tone.d);
+              gain.gain.setValueAtTime(0.0001, now + tone.t);
+              gain.gain.exponentialRampToValueAtTime(tone.a, now + tone.t + 0.016);
+              gain.gain.exponentialRampToValueAtTime(0.0001, now + tone.t + tone.d);
+              osc.connect(gain); gain.connect(ctx.destination);
+              osc.start(now + tone.t); osc.stop(now + tone.t + tone.d + 0.015);
+            });
+          }
+          setTimeout(function () { ctx.close().catch(function () {}); }, 240);
+        } catch (e) { /* no-op */ }
+      }
+
+      function playListenImpactCue() {
+        try {
+          var Ctx = window.AudioContext || window.webkitAudioContext;
+          if (!Ctx) return;
+          var ctx = new Ctx(); var now = ctx.currentTime;
+          [{ f0: 740, f1: 980, t: 0.0, d: 0.06, a: 0.013 }, { f0: 920, f1: 1220, t: 0.05, d: 0.07, a: 0.011 }, { f0: 1080, f1: 1320, t: 0.11, d: 0.08, a: 0.009 }].forEach(function (tone) {
+            var osc = ctx.createOscillator(); var gain = ctx.createGain();
+            osc.type = "triangle";
+            osc.frequency.setValueAtTime(tone.f0, now + tone.t);
+            osc.frequency.exponentialRampToValueAtTime(tone.f1, now + tone.t + tone.d);
+            gain.gain.setValueAtTime(0.0001, now + tone.t);
+            gain.gain.exponentialRampToValueAtTime(tone.a, now + tone.t + 0.012);
+            gain.gain.exponentialRampToValueAtTime(0.0001, now + tone.t + tone.d);
+            osc.connect(gain); gain.connect(ctx.destination);
+            osc.start(now + tone.t); osc.stop(now + tone.t + tone.d + 0.015);
+          });
+          setTimeout(function () { ctx.close().catch(function () {}); }, 320);
+        } catch (e) { /* no-op */ }
+      }
+
+      // ── Audio helpers ──
+      function getSupportedMimeType() {
+        var candidates = ["audio/mp4", "audio/aac", "audio/webm;codecs=opus", "audio/webm", "audio/ogg"];
+        for (var i = 0; i < candidates.length; i++) {
+          try { if (MediaRecorder.isTypeSupported(candidates[i])) return candidates[i]; } catch (e) { /* no-op */ }
+        }
+        return "";
+      }
+
+      function clearSnippetTimers() {
+        snippetCaptureTimers.forEach(function (t) { clearTimeout(t); });
+        snippetCaptureTimers = [];
+      }
+
+      function captureSnippet(label, durationMs) {
+        if (!stream) return;
+        var chunks = [];
+        var mimeType = getSupportedMimeType();
+        var recorder = null;
+        try { recorder = mimeType ? new MediaRecorder(stream, { mimeType: mimeType }) : new MediaRecorder(stream); }
+        catch (e) { try { recorder = new MediaRecorder(stream); } catch (e2) { return; } }
+
+        recorder.ondataavailable = function (event) {
+          if (event.data && event.data.size > 0) chunks.push(event.data);
+        };
+        recorder.onstop = function () {
+          snippetClips[label] = { chunks: chunks, mimeType: recorder.mimeType || mimeType || "audio/webm" };
+          activeSnippetRecorders = activeSnippetRecorders.filter(function (r) { return r !== recorder; });
+        };
+        recorder.start(1000);
+        activeSnippetRecorders.push(recorder);
+        setTimeout(function () {
+          if (recorder.state !== "inactive") try { recorder.stop(); } catch (e) { /* no-op */ }
+        }, durationMs);
+      }
+
+      function scheduleSnippetCaptures() {
+        clearSnippetTimers();
+        [{ label: "min1", atMs: 30000 }, { label: "min2", atMs: 120000 }, { label: "min5", atMs: 300000 }, { label: "min8", atMs: 480000 }, { label: "min10", atMs: 600000 }].forEach(function (item) {
+          var t = setTimeout(function () { captureSnippet(item.label, 15000); }, item.atMs);
+          snippetCaptureTimers.push(t);
+        });
+      }
+
+      function cleanupAudio() {
+        if (rafId !== null) { cancelAnimationFrame(rafId); rafId = null; }
+        if (mediaRecorder && mediaRecorder.state !== "inactive") try { mediaRecorder.stop(); } catch (e) { /* no-op */ }
+        activeSnippetRecorders.forEach(function (r) { if (r && r.state !== "inactive") try { r.stop(); } catch (e) { /* no-op */ } });
+        activeSnippetRecorders = [];
+        clearSnippetTimers();
+        if (stream) { stream.getTracks().forEach(function (t) { t.stop(); }); stream = null; }
+        if (audioContext) { audioContext.close(); audioContext = null; }
+        analyser = null; mediaRecorder = null; smoothedInput = 0;
+      }
+
+      function monitorVoice() {
+        if (!analyser) return;
+        var pcm = new Uint8Array(analyser.frequencyBinCount);
+        function tick() {
+          if (!analyser) return;
+          analyser.getByteTimeDomainData(pcm);
+          var sum = 0;
+          for (var i = 0; i < pcm.length; i++) { var n = (pcm[i] - 128) / 128; sum += n * n; }
+          var rms = Math.sqrt(sum / pcm.length);
+          var mapped = Math.min(Math.max((rms - 0.01) * 6, 0), 1);
+          smoothedInput = smoothedInput * 0.9 + mapped * 0.1;
+          glowLevel = glowLevel * 0.88 + smoothedInput * 0.12;
+          renderButton();
+          if (isRecording) rafId = requestAnimationFrame(tick);
+        }
+        rafId = requestAnimationFrame(tick);
+      }
+
+      // ── Button rendering ──
+      function renderButton() {
+        // MAXIMUM amplified response: child reads = button EXPLODES with feedback
+        var spread = 32 + glowLevel * 160;          // was 110, now 160 = mun stærri ljósbjarmi
+        var alpha = 0.28 + glowLevel * 0.68;        // was 0.55, now 0.68 = meira saturation
+        var scale = 1 + glowLevel * 0.14;           // was 0.09, now 0.14 = mun sýnilegri pulse
+        var ringAlpha = 0.22 + glowLevel * 0.55;    // was 0.45, now 0.55
+        var auraScale = 1.02 + glowLevel * 0.70;    // was 0.50, now 0.70 = öflugri aura-stækkun
+        var auraOpacity = (isRecording ? 0.75 : 0.5) + glowLevel * 0.40;  // was 0.32, now 0.40
+
+        if (buttonState !== "saving" && buttonState !== "uploading") {
+          recordBtn.style.transform = "scale(" + scale + ")";
+          recordBtn.style.boxShadow = "0 0 " + spread + "px rgba(36,214,223," + alpha + "), 0 0 0 " + (14 + glowLevel * 20) + "px rgba(36,214,223," + ringAlpha.toFixed(3) + ")";
+        }
+
+        auraReactiveEl.style.transform = "translate(-50%, -50%) scale(" + auraScale + ")";
+        auraReactiveEl.style.opacity = auraOpacity;
+
+        // Reactive glow ring: INTENSIFIES dramatically as the child reads louder
+        if (recGlowRingEl) {
+          if (isRecording && glowLevel > 0.02) {
+            recGlowRingEl.classList.add("active");
+            var ringScale = 1.3 + glowLevel * 1.8;  // was 1.2 + 1.4, now 1.3 + 1.8 = explodes further
+            recGlowRingEl.style.transform = "translate(-50%, -50%) scale(" + ringScale + ")";
+            recGlowRingEl.style.opacity = String(0.5 + glowLevel * 0.7);  // was 0.4 + 0.6, now 0.5 + 0.7
+          } else {
+            recGlowRingEl.classList.remove("active");
+            recGlowRingEl.style.opacity = "0";
+          }
+        }
+      }
+
+      function stopSettleLoop() {
+        if (settleTimer !== null) { clearInterval(settleTimer); settleTimer = null; }
+      }
+      function startSettleLoop() {
+        stopSettleLoop();
+        settleTimer = setInterval(function () {
+          glowLevel = glowLevel * 0.9;
+          if (glowLevel < 0.01) glowLevel = 0;
+          renderButton();
+        }, 16);
+      }
+
+      // ── Button state machine ──
+      function updateButtonUI() {
+        recordBtn.classList.remove("rec-btn--saving", "rec-btn--uploading");
+        recordBtnCountdown.hidden = true;
+        micMarkEl.hidden = false;
+        recordBtnLabel.hidden = false;
+
+        if (buttonState === "idle") {
+          recordBtnLabel.textContent = "Byrja";
+          recordBtn.setAttribute("aria-label", "Byrja upptöku");
+          helperTextEl.textContent = "Ýttu á takkann til að byrja að lesa upphátt";
+          helperTextEl.hidden = false;
+          progressRingEl.classList.remove("active");
+          recordBtn.style.transform = "";
+          recordBtn.style.boxShadow = "";
+        } else if (buttonState === "recording") {
+          if (timerMinutes > 0) {
+            progressRingEl.classList.add("active");
+            // Show countdown text only if mode is "countdown"
+            if (timerMode === "countdown") {
+              recordBtnLabel.hidden = true;
+              micMarkEl.hidden = true;
+              recordBtnCountdown.hidden = false;
+            } else {
+              // "ring" mode: hide countdown text, show only progress ring
+              recordBtnLabel.textContent = "Stöðva";
+              recordBtnCountdown.hidden = true;
+            }
+          } else {
+            recordBtnLabel.textContent = "Stöðva";
+            progressRingEl.classList.remove("active");
+          }
+          recordBtn.setAttribute("aria-label", "Stöðva upptöku");
+          helperTextEl.hidden = true;
+        } else if (buttonState === "saving") {
+          recordBtn.classList.add("rec-btn--saving");
+          recordBtnLabel.textContent = "Vista";
+          recordBtn.setAttribute("aria-label", "Vista lotu");
+          helperTextEl.textContent = "Ýttu aftur til að vista";
+          helperTextEl.hidden = false;
+          progressRingEl.classList.remove("active");
+          recordBtn.style.transform = "scale(1)";
+        } else if (buttonState === "uploading") {
+          recordBtn.classList.add("rec-btn--uploading");
+          recordBtnLabel.textContent = "Vista...";
+          helperTextEl.textContent = "Vistar...";
+          helperTextEl.hidden = false;
+          progressRingEl.classList.remove("active");
+        }
+      }
+
+      // ── Timer ──
+      function fmtCountdown(secs) {
+        var m = Math.floor(secs / 60);
+        var s = secs % 60;
+        return m + ":" + (s < 10 ? "0" : "") + s;
+      }
+
+      function startTimer() {
+        if (timerMinutes <= 0) return;
+        timerEndMs = Date.now() + timerMinutes * 60 * 1000;
+        updateTimerDisplay();
+        if (timerInterval) clearInterval(timerInterval);
+        timerInterval = setInterval(function () {
+          var remaining = Math.max(0, Math.ceil((timerEndMs - Date.now()) / 1000));
+          if (remaining <= 0) {
+            clearInterval(timerInterval);
+            timerInterval = null;
+            if (timerMode === "countdown") recordBtnCountdown.textContent = "0:00";
+            updateProgressRing(0);
+            triggerHaptic([20, 40, 20]);
+            playMicCue("off");
+            transitionToSaving();
+            return;
+          }
+          if (timerMode === "countdown") {
+            recordBtnCountdown.textContent = fmtCountdown(remaining);
+          }
+          var totalSecs = timerMinutes * 60;
+          var elapsed = totalSecs - remaining;
+          updateProgressRing(elapsed / totalSecs);
+        }, 500);
+      }
+
+      function updateTimerDisplay() {
+        if (timerMinutes <= 0) return;
+        var remaining = Math.max(0, Math.ceil((timerEndMs - Date.now()) / 1000));
+        if (timerMode === "countdown") {
+          recordBtnCountdown.textContent = fmtCountdown(remaining);
+        }
+        updateProgressRing(0);
+      }
+
+      function updateProgressRing(fraction) {
+        var offset = PROGRESS_RING_CIRCUMFERENCE * (1 - fraction);
+        progressRingFill.style.strokeDashoffset = String(offset);
+      }
+
+      function stopTimer() {
+        if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+      }
+
+      // ── Recording flow ──
+      function startRecording() {
+        return navigator.mediaDevices.getUserMedia({ audio: true }).then(function (micStream) {
+          stream = micStream;
+          recordingStartedAt = Date.now();
+          pendingSavePayload = null;
+          saveInFlight = false;
+          snippetClips = { min1: { chunks: [], mimeType: "" }, min2: { chunks: [], mimeType: "" }, min5: { chunks: [], mimeType: "" }, min8: { chunks: [], mimeType: "" }, min10: { chunks: [], mimeType: "" } };
+          clearSnippetTimers();
+          activeSnippetRecorders = [];
+
+          audioContext = new (window.AudioContext || window.webkitAudioContext)();
+          analyser = audioContext.createAnalyser();
+          analyser.fftSize = 1024;
+          analyser.smoothingTimeConstant = 0.85;
+          var source = audioContext.createMediaStreamSource(stream);
+          source.connect(analyser);
+
+          mediaRecorder = new MediaRecorder(stream);
+          mediaRecorder.start(1000);
+          scheduleSnippetCaptures();
+
+          isRecording = true;
+          buttonState = "recording";
+          requestWakeLock();
+          playMicCue("on");
+          stopSettleLoop();
+          updateButtonUI();
+          renderButton();
+          monitorVoice();
+          startTimer();
+        });
+      }
+
+      function transitionToSaving() {
+        var elapsedSeconds = recordingStartedAt ? Math.floor((Date.now() - recordingStartedAt) / 1000) : 0;
+        isRecording = false;
+        releaseWakeLock();
+        stopTimer();
+        clearSnippetTimers();
+        cleanupAudio();
+        startSettleLoop();
+
+        pendingSavePayload = {
+          snippetClips: snippetClips,
+          elapsedSeconds: elapsedSeconds,
+          startedAt: recordingStartedAt || Date.now(),
+          childName: childName
+        };
+
+        buttonState = "saving";
+        updateButtonUI();
+        renderButton();
+      }
+
+      function stopRecording() {
+        playMicCue("off");
+        transitionToSaving();
+      }
+
+      // ── Single button click handler ──
+      recordBtn.addEventListener("click", function () {
+        if (buttonState === "idle") {
+          triggerHaptic(12);
+          startRecording().catch(function () {
+            buttonState = "idle";
+            isRecording = false;
+            cleanupAudio();
+            startSettleLoop();
+            updateButtonUI();
+            renderButton();
+          });
+        } else if (buttonState === "recording") {
+          triggerHaptic([14, 26, 10]);
+          stopRecording();
+        } else if (buttonState === "saving") {
+          if (saveInFlight || !pendingSavePayload || typeof window.saveChildV2Session !== "function") return;
+          triggerHaptic([10, 24, 10]);
+          saveInFlight = true;
+          buttonState = "uploading";
+          updateButtonUI();
+
+          setTimeout(function () {
+            window.saveChildV2Session(pendingSavePayload).then(function (result) {
+              if (result && result.saved) {
+                pendingSavePayload = null;
+                openPostSavePopup();
+              } else {
+                helperTextEl.textContent = "Ekkert hljóð til vistunar enn.";
+              }
+              buttonState = "idle";
+              updateButtonUI();
+            }).catch(function () {
+              helperTextEl.textContent = "Villa. Reyndu aftur.";
+              buttonState = "saving";
+              updateButtonUI();
+            }).finally(function () {
+              saveInFlight = false;
+            });
+          }, 300);
+        }
+      });
+
+      // ── Book pill ──
+      function getChildReadingSetupKey() {
+        return "upphatt_child_reading_setup_" + childStorageKey;
+      }
+      function getChildReadingSetup() {
+        try {
+          var raw = localStorage.getItem(getChildReadingSetupKey());
+          return raw ? JSON.parse(raw) : null;
+        } catch (e) { return null; }
+      }
+
+      function renderBookPill() {
+        var setup = getChildReadingSetup();
+        var books = window._firestoreBooks || [];
+        var activeBook = null;
+
+        if (setup && setup.bookId) {
+          activeBook = books.find(function (b) { return b && String(b.id) === String(setup.bookId); });
+        }
+        if (!activeBook) {
+          activeBook = books.find(function (b) { return b && b.status === "reading"; });
+        }
+        if (!activeBook && books.length) {
+          activeBook = books.slice().sort(function (a, b) { return (b.lastReadAt || 0) - (a.lastReadAt || 0); })[0];
+        }
+
+        if (!activeBook) {
+          var isLoadingBooks = !window._firestoreBooksLoaded && !books.length;
+          pillTitleEl.textContent = isLoadingBooks ? "Sæki bókahillu..." : "Veldu bók";
+          pillPageEl.textContent = isLoadingBooks ? "Augnablik" : "Opnaðu bókahilluna";
+          setPillArc(0);
+          renderResumeCard(null, null);
+          if (isLoadingBooks) {
+            if (resumeTagEl) resumeTagEl.textContent = "Bókahilla";
+            if (resumeTitleEl) resumeTitleEl.textContent = "Sæki bókahillu...";
+            if (resumePageEl) resumePageEl.textContent = "Augnablik";
+          }
+          return;
+        }
+
+        pillTitleEl.textContent = activeBook.title || "Bók";
+
+        // ── Bookmark fix ──
+        // Always prefer the REAL last-read page (currentPageTo + 1) from Firestore,
+        // not the user's last input. setup.pageFrom is only honored as a same-session
+        // hint immediately after a Save in the modal (within 5 minutes), so the page
+        // input doesn't get stuck across sessions or device reloads.
+        var realResumePage = activeBook.currentPageTo ? Number(activeBook.currentPageTo) + 1 : Number(activeBook.currentPageFrom || 1);
+        var setupIsFresh = setup && setup.bookId === activeBook.id && setup.pageFrom && setup.savedAt && (Date.now() - Number(setup.savedAt) < 5 * 60 * 1000);
+        var currentPage = setupIsFresh ? Number(setup.pageFrom) : realResumePage;
+        var totalPages = Number(activeBook.totalPages || 0);
+
+        if (totalPages > 0) {
+          pillPageEl.textContent = "Síða " + currentPage + " af " + totalPages;
+        } else {
+          pillPageEl.textContent = "Síða " + currentPage;
+        }
+
+        var pct = activeBook.progressPercent || (totalPages ? Math.round((currentPage / totalPages) * 100) : 0);
+        setPillArc(pct);
+
+        // Load timer from setup
+        if (setup && typeof setup.timerMinutes === "number") {
+          timerMinutes = setup.timerMinutes;
+        }
+        if (setup && setup.timerMode) {
+          timerMode = setup.timerMode;
+        }
+
+        renderResumeCard(activeBook, { currentPage: currentPage, totalPages: totalPages, pct: pct });
+      }
+
+      // ── Resume card (hero) renderer ──
+      function makeCoverFallback(title) {
+        if (!title) return "Bók";
+        var trimmed = String(title).trim();
+        if (trimmed.length <= 10) return trimmed;
+        // Split on spaces, try to balance two lines
+        var words = trimmed.split(/\s+/);
+        if (words.length === 1) return trimmed.slice(0, 10);
+        var line1 = words[0];
+        var line2 = words.slice(1).join(" ");
+        return line1 + "\n" + line2;
+      }
+
+      // Stable palette of cover gradients used when book has no coverUrl
+      var COVER_PALETTES = [
+        "linear-gradient(135deg, #5a2d6b, #3d1a52)",  // purple
+        "linear-gradient(135deg, #1a3d5f, #0f4a52)",  // teal-blue
+        "linear-gradient(135deg, #d96d8a, #a13d5e)",  // rose
+        "linear-gradient(135deg, #4eb29b, #1f6b5f)",  // emerald
+        "linear-gradient(135deg, #e6a04e, #a06420)",  // amber
+        "linear-gradient(135deg, #6274aa, #3d4a72)"   // indigo
+      ];
+      function pickCoverPalette(book) {
+        if (!book) return COVER_PALETTES[0];
+        var key = String(book.id || book.title || "x");
+        var hash = 0;
+        for (var i = 0; i < key.length; i++) hash = (hash * 31 + key.charCodeAt(i)) | 0;
+        return COVER_PALETTES[Math.abs(hash) % COVER_PALETTES.length];
+      }
+
+      function renderResumeCard(book, info) {
+        if (!resumeCardEl) return;
+
+        if (!book) {
+          resumeCardEl.classList.add("empty");
+          if (resumeTagEl) resumeTagEl.textContent = "Veldu bók";
+          if (resumeTitleEl) resumeTitleEl.textContent = "Veldu bók";
+          if (resumePageEl) resumePageEl.textContent = "Opnaðu bókahilluna";
+          if (resumeCoverEl) resumeCoverEl.hidden = true;
+          if (resumeProgressEl) resumeProgressEl.hidden = true;
+          return;
+        }
+
+        resumeCardEl.classList.remove("empty");
+        if (resumeTagEl) resumeTagEl.textContent = "Þú varst hér síðast";
+
+        if (resumeTitleEl) resumeTitleEl.textContent = book.title || "Bók";
+
+        // Page display
+        if (resumePageEl) {
+          var pageHTML = "Þú átt að byrja á <strong>bls. " + info.currentPage + "</strong>";
+          resumePageEl.innerHTML = pageHTML;
+        }
+
+        // Cover: image if available, otherwise styled fallback with title
+        if (resumeCoverEl) {
+          resumeCoverEl.hidden = false;
+          resumeCoverEl.style.background = pickCoverPalette(book);
+
+          // Remove any previous <img> we added
+          var existingImg = resumeCoverEl.querySelector(".resume-cover-img");
+          if (existingImg) existingImg.remove();
+
+          var coverUrl = book.coverUrl || book.coverImage || book.imagePath || book.imageUrl || null;
+          if (coverUrl) {
+            var img = document.createElement("img");
+            img.className = "resume-cover-img";
+            img.src = coverUrl;
+            img.alt = "";
+            img.loading = "lazy";
+            img.onerror = function () { img.remove(); };
+            resumeCoverEl.insertBefore(img, resumeCoverEl.firstChild);
+            if (resumeCoverFallbackEl) resumeCoverFallbackEl.style.opacity = "0";
+          } else if (resumeCoverFallbackEl) {
+            resumeCoverFallbackEl.style.opacity = "1";
+            // \n in textContent renders as line break thanks to white-space: pre-line if needed
+            // We use innerHTML with <br> for simplicity
+            var label = makeCoverFallback(book.title);
+            resumeCoverFallbackEl.innerHTML = label.replace(/\n/g, "<br>");
+          }
+        }
+
+        // Progress bar
+        if (resumeProgressEl) {
+          if (info.totalPages > 0) {
+            resumeProgressEl.hidden = false;
+            if (resumePercentEl) resumePercentEl.textContent = info.pct + "%";
+            if (resumeBarFillEl) resumeBarFillEl.style.width = Math.min(100, info.pct) + "%";
+            if (resumeTotalEl) resumeTotalEl.textContent = info.totalPages + " bls.";
+          } else {
+            resumeProgressEl.hidden = true;
+          }
+        }
+      }
+
+      function setPillArc(pct) {
+        var offset = PILL_ARC_CIRCUMFERENCE * (1 - Math.min(100, Math.max(0, pct)) / 100);
+        pillArcEl.style.strokeDashoffset = String(offset);
+      }
+
+      bookPillEl.addEventListener("click", function () {
+        openChildReadingModal();
+      });
+
+      // Resume card opens the same modal
+      if (resumeCardEl) {
+        resumeCardEl.addEventListener("click", function () {
+          openChildReadingModal();
+        });
+      }
+
+      window._onFirestoreBooksReady = function () {
+        renderBookPill();
+        populateChildBookListFromBookshelf();
+        checkMonthlyGoal();
+      };
+
+      // ── Monthly goal toast (fade in, hold, fade out) ──
+      var goalToastTimer = null;
+      var goalToastHideTimer = null;
+
+      function showGoalToast(text, kind) {
+        if (!goalToastEl) return;
+        if (goalToastText) goalToastText.textContent = text;
+        goalToastEl.classList.remove("teal");
+        if (kind === "teal") goalToastEl.classList.add("teal");
+        goalToastEl.hidden = false;
+        // Force reflow so transition triggers
+        void goalToastEl.offsetWidth;
+        goalToastEl.classList.add("show");
+
+        if (goalToastTimer) clearTimeout(goalToastTimer);
+        if (goalToastHideTimer) clearTimeout(goalToastHideTimer);
+        goalToastTimer = setTimeout(function () {
+          goalToastEl.classList.remove("show");
+          goalToastHideTimer = setTimeout(function () {
+            goalToastEl.hidden = true;
+          }, 700);
+        }, 5000);
+      }
+      // Expose for other goals (streaks, personal bests, etc.) to call
+      window.showGoalToast = showGoalToast;
+
+      function checkMonthlyGoal() {
+        if (!goalToastEl) return;
+        var books = window._firestoreBooks || [];
+        var now = Date.now();
+        var currentMonth = new Date().getMonth();
+        var currentYear = new Date().getFullYear();
+
+        var finishedThisMonth = books.filter(function (b) {
+          if (!b || b.status !== "finished" || !b.lastReadAt) return false;
+          var d = new Date(b.lastReadAt);
+          return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+        }).length;
+
+        var goalTarget = 3;
+        if (finishedThisMonth >= goalTarget) {
+          var stored = localStorage.getItem(GOAL_STORAGE_KEY);
+          var achievedAt = stored ? Number(stored) : 0;
+          if (!achievedAt) {
+            localStorage.setItem(GOAL_STORAGE_KEY, String(now));
+            achievedAt = now;
+          }
+          if (now - achievedAt < GOAL_VISIBLE_MS) {
+            showGoalToast(finishedThisMonth + "/" + goalTarget + " bækur lesnar!");
+          }
+        }
+      }
+
+      // ── Home button ──
+      homeBtn.addEventListener("click", function () {
+        try {
+          sessionStorage.setItem("upphatt_skip_child_redirect_once", "1");
+          localStorage.setItem("upphatt_skip_child_redirect_once", "1");
+        } catch (e) { /* no-op */ }
+        window.location.href = "index.html?skipChild=1";
+      });
+
+      // ── Post-save popup ──
+      var postSaveOverlay = document.getElementById("post-save-overlay");
+      var postSaveCloseBtn = document.getElementById("post-save-close");
+      var postSaveJourneyBtn = document.getElementById("post-save-save-journey");
+      var postSaveNote = document.getElementById("post-save-note");
+      var postSaveTagline = document.getElementById("post-save-tagline");
+      var postSaveNoteInput = document.getElementById("post-save-note-input");
+      var postSaveEndPageInput = document.getElementById("post-save-end-page");
+
+      var postSaveTaglines = [
+        "Smá lestrarspor verða að stærri ferð.",
+        "Ein setning í dag verður minning á morgun.",
+        "Bókin heldur áfram — og þú líka.",
+        "Það sem þú last í dag fer á hilluna þína.",
+        "Lestrarferðalagið stækkar með hverri lotu."
+      ];
+
+      function openPostSavePopup() {
+        if (!postSaveOverlay) return;
+        var tagline = postSaveTaglines[Math.floor(Math.random() * postSaveTaglines.length)];
+        if (postSaveTagline) postSaveTagline.textContent = tagline;
+
+        var setup = getChildReadingSetup();
+        if (postSaveEndPageInput) {
+          postSaveEndPageInput.value = "";
+          postSaveEndPageInput.placeholder = setup && setup.pageFrom ? String(Number(setup.pageFrom) + 8) : "29";
+        }
+        if (postSaveNoteInput) postSaveNoteInput.value = "";
+        if (postSaveNote) postSaveNote.classList.remove("show");
+        if (postSaveJourneyBtn) { postSaveJourneyBtn.textContent = "Vista lestrarferðalag"; postSaveJourneyBtn.disabled = false; }
+
+        postSaveOverlay.classList.add("open");
+        postSaveOverlay.setAttribute("aria-hidden", "false");
+        setTimeout(function () { if (postSaveNoteInput) postSaveNoteInput.focus(); }, 80);
+      }
+
+      function closePostSavePopup() {
+        if (!postSaveOverlay) return;
+        postSaveOverlay.classList.remove("open");
+        postSaveOverlay.setAttribute("aria-hidden", "true");
+      }
+
+      if (postSaveCloseBtn) postSaveCloseBtn.addEventListener("click", closePostSavePopup);
+      if (postSaveOverlay) postSaveOverlay.addEventListener("click", function (e) { if (e.target === postSaveOverlay) closePostSavePopup(); });
+
+      function updateBookshelfBookAfterReading(note, endPage) {
+        try {
+          var setup = getChildReadingSetup();
+          if (!setup || !setup.bookId) return false;
+          var allBooks = window._firestoreBooks || [];
+          var book = allBooks.find(function (item) { return item && String(item.id) === String(setup.bookId); });
+          if (!book) return false;
+
+          var startPage = Number(setup.pageFrom || 0);
+          var finalPage = Number(endPage || 0);
+          var totalPages = Number(book.totalPages || 0);
+          var pagesRead = (startPage && finalPage && finalPage >= startPage) ? (finalPage - startPage + 1) : null;
+          var now = Date.now();
+          var pct = totalPages && finalPage ? Math.min(100, Math.max(0, Math.round((finalPage / totalPages) * 100))) : (book.progressPercent || 0);
+          var totalPagesRead = Number(book.totalPagesRead || 0);
+          if (pagesRead) totalPagesRead += pagesRead;
+
+          var updateScript = document.createElement("script");
+          updateScript.type = "module";
+          updateScript.textContent = [
+            "import{getFirestore,doc,updateDoc,serverTimestamp}from'https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js';",
+            "import{initializeApp}from'https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js';",
+            "const app=initializeApp({apiKey:'AIzaSyAgTY3Uxd9_ZxixjqLj-sH8V3OhFAzg6DU',authDomain:'lesum-22e85.firebaseapp.com',projectId:'lesum-22e85',storageBucket:'lesum-22e85.firebasestorage.app',messagingSenderId:'204392598388',appId:'1:204392598388:web:2dbbe3f476cd78d2ffba21'});",
+            "const db=getFirestore(app);",
+            "const bookRef=doc(db,'books','" + setup.bookId + "');",
+            "const entries=" + JSON.stringify(book.journeyEntries || []) + ";",
+            "entries.unshift({date:'I dag',createdAt:Date.now(),pageFrom:" + (startPage || "null") + ",pageTo:" + (finalPage || "null") + ",pagesRead:" + (pagesRead || "null") + ",note:" + JSON.stringify(note || "") + ",reactions:[]});",
+            "updateDoc(bookRef,{",
+            "  status:" + (pct >= 100 ? "'finished'" : "'reading'") + ",",
+            "  currentPageFrom:" + (startPage || "null") + ",",
+            "  currentPageTo:" + (finalPage || "null") + ",",
+            "  progressPercent:" + pct + ",",
+            "  totalPagesRead:" + totalPagesRead + ",",
+            "  lastReadAt:" + now + ",",
+            "  note:" + JSON.stringify(note || "") + ",",
+            "  journeyEntries:entries,",
+            "  updatedAt:serverTimestamp()",
+            "}).then(()=>console.log('Book updated')).catch(e=>console.warn('Book update failed:',e));"
+          ].join("\n");
+          document.head.appendChild(updateScript);
+          return true;
+        } catch (e) { return false; }
+      }
+
+      if (postSaveJourneyBtn) {
+        postSaveJourneyBtn.addEventListener("click", function () {
+          var note = postSaveNoteInput ? postSaveNoteInput.value.trim() : "";
+          var endPage = postSaveEndPageInput ? postSaveEndPageInput.value.trim() : "";
+          if (!note) { alert("Skrifaðu eina setningu um hvað gerðist í bókinni."); return; }
+          if (!endPage) { alert("Settu inn blaðsíðuna sem þú endaðir á."); return; }
+
+          updateBookshelfBookAfterReading(note, endPage);
+
+          try {
+            localStorage.setItem("upphatt_last_reading_journey_entry", JSON.stringify({
+              childKey: childStorageKey, childName: childName,
+              note: note, endPage: endPage, timestamp: Date.now(), source: "post-save-popup"
+            }));
+          } catch (e) { /* no-op */ }
+
+          triggerHaptic([8, 20, 8]);
+          postSaveJourneyBtn.textContent = "Vistað";
+          postSaveJourneyBtn.disabled = true;
+          if (postSaveNote) postSaveNote.classList.add("show");
+          setTimeout(closePostSavePopup, 850);
+        });
+      }
+
+      // ── Book picker modal ──
+      var readingSettingsFloatBtn = document.getElementById("child-reading-settings-float");
+      var childReadingModal = document.getElementById("child-reading-modal");
+      var childReadingModalClose = document.getElementById("child-reading-modal-close");
+      var childBookList = document.getElementById("child-book-list");
+      var childBookOptions = [];
+      var childPageFrom = document.getElementById("child-page-from");
+      var childPageTo = document.getElementById("child-page-to");
+      var childReadingPreview = document.getElementById("child-reading-preview");
+      var childReadingSave = document.getElementById("child-reading-save");
+      var childReadingResult = document.getElementById("child-reading-result");
+      var timerPillsContainer = document.getElementById("timer-pills");
+      var timerPills = Array.prototype.slice.call(timerPillsContainer.querySelectorAll(".timer-pill"));
+      var selectedTimerMinutes = 0;
+
+      // Timer mode toggle
+      var timerModeToggle = document.getElementById("timer-mode-toggle");
+      var timerModeBtns = timerModeToggle ? Array.prototype.slice.call(timerModeToggle.querySelectorAll(".timer-mode-btn")) : [];
+      var selectedTimerMode = "ring"; // default
+
+      timerModeBtns.forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          timerModeBtns.forEach(function (b) { b.classList.remove("selected"); });
+          btn.classList.add("selected");
+          selectedTimerMode = btn.getAttribute("data-mode") || "ring";
+        });
+      });
+
+      // Timer pill clicks
+      timerPills.forEach(function (pill) {
+        pill.addEventListener("click", function () {
+          timerPills.forEach(function (p) { p.classList.remove("selected"); });
+          pill.classList.add("selected");
+          selectedTimerMinutes = parseInt(pill.getAttribute("data-minutes"), 10) || 0;
+        });
+      });
+
+      function getSelectedBookOption() {
+        for (var i = 0; i < childBookOptions.length; i++) {
+          if (childBookOptions[i].classList.contains("selected")) return childBookOptions[i];
+        }
+        return childBookOptions[0] || null;
+      }
+      function getSelectedBookTitle() {
+        var o = getSelectedBookOption();
+        return o ? (o.getAttribute("data-book-title") || o.textContent || "Bók") : "Bók";
+      }
+      function getSelectedBookId() {
+        var o = getSelectedBookOption();
+        return o ? (o.getAttribute("data-book-id") || "") : "";
+      }
+      function setSelectedBookById(bookId) {
+        childBookOptions.forEach(function (btn) {
+          var isSelected = btn.getAttribute("data-book-id") === bookId;
+          btn.classList.toggle("selected", isSelected);
+          btn.setAttribute("aria-selected", isSelected ? "true" : "false");
+          if (isSelected) {
+            var inp = btn.querySelector(".child-book-page-input");
+            if (inp && childPageFrom) childPageFrom.value = inp.value.trim();
+            if (childPageTo) childPageTo.value = "";
+          }
+        });
+      }
+      function updateChildReadingPreview() { /* kept for compat but hidden */ }
+
+      function readBookshelfBooksForChildModal() {
+        var allBooks = window._firestoreBooks || [];
+        if (!allBooks.length) {
+          try {
+            var raw = localStorage.getItem("upphatt_bookshelf_local_v1");
+            var parsed = raw ? JSON.parse(raw) : [];
+            if (Array.isArray(parsed)) allBooks = parsed;
+          } catch (e) { /* no-op */ }
+        }
+        return allBooks.filter(function (b) { return b && b.id && b.title && b.status === "reading"; }).map(function (b) {
+          return {
+            id: String(b.id), title: String(b.title), status: b.status || "shelf",
+            progressPercent: Number(b.progressPercent || 0), totalPages: Number(b.totalPages || 0),
+            pageFrom: b.currentPageFrom || "", pageTo: b.currentPageTo || "",
+            coverUrl: b.coverUrl || b.coverImage || b.imagePath || b.imageUrl || null
+          };
+        });
+      }
+
+      function populateChildBookListFromBookshelf() {
+        if (!childBookList) return;
+        var storedBooks = readBookshelfBooksForChildModal();
+        if (!storedBooks.length) {
+          childBookList.innerHTML = '<div class="child-book-empty">Engin bók merkt "Að lesa" enn. Farðu í bókahilluna og byrjaðu bók fyrst.</div>';
+          childBookOptions = [];
+          return;
+        }
+
+        var previousSelectedId = getSelectedBookId();
+        var activeBook = storedBooks.find(function (b) { return b.status === "reading"; }) || storedBooks[0];
+
+        childBookList.innerHTML = storedBooks.map(function (book) {
+          var isSelected = book.id === (previousSelectedId || activeBook.id);
+          var meta = book.status === "reading" ? "Að lesa" : book.status === "finished" ? "Lokið" : "Á hillunni";
+          var suggestedStart = book.pageTo ? String(Number(book.pageTo) + 1) : (book.pageFrom ? String(book.pageFrom) : "");
+          return '<button class="child-book-option' + (isSelected ? " selected" : "") + '" type="button" data-book-id="' + book.id.replace(/"/g, "&quot;") + '" data-book-title="' + book.title.replace(/"/g, "&quot;") + '" data-page-from="' + String(book.pageFrom).replace(/"/g, "&quot;") + '" data-page-to="' + String(book.pageTo).replace(/"/g, "&quot;") + '" aria-selected="' + (isSelected ? "true" : "false") + '">' +
+            '<span class="child-book-option-main"><span class="child-book-option-title">' + book.title + '</span><span class="child-book-option-meta">' + meta + (book.progressPercent ? " · " + book.progressPercent + "%" : "") + '</span></span>' +
+            '<span class="child-book-page-control"><span class="child-book-page-label">Bls.</span><input class="child-book-page-input" inputmode="numeric" value="' + suggestedStart.replace(/"/g, "&quot;") + '" aria-label="Byrja á blaðsíðu"></span></button>';
+        }).join("");
+
+        childBookOptions = Array.prototype.slice.call(document.querySelectorAll(".child-book-option"));
+        bindChildBookOptionClicks();
+
+        if (activeBook && !previousSelectedId) {
+          setSelectedBookById(activeBook.id);
+          if (activeBook.pageFrom && childPageFrom && !childPageFrom.value) childPageFrom.value = activeBook.pageFrom;
+        }
+      }
+
+      function bindChildBookOptionClicks() {
+        childBookOptions.forEach(function (btn) {
+          if (btn.dataset.bound === "1") return;
+          btn.dataset.bound = "1";
+          var inlineInput = btn.querySelector(".child-book-page-input");
+          btn.addEventListener("click", function () {
+            setSelectedBookById(btn.getAttribute("data-book-id") || "");
+            if (inlineInput && childPageFrom) childPageFrom.value = inlineInput.value.trim();
+            if (childPageTo) childPageTo.value = "";
+          });
+          if (inlineInput) {
+            inlineInput.addEventListener("click", function (e) {
+              e.stopPropagation();
+              setSelectedBookById(btn.getAttribute("data-book-id") || "");
+            });
+            inlineInput.addEventListener("input", function () {
+              setSelectedBookById(btn.getAttribute("data-book-id") || "");
+              if (childPageFrom) childPageFrom.value = inlineInput.value.trim();
+            });
+          }
+        });
+      }
+
+      function openChildReadingModal() {
+        if (!childReadingModal) return;
+        populateChildBookListFromBookshelf();
+
+        // Restore saved setup
+        try {
+          var rawSetup = localStorage.getItem(getChildReadingSetupKey());
+          if (rawSetup) {
+            var setup = JSON.parse(rawSetup);
+            if (setup && setup.bookId) setSelectedBookById(setup.bookId);
+            if (setup && setup.pageFrom && childPageFrom) childPageFrom.value = setup.pageFrom;
+            if (childPageTo) childPageTo.value = "";
+            // Restore timer selection
+            if (typeof setup.timerMinutes === "number") {
+              selectedTimerMinutes = setup.timerMinutes;
+              timerPills.forEach(function (p) {
+                p.classList.toggle("selected", parseInt(p.getAttribute("data-minutes"), 10) === selectedTimerMinutes);
+              });
+            }
+            // Restore timer mode selection
+            if (setup.timerMode) {
+              selectedTimerMode = setup.timerMode;
+              timerModeBtns.forEach(function (b) {
+                b.classList.toggle("selected", b.getAttribute("data-mode") === selectedTimerMode);
+              });
+            }
+          }
+        } catch (e) { /* no-op */ }
+
+        if (childReadingResult) childReadingResult.classList.remove("show");
+        childReadingModal.classList.add("open");
+        childReadingModal.setAttribute("aria-hidden", "false");
+        setTimeout(function () {
+          var selected = getSelectedBookOption();
+          var firstTarget = selected ? selected.querySelector(".child-book-page-input") : (childBookOptions[0] || null);
+          if (firstTarget) firstTarget.focus();
+        }, 60);
+      }
+
+      function closeChildReadingModal() {
+        if (!childReadingModal) return;
+        childReadingModal.classList.remove("open");
+        childReadingModal.setAttribute("aria-hidden", "true");
+      }
+
+      if (readingSettingsFloatBtn) readingSettingsFloatBtn.addEventListener("click", openChildReadingModal);
+      if (childReadingModalClose) childReadingModalClose.addEventListener("click", closeChildReadingModal);
+      if (childReadingModal) childReadingModal.addEventListener("click", function (e) { if (e.target === childReadingModal) closeChildReadingModal(); });
+
+      if (childReadingSave) {
+        childReadingSave.addEventListener("click", function () {
+          if (!getSelectedBookId()) {
+            alert('Engin bók er merkt "Að lesa" enn.');
+            return;
+          }
+          var selectedOption = getSelectedBookOption();
+          var selectedPageInput = selectedOption ? selectedOption.querySelector(".child-book-page-input") : null;
+          var selectedStartPage = selectedPageInput ? selectedPageInput.value.trim() : "";
+          if (!selectedStartPage) { alert("Settu inn blaðsíðu þar sem þú byrjar."); return; }
+
+          if (childPageFrom) childPageFrom.value = selectedStartPage;
+          if (childPageTo) childPageTo.value = "";
+
+          var setup = {
+            bookId: getSelectedBookId(),
+            bookTitle: getSelectedBookTitle(),
+            pageFrom: childPageFrom ? childPageFrom.value.trim() : "",
+            pageTo: "",
+            timerMinutes: selectedTimerMinutes,
+            timerMode: selectedTimerMode,
+            updatedAt: Date.now(),
+            savedAt: Date.now()
+          };
+
+          try { localStorage.setItem(getChildReadingSetupKey(), JSON.stringify(setup)); } catch (e) { /* no-op */ }
+
+          timerMinutes = selectedTimerMinutes;
+          timerMode = selectedTimerMode;
+          renderBookPill();
+
+          if (childReadingResult) childReadingResult.classList.add("show");
+          triggerHaptic([8, 20, 8]);
+          setTimeout(closeChildReadingModal, 650);
+        });
+      }
+
+      // ── Constellation / listen system ──
+      function readFrozenConnections() {
+        try { var raw = localStorage.getItem(LISTEN_STORAGE_KEY); var p = raw ? JSON.parse(raw) : []; return Array.isArray(p) ? p : []; }
+        catch (e) { return []; }
+      }
+      function writeFrozenConnections(items) { localStorage.setItem(LISTEN_STORAGE_KEY, JSON.stringify(items)); }
+
+      function formatListenerMessage(listenerName, timestamp) {
+        var safeName = typeof listenerName === "string" ? listenerName.trim() : "";
+        var when = "";
+        if (timestamp) {
+          var tsDate = new Date(timestamp); var today = new Date(); today.setHours(0,0,0,0);
+          var yesterday = new Date(today); yesterday.setDate(today.getDate() - 1);
+          tsDate.setHours(0,0,0,0);
+          when = tsDate >= today ? " í dag" : " í gær";
+        } else { when = " í dag"; }
+        return (safeName || "Einhver") + " hlustaði" + when;
+      }
+
+      function pruneFrozenConnections() {
+        var now = Date.now();
+        var items = readFrozenConnections().filter(function (item) {
+          return item && typeof item.starIndex === "number" && now - item.timestamp < CONNECTION_LIFETIME_MS;
+        });
+        writeFrozenConnections(items);
+        return items;
+      }
+
+      function getCenterRelativeToScreen(el) {
+        var sr = screenEl.getBoundingClientRect(); var r = el.getBoundingClientRect();
+        return { x: r.left + r.width / 2 - sr.left, y: r.top + r.height / 2 - sr.top };
+      }
+
+      function buildListenPath(star) {
+        var center = getCenterRelativeToScreen(recordBtn);
+        var target = getCenterRelativeToScreen(star);
+        var dirX = target.x - center.x; var dirY = target.y - center.y;
+        var distance = Math.hypot(dirX, dirY) || 1;
+        var perpX = -dirY / distance; var perpY = dirX / distance;
+        var arc = Math.min(48, Math.max(18, distance * 0.16));
+        var c1x = center.x + dirX * 0.22 + perpX * arc;
+        var c1y = center.y + dirY * 0.22 + perpY * arc;
+        var c2x = center.x + dirX * 0.44 - perpX * arc * 0.78;
+        var c2y = center.y + dirY * 0.44 - perpY * arc * 0.78;
+        var midX = center.x + dirX * 0.58 + perpX * arc * 0.5;
+        var midY = center.y + dirY * 0.58 + perpY * arc * 0.5;
+        var c3x = center.x + dirX * 0.74 - perpX * arc * 0.68;
+        var c3y = center.y + dirY * 0.74 - perpY * arc * 0.68;
+        return "M " + center.x + " " + center.y + " C " + c1x + " " + c1y + ", " + c2x + " " + c2y + ", " + midX + " " + midY + " S " + c3x + " " + c3y + ", " + target.x + " " + target.y;
+      }
+
+      function resetStarStates() {
+        starEls.forEach(function (s) { s.classList.remove("active", "frozen"); s.style.opacity = ""; s.style.transform = ""; s.style.boxShadow = ""; });
+      }
+
+      function getFrozenConnectionStrength(timestamp) {
+        var age = Date.now() - Number(timestamp || 0); if (age < 0) age = 0;
+        if (age <= FROZEN_FULL_BRIGHT_MS) return 1;
+        var fadeAge = age - FROZEN_FULL_BRIGHT_MS;
+        return Math.max(0, Math.min(1, 0.25 * (1 - fadeAge / FROZEN_FADE_MS)));
+      }
+
+      function renderFrozenConnections() {
+        var items = pruneFrozenConnections();
+        frozenLinesEl.innerHTML = "";
+        resetStarStates();
+        items.forEach(function (item) {
+          var star = starEls[item.starIndex]; if (!star) return;
+          var strength = getFrozenConnectionStrength(item.timestamp); if (strength <= 0) return;
+          star.classList.add("active", "frozen");
+          star.style.opacity = String(0.08 + strength * 0.92);
+          star.style.transform = "scale(" + (1 + strength * 0.42).toFixed(3) + ")";
+          star.style.boxShadow = "0 0 " + (8 + strength * 18).toFixed(1) + "px rgba(170,244,255," + (0.16 + strength * 0.56).toFixed(3) + "), 0 0 " + (20 + strength * 40).toFixed(1) + "px rgba(120,240,255," + (0.08 + strength * 0.34).toFixed(3) + ")";
+          var path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+          path.setAttribute("d", buildListenPath(star));
+          path.setAttribute("class", "listen-line frozen");
+          path.style.opacity = String(0.04 + strength * 0.96);
+          path.style.strokeWidth = String(1.4 + strength * 2.4);
+          path.style.stroke = "rgba(188,245,255," + (0.1 + strength * 0.9).toFixed(3) + ")";
+          path.style.filter = "drop-shadow(0 0 " + (2 + strength * 8).toFixed(1) + "px rgba(168,245,255," + (0.12 + strength * 0.46).toFixed(3) + ")) drop-shadow(0 0 " + (6 + strength * 18).toFixed(1) + "px rgba(168,245,255," + (0.06 + strength * 0.24).toFixed(3) + "))";
+          frozenLinesEl.appendChild(path);
+        });
+      }
+
+      function persistFrozenConnection(starIndex, listenerName) {
+        var items = pruneFrozenConnections().filter(function (i) { return i.starIndex !== starIndex; });
+        items.push({ starIndex: starIndex, timestamp: Date.now(), listenerName: typeof listenerName === "string" ? listenerName.trim() : "" });
+        writeFrozenConnections(items);
+        renderFrozenConnections();
+      }
+
+      function getFrozenConnectionByStarIndex(starIndex) {
+        var items = pruneFrozenConnections();
+        for (var i = 0; i < items.length; i++) { if (items[i].starIndex === starIndex) return items[i]; }
+        return null;
+      }
+
+      function pickRandomStarIndex() {
+        var center = getCenterRelativeToScreen(recordBtn);
+        var btnRect = recordBtn.getBoundingClientRect();
+        var minDistance = Math.max(btnRect.width * 1.35, 120);
+        var perimeterIndexes = starEls.map(function (s, i) {
+          var p = getCenterRelativeToScreen(s);
+          return { index: i, distance: Math.hypot(p.x - center.x, p.y - center.y) };
+        }).filter(function (i) { return i.distance >= minDistance; }).map(function (i) { return i.index; });
+        var candidateIndexes = perimeterIndexes.length ? perimeterIndexes : starEls.map(function (_, i) { return i; });
+        var frozenIndexes = pruneFrozenConnections().map(function (i) { return i.starIndex; });
+        var availableIndexes = candidateIndexes.filter(function (i) { return frozenIndexes.indexOf(i) === -1; });
+        if (!availableIndexes.length) availableIndexes = candidateIndexes;
+        if (!availableIndexes.length) availableIndexes = starEls.map(function (_, i) { return i; });
+        return availableIndexes[Math.floor(Math.random() * availableIndexes.length)];
+      }
+
+      function showListenToastNearStar(star, listenerName, timestamp) {
+        var sr = screenEl.getBoundingClientRect();
+        var cr = recordBtn.getBoundingClientRect();
+        var str = star.getBoundingClientRect();
+        var cx = cr.left + cr.width / 2 - sr.left; var cy = cr.top + cr.height / 2 - sr.top;
+        var sx = str.left + str.width / 2 - sr.left; var sy = str.top + str.height / 2 - sr.top;
+        var dx = sx - cx; var dy = sy - cy; var d = Math.hypot(dx, dy) || 1;
+        var ux = dx / d; var uy = dy / d; var off = 26;
+        var tw = toastEl.offsetWidth || 154; var th = toastEl.offsetHeight || 40; var margin = 14;
+        var left = sx + ux * off; var top = sy + uy * off - th / 2;
+        if (ux < 0) left -= tw;
+        left = Math.max(margin, Math.min(left, sr.width - tw - margin));
+        top = Math.max(margin, Math.min(top, sr.height - 44 - margin));
+        toastEl.style.left = left + "px"; toastEl.style.top = top + "px";
+        toastEl.textContent = formatListenerMessage(listenerName, timestamp);
+        if (toastTimeout !== null) clearTimeout(toastTimeout);
+        toastEl.classList.add("show");
+        toastTimeout = setTimeout(function () { toastEl.classList.remove("show"); }, 3200);
+      }
+
+      function animateListenToStar(star, onFlashComplete) {
+        if (!star || !listenLineEl || !screenEl) return;
+        star.classList.add("active");
+        var pathData = buildListenPath(star);
+        listenLineEl.setAttribute("d", pathData);
+        listenLineEl.classList.add("animating");
+        listenLineEl.style.transition = "none";
+        listenLineEl.style.opacity = "0.2"; listenLineEl.style.strokeWidth = "2.1";
+        listenLineEl.style.stroke = "rgba(140,226,246,0.34)";
+        var pathLength = listenLineEl.getTotalLength();
+        listenLineEl.style.strokeDasharray = String(pathLength);
+        listenLineEl.style.strokeDashoffset = String(pathLength);
+        listenLineEl.getBoundingClientRect();
+        listenLineEl.style.transition = "stroke-dashoffset 2650ms cubic-bezier(0.17,0.84,0.23,1), opacity 2650ms ease, stroke 2650ms ease";
+        listenLineEl.style.strokeDashoffset = "0";
+        listenLineEl.style.opacity = "0.56";
+        listenLineEl.style.stroke = "rgba(188,244,255,0.76)";
+        if (flashTimeout !== null) clearTimeout(flashTimeout);
+        flashTimeout = setTimeout(function () {
+          playListenImpactCue();
+          listenLineEl.classList.add("flash"); star.classList.add("flash");
+          setTimeout(function () {
+            listenLineEl.classList.remove("flash", "animating"); star.classList.remove("flash");
+            listenLineEl.style.transition = "opacity 500ms ease"; listenLineEl.style.opacity = "0";
+            if (typeof onFlashComplete === "function") onFlashComplete();
+          }, 480);
+        }, 2360);
+        star.classList.add("listened");
+        if (listenTimeout !== null) clearTimeout(listenTimeout);
+        listenTimeout = setTimeout(function () { star.classList.remove("listened"); }, 1700);
+      }
+
+      function triggerListenEvent(listenerName, timestamp) {
+        var starIndex = pickRandomStarIndex();
+        var star = starEls[starIndex] || starEls[0] || null;
+        if (!star) return;
+        var committed = false;
+        function commitFreeze() {
+          if (committed) return; committed = true;
+          persistFrozenConnection(starIndex, listenerName);
+          showListenToastNearStar(star, listenerName, timestamp);
+        }
+        animateListenToStar(star, commitFreeze);
+        setTimeout(commitFreeze, 3300);
+      }
+
+      function runNextListenEvent() {
+        var now = Date.now();
+        if (listenAnimationRunning && now - listenAnimationStartedAt > 3600) listenAnimationRunning = false;
+        if (listenAnimationRunning || !listenEventQueue.length) return;
+        listenAnimationRunning = true; listenAnimationStartedAt = now;
+        var next = listenEventQueue.shift();
+        try { triggerListenEvent(next.listenerName, next.timestamp); }
+        catch (e) { listenAnimationRunning = false; runNextListenEvent(); return; }
+        setTimeout(function () { listenAnimationRunning = false; runNextListenEvent(); }, 3400);
+      }
+
+      window.markListenEvent = function (listenerName, timestamp) {
+        listenEventQueue.push({ listenerName: listenerName || "Einhver", timestamp: timestamp || Date.now() });
+        runNextListenEvent();
+      };
+
+      starEls.forEach(function (star, starIndex) {
+        star.addEventListener("click", function () {
+          if (!star.classList.contains("active") && !star.classList.contains("frozen")) return;
+          var conn = getFrozenConnectionByStarIndex(starIndex);
+          showListenToastNearStar(star, conn ? conn.listenerName : "");
+        });
+        star.addEventListener("dblclick", function () {
+          var conn = getFrozenConnectionByStarIndex(starIndex);
+          showListenToastNearStar(star, conn ? conn.listenerName : "");
+        });
+      });
+
+      window.addEventListener("resize", function () { renderFrozenConnections(); });
+      window.addEventListener("beforeunload", function () { cleanupAudio(); });
+      document.addEventListener("keydown", function (e) { if (e.key === "Escape") closePostSavePopup(); });
+
+      window.debugTriggerListen = function (name) { triggerListenEvent(name || "Dad"); };
+
+      // ── Init ──
+      renderFrozenConnections();
+      renderBookPill();
+      checkMonthlyGoal();
+      startSettleLoop();
+      renderButton();
+      updateButtonUI();
+    })();
+</script>
+
+
+<!-- ═══════════════════════════════════════════
+     SCRIPT 2: FIREBASE DATA LAYER (module)
+     saveChildV2Session, books subscription, listen events
+     Notar window._child.{auth,db,storage} frá shell
+     ═══════════════════════════════════════════ -->
+
+<script type="module">
+    import { analyzeSnippetBlob } from './js/audio-analysis.js';
+    import { doc, getDoc, collection, addDoc, serverTimestamp, onSnapshot, query, where } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js';
+    import { ref, uploadBytes } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-storage.js';
+    import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js';
+
+    // ── Use shared Firebase instances from shell ──
+    const { auth, db, storage } = window._child;
+
+    const useListenEventsStream = true;
+
+    // ── Auth ready + books subscription ──
+    const _authReady = window._child.ensureAuth();
+
+    _authReady.then(() => {
+      const childRaw = localStorage.getItem('upphatt_child');
+      if (childRaw) {
+        try {
+          const ch = JSON.parse(childRaw);
+          if (ch.familyId && ch.childKey) {
+            const booksQ = query(collection(db, 'books'), where('familyId', '==', ch.familyId), where('childKey', '==', ch.childKey));
+            onSnapshot(booksQ, snap => {
+              window._firestoreBooks = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+              if (window.cacheChildBooks) window.cacheChildBooks(window._firestoreBooks);
+              window._firestoreBooksLoaded = true;
+              if (window._onFirestoreBooksReady) window._onFirestoreBooksReady();
+            }, e => {
+              console.warn('Books listener failed:', e);
+              window._firestoreBooksLoaded = true;
+              if (window._onFirestoreBooksReady) window._onFirestoreBooksReady();
+            });
+          }
+        } catch(e) { console.warn('Books listener failed:', e); }
+      }
+    }).catch(() => {});
+
+    function makeDateKey(d) {
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      const dd = String(d.getDate()).padStart(2, '0');
+      return `${yyyy}-${mm}-${dd}`;
+    }
+
+    window.saveChildV2Session = async function(payload) {
+      await _authReady;
+      const raw = localStorage.getItem('upphatt_child');
+      if (!raw) return { saved: false, reason: 'no-child-session' };
+      const childData = JSON.parse(raw);
+      if (!childData?.familyId || !childData?.childKey) return { saved: false, reason: 'missing-family-or-child' };
+
+      const snippetClips = payload?.snippetClips || {};
+      const ts = payload?.startedAt || Date.now();
+      const clipDefs = [
+        { key: 'min1', fileName: 'hljod_30s' }, { key: 'min2', fileName: 'hljod_2m' },
+        { key: 'min5', fileName: 'hljod_5m' }, { key: 'min8', fileName: 'hljod_8m' },
+        { key: 'min10', fileName: 'hljod_10m' }
+      ];
+
+      const audioPaths = { min1: null, min2: null, min5: null, min8: null, min10: null };
+      const snippetResults = {};
+      let uploadCount = 0;
+
+      for (const def of clipDefs) {
+        const snippet = snippetClips[def.key];
+        if (!snippet?.chunks?.length) { snippetResults[def.key] = { usable: false, reason: 'no_data' }; continue; }
+        const mimeType = snippet.mimeType || 'audio/webm';
+        const blob = new Blob(snippet.chunks, { type: mimeType });
+
+        try {
+          const result = await analyzeSnippetBlob(blob);
+          snippetResults[def.key] = {
+            usable: result.usable, quality: result.quality, reason: result.reason,
+            totalScore: result.totalScore, profile: result.profile,
+            activeRatio: result.activeRatio, praatSyllables: result.praatSyllables,
+            longestBurst: result.longestBurst,
+            fragmentationScore: Number(result.fragmentationScore ?? result.summary?.fragmentationScore ?? 0),
+            decodingPauseCount: Number(result.decodingPauseCount ?? result.summary?.decodingPauseCount ?? 0),
+            summary: result.summary || null
+          };
+        } catch (e) {
+          console.warn('Snippet analysis failed for ' + def.key + ':', e);
+          snippetResults[def.key] = { usable: true, quality: 'unknown', reason: null };
+        }
+
+        if (snippetResults[def.key].usable === false) { audioPaths[def.key] = null; continue; }
+
+        const ext = mimeType.includes('mp4') ? 'mp4' : mimeType.includes('ogg') ? 'ogg' : 'webm';
+        const path = `recordings/${childData.familyId}/${childData.childKey}/${ts}/${def.fileName}.${ext}`;
+        await uploadBytes(ref(storage, path), blob, { contentType: mimeType });
+        audioPaths[def.key] = path;
+        uploadCount += 1;
+      }
+
+      if (uploadCount === 0 && Object.values(snippetResults).every(r => r.reason === 'no_data')) {
+        return { saved: false, reason: 'no-snippets' };
+      }
+
+      const usableSnippets = Object.values(snippetResults).filter(r => r.usable);
+      const usableScores = usableSnippets.map(r => r.totalScore).filter(s => s != null && s > 0);
+      const bestScore = usableScores.length ? Math.max(...usableScores) : 0;
+      const avgScore = usableScores.length ? Number((usableScores.reduce((a, b) => a + b, 0) / usableScores.length).toFixed(1)) : 0;
+
+      const analysis = {
+        session: null,
+        snippets: snippetResults,
+        overall: {
+          usableCount: usableSnippets.length, totalSnippets: clipDefs.length,
+          bestScore, avgScore,
+          readingQuality: usableSnippets.length >= 3 ? 'good' : usableSnippets.length >= 1 ? 'fair' : 'poor'
+        }
+      };
+
+      await addDoc(collection(db, 'sessions'), {
+        familyId: childData.familyId, childKey: childData.childKey,
+        childName: payload?.childName || childData.childName || 'Barn',
+        title: 'Lestur', pageStart: null, pageEnd: null, pagesRead: null,
+        totalPages: null, imagePath: null,
+        seconds: payload?.elapsedSeconds || 0, timerMode: 'up',
+        hasAudio: uploadCount > 0,
+        audioPath_min1: audioPaths.min1, audioPath_min2: audioPaths.min2,
+        audioPath_min5: audioPaths.min5, audioPath_min8: audioPaths.min8,
+        audioPath_min10: audioPaths.min10,
+        audioPath: audioPaths.min1 || audioPaths.min2 || audioPaths.min5 || audioPaths.min8 || audioPaths.min10,
+        analysis, timestamp: ts, date: makeDateKey(new Date(ts)), createdAt: serverTimestamp()
+      });
+
+      return { saved: true, uploadCount: uploadCount };
+    };
+
+    function normalizeListenTimestamp(rawTs) {
+      if (!rawTs) return 0;
+      if (typeof rawTs === 'number' && Number.isFinite(rawTs)) return rawTs < 1e12 ? rawTs * 1000 : rawTs;
+      if (typeof rawTs === 'string') { var p = Number(rawTs); if (Number.isFinite(p) && p > 0) return p < 1e12 ? p * 1000 : p; }
+      if (rawTs instanceof Date) { var dm = rawTs.getTime(); return Number.isFinite(dm) ? dm : 0; }
+      if (typeof rawTs.toMillis === 'function') { try { var m = rawTs.toMillis(); return Number.isFinite(m) ? m : 0; } catch (e) {} }
+      if (typeof rawTs.seconds === 'number') return rawTs.seconds * 1000;
+      return 0;
+    }
+
+    function handleListenEventData(data, childKey, source) {
+      if (!data) return;
+      var now = Date.now();
+      var ts = normalizeListenTimestamp(data.timestamp);
+      var listenerName = data.listenerName || 'Einhver';
+      if (!ts || now - ts > 48 * 60 * 60 * 1000) return;
+      if (ts > now + 10 * 60 * 1000) return;
+      var shownKey = 'upphatt_listen_shown_' + childKey;
+      var shownTs = parseInt(localStorage.getItem(shownKey) || '0', 10);
+      if (!Number.isFinite(shownTs) || shownTs > now + 10 * 60 * 1000) { shownTs = 0; localStorage.setItem(shownKey, '0'); }
+      if (ts <= shownTs) return;
+      localStorage.setItem(shownKey, String(ts));
+      if (typeof window.markListenEvent === 'function') window.markListenEvent(listenerName, ts);
+    }
+
+    async function checkListenEventOnce() {
+      try {
+        var raw = localStorage.getItem('upphatt_child'); if (!raw) return;
+        var cd = JSON.parse(raw); if (!cd || !cd.familyId || !cd.childKey) return;
+        var snap = await getDoc(doc(db, 'listens', cd.familyId + '_' + cd.childKey));
+        if (!snap.exists()) return;
+        handleListenEventData(snap.data(), cd.childKey, 'legacy-doc-once');
+      } catch (e) { console.warn('Listen check failed:', e); }
+    }
+
+    function startListenEventSubscription() {
+      try {
+        var raw = localStorage.getItem('upphatt_child'); if (!raw) return;
+        var cd = JSON.parse(raw); if (!cd || !cd.familyId || !cd.childKey) return;
+        onSnapshot(doc(db, 'listens', cd.familyId + '_' + cd.childKey), function (snap) {
+          if (!snap.exists()) return;
+          handleListenEventData(snap.data(), cd.childKey, 'legacy-doc-sub');
+        }, function (e) { console.warn('Listen subscription failed:', e); });
+      } catch (e) { console.warn('Listen subscription setup failed:', e); }
+    }
+
+    function startSessionListenFallbackSubscription() {
+      try {
+        var raw = localStorage.getItem('upphatt_child'); if (!raw) return;
+        var cd = JSON.parse(raw); if (!cd || !cd.familyId || !cd.childKey) return;
+        var q = query(collection(db, 'sessions'), where('familyId', '==', cd.familyId), where('childKey', '==', cd.childKey));
+        onSnapshot(q, function (snap) {
+          var latestTs = 0; var latestName = 'Einhver';
+          snap.forEach(function (d) {
+            var row = d.data(); var ts = row ? normalizeListenTimestamp(row.lastListenedAt) : 0;
+            if (ts > latestTs) { latestTs = ts; latestName = row.lastListenerName || 'Einhver'; }
+          });
+          if (latestTs > 0) handleListenEventData({ listenerName: latestName, timestamp: latestTs }, cd.childKey, 'sessions-fallback');
+        }, function (e) { console.warn('Session listen fallback failed:', e); });
+      } catch (e) { console.warn('Session listen fallback setup failed:', e); }
+    }
+
+    function startListenEventsSubscription() {
+      if (!useListenEventsStream) return;
+      try {
+        var raw = localStorage.getItem('upphatt_child'); if (!raw) return;
+        var cd = JSON.parse(raw); if (!cd || !cd.familyId || !cd.childKey) return;
+        var q = query(collection(db, 'listenEvents'), where('familyId', '==', cd.familyId), where('childKey', '==', cd.childKey));
+        onSnapshot(q, function (snap) {
+          var events = [];
+          snap.forEach(function (d) {
+            var row = d.data() || {}; var ts = normalizeListenTimestamp(row.timestamp);
+            if (!ts) return;
+            events.push({ timestamp: ts, listenerName: row.listenerName || 'Einhver' });
+          });
+          events.sort(function (a, b) { return a.timestamp - b.timestamp; }).forEach(function (evt) {
+            handleListenEventData(evt, cd.childKey, 'listenEvents-stream');
+          });
+        }, function (e) { console.warn('Listen events subscription failed:', e); });
+      } catch (e) { console.warn('Listen events subscription setup failed:', e); }
+    }
+
+    function startAllListenSubscriptions() {
+      checkListenEventOnce();
+      startListenEventSubscription();
+      startSessionListenFallbackSubscription();
+      if (useListenEventsStream) startListenEventsSubscription();
+    }
+
+    _authReady.then(() => {
+      if (document.readyState === 'complete') startAllListenSubscriptions();
+      else window.addEventListener('load', startAllListenSubscriptions);
+    }).catch(() => {});
+
+</script>
+
+
+<!-- ═══════════════════════════════════════════
+     SCRIPT 3: SHELL (nav, dev login, toast)
+     ═══════════════════════════════════════════ -->
+
+<script type="module">
+import { signInAnonymously, signOut } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js';
+import { httpsCallable } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-functions.js';
+
+const { auth, functions, CS, ensureAuth, getChildSession, go, toast } = window._child;
+
+// ── Dev login ──
 const loginOverlay = document.getElementById('c-login-overlay');
 const loginBtn = document.getElementById('c-login-btn');
 const loginCode = document.getElementById('c-login-code');
@@ -344,40 +2770,25 @@ async function devChildLogin() {
   const rawCode = loginCode.value.toUpperCase().replace(/[^A-Z0-9]/g, '').trim();
   loginError.textContent = '';
   if (rawCode.length < 4) { loginError.textContent = 'Sláðu inn barnakóða.'; return; }
-
   loginBtn.textContent = 'Skrá inn...';
   loginBtn.disabled = true;
-
   try {
-    // Sign in anonymously
     const cred = await signInAnonymously(auth);
-
-    // Cloud Function: verifyChildCode
     const result = await httpsCallable(functions, 'verifyChildCode')({ code: rawCode });
     const data = result.data;
-
-    // Force refresh token for custom claims
     await cred.user.getIdToken(true);
-
-    // Save to localStorage (same format as auth.js)
     CS.familyId = data.familyId;
     CS.childKey = data.childKey;
     CS.childName = data.childName;
     localStorage.setItem('upphatt_child', JSON.stringify({
-      familyId: data.familyId,
-      childKey: data.childKey,
-      childName: data.childName,
-      code: rawCode
+      familyId: data.familyId, childKey: data.childKey, childName: data.childName, code: rawCode
     }));
     localStorage.setItem('childName', data.childName);
-
-    // Hide login overlay
     loginOverlay.classList.add('hidden');
     toast('Velkomin, ' + data.childName + '! 🎉');
-    console.log('✅ Child login OK:', data.childName, data.familyId, data.childKey);
-
+    // Reload to init books subscription and child-v2 with correct session
+    window.location.reload();
   } catch (e) {
-    console.error('❌ Child login villa:', e);
     await signOut(auth).catch(() => {});
     loginError.textContent = e.code === 'functions/not-found'
       ? 'Kóðinn fannst ekki — athugaðu með foreldri.'
@@ -390,7 +2801,7 @@ async function devChildLogin() {
 loginBtn.addEventListener('click', devChildLogin);
 loginCode.addEventListener('keydown', e => { if (e.key === 'Enter') devChildLogin(); });
 
-// ── Auto-login: check if already logged in ──
+// ── Auto-login ──
 (async function init() {
   const saved = getChildSession();
   if (saved) {
@@ -400,18 +2811,12 @@ loginCode.addEventListener('keydown', e => { if (e.key === 'Enter') devChildLogi
       CS.childKey = saved.childKey;
       CS.childName = saved.childName;
       loginOverlay.classList.add('hidden');
-      toast('Hæ, ' + saved.childName + '! 👋');
-      console.log('✅ Auto-login OK:', saved.childName);
     } catch (e) {
-      console.warn('Auto-login failed, showing login:', e.message);
-      // Sýna login overlay
+      console.warn('Auto-login failed:', e.message);
     }
   }
 })();
-
-// ── Make things globally accessible for future screen scripts ──
-window._child = { auth, db, storage, functions, CS, go, toast, ensureAuth, getChildSession };
-
 </script>
+
 </body>
 </html>

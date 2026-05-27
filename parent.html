@@ -2547,10 +2547,16 @@ function eTs(e) {
 }
 
 /* ── Hljóð flipi ── */
-function renderRecordings(sessions) {
+let _lastRecHash = '';
+function renderRecordings(sessions, force) {
   const heroEl = document.getElementById('p-rec-hero');
   const listEl = document.getElementById('p-recordings-list');
   if (!listEl) return;
+
+  /* Skip re-render ef gögn hafa ekki breyst */
+  const hash = sessions.map(s => (s._docId||'') + (s.favorited?'f':'') + (s.hasAudio?'a':'')).join(',');
+  if (hash === _lastRecHash && !force) return;
+  _lastRecHash = hash;
 
   const withAudio = sessions.filter(s => s.hasAudio && (s.audioPath || CLIP_KEYS.some(k => s[k])));
 
@@ -2719,8 +2725,12 @@ let _heroElapsed   = 0;      /* sekúndur sem liðnar eru */
 let _heroRaf       = null;   /* requestAnimationFrame id */
 
 /* Kallaður úr render() þegar sessions eru tilbúnar */
+let _lastHeroHash = '';
 function renderAudioHero(sessions) {
   const withAudio = sessions.filter(s => s.hasAudio && CLIP_KEYS.some(k => s[k]));
+  const hHash = withAudio.length > 0 ? (withAudio[0]._docId||'') + withAudio[0].timestamp : '';
+  if (hHash === _lastHeroHash) return;
+  _lastHeroHash = hHash;
   if (withAudio.length === 0) {
     const el = document.getElementById('p-audio-hero');
     if (el) el.style.display = 'none';

@@ -54,6 +54,15 @@ body{font-family:'DM Sans','Manrope',-apple-system,BlinkMacSystemFont,sans-serif
 .child-journey-kicker{font-size:11px;font-weight:900;letter-spacing:.04em;text-transform:uppercase;color:var(--accent);margin-bottom:5px}
 .child-journey-title{font-size:24px;font-weight:900;letter-spacing:-.5px;color:var(--text-strong,#e5edf6);line-height:1.05;margin:0 0 5px}
 .child-journey-sub{font-size:13px;color:var(--muted,#8fa3b8);line-height:1.35;margin:0}
+.child-journey-book-picker{display:flex;gap:8px;overflow-x:auto;padding:4px 1px 10px;margin:0 0 2px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.child-journey-book-picker::-webkit-scrollbar{display:none}
+.child-journey-book-chip{min-width:160px;max-width:210px;border:1px solid rgba(29,205,211,.14);background:rgba(255,255,255,.025);border-radius:15px;padding:8px;display:flex;align-items:center;gap:8px;color:var(--text-strong,#e5edf6);font:inherit;text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.child-journey-book-chip.on{border-color:rgba(29,205,211,.64);background:rgba(29,205,211,.12);box-shadow:0 0 0 1px rgba(29,205,211,.16) inset}
+.child-journey-book-chip-cover{width:32px;height:44px;border-radius:7px;overflow:hidden;display:grid;place-items:center;flex:0 0 auto;background:linear-gradient(145deg,#2b8f91,#0a2341);font-size:15px;font-weight:900;color:#fff}
+.child-journey-book-chip-cover img{width:100%;height:100%;object-fit:cover;display:block}
+.child-journey-book-chip-text{min-width:0}
+.child-journey-book-chip-title{font-size:12px;font-weight:900;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.child-journey-book-chip-meta{font-size:10px;font-weight:800;color:var(--muted,#8fa3b8);margin-top:2px}
 .child-journey-tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:12px 0 12px;background:rgba(255,255,255,.025);border:1px solid rgba(29,205,211,.12);border-radius:14px;padding:4px}
 .child-journey-tabs button{border:0;background:transparent;color:var(--muted,#8fa3b8);border-radius:10px;padding:9px 6px;font:inherit;font-size:12px;font-weight:900;cursor:pointer}
 .child-journey-tabs button.on{background:rgba(29,205,211,.13);color:var(--accent);box-shadow:0 0 0 1px rgba(29,205,211,.16) inset}
@@ -80,6 +89,8 @@ body{font-family:'DM Sans','Manrope',-apple-system,BlinkMacSystemFont,sans-serif
 .child-top-brand{justify-self:start;font-size:20px;font-weight:900;letter-spacing:-.45px;color:var(--text-strong,#e5edf6);line-height:1}
 .child-top-brand b{color:var(--accent,#1dcdd3);font-weight:900}
 .child-top-title{justify-self:center;font-size:14px;font-weight:900;color:var(--text-strong,#e5edf6);line-height:1;white-space:nowrap}
+.child-read-greeting{font-size:16px;font-weight:900;letter-spacing:-.15px}
+.child-read-greeting .greeting-name{color:var(--accent,#1dcdd3)}
 .child-top-side{justify-self:end;min-width:42px;display:flex;align-items:center;justify-content:flex-end;gap:8px}
 .child-top-hidden{display:none!important}
 .bookshelf-actions{display:flex;justify-content:flex-end;margin:0 0 10px;gap:8px}
@@ -2228,9 +2239,8 @@ body{font-family:'DM Sans','Manrope',-apple-system,BlinkMacSystemFont,sans-serif
     <section class="panel">
       <header class="child-top">
         <div class="child-top-brand"><b>Upp</b>Hátt</div>
-        <div class="child-top-title">Lesa</div>
+        <div class="child-top-title child-read-greeting">Hæ, <span id="greeting-name" class="greeting-name">Lesari</span>!</div>
         <div class="child-top-side"></div>
-        <span id="greeting-name" class="child-top-hidden">Lesari</span>
         <button id="home-btn" class="home-btn child-top-hidden" type="button" aria-label="Go home"></button>
       </header>
 
@@ -2805,6 +2815,7 @@ body{font-family:'DM Sans','Manrope',-apple-system,BlinkMacSystemFont,sans-serif
       <h1 class="child-journey-title">Setningarnar þínar</h1>
       <p class="child-journey-sub">Allar færslur úr bókunum þínum, með hvatningu frá fjölskyldunni.</p>
     </section>
+    <div class="child-journey-book-picker" id="childJourneyBookPicker" aria-label="Veldu bók í ferðalagi"></div>
     <div class="child-journey-tabs" role="tablist" aria-label="Sía ferðalag">
       <button class="on" type="button" data-journey-filter="all">Allt</button>
       <button type="button" data-journey-filter="mine">Mínar</button>
@@ -2900,7 +2911,7 @@ function getChildSession() {
 }
 
 let currentScreen = 'read';
-const contextLabels = { read: 'Velja bók', bookshelf: '+ Ný bók', arangur: 'Markmið' };
+const contextLabels = { read: 'Velja bók', journey: 'Deila', bookshelf: '+ Ný bók', arangur: 'Markmið' };
 
 function go(tab) {
   if (tab === 'context') {
@@ -6272,14 +6283,51 @@ function formatThousandsJm(n){
 
 
 let childJourneyFilter = 'all';
+let childJourneyBookId = null;
 function childJourneyBookCover(book){
   const src=(typeof covUrl==='function'?covUrl(book):'') || book.coverUrl || book.coverBase64 || '';
   if(src)return '<img src="'+esc(src)+'" alt="">';
   return esc((book.title||'?')[0]);
 }
+function childJourneyHasEntries(book){
+  return !!(book && Array.isArray(book.journeyEntries) && book.journeyEntries.some(entry=>{
+    return !!(entry && (entry.note || entry.text || entry.type==='gold_moment' || (Array.isArray(entry.reactions) && entry.reactions.length)));
+  }));
+}
+function childJourneyBooks(){
+  return (books||[]).filter(childJourneyHasEntries).sort((a,b)=>ts(b,'lastReadAt')-ts(a,'lastReadAt'));
+}
+function childJourneyActiveSetupBookId(){
+  try{
+    const child=typeof getChildSession==='function'?getChildSession():JSON.parse(localStorage.getItem('upphatt_child')||'null');
+    const key=child&&child.childKey?'upphatt_child_reading_setup_'+child.childKey:'';
+    const setup=key?JSON.parse(localStorage.getItem(key)||'null'):null;
+    return setup&&setup.bookId?String(setup.bookId):'';
+  }catch(e){return '';}
+}
+function ensureChildJourneyBook(){
+  const available=childJourneyBooks();
+  if(!available.length){childJourneyBookId=null;return null;}
+  if(childJourneyBookId && available.some(b=>String(b.id)===String(childJourneyBookId))) return childJourneyBookId;
+  const activeId=childJourneyActiveSetupBookId();
+  const active=activeId && available.find(b=>String(b.id)===String(activeId));
+  childJourneyBookId=String((active||available[0]).id);
+  return childJourneyBookId;
+}
+function renderChildJourneyBookPicker(available){
+  const picker=document.getElementById('childJourneyBookPicker');
+  if(!picker)return;
+  if(!available.length){picker.innerHTML='';return;}
+  picker.innerHTML=available.map(book=>{
+    const entries=(book.journeyEntries||[]).length;
+    const isOn=String(book.id)===String(childJourneyBookId);
+    return '<button class="child-journey-book-chip '+(isOn?'on':'')+'" type="button" data-journey-book="'+esc(book.id)+'"><span class="child-journey-book-chip-cover" style="'+(typeof covS==='function'?covS(book):'')+'">'+childJourneyBookCover(book)+'</span><span class="child-journey-book-chip-text"><span class="child-journey-book-chip-title">'+esc(book.title||'Bók')+'</span><span class="child-journey-book-chip-meta">'+entries+' færslur</span></span></button>';
+  }).join('');
+}
 function childJourneyItems(){
   const out=[];
-  (books||[]).forEach(book=>{
+  const selected=ensureChildJourneyBook();
+  (books||[]).filter(book=>selected && String(book.id)===String(selected)).forEach(book=>{
     (book.journeyEntries||[]).forEach((entry,index)=>{
       const ts=entryTs(entry,index)||toMillis(entry.createdAt)||toMillis(entry.timestamp)||toMillis(entry.date)||0;
       const pageMeta=entry.pageFrom?('bls. '+entry.pageFrom+(entry.pageTo?'–'+entry.pageTo:'')):'';
@@ -6295,11 +6343,18 @@ function childJourneyItems(){
 function renderChildJourney(){
   const list=document.getElementById('childJourneyList');
   if(!list)return;
+  const available=childJourneyBooks();
+  ensureChildJourneyBook();
+  renderChildJourneyBookPicker(available);
   document.querySelectorAll('[data-journey-filter]').forEach(btn=>btn.classList.toggle('on',btn.dataset.journeyFilter===childJourneyFilter));
+  if(!available.length){
+    list.innerHTML='<div class="child-journey-empty">Engin bók er komin með ferðalag enn. Vistaðu setningu eftir lestur og hún birtist hér.</div>';
+    return;
+  }
   const all=childJourneyItems();
   const items=all.filter(item=>childJourneyFilter==='all'||item.kind===childJourneyFilter);
   if(!items.length){
-    list.innerHTML='<div class="child-journey-empty">Engar færslur enn. Vistaðu setningu eftir lestur og hún birtist hér.</div>';
+    list.innerHTML='<div class="child-journey-empty">Engar færslur í þessari síu fyrir þessa bók.</div>';
     return;
   }
   list.innerHTML=items.map(item=>{
@@ -6313,13 +6368,26 @@ function renderChildJourney(){
 }
 window._renderChildJourney=renderChildJourney;
 window._copyJourneySentences=async function(){
+  const selectedBook=(books||[]).find(book=>String(book.id)===String(childJourneyBookId));
   const sentences=childJourneyItems().filter(item=>item.kind==='mine'&&item.text).map(item=>'- '+item.text);
   if(!sentences.length){toast('Engar eigin setningar enn');return;}
-  const text='Setningar úr lestrarferðalaginu:\n'+sentences.join('\n');
+  const title=selectedBook&&selectedBook.title?selectedBook.title:'lestrarferðalaginu';
+  const text='Setningar úr '+title+':\n'+sentences.join('\n');
+  try{
+    if(navigator.share){
+      await navigator.share({title:'Setningar úr '+title,text});
+      toast('Deilt');
+      return;
+    }
+  }catch(e){
+    if(e&&e.name==='AbortError')return;
+  }
   try{await navigator.clipboard?.writeText(text);toast('Setningar afritaðar');}
-  catch(e){toast('Ekki tókst að afrita');}
+  catch(e){toast('Ekki tókst að deila');}
 };
 document.addEventListener('click',e=>{
+  const bookBtn=e.target.closest('[data-journey-book]');
+  if(bookBtn){childJourneyBookId=bookBtn.dataset.journeyBook||null;renderChildJourney();return;}
   const btn=e.target.closest('[data-journey-filter]');
   if(!btn)return;
   childJourneyFilter=btn.dataset.journeyFilter||'all';

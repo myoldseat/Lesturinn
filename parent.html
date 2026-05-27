@@ -411,6 +411,25 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
 .family-name{font-size:16px;font-weight:800;color:var(--text-bright);line-height:1.1}
 .family-meta{font-size:13px;color:var(--text);margin-top:3px;line-height:1.25}
 .family-empty{padding:18px 16px;color:var(--muted);font-size:13px;line-height:1.45}
+.st-child-row{align-items:center;gap:12px}
+.st-child-main{min-width:0;flex:1}
+.st-code-btn{appearance:none;border:1px solid rgba(29,205,211,.28);background:rgba(29,205,211,.08);color:var(--accent);border-radius:999px;padding:8px 12px;font:inherit;font-size:11px;font-weight:800;cursor:pointer;white-space:nowrap}
+.st-code-btn:active{background:rgba(29,205,211,.16)}
+.st-child-danger{display:flex;justify-content:flex-end;padding:0 14px 10px;margin-top:-4px;border-bottom:1px solid var(--border)}
+.st-child-danger:last-child{border-bottom:0}
+.st-child-danger button{appearance:none;border:0;background:transparent;color:rgba(232,86,86,.88);font:inherit;font-size:11px;font-weight:700;padding:7px 0;cursor:pointer}
+.st-add-child{color:var(--accent);font-weight:800}
+.child-code-card{width:min(360px,100%);background:#0d1a2e;border:1.5px solid var(--border-hl);border-radius:22px;padding:22px 18px 18px;text-align:center;box-shadow:0 20px 70px rgba(0,0,0,.35)}
+.child-code-top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px;text-align:left}
+.child-code-title{font-size:13px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.child-code-name{font-size:22px;font-weight:900;color:var(--text-bright);margin-top:2px}
+.child-code-close{width:36px;height:36px;border-radius:50%;border:1px solid var(--border);background:rgba(255,255,255,.03);color:var(--muted);font:inherit;font-size:20px;line-height:1;cursor:pointer}
+.child-code-value{font-size:44px;font-weight:900;letter-spacing:.12em;color:var(--accent);padding:18px 12px;border-radius:18px;background:rgba(29,205,211,.09);border:1px solid rgba(29,205,211,.24);margin-bottom:12px;text-indent:.12em}
+.child-code-copy{width:100%;border:1px solid rgba(29,205,211,.32);background:rgba(29,205,211,.12);color:var(--accent);border-radius:14px;padding:13px;font:inherit;font-size:13px;font-weight:900;cursor:pointer}
+.child-code-copy:active{background:rgba(29,205,211,.2)}
+#add-child-popup .confirm-card,#add-child-modal .confirm-card,.add-child-popup .confirm-card,.add-child-modal .confirm-card{background:#0d1a2e;border-color:var(--border-hl);border-radius:22px;color:var(--text)}
+#add-child-popup input,#add-child-modal input,.add-child-popup input,.add-child-modal input{background:rgba(255,255,255,.035);border:1px solid var(--border);border-radius:14px;color:var(--text-bright);padding:13px 14px;font:inherit}
+#add-child-popup button[type="submit"],#add-child-modal button[type="submit"],.add-child-popup button[type="submit"],.add-child-modal button[type="submit"]{background:rgba(29,205,211,.15);border:1px solid rgba(29,205,211,.32);color:var(--accent);border-radius:14px;font-weight:900}
 
 /* ── Confirm popup ── */
 .confirm-overlay{
@@ -1002,11 +1021,11 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
           <div class="st-group" id="st-kids-list">
             <div class="st-row">
               <div><div class="st-lbl">Hrafnkell Hersir</div><div class="st-sub">HRA78 · 4 mín · 1/7 daga</div></div>
-              <div style="display:flex;gap:10px"><span class="st-act">Kóði</span><span class="st-act" style="color:var(--danger);cursor:pointer" onclick="confirmAction('delete-child','Hrafnkell')">Eyða</span></div>
+              <button class="st-code-btn" type="button" onclick="openChildCode('HRA78','Hrafnkell Hersir','HRA78')">Kóði</button>
             </div>
             <div class="st-row">
               <div><div class="st-lbl">Kolbeinn Kvasir</div><div class="st-sub">KOL58 · 5 mín · 2/7 daga</div></div>
-              <div style="display:flex;gap:10px"><span class="st-act">Kóði</span><span class="st-act" style="color:var(--danger);cursor:pointer" onclick="confirmAction('delete-child','Kolbeinn')">Eyða</span></div>
+              <button class="st-code-btn" type="button" onclick="openChildCode('KOL58','Kolbeinn Kvasir','KOL58')">Kóði</button>
             </div>
             <div class="st-row tap" onclick="if(typeof openAddChildPopup==='function')openAddChildPopup();else toast('openAddChildPopup tengist seinna')"><span class="st-lbl" style="color:var(--accent)">+ Bæta við barni</span></div>
           </div>
@@ -1097,6 +1116,17 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
 <div id="journey-modal" style="display:none"></div>
 <div id="jm-book-cover" style="display:none"></div>
 
+<!-- ═══ Child code modal ═══ -->
+<div class="confirm-overlay" id="child-code-modal">
+  <div class="child-code-card">
+    <div class="child-code-top">
+      <div><div class="child-code-title">Barnakóði</div><div class="child-code-name" id="child-code-name">Barn</div></div>
+      <button class="child-code-close" type="button" onclick="closeChildCode()" aria-label="Loka">×</button>
+    </div>
+    <div class="child-code-value" id="child-code-value">----</div>
+    <button class="child-code-copy" type="button" onclick="copyChildCode()">Afrita kóða</button>
+  </div>
+</div>
 <!-- ═══ Confirm popup ═══ -->
 <div class="confirm-overlay" id="confirm-popup">
   <div class="confirm-card">
@@ -3347,17 +3377,19 @@ function fmtDateShort(d) {
 function renderSettingsChildren(children) {
   const el = document.getElementById('st-kids-list');
   if (!el) return;
-  let html = children.map(c =>
-    `<div class="st-row">
-      <div><div class="st-lbl">${esc(c.name)}</div><div class="st-sub">${c.code||''}</div></div>
-      <div style="display:flex;gap:10px"><span class="st-act">Kóði</span><span class="st-act" style="color:var(--danger);cursor:pointer" onclick="confirmAction('delete-child','${esc(c.name)}')">Eyða</span></div>
-    </div>`
-  ).join('');
-  html += `<div class="st-row tap" onclick="if(typeof openAddChildPopup==='function')openAddChildPopup();else toast('Tengist seinna')"><span class="st-lbl" style="color:var(--accent)">+ Bæta við barni</span></div>`;
+  let html = children.map(c => {
+    const name = c.name || 'Barn';
+    const code = c.code || c.childCode || c.key || '';
+    const key = c.key || code || name;
+    return `<div class="st-row st-child-row">
+      <div class="st-child-main"><div class="st-lbl">${esc(name)}</div><div class="st-sub">${esc(code)}</div></div>
+      <button class="st-code-btn" type="button" onclick="openChildCode('${esc(key)}','${esc(name)}','${esc(code)}')">Kóði</button>
+    </div>
+    <div class="st-child-danger"><button type="button" onclick="confirmAction('delete-child','${esc(name)}')">Eyða barni</button></div>`;
+  }).join('');
+  html += `<div class="st-row tap" onclick="if(typeof openAddChildPopup==='function')openAddChildPopup();else toast('Tengist seinna')"><span class="st-lbl st-add-child">+ Bæta við barni</span></div>`;
   el.innerHTML = html;
 }
-
-
 function setSettingsTab(tab) {
   const next = tab === 'family' ? 'family' : 'access';
   document.getElementById('settings-tab-access')?.classList.toggle('on', next === 'access');
@@ -3427,6 +3459,33 @@ function prettyFamilyAccess(access) {
   if (value === 'full' || value === 'parent' || value === 'admin' || value === 'foreldri') return 'Fullur aðgangur';
   return 'Hlustun';
 }
+function openChildCode(key, name, code) {
+  const label = name || 'Barn';
+  const value = code || key || '----';
+  const nameEl = document.getElementById('child-code-name');
+  const codeEl = document.getElementById('child-code-value');
+  if (nameEl) nameEl.textContent = label;
+  if (codeEl) codeEl.textContent = value;
+  document.getElementById('child-code-modal')?.classList.add('show');
+}
+window.openChildCode = openChildCode;
+
+function closeChildCode() {
+  document.getElementById('child-code-modal')?.classList.remove('show');
+}
+window.closeChildCode = closeChildCode;
+
+async function copyChildCode() {
+  const code = document.getElementById('child-code-value')?.textContent?.trim() || '';
+  if (!code) return;
+  try {
+    await navigator.clipboard?.writeText(code);
+    toast('Kóði afritaður');
+  } catch(e) {
+    toast(code);
+  }
+}
+window.copyChildCode = copyChildCode;
 /* ── Settings info ── */
 function updateSettings() {
   const set = (id, v) => { const e = document.getElementById(id); if (e && v) e.textContent = v; };

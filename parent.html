@@ -668,19 +668,7 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
           <div class="play-t" style="font-size:11px;font-weight:600;text-align:center;line-height:1.2;padding:0 4px" id="p-audio-title">Fuglabúrið kafli 6</div>
           <div class="play-m" style="margin-top:3px;text-align:center" id="p-audio-meta">5 mín · í dag</div>
           <div id="p-audio-time" style="font-size:10px;color:var(--accent);margin-top:4px;font-weight:600;display:none">0:00 / 0:00</div>
-          <div style="display:flex;align-items:center;gap:2px;margin-top:8px;height:16px;flex:0 0 auto" id="p-audio-wave">
-            <span style="display:block;width:3px;border-radius:2px;height:6px;background:rgba(29,205,211,.3)"></span>
-            <span style="display:block;width:3px;border-radius:2px;height:11px;background:var(--accent)"></span>
-            <span style="display:block;width:3px;border-radius:2px;height:15px;background:var(--accent)"></span>
-            <span style="display:block;width:3px;border-radius:2px;height:9px;background:var(--accent)"></span>
-            <span style="display:block;width:3px;border-radius:2px;height:16px;background:rgba(29,205,211,.3)"></span>
-            <span style="display:block;width:3px;border-radius:2px;height:7px;background:rgba(29,205,211,.3)"></span>
-            <span style="display:block;width:3px;border-radius:2px;height:12px;background:rgba(29,205,211,.3)"></span>
-            <span style="display:block;width:3px;border-radius:2px;height:8px;background:rgba(29,205,211,.3)"></span>
-            <span style="display:block;width:3px;border-radius:2px;height:13px;background:rgba(29,205,211,.3)"></span>
-            <span style="display:block;width:3px;border-radius:2px;height:6px;background:rgba(29,205,211,.3)"></span>
-            <span style="display:block;width:3px;border-radius:2px;height:10px;background:rgba(29,205,211,.3)"></span>
-          </div>
+          <div style="display:flex;align-items:center;gap:6px;margin-top:8px;height:16px;flex:0 0 auto;justify-content:center" id="p-audio-dots"></div>
         </div>
       </div>
 
@@ -2559,72 +2547,63 @@ function renderRecordings(sessions) {
     return s.title || 'Lestur';
   }
 
-  function clipDots(s) {
-    const count = CLIP_KEYS.filter(k => s[k]).length;
-    if (count === 0) return '';
-    const dots = CLIP_KEYS.map((k,i) => {
-      const lit = i < count;
-      return `<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${lit ? 'var(--accent)' : 'rgba(29,205,211,.15)'};margin-right:3px"></span>`;
-    }).join('');
-    return `<div style="display:flex;align-items:center;margin-top:5px">${dots}</div>`;
-  }
-
-  /* ── Hero ── */
+  /* Hero = nýjasta session */
   if (heroEl) {
     const s = withAudio[0];
     const docId = s._docId || '';
     const title = getTitle(s);
     const mins = Math.round((s.seconds||0)/60);
     const date = s.date ? fmtDateShort(s.date) : '';
-    const count = CLIP_KEYS.filter(k => s[k]).length;
+    const clipPaths = CLIP_KEYS.filter(k => s[k]);
     heroEl.innerHTML = `
-      <div class="crd" style="padding:14px;margin-bottom:4px;display:flex;align-items:center;gap:12px" data-doc="${docId}">
-        <div style="position:relative;width:56px;height:56px;flex:0 0 56px" onclick="playRecording('${docId}')">
-          <svg width="56" height="56" viewBox="0 0 56 56" style="position:absolute;inset:0;transform:rotate(-90deg)">
-            <circle cx="28" cy="28" r="24" fill="none" stroke="rgba(29,205,211,.12)" stroke-width="3"/>
-            <circle id="rec-hero-ring-${docId}" cx="28" cy="28" r="24" fill="none" stroke="var(--accent)" stroke-width="3"
-              stroke-dasharray="151" stroke-dashoffset="151" stroke-linecap="round" style="transition:stroke-dashoffset .5s linear"/>
-          </svg>
-          <div id="rec-hero-btn-${docId}" style="position:absolute;inset:6px;border-radius:50%;background:var(--accent-soft);border:1.5px solid var(--border-hl);display:flex;align-items:center;justify-content:center;cursor:pointer">
-            <div id="rec-hero-icon-${docId}" class="play-tri" style="border-left-width:10px;border-top-width:7px;border-bottom-width:7px;margin-left:2px"></div>
+      <div class="crd" style="padding:14px;margin-bottom:4px" data-doc="${docId}">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <div>
+            <div style="font-size:14px;font-weight:700;color:var(--text)">${esc(title)}</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:2px">${mins} mín · ${date} · ${clipPaths.length} hljóðbrot</div>
           </div>
+          <div class="rec-fav ${s.favorites && Object.values(s.favorites).some(v=>v) ? 'on' : ''}" onclick="toggleFav('${docId}',this)" style="font-size:20px">★</div>
         </div>
-        <div style="flex:1;min-width:0">
-          <div class="play-t" style="font-size:13px;font-weight:600">${esc(title)}</div>
-          <div class="play-m">${mins} mín · ${date}</div>
-          ${clipDots(s)}
-          <div id="rec-hero-time-${docId}" style="font-size:10px;color:var(--accent);margin-top:4px;font-weight:600;display:none"></div>
+        <div id="rec-clips-${docId}" style="display:flex;flex-direction:column;gap:6px">
+          ${clipPaths.map((k,i) => _renderClipRow(docId, i, clipPaths.length)).join('')}
         </div>
-        <div class="rec-fav ${s.favorites && Object.values(s.favorites).some(v=>v) ? 'on' : ''}" onclick="toggleFav('${docId}',this)" style="font-size:20px">★</div>
       </div>`;
   }
 
-  /* ── Listi ── */
+  /* List = eldri sessions */
   listEl.innerHTML = withAudio.slice(1, 20).map(s => {
     const docId = s._docId || '';
     const title = getTitle(s);
     const mins = Math.round((s.seconds||0)/60);
     const date = s.date ? fmtDateShort(s.date) : '';
+    const clipPaths = CLIP_KEYS.filter(k => s[k]);
     const hasFav = s.favorites && Object.values(s.favorites).some(v=>v);
-    return `<div class="rec-item" data-doc="${docId}">
-      <div style="position:relative;width:36px;height:36px;flex:0 0 36px" onclick="playRecording('${docId}')">
-        <svg width="36" height="36" viewBox="0 0 36 36" style="position:absolute;inset:0;transform:rotate(-90deg)">
-          <circle cx="18" cy="18" r="15" fill="none" stroke="rgba(29,205,211,.1)" stroke-width="2.5"/>
-          <circle id="rec-ring-${docId}" cx="18" cy="18" r="15" fill="none" stroke="var(--accent)" stroke-width="2.5"
-            stroke-dasharray="94" stroke-dashoffset="94" stroke-linecap="round" style="transition:stroke-dashoffset .4s linear"/>
-        </svg>
-        <div style="position:absolute;inset:5px;border-radius:50%;background:var(--accent-soft);display:flex;align-items:center;justify-content:center;cursor:pointer">
-          <div id="rec-icon-${docId}" class="play-tri" style="border-left-width:7px;border-top-width:5px;border-bottom-width:5px;margin-left:1px"></div>
+    return `<div class="rec-item" style="padding:12px 0;border-bottom:1px solid var(--border)" data-doc="${docId}">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <div>
+          <div style="font-size:13px;font-weight:600;color:var(--text)">${esc(title)}</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px">${mins} mín · ${date} · ${clipPaths.length} hljóðbrot</div>
         </div>
+        <div class="rec-fav ${hasFav?'on':''}" onclick="toggleFav('${docId}',this)" style="font-size:18px">★</div>
       </div>
-      <div class="rec-main" style="flex:1;min-width:0">
-        <div class="rec-t">${esc(title)}</div>
-        <div class="rec-m">${mins} mín · ${date}</div>
-        ${clipDots(s)}
+      <div id="rec-clips-${docId}" style="display:flex;flex-direction:column;gap:6px">
+        ${clipPaths.map((k,i) => _renderClipRow(docId, i, clipPaths.length)).join('')}
       </div>
-      <div class="rec-fav ${hasFav?'on':''}" onclick="toggleFav('${docId}',this)">★</div>
     </div>`;
   }).join('');
+}
+
+function _renderClipRow(docId, clipIndex, totalClips) {
+  return `<div style="display:flex;align-items:center;gap:10px;padding:4px 0" id="clip-row-${docId}-${clipIndex}">
+    <button onclick="playSessionClip('${docId}',${clipIndex})" style="width:28px;height:28px;border-radius:50%;border:1.5px solid rgba(29,205,211,.3);background:rgba(29,205,211,.08);display:flex;align-items:center;justify-content:center;cursor:pointer;flex:0 0 28px;padding:0">
+      <span id="clip-icon-${docId}-${clipIndex}" style="display:block;width:0;height:0;border-left:8px solid var(--accent);border-top:5px solid transparent;border-bottom:5px solid transparent;margin-left:2px"></span>
+    </button>
+    <span style="font-size:12px;font-weight:700;color:var(--muted);width:14px;text-align:center;flex:0 0 14px">${clipIndex + 1}</span>
+    <div style="flex:1;height:3px;border-radius:2px;background:rgba(29,205,211,.12);overflow:hidden;position:relative">
+      <div id="clip-prog-${docId}-${clipIndex}" style="height:100%;width:0%;background:var(--accent);border-radius:2px;transition:width .3s linear"></div>
+    </div>
+    <span id="clip-time-${docId}-${clipIndex}" style="font-size:10px;color:var(--muted);font-weight:600;width:32px;text-align:right;flex:0 0 32px">--:--</span>
+  </div>`;
 }
 
 /* ══════════════════════════════════════
@@ -2649,17 +2628,13 @@ function renderAudioHero(sessions) {
     if (el) el.style.display = 'none';
     return;
   }
-  /* Nýjasta session */
   const latest = withAudio.sort((a,b) => (b.timestamp||0) - (a.timestamp||0))[0];
   _heroSession = latest;
 
   const clips = CLIP_KEYS.filter(k => latest[k]).map(k => ({ path: latest[k] }));
   _heroPlaylist = clips;
-
-  /* Heildarminútur úr session.seconds */
   _heroTotalSecs = latest.seconds || (clips.length * 60);
 
-  /* Finna bókatitil */
   const books = (S.books||[]).filter(b => b.childKey === _selectedChild);
   const sTime = latest.timestamp || 0;
   let bookTitle = '';
@@ -2676,7 +2651,15 @@ function renderAudioHero(sessions) {
   const titleEl = document.getElementById('p-audio-title');
   const metaEl  = document.getElementById('p-audio-meta');
   if (titleEl) titleEl.textContent = title;
-  if (metaEl)  metaEl.textContent  = `${mins} mín · ${date} · ${clips.length} klippur`;
+  if (metaEl)  metaEl.textContent  = `${mins} mín \u00b7 ${date} \u00b7 ${clips.length} hlj\u00f3\u00f0brot`;
+
+  /* Render teal dots */
+  const dotsEl = document.getElementById('p-audio-dots');
+  if (dotsEl) {
+    dotsEl.innerHTML = clips.map((c,i) =>
+      '<span class="hero-dot" id="hero-dot-' + i + '" style="display:inline-block;width:9px;height:9px;border-radius:50%;background:rgba(29,205,211,.25);border:2px solid rgba(29,205,211,.35);transition:all .3s ease"></span>'
+    ).join('');
+  }
 
   _heroReset();
 }
@@ -2688,6 +2671,12 @@ function _heroReset() {
   if (_heroAudio) { _heroAudio.pause(); _heroAudio = null; }
   if (_heroRaf)   { cancelAnimationFrame(_heroRaf); _heroRaf = null; }
   _heroUpdateUI(false, 0);
+  /* Reset dots */
+  document.querySelectorAll('.hero-dot').forEach(d => {
+    d.style.background = 'rgba(29,205,211,.25)';
+    d.style.borderColor = 'rgba(29,205,211,.35)';
+    d.style.boxShadow = 'none';
+  });
 }
 
 function _heroUpdateUI(playing, elapsed) {
@@ -2736,14 +2725,53 @@ function _heroTick() {
   _heroRaf = requestAnimationFrame(_heroTick);
 }
 
+function _heroHighlightDot(activeIndex) {
+  const dots = document.querySelectorAll('.hero-dot');
+  dots.forEach((d,i) => {
+    if (i < activeIndex) {
+      /* Búið að spila */
+      d.style.background = 'var(--accent)';
+      d.style.borderColor = 'var(--accent)';
+      d.style.boxShadow = 'none';
+    } else if (i === activeIndex) {
+      /* Spilar núna */
+      d.style.background = 'var(--accent)';
+      d.style.borderColor = 'var(--accent)';
+      d.style.boxShadow = '0 0 8px rgba(29,205,211,.6), 0 0 16px rgba(29,205,211,.3)';
+    } else {
+      /* Ekki spilað enn */
+      d.style.background = 'rgba(29,205,211,.25)';
+      d.style.borderColor = 'rgba(29,205,211,.35)';
+      d.style.boxShadow = 'none';
+    }
+  });
+}
+
+function _playTransitionTone() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.value = 880;
+    gain.gain.value = 0.08;
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.3);
+  } catch(e) { /* no-op */ }
+}
+
 async function _heroPlayClip(index) {
   if (index >= _heroPlaylist.length) {
-    /* Allt spilað */
     toast('Lestur kláraður ✓');
+    _heroHighlightDot(-1);
     _heroReset();
     return;
   }
   _heroIndex = index;
+  _heroHighlightDot(index);
   const { path } = _heroPlaylist[index];
   try {
     toast(index === 0 ? 'Hleð...' : '');
@@ -2751,8 +2779,15 @@ async function _heroPlayClip(index) {
     if (_heroAudio) { _heroAudio.pause(); _heroAudio = null; }
     const audio = new Audio(url);
     _heroAudio = audio;
-    audio.onended = () => _heroPlayClip(index + 1);
-    audio.onerror = () => { toast('Villa í klippu ' + (index+1)); _heroPlayClip(index + 1); };
+    audio.onended = () => {
+      if (index + 1 < _heroPlaylist.length) {
+        _playTransitionTone();
+        setTimeout(() => _heroPlayClip(index + 1), 400);
+      } else {
+        _heroPlayClip(index + 1);
+      }
+    };
+    audio.onerror = () => { toast('Villa í hljóðbroti ' + (index+1)); _heroPlayClip(index + 1); };
     await audio.play();
     if (index === 0) toast('');
     if (!_heroRaf) _heroRaf = requestAnimationFrame(_heroTick);
@@ -2787,100 +2822,115 @@ window.heroPlayPause = async function() {
   }
 };
 
-/* ── Play recording (Hljóð flipi) — með play state á hring ── */
-let _currentAudio = null;
-let _playingDocId = null;
-let _recRaf = null;
-let _recElapsed = 0;
-let _recTotal = 0;
+/* ── Session Clip Player (Hljóð skjár) — spilar clips per session ── */
+let _scAudio = null;
+let _scDocId = null;
+let _scClipIdx = -1;
+let _scRaf = null;
+let _scPlaying = false;
 
-function _recUpdateRing(docId, elapsed, total, playing) {
-  /* Hero hringur */
-  const heroRing = document.getElementById(`rec-hero-ring-${docId}`);
-  const heroIcon = document.getElementById(`rec-hero-icon-${docId}`);
-  const heroTime = document.getElementById(`rec-hero-time-${docId}`);
-  /* Lista hringur */
-  const listRing = document.getElementById(`rec-ring-${docId}`);
-  const listIcon = document.getElementById(`rec-icon-${docId}`);
-
-  const pct = total > 0 ? Math.min(elapsed / total, 1) : 0;
-
-  if (heroRing) heroRing.style.strokeDashoffset = 151 * (1 - pct);
-  if (listRing) listRing.style.strokeDashoffset = 94  * (1 - pct);
-
-  const pauseHtml = '<span style="display:inline-flex;gap:3px"><span style="display:block;width:3px;height:12px;border-radius:2px;background:var(--accent)"></span><span style="display:block;width:3px;height:12px;border-radius:2px;background:var(--accent)"></span></span>';
-  const playHtml  = `<div class="play-tri" style="border-left-width:10px;border-top-width:7px;border-bottom-width:7px;margin-left:2px"></div>`;
-  const playSmHtml = `<div class="play-tri" style="border-left-width:7px;border-top-width:5px;border-bottom-width:5px;margin-left:1px"></div>`;
-
-  if (heroIcon) heroIcon.innerHTML = playing ? pauseHtml : playHtml;
-  if (listIcon) listIcon.innerHTML = playing ? pauseHtml : playSmHtml;
-  if (heroTime) {
-    heroTime.style.display = playing || elapsed > 0 ? 'block' : 'none';
-    heroTime.textContent = `${_fmt(Math.floor(elapsed))} / ${_fmt(Math.floor(total))}`;
+function _scUpdateUI(docId, clipIndex, elapsed, total, playing) {
+  const prog = document.getElementById(`clip-prog-${docId}-${clipIndex}`);
+  const icon = document.getElementById(`clip-icon-${docId}-${clipIndex}`);
+  const time = document.getElementById(`clip-time-${docId}-${clipIndex}`);
+  if (prog && total > 0) prog.style.width = Math.min(elapsed/total*100, 100) + '%';
+  if (time) time.textContent = _fmt(Math.floor(elapsed));
+  if (icon) {
+    if (playing) {
+      icon.style.cssText = 'display:flex;gap:3px;align-items:center;justify-content:center;margin-left:0;border:none;width:auto;height:auto';
+      icon.innerHTML = '<span style="display:block;width:3px;height:12px;border-radius:1px;background:var(--accent)"></span><span style="display:block;width:3px;height:12px;border-radius:1px;background:var(--accent)"></span>';
+    } else {
+      icon.style.cssText = 'display:block;width:0;height:0;border-left:8px solid var(--accent);border-top:5px solid transparent;border-bottom:5px solid transparent;margin-left:2px';
+      icon.innerHTML = '';
+    }
   }
 }
 
-function _recTick() {
-  if (!_currentAudio || _currentAudio.paused) return;
-  _recElapsed += 1/60;
-  _recUpdateRing(_playingDocId, _recElapsed, _recTotal, true);
-  _recRaf = requestAnimationFrame(_recTick);
+function _scResetAll() {
+  if (_scDocId !== null && _scClipIdx >= 0) {
+    _scUpdateUI(_scDocId, _scClipIdx, 0, 0, false);
+  }
+  if (_scAudio) { _scAudio.pause(); _scAudio = null; }
+  if (_scRaf) { cancelAnimationFrame(_scRaf); _scRaf = null; }
+  _scPlaying = false;
 }
 
-window.playRecording = async function(docId) {
+function _scTick() {
+  if (!_scAudio || _scAudio.paused) return;
+  _scUpdateUI(_scDocId, _scClipIdx, _scAudio.currentTime, _scAudio.duration || 1, true);
+  _scRaf = requestAnimationFrame(_scTick);
+}
+
+window.playSessionClip = async function(docId, clipIndex) {
   const session = (S.sessions||[]).find(s => s._docId === docId);
   if (!session) return;
 
-  /* Pause ef sama */
-  if (_playingDocId === docId && _currentAudio && !_currentAudio.paused) {
-    _currentAudio.pause();
-    if (_recRaf) { cancelAnimationFrame(_recRaf); _recRaf = null; }
-    _recUpdateRing(docId, _recElapsed, _recTotal, false);
+  const clipPaths = CLIP_KEYS.filter(k => session[k]).map(k => session[k]);
+  if (clipIndex >= clipPaths.length) {
+    /* Allt spilað í þessari session */
+    _scResetAll();
+    _scDocId = null;
+    _scClipIdx = -1;
     return;
   }
 
-  /* Resume ef sama en í pásu */
-  if (_playingDocId === docId && _currentAudio && _currentAudio.paused) {
-    _currentAudio.play();
-    _recRaf = requestAnimationFrame(_recTick);
-    _recUpdateRing(docId, _recElapsed, _recTotal, true);
+  /* Pause ef sama clip */
+  if (_scDocId === docId && _scClipIdx === clipIndex && _scAudio && !_scAudio.paused) {
+    _scAudio.pause();
+    if (_scRaf) { cancelAnimationFrame(_scRaf); _scRaf = null; }
+    _scUpdateUI(docId, clipIndex, _scAudio.currentTime, _scAudio.duration || 1, false);
+    _scPlaying = false;
     return;
   }
 
-  /* Reset fyrri */
-  if (_playingDocId && _playingDocId !== docId) {
-    _recUpdateRing(_playingDocId, 0, 0, false);
+  /* Resume ef sama clip í pásu */
+  if (_scDocId === docId && _scClipIdx === clipIndex && _scAudio && _scAudio.paused) {
+    _scAudio.play();
+    _scRaf = requestAnimationFrame(_scTick);
+    _scPlaying = true;
+    return;
   }
-  if (_currentAudio) { _currentAudio.pause(); _currentAudio = null; }
-  if (_recRaf) { cancelAnimationFrame(_recRaf); _recRaf = null; }
 
-  const path = session.audioPath_min10 || session.audioPath_min8 || session.audioPath_min5 || session.audioPath_min2 || session.audioPath_min1 || session.audioPath;
-  if (!path) { toast('Engin hljóðskrá'); return; }
+  /* Nýtt clip — reset fyrra */
+  _scResetAll();
 
-  _playingDocId = docId;
-  _recElapsed = 0;
-  _recTotal = session.seconds || 60;
+  _scDocId = docId;
+  _scClipIdx = clipIndex;
+  const path = clipPaths[clipIndex];
 
   try {
     toast('Hleð...');
     const url = await getDownloadURL(ref(storage, path));
-    _currentAudio = new Audio(url);
-    _currentAudio.onloadedmetadata = () => { _recTotal = _currentAudio.duration || _recTotal; };
-    _currentAudio.onended = () => {
-      if (_recRaf) { cancelAnimationFrame(_recRaf); _recRaf = null; }
-      _recUpdateRing(docId, _recTotal, _recTotal, false);
-      _playingDocId = null;
-      toast('Kláruð ✓');
+    _scAudio = new Audio(url);
+    _scAudio.onloadedmetadata = () => {
+      const time = document.getElementById(`clip-time-${docId}-${clipIndex}`);
+      if (time) time.textContent = _fmt(Math.floor(_scAudio.duration));
     };
-    _currentAudio.onerror = () => { toast('Villa við spilun'); _playingDocId = null; };
-    await _currentAudio.play();
+    _scAudio.onended = () => {
+      _scUpdateUI(docId, clipIndex, _scAudio.duration, _scAudio.duration, false);
+      if (_scRaf) { cancelAnimationFrame(_scRaf); _scRaf = null; }
+      /* Auto-next clip */
+      if (clipIndex + 1 < clipPaths.length) {
+        _playTransitionTone();
+        setTimeout(() => window.playSessionClip(docId, clipIndex + 1), 400);
+      } else {
+        _scDocId = null;
+        _scClipIdx = -1;
+        _scPlaying = false;
+      }
+    };
+    _scAudio.onerror = () => {
+      toast('Villa í hljóðbroti ' + (clipIndex+1));
+      window.playSessionClip(docId, clipIndex + 1);
+    };
+    await _scAudio.play();
     toast('');
-    _recUpdateRing(docId, 0, _recTotal, true);
-    _recRaf = requestAnimationFrame(_recTick);
+    _scPlaying = true;
+    _scRaf = requestAnimationFrame(_scTick);
   } catch(e) {
-    console.warn('Play villa:', e);
-    _playingDocId = null;
+    console.warn('Clip play villa:', e);
     toast('Villa við spilun');
+    _scResetAll();
   }
 };
 

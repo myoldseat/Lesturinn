@@ -398,6 +398,19 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
 .st-act{font-size:11px;font-weight:500;color:var(--accent);flex:0 0 auto}
 .st-group .st-row.danger .st-lbl{color:var(--danger)}
 .st-sub{font-size:10px;color:var(--muted);margin-top:1px}
+.settings-tabs{display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:4px;margin-bottom:12px;background:rgba(255,255,255,.025);border:1px solid var(--border);border-radius:14px;flex-shrink:0}
+.settings-tabs button{appearance:none;border:0;background:transparent;color:var(--muted);font:inherit;font-size:12px;font-weight:700;padding:10px 8px;border-radius:10px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.settings-tabs button.on{background:rgba(29,205,211,.12);color:var(--accent);box-shadow:0 0 0 1px rgba(29,205,211,.16) inset}
+.settings-panel{display:none;flex-direction:column;gap:12px;flex-shrink:0}
+.settings-panel.on{display:flex}
+.family-list{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;flex-shrink:0}
+.family-row{display:flex;align-items:center;gap:14px;padding:14px 16px;border-bottom:1px solid var(--border);min-height:72px}
+.family-row:last-child{border-bottom:0}
+.family-av{width:44px;height:44px;border-radius:50%;background:rgba(212,160,23,.13);color:#fff4ca;display:grid;place-items:center;font-size:16px;font-weight:800;flex:0 0 auto}
+.family-row.parent .family-av{background:rgba(29,205,211,.15);color:var(--accent)}
+.family-name{font-size:16px;font-weight:800;color:var(--text-bright);line-height:1.1}
+.family-meta{font-size:13px;color:var(--text);margin-top:3px;line-height:1.25}
+.family-empty{padding:18px 16px;color:var(--muted);font-size:13px;line-height:1.45}
 
 /* ── Confirm popup ── */
 .confirm-overlay{
@@ -969,50 +982,70 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
   <section class="scr" data-parent-screen="settings">
     <header class="top"><div class="brand"><b>Upp</b>Hátt</div><div class="top-title">Stillingar</div><div class="top-sub"></div></header>
     <div class="bod">
-      <div class="st-sec">Aðgangur</div>
-      <div class="st-group">
-        <div class="st-row"><span class="st-lbl">Netfang</span><span class="st-val" id="settings-email">parent@example.test</span></div>
-        <div class="st-row"><span class="st-lbl">Fjölskyldulykill</span><span class="st-val ac" id="settings-family-code">FAM0000AA</span></div>
-        <div class="st-row tap" onclick="confirmAction('reset-key')"><span class="st-lbl">Endurnýja fjölskyldulykil</span><span class="st-act">›</span></div>
+      <div class="settings-tabs" aria-label="Stillingar">
+        <button class="on" id="settings-tab-access" type="button" onclick="setSettingsTab('access')">Aðgangur</button>
+        <button id="settings-tab-family" type="button" onclick="setSettingsTab('family')">Fjölskylda</button>
       </div>
 
-      <div class="st-sec">Börn</div>
-      <div class="st-group" id="st-kids-list">
-        <div class="st-row">
-          <div><div class="st-lbl">Hrafnkell Hersir</div><div class="st-sub">HRA78 · 4 mín · 1/7 daga</div></div>
-          <div style="display:flex;gap:10px"><span class="st-act">Kóði</span><span class="st-act" style="color:var(--danger);cursor:pointer" onclick="confirmAction('delete-child','Hrafnkell')">Eyða</span></div>
+      <div class="settings-panel on" data-settings-panel="access">
+        <div>
+          <div class="st-sec">Aðgangur</div>
+          <div class="st-group">
+            <div class="st-row"><span class="st-lbl">Netfang</span><span class="st-val" id="settings-email">parent@example.test</span></div>
+            <div class="st-row"><span class="st-lbl">Fjölskyldulykill</span><span class="st-val ac" id="settings-family-code">FAM0000AA</span></div>
+            <div class="st-row tap" onclick="confirmAction('reset-key')"><span class="st-lbl">Endurnýja fjölskyldulykil</span><span class="st-act">›</span></div>
+          </div>
         </div>
-        <div class="st-row">
-          <div><div class="st-lbl">Kolbeinn Kvasir</div><div class="st-sub">KOL58 · 5 mín · 2/7 daga</div></div>
-          <div style="display:flex;gap:10px"><span class="st-act">Kóði</span><span class="st-act" style="color:var(--danger);cursor:pointer" onclick="confirmAction('delete-child','Kolbeinn')">Eyða</span></div>
+
+        <div>
+          <div class="st-sec">Börn</div>
+          <div class="st-group" id="st-kids-list">
+            <div class="st-row">
+              <div><div class="st-lbl">Hrafnkell Hersir</div><div class="st-sub">HRA78 · 4 mín · 1/7 daga</div></div>
+              <div style="display:flex;gap:10px"><span class="st-act">Kóði</span><span class="st-act" style="color:var(--danger);cursor:pointer" onclick="confirmAction('delete-child','Hrafnkell')">Eyða</span></div>
+            </div>
+            <div class="st-row">
+              <div><div class="st-lbl">Kolbeinn Kvasir</div><div class="st-sub">KOL58 · 5 mín · 2/7 daga</div></div>
+              <div style="display:flex;gap:10px"><span class="st-act">Kóði</span><span class="st-act" style="color:var(--danger);cursor:pointer" onclick="confirmAction('delete-child','Kolbeinn')">Eyða</span></div>
+            </div>
+            <div class="st-row tap" onclick="if(typeof openAddChildPopup==='function')openAddChildPopup();else toast('openAddChildPopup tengist seinna')"><span class="st-lbl" style="color:var(--accent)">+ Bæta við barni</span></div>
+          </div>
         </div>
-        <div class="st-row tap" onclick="if(typeof openAddChildPopup==='function')openAddChildPopup();else toast('openAddChildPopup tengist seinna')"><span class="st-lbl" style="color:var(--accent)">+ Bæta við barni</span></div>
+
+        <div>
+          <div class="st-sec">Gögn</div>
+          <div class="st-group">
+            <div class="st-row tap" onclick="confirmAction('delete-child-data')"><span class="st-lbl">Eyða gögnum barns</span><span class="st-act">›</span></div>
+            <div class="st-row tap" onclick="confirmAction('delete-all-data')"><span class="st-lbl">Eyða öllum gögnum</span><span class="st-act">›</span></div>
+          </div>
+        </div>
+
+        <div>
+          <div class="st-sec">App</div>
+          <div class="st-group">
+            <div class="st-row tap" onclick="toggleTheme()"><span class="st-lbl">Þema</span><span class="st-val" id="theme-label">Dökkt</span></div>
+            <div class="st-row tap" onclick="go('bookshelf')"><span class="st-lbl">Bókasafn</span><span class="st-act">Opna ›</span></div>
+          </div>
+        </div>
+
+        <div>
+          <div class="st-sec">Hætta</div>
+          <div class="st-group">
+            <div class="st-row tap" onclick="if(typeof window.logout==='function')window.logout();else toast('Villa við útskráningu')"><span class="st-lbl">Útskrá</span></div>
+            <div class="st-row tap danger" onclick="confirmAction('delete-account')"><span class="st-lbl">Eyða aðgangi og öllum gögnum</span></div>
+          </div>
+        </div>
       </div>
 
-      <div class="st-sec">Gögn</div>
-      <div class="st-group">
-        <div class="st-row tap" onclick="confirmAction('delete-child-data')"><span class="st-lbl">Eyða gögnum barns</span><span class="st-act">›</span></div>
-        <div class="st-row tap" onclick="confirmAction('delete-all-data')"><span class="st-lbl">Eyða öllum gögnum</span><span class="st-act">›</span></div>
-      </div>
-
-      <div class="st-sec">App</div>
-      <div class="st-group">
-        <div class="st-row tap" onclick="toggleTheme()"><span class="st-lbl">Þema</span><span class="st-val" id="theme-label">Dökkt</span></div>
-        <div class="st-row tap" onclick="go('bookshelf')"><span class="st-lbl">Bókasafn</span><span class="st-act">Opna ›</span></div>
-      </div>
-
-      <div class="st-sec">Hætta</div>
-      <div class="st-group">
-        <div class="st-row tap" onclick="if(typeof window.logout==='function')window.logout();else toast('Villa við útskráningu')"><span class="st-lbl">Útskrá</span></div>
-        <div class="st-row tap danger" onclick="confirmAction('delete-account')"><span class="st-lbl">Eyða aðgangi og öllum gögnum</span></div>
+      <div class="settings-panel" data-settings-panel="family">
+        <div>
+          <div class="st-sec">Fjölskylda</div>
+          <div class="family-list" id="settings-family-list"></div>
+        </div>
       </div>
     </div>
   </section>
 
-
-  <!-- ══════════════════════════════════
-       6. BÓKASAFN (parent view)
-       ══════════════════════════════════ -->
   <section class="scr" data-parent-screen="bookshelf">
     <header class="top"><div class="brand"><b>Upp</b>Hátt</div><div class="top-title">Bókasafn</div><div class="top-sub"></div></header>
     <div class="bod">
@@ -1618,6 +1651,7 @@ function render() {
   renderRecordings(cs);
   renderParentBookshelf(books);
   renderSettingsChildren(children);
+  renderFamilyAccess();
 
   console.log('🎨 Rendered:', _selectedChild, '| sessions:', cs.length, '| books:', cb.length);
 }
@@ -3323,6 +3357,76 @@ function renderSettingsChildren(children) {
   el.innerHTML = html;
 }
 
+
+function setSettingsTab(tab) {
+  const next = tab === 'family' ? 'family' : 'access';
+  document.getElementById('settings-tab-access')?.classList.toggle('on', next === 'access');
+  document.getElementById('settings-tab-family')?.classList.toggle('on', next === 'family');
+  document.querySelectorAll('[data-settings-panel]').forEach(panel => {
+    panel.classList.toggle('on', panel.dataset.settingsPanel === next);
+  });
+  if (next === 'family') renderFamilyAccess();
+}
+window.setSettingsTab = setSettingsTab;
+
+function renderFamilyAccess() {
+  const el = document.getElementById('settings-family-list');
+  if (!el) return;
+  const members = getFamilyAccessMembers();
+  if (!members.length) {
+    el.innerHTML = '<div class="family-empty">Enginn fjölskylduaðgangur skráður enn.</div>';
+    return;
+  }
+  el.innerHTML = members.map(m => {
+    const role = prettyFamilyRole(m.role);
+    const access = prettyFamilyAccess(m.accessLevel || m.access || m.permission || m.role);
+    const cls = role === 'Foreldri' ? ' parent' : '';
+    return `<div class="family-row${cls}">
+      <div class="family-av">${esc(familyInitials(m.name))}</div>
+      <div><div class="family-name">${esc(m.name)}</div><div class="family-meta">${esc(role)} · ${esc(access)}</div></div>
+    </div>`;
+  }).join('');
+}
+
+function getFamilyAccessMembers() {
+  const raw = S.familyMembers || S.familyAccess || S.members || [];
+  if (Array.isArray(raw) && raw.length) {
+    return raw.map((m, i) => normalizeFamilyAccessMember(m, i));
+  }
+  const currentUser = auth?.currentUser || {};
+  const parentName = S.parentName || S.parentDisplayName || currentUser.displayName || S.parentEmail || currentUser.email || 'Mamma';
+  return [
+    { name: parentName, role: 'parent', accessLevel: 'full' },
+    { name: 'Pabbi', role: 'parent', accessLevel: 'full' },
+    { name: 'Amma', role: 'family', accessLevel: 'listen' },
+    { name: 'Afi', role: 'family', accessLevel: 'listen' }
+  ];
+}
+
+function normalizeFamilyAccessMember(m, i) {
+  const name = m.name || m.displayName || m.fullName || m.email || (i === 0 ? 'Foreldri' : 'Fjölskylda');
+  const role = m.role || m.memberRole || m.type || m.relationship || 'family';
+  const accessLevel = m.accessLevel || m.access || m.permission || (role === 'parent' ? 'full' : 'listen');
+  return { name, role, accessLevel };
+}
+
+function familyInitials(name) {
+  const cleaned = String(name || '?').trim();
+  if (!cleaned) return '?';
+  return cleaned.split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase();
+}
+
+function prettyFamilyRole(role) {
+  const value = String(role || '').toLowerCase();
+  if (value === 'parent' || value === 'foreldri' || value === 'admin' || value === 'full') return 'Foreldri';
+  return 'Fjölskylda';
+}
+
+function prettyFamilyAccess(access) {
+  const value = String(access || '').toLowerCase();
+  if (value === 'full' || value === 'parent' || value === 'admin' || value === 'foreldri') return 'Fullur aðgangur';
+  return 'Hlustun';
+}
 /* ── Settings info ── */
 function updateSettings() {
   const set = (id, v) => { const e = document.getElementById(id); if (e && v) e.textContent = v; };

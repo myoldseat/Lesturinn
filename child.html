@@ -60,9 +60,9 @@ body{font-family:'DM Sans','Manrope',-apple-system,BlinkMacSystemFont,sans-serif
 .child-journey-book-chip.on{border-color:rgba(29,205,211,.64);background:rgba(29,205,211,.12);box-shadow:0 0 0 1px rgba(29,205,211,.16) inset}
 .child-journey-book-chip-cover{width:32px;height:44px;border-radius:7px;overflow:hidden;display:grid;place-items:center;flex:0 0 auto;background:linear-gradient(145deg,#2b8f91,#0a2341);font-size:15px;font-weight:900;color:#fff}
 .child-journey-book-chip-cover img{width:100%;height:100%;object-fit:cover;display:block}
-.child-journey-book-chip-text{min-width:0}
+.child-journey-book-chip-text{min-width:0;display:grid;gap:3px}
 .child-journey-book-chip-title{font-size:12px;font-weight:900;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.child-journey-book-chip-meta{font-size:10px;font-weight:800;color:var(--muted,#8fa3b8);margin-top:2px}
+.child-journey-book-chip-meta{display:block;font-size:10px;font-weight:800;color:var(--muted,#8fa3b8);line-height:1.1}
 .child-journey-tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:12px 0 12px;background:rgba(255,255,255,.025);border:1px solid rgba(29,205,211,.12);border-radius:14px;padding:4px}
 .child-journey-tabs button{border:0;background:transparent;color:var(--muted,#8fa3b8);border-radius:10px;padding:9px 6px;font:inherit;font-size:12px;font-weight:900;cursor:pointer}
 .child-journey-tabs button.on{background:rgba(29,205,211,.13);color:var(--accent);box-shadow:0 0 0 1px rgba(29,205,211,.16) inset}
@@ -93,8 +93,9 @@ body{font-family:'DM Sans','Manrope',-apple-system,BlinkMacSystemFont,sans-serif
 .child-read-greeting .greeting-name{color:var(--accent,#1dcdd3)}
 .child-top-side{justify-self:end;min-width:42px;display:flex;align-items:center;justify-content:flex-end;gap:8px}
 .child-top-hidden{display:none!important}
-.child-logout-btn{height:32px;min-width:38px;border-radius:999px;border:1px solid rgba(122,187,218,.22);background:rgba(255,255,255,.025);color:rgba(217,229,239,.72);font:inherit;font-size:11px;font-weight:900;letter-spacing:.01em;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.child-logout-btn{height:32px;min-width:38px;border-radius:999px;border:1px solid rgba(122,187,218,.22);background:rgba(255,255,255,.025);color:rgba(217,229,239,.72);font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif!important;font-size:11px!important;font-weight:900!important;line-height:1!important;letter-spacing:.01em;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .child-logout-btn:active{transform:scale(.96);background:rgba(29,205,211,.10);color:var(--accent,#1dcdd3);border-color:rgba(29,205,211,.32)}
+#screen-child-arangur .child-logout-btn{font-size:11px!important;font-weight:900!important;line-height:1!important}
 .bookshelf-actions{display:flex;justify-content:flex-end;margin:0 0 10px;gap:8px}
 .bookshelf-edit-btn{height:34px;border-radius:999px;border:1px solid rgba(29,205,211,.26);background:rgba(29,205,211,.08);color:var(--accent,#1dcdd3);padding:0 13px;display:inline-flex;align-items:center;gap:7px;font:inherit;font-size:12px;font-weight:900;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .bookshelf-edit-btn svg{width:15px;height:15px;stroke:currentColor;fill:none;flex:0 0 auto}
@@ -104,8 +105,9 @@ body{font-family:'DM Sans','Manrope',-apple-system,BlinkMacSystemFont,sans-serif
 .goal-edit-btn span{font-size:11px}
 .goal-edit-btn.active{background:rgba(29,205,211,.18);border-color:rgba(29,205,211,.55)}
 @media(max-width:380px){.goal-edit-btn{min-width:42px;width:42px;padding:0}.goal-edit-btn span{display:none}.goal-edit-btn svg{width:16px;height:16px}}
+#screen-child-read{padding-top:0!important;padding-left:16px!important;padding-right:16px!important}
 #screen-child-read .panel{padding-top:0}
-#screen-child-arangur .arangur-app{padding-top:0}
+#screen-child-arangur .arangur-app{width:min(430px,100%)!important;padding-top:0!important;padding-left:16px!important;padding-right:16px!important}
 #screen-child-arangur .page-title,#screen-child-arangur .page-sub{display:none}
 /* ── Screen switching ── */
 .scr{display:none!important;flex-direction:column;min-height:100dvh}
@@ -2126,6 +2128,15 @@ body{font-family:'DM Sans','Manrope',-apple-system,BlinkMacSystemFont,sans-serif
 #screen-child-arangur .chart-area svg{
   position: absolute; inset: 0; width: 100%; height: 100%;
 }
+#screen-child-arangur .chart-empty-state{
+  position:absolute; inset:54px 16px 16px; z-index:1;
+  display:grid; place-items:center; text-align:center;
+  padding:18px; border-radius:16px;
+  border:1px dashed rgba(36,214,223,0.22);
+  background:rgba(255,255,255,0.025);
+  color:var(--text-soft); font-size:0.86rem; font-weight:800; line-height:1.45;
+}
+#screen-child-arangur .chart-empty-state strong{color:var(--teal); font-weight:900;}
 #screen-child-arangur .chart-line-done{
   fill: none; stroke: var(--teal); stroke-width: 4;
   stroke-linecap: round; stroke-linejoin: round;
@@ -3033,7 +3044,7 @@ window._child = { auth, db, storage, functions, CS, ensureAuth, getChildSession,
     { pages: 25, options: [
       { name: "Tré í garði", icon: "🌳", desc: "5 metrar — gamalt birki" },
       { name: "Fimleikahús", icon: "🤸", desc: "5 metrar — loft fimleikasalar" },
-      { name: "Grafírahreindýr", icon: "🦒", desc: "5 metrar — hæsta landspendýr" }
+      { name: "Gíraffi", icon: "🦒", desc: "5 metrar — hæsti gíraffinn nær svona hátt" }
     ]},
     // ── Tier 4: 50 pages = 10m ──
     { pages: 50, options: [
@@ -3044,7 +3055,7 @@ window._child = { auth, db, storage, functions, CS, ensureAuth, getChildSession,
     // ── Tier 5: 100 pages = 20m ──
     { pages: 100, options: [
       { name: "Ljósaturn", icon: "🗼", desc: "20 metrar — hærra en vitinn á Gróttunni" },
-      { name: "Bláhvali", icon: "🐋", desc: "20 metrar — lengd bláhvals" },
+      { name: "Bláhvalur", icon: "🐋", desc: "20 metrar — lengd bláhvals" },
       { name: "Sex hæða blokk", icon: "🏬", desc: "20 metrar — útsýni yfir hverfið" }
     ]},
     // ── Tier 6: 200 pages = 40m ──
@@ -3250,6 +3261,7 @@ window._child = { auth, db, storage, functions, CS, ensureAuth, getChildSession,
   }
 
   await loadArangurTotals();
+  var hasArangurProgress = totalPagesRead > 0 || sessionHistoryFromFirestore.length > 0;
   // RENDER WEEK STRIP
   // ══════════════════════════════════════════════════════════════
   var DAY_NAMES = ["S", "M", "Þ", "M", "F", "F", "L"];
@@ -3354,6 +3366,17 @@ window._child = { auth, db, storage, functions, CS, ensureAuth, getChildSession,
       '<span class="chip-icon">' + cm.icon + '</span>' + cm.name + '</div>';
   }
   if (chipsHtml) document.getElementById("msCompleted").innerHTML = chipsHtml;
+  if (!hasArangurProgress) {
+    document.getElementById("msIcon").textContent = "✦";
+    document.getElementById("msName").textContent = "Fyrsta klifrið bíður";
+    document.getElementById("msDesc").textContent = "Hver blaðsíða sem þú lest færir þig 20 cm nær markinu.";
+    document.getElementById("msDone").textContent = "0 síður";
+    document.getElementById("msTarget").textContent = "Fyrsti lestur";
+    document.getElementById("msBarFill").style.width = "0%";
+    var msNextEl = document.getElementById("msNext");
+    if (msNextEl) msNextEl.style.display = "none";
+    document.getElementById("msCompleted").innerHTML = "";
+  }
 
   // ══════════════════════════════════════════════════════════════
   // STATS OVERVIEW PILL + MODAL
@@ -3420,6 +3443,12 @@ window._child = { auth, db, storage, functions, CS, ensureAuth, getChildSession,
   }
   badgeLocked.innerHTML = lockedHtml;
   badgeCountEl.textContent = unlockedCount + " / " + MILESTONES.length;
+  if (!hasArangurProgress) {
+    badgeUnlocked.innerHTML = '<span style="font-size:0.75rem;color:var(--text-muted);font-weight:800;padding:4px 0">Fyrstu merkin birtast þegar fyrsta lestrarlotan er vistuð.</span>';
+    badgeLocked.innerHTML = "";
+    badgeCountEl.textContent = "0 / " + MILESTONES.length;
+    if (badgeLocked.previousElementSibling) badgeLocked.previousElementSibling.style.display = "none";
+  }
 
   // Hide "Næstu merki" header if none to show
   if (!lockedHtml) {
@@ -3523,6 +3552,11 @@ window._child = { auth, db, storage, functions, CS, ensureAuth, getChildSession,
     pillTitleEl2.textContent = "Öllum áföngum náð!";
   }
   pillSubEl.textContent = totalPagesRead + " síður · smelltu til að sjá ferðalagið";
+  if (!hasArangurProgress) {
+    pillIconsEl.innerHTML = '<div class="journey-pip locked">✦</div>';
+    pillTitleEl2.textContent = "Ferðin byrjar við fyrsta lestur";
+    pillSubEl.textContent = "Hver blaðsíða telur 20 cm þegar þú byrjar.";
+  }
 
   // Chart modal open/close
   var chartOverlay = document.getElementById("chartOverlay");
@@ -3613,6 +3647,20 @@ window._child = { auth, db, storage, functions, CS, ensureAuth, getChildSession,
   }
 
   function renderChart() {
+    if (!hasArangurProgress || !readingHistory.length) {
+      var oldSvg = chartArea.querySelector("svg");
+      if (oldSvg) oldSvg.remove();
+      var oldEmpty = chartArea.querySelector(".chart-empty-state");
+      if (!oldEmpty) {
+        chartArea.insertAdjacentHTML("afterbegin", '<div class="chart-empty-state"><span><strong>Hver blaðsíða færir þig 20 cm áfram.</strong><br>Lestarlínan birtist þegar fyrsta lestrarlotan er vistuð.</span></div>');
+      }
+      document.getElementById("chartSub").textContent = "Byrjar þegar fyrsta lotan er vistuð";
+      chartSvgEl = null;
+      return;
+    }
+    var emptyState = chartArea.querySelector(".chart-empty-state");
+    if (emptyState) emptyState.remove();
+
     var W = 760, H = 420;
     var PAD = { top: 34, right: 42, bottom: 50, left: 64 };
     var plotW = W - PAD.left - PAD.right;

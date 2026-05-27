@@ -460,23 +460,24 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
 .nav{
   position:fixed;bottom:0;left:50%;transform:translateX(-50%);
   width:min(430px,100vw);height:calc(var(--nav-h) + var(--safe));
-  padding:5px 2px var(--safe);z-index:30;
-  display:flex;align-items:flex-start;background:rgba(5,11,22,.97);
-  border-top:1px solid var(--border);
+  padding-bottom:var(--safe);
+  background:rgba(6,14,26,.96);border-top:1px solid var(--border);
+  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  display:grid;grid-template-columns:repeat(5,1fr);
+  z-index:40;
 }
 .nav button{
-  flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;
-  background:none;border:none;color:var(--muted);
-  font-size:11px;font-weight:500;padding:5px 2px 2px;min-height:58px;
-  cursor:pointer;position:relative;transition:color .2s;
-  -webkit-tap-highlight-color:transparent;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:3px;color:var(--muted);font-size:11px;font-weight:700;
+  position:relative;text-decoration:none;border:0;background:none;cursor:pointer;
   font-family:inherit;
+  -webkit-tap-highlight-color:transparent;
 }
-.nav button svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.nav button svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
 .nav button.on{color:var(--accent)}
 .nav button.on::after{
-  content:'';position:absolute;bottom:0;left:50%;transform:translateX(-50%);
-  width:20px;height:2.5px;border-radius:99px;background:var(--accent);
+  content:"";position:absolute;bottom:4px;width:28px;height:3px;
+  border-radius:99px;background:var(--accent);box-shadow:0 0 10px rgba(29,205,211,.4);
 }
 
 /* ── Toast ── */

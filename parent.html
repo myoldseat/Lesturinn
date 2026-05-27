@@ -661,7 +661,7 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
 
         <!-- Bókahero ferkanturt -->
-        <div class="crd crd-glow" id="p-now-reading" onclick="nav('bookshelf.html')" style="padding:0;overflow:hidden;cursor:pointer;display:flex;flex-direction:column;aspect-ratio:1">
+        <div class="crd crd-glow" id="p-now-reading" onclick="go('bookshelf')" style="padding:0;overflow:hidden;cursor:pointer;display:flex;flex-direction:column;aspect-ratio:1">
           <div id="p-book-cover-bg" style="flex:0 0 65%;background:linear-gradient(145deg,#6a3140,#c08a36);display:flex;align-items:center;justify-content:center;font-size:30px;font-weight:700;color:rgba(255,255,255,.9);overflow:hidden"><span id="p-book-cover-letter">F</span></div>
           <div style="flex:1;padding:8px 10px;display:flex;flex-direction:column;justify-content:space-between;min-height:0">
             <div>
@@ -907,7 +907,7 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
         </div>
       </section>
 
-      <div class="crd" onclick="nav('bookshelf.html')" style="cursor:pointer;display:flex;align-items:center;justify-content:space-between">
+      <div class="crd" onclick="go('bookshelf')" style="cursor:pointer;display:flex;align-items:center;justify-content:space-between">
         <div><div style="font-size:13px;font-weight:500;color:var(--text-bright)">Bókasafn</div><div style="font-size:10px;color:var(--muted);margin-top:2px" id="p-bookshelf-sub"></div></div>
         <div class="crd-act">Opna ›</div>
       </div>
@@ -979,13 +979,28 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
       <div class="st-sec">App</div>
       <div class="st-group">
         <div class="st-row tap" onclick="toggleTheme()"><span class="st-lbl">Þema</span><span class="st-val" id="theme-label">Dökkt</span></div>
-        <div class="st-row tap" onclick="nav('bookshelf.html')"><span class="st-lbl">Bókasafn</span><span class="st-act">Opna ›</span></div>
+        <div class="st-row tap" onclick="go('bookshelf')"><span class="st-lbl">Bókasafn</span><span class="st-act">Opna ›</span></div>
       </div>
 
       <div class="st-sec">Hætta</div>
       <div class="st-group">
         <div class="st-row tap" onclick="if(typeof window.logout==='function')window.logout();else toast('Villa við útskráningu')"><span class="st-lbl">Útskrá</span></div>
         <div class="st-row tap danger" onclick="confirmAction('delete-account')"><span class="st-lbl">Eyða aðgangi og öllum gögnum</span></div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ══════════════════════════════════
+       6. BÓKASAFN (parent view)
+       ══════════════════════════════════ -->
+  <section class="scr" data-parent-screen="bookshelf">
+    <header class="top"><div class="brand"><b>Upp</b>Hátt</div><div class="top-title">Bókasafn</div><div class="top-sub"></div></header>
+    <div class="bod">
+      <button class="pb-back" type="button" onclick="go('today')">‹ Til baka</button>
+      <div class="cpills" data-child-row aria-label="Veldu barn" id="pb-child-pills"></div>
+      <div id="pb-books-list">
+        <div class="pb-empty">Hleð bókum...</div>
       </div>
     </div>
   </section>
@@ -1307,13 +1322,7 @@ function toast(text) {
   toast._t = setTimeout(() => el.classList.remove('show'), 1600);
 }
 function nav(url) {
-  if (url === 'bookshelf.html' && typeof window._getNavParams === 'function') {
-    const p = window._getNavParams();
-    if (p.family && p.child) {
-      window.location.href = 'bookshelf.html?family=' + encodeURIComponent(p.family) + '&child=' + encodeURIComponent(p.child) + '&name=' + encodeURIComponent(p.name) + '&parent=1';
-      return;
-    }
-  }
+  /* bookshelf redirect removed — now inline screen */
   window.location.href = url;
 }
 
@@ -1564,6 +1573,7 @@ function render() {
   renderJourneyPreview(cs, cb);
   renderJourney(cb);
   renderRecordings(cs);
+  renderParentBookshelf(books);
   renderSettingsChildren(children);
 
   console.log('🎨 Rendered:', _selectedChild, '| sessions:', cs.length, '| books:', cb.length);
@@ -2554,7 +2564,7 @@ function renderRecordings(sessions, force) {
   if (!listEl) return;
 
   /* Skip re-render ef gögn hafa ekki breyst */
-  const hash = sessions.map(s => (s._docId||'') + (s.favorited?'f':'') + (s.hasAudio?'a':'')).join(',');
+  const hash = sessions.length + ':' + sessions.map(s => (s._docId||'') + CLIP_KEYS.filter(k => s[k]).length + (s.favorited?'f':'')).join(',');
   if (hash === _lastRecHash && !force) return;
   _lastRecHash = hash;
 
@@ -2595,7 +2605,7 @@ function renderRecordings(sessions, force) {
           <div class="rec-info">
             <div class="rec-title">${esc(title)}</div>
             <div class="rec-meta"><span>${mins} mín</span><span>·</span><span>${date}</span><span>·</span><span>${clipPaths.length} hljóðbrot</span></div>
-            <div class="rec-dots">${clipPaths.map((k,i) => '<span class="rec-dot" id="rec-dot-' + docId + '-' + i + '"></span>').join('')}</div>
+            <div class="rec-dots">${clipPaths.map((k,i) => '<span class="rec-dot" data-idx="' + i + '"></span>').join('')}</div>
           </div>
           <div class="rec-star ${s.favorited ? 'on' : ''}" onclick="toggleFav('${docId}',this)">★</div>
         </div>
@@ -2613,7 +2623,7 @@ function renderRecordings(sessions, force) {
     const date = s.date ? fmtDateShort(s.date) : '';
     const clipPaths = CLIP_KEYS.filter(k => s[k]);
     const hasFav = !!s.favorited;
-    const dots = clipPaths.map((k,i) => `<span class="rec-dot" id="rec-dot-${docId}-${i}"></span>`).join('');
+    const dots = clipPaths.map((k,i) => `<span class="rec-dot" data-idx="${i}"></span>`).join('');
     return `<div class="rec-card" data-doc="${docId}">
       <div class="rec-head">
         <div class="rec-play-main" onclick="playSessionClip('${docId}',0)">
@@ -2663,7 +2673,7 @@ function _buildRecCard(s) {
   const date = s.date ? fmtDateShort(s.date) : '';
   const clipPaths = CLIP_KEYS.filter(k => s[k]);
   const hasFav = !!s.favorited;
-  const dots = clipPaths.map((k,i) => '<span class="rec-dot" id="rec-dot-' + docId + '-' + i + '"></span>').join('');
+  const dots = clipPaths.map((k,i) => '<span class="rec-dot" data-idx="' + i + '"></span>').join('');
   return '<div class="rec-card" data-doc="' + docId + '">' +
     '<div class="rec-head">' +
       '<div class="rec-play-main" onclick="playSessionClip(\'' + docId + '\',0)">' +
@@ -2728,7 +2738,7 @@ let _heroRaf       = null;   /* requestAnimationFrame id */
 let _lastHeroHash = '';
 function renderAudioHero(sessions) {
   const withAudio = sessions.filter(s => s.hasAudio && CLIP_KEYS.some(k => s[k]));
-  const hHash = withAudio.length > 0 ? (withAudio[0]._docId||'') + withAudio[0].timestamp : '';
+  const hHash = withAudio.length > 0 ? (withAudio[0]._docId||'') + ':' + CLIP_KEYS.filter(k => withAudio[0][k]).length : '';
   if (hHash === _lastHeroHash) return;
   _lastHeroHash = hHash;
   if (withAudio.length === 0) {
@@ -2951,15 +2961,17 @@ function _scUpdateUI(docId, clipIndex, elapsed, total, playing) {
 
 /* Uppfæra rec-dots — kölluð EINU SINNI per clip skipt, ekki á hverju frame */
 function _scUpdateDots(docId, clipIndex, playing) {
-  const allDots = document.querySelectorAll('[id^="rec-dot-' + docId + '-"]');
-  allDots.forEach(function(d, i) {
-    if (i < clipIndex) {
-      d.className = 'rec-dot played';
-    } else if (i === clipIndex && playing) {
-      d.className = 'rec-dot active';
-    } else {
-      d.className = 'rec-dot';
-    }
+  /* Per-kort scoping — finna öll kort með þetta docId og uppfæra dots í hverju */
+  document.querySelectorAll('[data-doc="' + docId + '"]').forEach(function(card) {
+    card.querySelectorAll('.rec-dot').forEach(function(d, i) {
+      if (i < clipIndex) {
+        d.className = 'rec-dot played';
+      } else if (i === clipIndex && playing) {
+        d.className = 'rec-dot active';
+      } else {
+        d.className = 'rec-dot';
+      }
+    });
   });
 }
 
@@ -3055,6 +3067,77 @@ window.playSessionClip = async function(docId, clipIndex) {
     _scResetAll();
   }
 };
+
+
+/* ══════════════════════════════════════
+   PARENT BÓKASAFN
+   ══════════════════════════════════════ */
+let _lastPbHash = '';
+function renderParentBookshelf(books) {
+  const listEl = document.getElementById('pb-books-list');
+  if (!listEl) return;
+  const cb = books.filter(b => b.childKey === _selectedChild);
+  const hash = cb.length + ':' + cb.map(b => (b.id||'') + (b.status||'') + (b.currentPageTo||0)).join(',');
+  if (hash === _lastPbHash) return;
+  _lastPbHash = hash;
+  if (cb.length === 0) { listEl.innerHTML = '<div class="pb-empty">Engar bækur enn</div>'; return; }
+
+  const reading = cb.filter(b => b.status === 'reading').sort((a,b) => bTs(b,'lastReadAt') - bTs(a,'lastReadAt'));
+  const finished = cb.filter(b => b.status === 'finished').sort((a,b) => bTs(b,'celebratedAt') - bTs(a,'celebratedAt'));
+  const shelf = cb.filter(b => b.status === 'shelf');
+
+  let html = '';
+  if (reading.length) {
+    html += '<div class="pb-section-lbl">Að lesa</div><div class="pb-grid">' + reading.map(b => _pbCard(b)).join('') + '</div>';
+  }
+  if (finished.length) {
+    html += '<div class="pb-section-lbl">Lokið</div><div class="pb-grid">' + finished.map(b => _pbCard(b)).join('') + '</div>';
+  }
+  if (shelf.length) {
+    html += '<div class="pb-section-lbl">Í hillunni</div><div class="pb-grid">' + shelf.map(b => _pbCard(b)).join('') + '</div>';
+  }
+  listEl.innerHTML = html;
+
+  const pillsEl = document.getElementById('pb-child-pills');
+  if (pillsEl) {
+    const children = S.parentChildren || [];
+    if (children.length > 1) {
+      pillsEl.innerHTML = children.map(c => {
+        const ini = c.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+        const sel = c.key === _selectedChild ? ' sel' : '';
+        return '<button class="cpill' + sel + '" type="button" onclick="pickChild(this,\'' + esc(c.key) + '\')"><div class="cpill-av">' + ini + '</div><div><div class="cpill-name">' + esc(c.name) + '</div></div></button>';
+      }).join('');
+      pillsEl.style.display = '';
+    } else { pillsEl.style.display = 'none'; }
+  }
+}
+
+function _pbCard(b) {
+  const c1 = b.c1||'#2b8f91', c2 = b.c2||'#0a2341';
+  const coverSrc = b.coverUrl || b.coverBase64;
+  const initial = esc((b.title||'?')[0]);
+  const coverBg = coverSrc ? '' : 'background:linear-gradient(145deg,' + c1 + ',' + c2 + ');';
+  const coverInner = coverSrc
+    ? '<img src="' + esc(coverSrc) + '" onerror="this.remove()">'
+    : initial;
+  const pct = b.progressPercent || 0;
+  const pages = b.currentPageTo ? b.currentPageTo + ' / ' + (b.totalPages||'?') + ' bls.' : '';
+  const st = b.status || 'shelf';
+  const stCls = st === 'reading' ? 'pb-status-reading' : st === 'finished' ? 'pb-status-finished' : 'pb-status-shelf';
+  const stTxt = st === 'reading' ? 'Að lesa' : st === 'finished' ? 'Lokið ✓' : 'Í hillunni';
+  let detail = '';
+  if (st === 'reading') {
+    detail = '<div class="pb-meta">' + pages + '</div>' +
+      '<div style="display:flex;align-items:center;gap:8px;margin-top:6px">' +
+        '<div class="pb-bar" style="flex:1"><div class="pb-fill" style="width:' + pct + '%"></div></div>' +
+        '<div class="pb-pct">' + pct + '%</div>' +
+      '</div>';
+  } else {
+    detail = '<div class="pb-meta">' + (b.totalPages||'?') + ' bls.' + (st==='finished'?' · Lokið':'') + '</div>';
+  }
+  return '<div class="pb-card"><div class="pb-cover" style="' + coverBg + '">' + coverInner + '</div><div class="pb-info"><div class="pb-title">' + esc(b.title||'Bók') + '</div>' + detail + '</div></div>';
+}
+
 
 /* ── Toggle favorite ── */
 window.toggleFav = async function(docId, el) {

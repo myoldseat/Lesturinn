@@ -553,6 +553,17 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
 .rec-expand::after{content:"›";transform:rotate(90deg);transition:transform .2s;font-size:14px;font-weight:700;margin-left:auto}
 .rec-expand.open::after{transform:rotate(-90deg)}
 
+/* -- Parent bookshelf -- */
+.pb-back{align-self:flex-start;border:1px solid var(--border);background:rgba(255,255,255,.02);color:var(--accent);border-radius:999px;padding:8px 12px;font:inherit;font-size:12px;font-weight:700;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.pb-section-lbl{font-size:11px;font-weight:800;color:var(--accent);letter-spacing:.06em;text-transform:uppercase;margin:10px 2px 2px}
+.pb-grid{display:grid;gap:9px;margin-bottom:6px}
+.pb-empty{border:1px solid var(--border);background:var(--surface);border-radius:var(--r);padding:22px;text-align:center;color:var(--muted);font-size:13px}
+.pb-card{width:100%;display:grid;grid-template-columns:54px minmax(0,1fr);gap:11px;align-items:center;text-align:left;border:1px solid var(--border);background:var(--surface);border-radius:var(--r);padding:10px;color:inherit;font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.pb-card:active{border-color:var(--border-hl);background:var(--accent-soft)}
+.pb-cover{width:54px;height:76px;border-radius:8px;overflow:hidden;display:grid;place-items:center;color:rgba(255,255,255,.92);font-size:20px;font-weight:800;box-shadow:0 8px 20px rgba(0,0,0,.25),inset 1px 0 0 rgba(255,255,255,.08)}
+.pb-cover img{width:100%;height:100%;object-fit:cover;display:block}
+.pb-info{min-width:0}.pb-title{font-size:15px;font-weight:800;color:var(--text-bright);line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pb-meta{font-size:12px;font-weight:600;color:var(--muted);margin-top:5px}.pb-bar{height:5px;border-radius:999px;background:rgba(255,255,255,.09);overflow:hidden}.pb-fill{height:100%;border-radius:999px;background:var(--accent)}.pb-pct{font-size:12px;font-weight:800;color:var(--accent);min-width:34px;text-align:right}.pb-status{display:inline-flex;align-items:center;width:max-content;margin-top:7px;border-radius:999px;padding:3px 8px;font-size:10px;font-weight:800}.pb-status-reading{background:rgba(29,205,211,.1);border:1px solid rgba(29,205,211,.22);color:var(--accent)}.pb-status-finished{background:rgba(212,160,23,.1);border:1px solid rgba(212,160,23,.22);color:var(--gold)}.pb-status-shelf{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);color:var(--muted)}
+.pb-detail-ov{position:fixed;inset:0;z-index:220;background:rgba(7,16,30,.72);backdrop-filter:blur(7px);display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s}.pb-detail-ov.open{opacity:1;pointer-events:auto}.pb-detail-sheet{width:min(430px,100%);max-height:82dvh;overflow:auto;background:rgba(18,32,52,.98);border:1px solid var(--border-hl);border-bottom:0;border-radius:18px 18px 0 0;padding:18px 16px calc(22px + env(safe-area-inset-bottom,0px));transform:translateY(100%);transition:transform .24s cubic-bezier(.22,1,.36,1);scrollbar-width:none}.pb-detail-ov.open .pb-detail-sheet{transform:translateY(0)}.pb-detail-sheet::-webkit-scrollbar{display:none}.pb-grab{width:34px;height:4px;border-radius:999px;background:rgba(255,255,255,.13);margin:0 auto 15px}.pb-detail-top{display:grid;grid-template-columns:72px minmax(0,1fr);gap:13px;align-items:center;margin-bottom:14px}.pb-detail-cover{width:72px;height:102px;border-radius:10px;overflow:hidden;display:grid;place-items:center;font-size:26px;font-weight:800;color:#fff}.pb-detail-cover img{width:100%;height:100%;object-fit:cover}.pb-detail-title{font-size:21px;font-weight:800;color:var(--text-bright);line-height:1.05;letter-spacing:-.02em}.pb-detail-sub{font-size:12px;color:var(--muted);margin-top:6px}.pb-detail-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}.pb-stat{border:1px solid rgba(255,255,255,.07);background:rgba(255,255,255,.025);border-radius:12px;padding:10px}.pb-stat-l{font-size:10px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}.pb-stat-v{font-size:15px;font-weight:800;color:var(--text-bright);margin-top:3px}.pb-note{border-left:2px solid var(--accent);padding-left:10px;margin-top:13px;color:var(--text);font-size:13px;line-height:1.4}.pb-detail-close{width:100%;margin-top:14px;border:1px solid var(--border-hl);background:var(--accent-soft);color:var(--accent);border-radius:12px;padding:11px;font:inherit;font-size:13px;font-weight:800;cursor:pointer}
 </style>
 </head>
 <body>
@@ -1014,6 +1025,14 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
   </section>
 
 
+
+  <!-- Parent bookshelf detail -->
+  <div class="pb-detail-ov" id="pb-book-detail" onclick="closeParentBook(event)">
+    <div class="pb-detail-sheet" onclick="event.stopPropagation()">
+      <div class="pb-grab"></div>
+      <div id="pb-book-detail-body"></div>
+    </div>
+  </div>
   <!-- ══════════════════════════════════
        BOTTOM NAV
        ══════════════════════════════════ -->
@@ -1280,6 +1299,11 @@ function confirmAction(type, arg) {
   const ok = document.getElementById('confirm-ok');
 
   switch (type) {
+    case 'delete-book':
+      t.textContent = 'Eyða bók?';
+      d.textContent = 'Bókin verður fjarlægð úr bókasafni barnsins. Þetta eyðir ekki barninu eða öðrum gögnum.';
+      ok.textContent = 'Eyða bók';
+      break;
     case 'delete-child':
       t.textContent = 'Eyða ' + arg + '?';
       d.textContent = 'Barn verður fjarlægt og öll gögn þess eytt. Þetta er óafturkræft.';
@@ -1313,9 +1337,15 @@ function closeConfirm() {
   document.getElementById('confirm-popup').classList.remove('show');
 }
 
-function doConfirm() {
+async function doConfirm() {
+  const type = _confirmType;
+  const arg = _confirmArg;
   closeConfirm();
-  toast(_confirmType + (_confirmArg ? ': ' + _confirmArg : '') + ' — tengist seinna');
+  if (type === 'delete-book' && typeof window.deleteParentBook === 'function') {
+    await window.deleteParentBook(arg);
+    return;
+  }
+  toast(type + (arg ? ': ' + arg : '') + ' — tengist seinna');
 }
 
 /* ═══════════════════════════════════
@@ -1403,7 +1433,12 @@ const fbMod    = await import('./js/firebase-config.js').catch(e => { console.er
 
 const { initAuth, openAddChildPopup, closeAddChildPopup, logout } = authMod;
 const S = stateMod.S || {};
-const { db, collection, onSnapshot, query, where, doc, setDoc, updateDoc, serverTimestamp, auth, storage, ref, getDownloadURL, signInWithEmailAndPassword } = fbMod;
+const { db, collection, onSnapshot, query, where, doc, setDoc, updateDoc, deleteDoc, serverTimestamp, auth, storage, ref, getDownloadURL, signInWithEmailAndPassword } = fbMod;
+let firestoreDeleteDoc = deleteDoc;
+if (typeof firestoreDeleteDoc !== 'function') {
+  const firestoreMod = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js').catch(() => ({}));
+  firestoreDeleteDoc = firestoreMod.deleteDoc;
+}
 
 console.log('📦 Loaded:', { auth: !!initAuth, S: !!S, db: !!db });
 
@@ -3067,66 +3102,132 @@ function renderParentBookshelf(books) {
   const listEl = document.getElementById('pb-books-list');
   if (!listEl) return;
   const cb = books.filter(b => b.childKey === _selectedChild);
-  const hash = cb.length + ':' + cb.map(b => (b.id||'') + (b.status||'') + (b.currentPageTo||0)).join(',');
+  renderParentBookshelfChildren();
+  const hash = [_selectedChild].concat(cb.map(b => [
+    b.id || b._docId || '', b.title || '', b.status || '', b.currentPageTo || 0,
+    b.totalPages || 0, b.progressPercent || 0, b.coverUrl || '', b.coverBase64 || '',
+    b.wordsPerPage || '', b.readingLoadLabel || '', b.updatedAt || '', b.lastReadAt || ''
+  ].join(':'))).join('|');
   if (hash === _lastPbHash) return;
   _lastPbHash = hash;
-  if (cb.length === 0) { listEl.innerHTML = '<div class="pb-empty">Engar bækur enn</div>'; return; }
+  if (cb.length === 0) { listEl.innerHTML = '<div class="pb-empty">Engar bækur enn hjá þessu barni.</div>'; return; }
 
   const reading = cb.filter(b => b.status === 'reading').sort((a,b) => bTs(b,'lastReadAt') - bTs(a,'lastReadAt'));
   const finished = cb.filter(b => b.status === 'finished').sort((a,b) => bTs(b,'celebratedAt') - bTs(a,'celebratedAt'));
-  const shelf = cb.filter(b => b.status === 'shelf');
+  const shelf = cb.filter(b => !b.status || b.status === 'shelf');
 
   let html = '';
-  if (reading.length) {
-    html += '<div class="pb-section-lbl">Að lesa</div><div class="pb-grid">' + reading.map(b => _pbCard(b)).join('') + '</div>';
-  }
-  if (finished.length) {
-    html += '<div class="pb-section-lbl">Lokið</div><div class="pb-grid">' + finished.map(b => _pbCard(b)).join('') + '</div>';
-  }
-  if (shelf.length) {
-    html += '<div class="pb-section-lbl">Í hillunni</div><div class="pb-grid">' + shelf.map(b => _pbCard(b)).join('') + '</div>';
-  }
+  if (reading.length) html += '<div class="pb-section-lbl">Að lesa</div><div class="pb-grid">' + reading.map(b => _pbCard(b)).join('') + '</div>';
+  if (finished.length) html += '<div class="pb-section-lbl">Lokið</div><div class="pb-grid">' + finished.map(b => _pbCard(b)).join('') + '</div>';
+  if (shelf.length) html += '<div class="pb-section-lbl">Í hillunni</div><div class="pb-grid">' + shelf.map(b => _pbCard(b)).join('') + '</div>';
   listEl.innerHTML = html;
+}
 
+function renderParentBookshelfChildren() {
   const pillsEl = document.getElementById('pb-child-pills');
-  if (pillsEl) {
-    const children = S.parentChildren || [];
-    if (children.length > 1) {
-      pillsEl.innerHTML = children.map(c => {
-        const ini = c.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
-        const sel = c.key === _selectedChild ? ' sel' : '';
-        return '<button class="cpill' + sel + '" type="button" onclick="pickChild(this,\'' + esc(c.key) + '\')"><div class="cpill-av">' + ini + '</div><div><div class="cpill-name">' + esc(c.name) + '</div></div></button>';
-      }).join('');
-      pillsEl.style.display = '';
-    } else { pillsEl.style.display = 'none'; }
+  if (!pillsEl) return;
+  const children = S.parentChildren || [];
+  if (children.length > 1) {
+    pillsEl.innerHTML = children.map(c => {
+      const name = c.name || c.displayName || c.key || 'Barn';
+      const ini = name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+      const sel = c.key === _selectedChild ? ' sel' : '';
+      return '<button class="cpill' + sel + '" type="button" onclick="pickChild(this,\'' + esc(c.key) + '\')"><div class="cpill-av">' + esc(ini) + '</div><div><div class="cpill-name">' + esc(name) + '</div></div></button>';
+    }).join('');
+    pillsEl.style.display = '';
+  } else {
+    pillsEl.innerHTML = '';
+    pillsEl.style.display = 'none';
   }
 }
+
+function _pbCoverSrc(b) { return b.coverUrl || b.coverBase64 || b.coverImage || b.imageUrl || ''; }
+function _pbBookId(b) { return String(b.id || b._docId || ''); }
 
 function _pbCard(b) {
   const c1 = b.c1||'#2b8f91', c2 = b.c2||'#0a2341';
-  const coverSrc = b.coverUrl || b.coverBase64;
+  const coverSrc = _pbCoverSrc(b);
+  const id = _pbBookId(b);
   const initial = esc((b.title||'?')[0]);
   const coverBg = coverSrc ? '' : 'background:linear-gradient(145deg,' + c1 + ',' + c2 + ');';
-  const coverInner = coverSrc
-    ? '<img src="' + esc(coverSrc) + '" onerror="this.remove()">'
-    : initial;
-  const pct = b.progressPercent || 0;
-  const pages = b.currentPageTo ? b.currentPageTo + ' / ' + (b.totalPages||'?') + ' bls.' : '';
+  const coverInner = coverSrc ? '<img src="' + esc(coverSrc) + '" onerror="this.remove()">' : initial;
+  const pct = Math.max(0, Math.min(100, Math.round(b.progressPercent || 0)));
+  const pages = b.currentPageTo ? b.currentPageTo + ' / ' + (b.totalPages||'?') + ' bls.' : (b.totalPages ? b.totalPages + ' bls.' : '');
   const st = b.status || 'shelf';
   const stCls = st === 'reading' ? 'pb-status-reading' : st === 'finished' ? 'pb-status-finished' : 'pb-status-shelf';
-  const stTxt = st === 'reading' ? 'Að lesa' : st === 'finished' ? 'Lokið ✓' : 'Í hillunni';
-  let detail = '';
+  const stTxt = st === 'reading' ? 'Að lesa' : st === 'finished' ? 'Lokið' : 'Í hillunni';
+  let detail = '<div class="pb-meta">' + esc(pages || 'Engar blaðsíður skráðar') + '</div><span class="pb-status ' + stCls + '">' + stTxt + '</span>';
   if (st === 'reading') {
-    detail = '<div class="pb-meta">' + pages + '</div>' +
+    detail = '<div class="pb-meta">' + esc(pages || 'Í lestri') + '</div>' +
       '<div style="display:flex;align-items:center;gap:8px;margin-top:6px">' +
         '<div class="pb-bar" style="flex:1"><div class="pb-fill" style="width:' + pct + '%"></div></div>' +
         '<div class="pb-pct">' + pct + '%</div>' +
-      '</div>';
-  } else {
-    detail = '<div class="pb-meta">' + (b.totalPages||'?') + ' bls.' + (st==='finished'?' · Lokið':'') + '</div>';
+      '</div><span class="pb-status ' + stCls + '">' + stTxt + '</span>';
   }
-  return '<div class="pb-card"><div class="pb-cover" style="' + coverBg + '">' + coverInner + '</div><div class="pb-info"><div class="pb-title">' + esc(b.title||'Bók') + '</div>' + detail + '</div></div>';
+  return '<button class="pb-card" type="button" data-book-id="' + esc(id) + '" onclick="openParentBook(this.dataset.bookId)"><div class="pb-cover" style="' + coverBg + '">' + coverInner + '</div><div class="pb-info"><div class="pb-title">' + esc(b.title||'Bók') + '</div>' + detail + '</div></button>';
 }
+
+window.openParentBook = function(bookId) {
+  const book = (S.books || []).find(b => b.childKey === _selectedChild && _pbBookId(b) === String(bookId));
+  if (!book) return;
+  const body = document.getElementById('pb-book-detail-body');
+  const ov = document.getElementById('pb-book-detail');
+  if (!body || !ov) return;
+  const c1 = book.c1||'#2b8f91', c2 = book.c2||'#0a2341';
+  const coverSrc = _pbCoverSrc(book);
+  const initial = esc((book.title||'?')[0]);
+  const cover = coverSrc ? '<img src="' + esc(coverSrc) + '" onerror="this.remove()">' : initial;
+  const coverBg = coverSrc ? '' : 'background:linear-gradient(145deg,' + c1 + ',' + c2 + ')';
+  const pct = Math.max(0, Math.min(100, Math.round(book.progressPercent || 0)));
+  const statusText = book.status === 'finished' ? 'Lokið' : book.status === 'reading' ? 'Að lesa' : 'Í hillunni';
+  const pages = book.currentPageTo ? 'bls. ' + book.currentPageTo + ' af ' + (book.totalPages || '?') : (book.totalPages ? book.totalPages + ' blaðsíður' : 'Blaðsíðufjöldi vantar');
+  const words = book.wordsPerPage ? '~' + book.wordsPerPage + ' orð á blaðsíðu' : 'Orð á blaðsíðu ekki skráð';
+  const level = book.readingLoadLabel || classifyLoadKey(book.wordsPerPage, book.totalPages) || 'Óflokkað';
+  const source = book.wordCountSource ? ' · ' + book.wordCountSource : '';
+  const last = book.lastReadAt ? fmtDateShort(book.lastReadAt) : (book.updatedAt ? fmtDateShort(book.updatedAt) : '');
+  const entries = Array.isArray(book.journeyEntries) ? book.journeyEntries.length : 0;
+  body.innerHTML = '<div class="pb-detail-top"><div class="pb-detail-cover" style="' + coverBg + '">' + cover + '</div><div><div class="pb-detail-title">' + esc(book.title || 'Bók') + '</div><div class="pb-detail-sub">' + esc(statusText) + (last ? ' · síðast ' + esc(last) : '') + '</div><div style="margin-top:9px"><span class="pb-status ' + (book.status === 'finished' ? 'pb-status-finished' : book.status === 'reading' ? 'pb-status-reading' : 'pb-status-shelf') + '">' + esc(statusText) + '</span></div></div></div>' +
+    '<div class="pb-bar"><div class="pb-fill" style="width:' + pct + '%"></div></div>' +
+    '<div class="pb-detail-stats"><div class="pb-stat"><div class="pb-stat-l">Framvinda</div><div class="pb-stat-v">' + pct + '%</div></div><div class="pb-stat"><div class="pb-stat-l">Blaðsíður</div><div class="pb-stat-v">' + esc(pages) + '</div></div><div class="pb-stat"><div class="pb-stat-l">Lesefni</div><div class="pb-stat-v">' + esc(level) + '</div></div><div class="pb-stat"><div class="pb-stat-l">Orð/bls.</div><div class="pb-stat-v">' + esc(words) + '</div></div></div>' +
+    '<div class="pb-note">' + entries + ' færsla/færslur í lestrarferðalagi' + esc(source) + '</div>' +
+    '<button class="pb-detail-close" type="button" onclick="requestDeleteParentBook(\'' + esc(_pbBookId(book)) + '\')" style="border-color:rgba(232,86,86,.35);background:rgba(232,86,86,.08);color:var(--danger)">Eyða bók</button>' +
+    '<button class="pb-detail-close" type="button" onclick="closeParentBook()">Loka</button>';
+  ov.classList.add('open');
+};
+window.closeParentBook = function(e) {
+  if (e && e.target !== e.currentTarget) return;
+  document.getElementById('pb-book-detail')?.classList.remove('open');
+};
+window.requestDeleteParentBook = function(bookId) {
+  const book = (S.books || []).find(b => b.childKey === _selectedChild && _pbBookId(b) === String(bookId));
+  if (!book) return;
+  confirmAction('delete-book', _pbBookId(book));
+  const title = document.getElementById('confirm-title');
+  const desc = document.getElementById('confirm-desc');
+  if (title) title.textContent = 'Eyða "' + (book.title || 'bók') + '"?';
+  if (desc) desc.textContent = 'Bókin verður fjarlægð úr bókasafni barnsins. Þetta er óafturkræft, en hefur ekki áhrif á önnur börn.';
+};
+
+window.deleteParentBook = async function(bookId) {
+  const book = (S.books || []).find(b => b.childKey === _selectedChild && _pbBookId(b) === String(bookId));
+  if (!book) return;
+  if (typeof firestoreDeleteDoc !== 'function') {
+    toast('deleteDoc vantar í firebase-config.js');
+    return;
+  }
+  try {
+    await firestoreDeleteDoc(doc(db, 'books', _pbBookId(book)));
+    closeParentBook();
+    toast('Bók eytt');
+    const idx = (S.books || []).findIndex(b => _pbBookId(b) === _pbBookId(book));
+    if (idx >= 0) S.books.splice(idx, 1);
+    _lastPbHash = '';
+    render();
+  } catch (e) {
+    console.warn('Delete book failed:', e);
+    toast('Ekki tókst að eyða bók');
+  }
+};
 
 
 

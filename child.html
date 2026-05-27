@@ -93,11 +93,17 @@ body{font-family:'DM Sans','Manrope',-apple-system,BlinkMacSystemFont,sans-serif
 .child-read-greeting .greeting-name{color:var(--accent,#1dcdd3)}
 .child-top-side{justify-self:end;min-width:42px;display:flex;align-items:center;justify-content:flex-end;gap:8px}
 .child-top-hidden{display:none!important}
+.child-logout-btn{height:32px;min-width:38px;border-radius:999px;border:1px solid rgba(122,187,218,.22);background:rgba(255,255,255,.025);color:rgba(217,229,239,.72);font:inherit;font-size:11px;font-weight:900;letter-spacing:.01em;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.child-logout-btn:active{transform:scale(.96);background:rgba(29,205,211,.10);color:var(--accent,#1dcdd3);border-color:rgba(29,205,211,.32)}
 .bookshelf-actions{display:flex;justify-content:flex-end;margin:0 0 10px;gap:8px}
 .bookshelf-edit-btn{height:34px;border-radius:999px;border:1px solid rgba(29,205,211,.26);background:rgba(29,205,211,.08);color:var(--accent,#1dcdd3);padding:0 13px;display:inline-flex;align-items:center;gap:7px;font:inherit;font-size:12px;font-weight:900;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .bookshelf-edit-btn svg{width:15px;height:15px;stroke:currentColor;fill:none;flex:0 0 auto}
 .bookshelf-edit-btn.active{background:rgba(29,205,211,.16);border-color:rgba(29,205,211,.55);box-shadow:0 0 18px rgba(29,205,211,.14)}
 .bookshelf-edit-btn:active{transform:scale(.97)}
+.goal-edit-btn{height:36px;min-width:82px;justify-content:center;padding:0 10px;border-radius:12px;background:rgba(29,205,211,.075);white-space:nowrap}
+.goal-edit-btn span{font-size:11px}
+.goal-edit-btn.active{background:rgba(29,205,211,.18);border-color:rgba(29,205,211,.55)}
+@media(max-width:380px){.goal-edit-btn{min-width:42px;width:42px;padding:0}.goal-edit-btn span{display:none}.goal-edit-btn svg{width:16px;height:16px}}
 #screen-child-read .panel{padding-top:0}
 #screen-child-arangur .arangur-app{padding-top:0}
 #screen-child-arangur .page-title,#screen-child-arangur .page-sub{display:none}
@@ -786,10 +792,22 @@ body{font-family:'DM Sans','Manrope',-apple-system,BlinkMacSystemFont,sans-serif
     }
     .child-modal-result.show { display: block; }
     .child-action-preview-text { display: none; }
-    /* Full-screen book picker: keep save above nav and within reach */
-    #child-reading-modal.child-action-overlay{place-items:stretch center;padding:0;z-index:120}
-    #child-reading-modal .child-action-modal{width:min(100%,430px);height:100svh;max-height:100svh;border-radius:0;padding:calc(18px + env(safe-area-inset-top,0px)) 22px calc(104px + env(safe-area-inset-bottom,0px));}
-    #child-reading-save{bottom:calc(12px + env(safe-area-inset-bottom,0px));}
+    /* Book picker sheet: stays below iOS status area and above the bottom nav */
+    #child-reading-modal.child-action-overlay{
+      inset:0 0 calc(var(--nav-h) + var(--safe)) 0;
+      place-items:stretch center;
+      padding:calc(max(18px, env(safe-area-inset-top,0px) + 12px)) 0 0;
+      z-index:39;
+    }
+    #child-reading-modal .child-action-modal{
+      width:min(100%,430px);
+      height:100%;
+      max-height:100%;
+      border-radius:18px 18px 0 0;
+      padding:22px 22px 18px;
+    }
+    #child-reading-modal .child-action-close{top:14px;right:14px;z-index:6}
+    #child-reading-save{bottom:0;margin-top:14px;}
 
     /* ── Timer selector pills ── */
     .timer-selector {
@@ -938,7 +956,7 @@ body{font-family:'DM Sans','Manrope',-apple-system,BlinkMacSystemFont,sans-serif
   --line:rgba(29,205,211,.14);--line-hot:rgba(29,205,211,.38);
   --text:#d9e5ef;--soft:#7a8fa0;--accent:#1dcdd3;--accent2:#18bcc2;
   --accent-dim:rgba(29,205,211,.08);--accent-glow:rgba(29,205,211,.22);
-  --danger:#ff6b6b;--serif:'DM Serif Display',Georgia,serif;
+  --danger:#ff6b6b;--serif:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;
   --sans:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;
   background:radial-gradient(ellipse 600px 340px at 30% 0%,rgba(29,205,211,.07),transparent 60%),radial-gradient(ellipse 400px 280px at 80% 12%,rgba(62,130,173,.05),transparent 55%),var(--bg);
   color:var(--text);font-family:var(--sans);
@@ -959,6 +977,9 @@ body{font-family:'DM Sans','Manrope',-apple-system,BlinkMacSystemFont,sans-serif
 .header-avatar{width:36px;height:36px;border-radius:50%;border:1.5px solid var(--line-hot);background:radial-gradient(circle at 50% 35%,rgba(29,205,211,.18),rgba(8,19,31,.95) 68%);display:grid;place-items:center;transition:border-color .18s,box-shadow .18s}
 .header-avatar:hover,.header-avatar:focus-visible{border-color:rgba(29,205,211,.5);box-shadow:0 0 16px rgba(29,205,211,.2);outline:none}
 .header-avatar span{font-size:11px;font-weight:900;color:#dff8fb;letter-spacing:.3px}
+#screen-child-bookshelf .child-top.header{grid-template-columns:1fr auto 1fr;padding:calc(10px + env(safe-area-inset-top,0px)) 2px 10px;min-height:56px;gap:10px}
+#screen-child-bookshelf .header-title{font-family:inherit;font-size:14px;font-weight:900;letter-spacing:0;color:var(--text);line-height:1;justify-self:center}
+#screen-child-bookshelf .child-top-brand{font-family:inherit}
 .edit-bar{position:fixed;bottom:calc(var(--nav-h) + var(--safe) + 8px);left:50%;transform:translateX(-50%);width:min(calc(100% - 32px),410px);padding:10px 14px;border-radius:16px;border:1px solid rgba(29,205,211,.32);background:rgba(6,14,26,.94);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;z-index:38;box-shadow:0 -4px 24px rgba(0,0,0,.4),0 0 20px rgba(29,205,211,.08)}
 .edit-bar[hidden]{display:none!important}
 .edit-bar span{color:var(--text);font-size:12px;font-weight:800}
@@ -2240,7 +2261,7 @@ body{font-family:'DM Sans','Manrope',-apple-system,BlinkMacSystemFont,sans-serif
       <header class="child-top">
         <div class="child-top-brand"><b>Upp</b>Hátt</div>
         <div class="child-top-title child-read-greeting">Hæ, <span id="greeting-name" class="greeting-name">Lesari</span>!</div>
-        <div class="child-top-side"></div>
+        <div class="child-top-side"><button class="child-logout-btn" type="button" data-child-logout aria-label="Fara út">Út</button></div>
         <button id="home-btn" class="home-btn child-top-hidden" type="button" aria-label="Go home"></button>
       </header>
 
@@ -2400,12 +2421,10 @@ body{font-family:'DM Sans','Manrope',-apple-system,BlinkMacSystemFont,sans-serif
 <header class="child-top header" id="bsHeader">
   <div class="child-top-brand"><b>Upp</b>Hátt</div>
   <h1 class="child-top-title header-title">Bókahilla</h1>
-  <div class="child-top-side"></div>
+  <div class="child-top-side"><button class="child-logout-btn" type="button" data-child-logout aria-label="Fara út">Út</button></div>
   <button class="header-avatar child-top-hidden" id="openProfile" aria-label="Prófíll" type="button"><span id="navAvatar">KK</span></button>
 </header>
-<div class="bookshelf-actions">
-  <button class="bookshelf-edit-btn" id="toggleEditBooks" aria-label="Breyta bókum" type="button"><svg viewBox="0 0 24 24" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4.2L18.8 9.4a2.2 2.2 0 0 0 0-3.1l-1.1-1.1a2.2 2.2 0 0 0-3.1 0L4 15.8V20Z"/><path d="M13.5 6.5l4 4"/></svg><span>Breyta bókum</span></button>
-</div>
+
 <div class="edit-bar" id="editBar" hidden><span id="editCount">0 valdar</span><div class="edit-bar-actions"><select id="editStateSelect" class="edit-state-select" disabled><option value="">Færa ↓</option><option value="reading">Að lesa</option><option value="shelf">Á hillu</option><option value="finished">Lokið</option></select><button id="editSelectedBook" class="edit-move" disabled>✎ Breyta</button><button id="deleteSelectedBooks" class="edit-danger" disabled>Eyða</button><button id="cancelEditBooks" class="edit-cancel">Hætta við</button></div></div>
 <section id="featuredCard"></section>
 <section class="section" id="readingSection" style="display:none"><div class="section-head"><h2 class="section-title">Að lesa</h2><span class="section-count" id="readingCount">0</span></div><div class="rail-wrap"><button class="rail-arrow rail-arrow-left" data-rail="readingGrid" data-dir="-1"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10 3L5 8l5 5"/></svg></button><div class="book-rail" id="readingGrid"></div><button class="rail-arrow rail-arrow-right" data-rail="readingGrid" data-dir="1"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 3l5 5-5 5"/></svg></button></div></section>
@@ -2658,7 +2677,7 @@ body{font-family:'DM Sans','Manrope',-apple-system,BlinkMacSystemFont,sans-serif
   <header class="child-top">
     <div class="child-top-brand"><b>Upp</b>Hátt</div>
     <div class="child-top-title">Árangur</div>
-    <div class="child-top-side"></div>
+    <div class="child-top-side"><button class="child-logout-btn" type="button" data-child-logout aria-label="Fara út">Út</button></div>
     <span class="child-top-hidden" id="childName">Lesari</span>
   </header>
 
@@ -2808,7 +2827,7 @@ body{font-family:'DM Sans','Manrope',-apple-system,BlinkMacSystemFont,sans-serif
     <header class="child-top">
       <div class="child-top-brand"><b>Upp</b>Hátt</div>
       <div class="child-top-title">Ferðalag</div>
-      <div class="child-top-side"></div>
+      <div class="child-top-side"><button class="child-logout-btn" type="button" data-child-logout aria-label="Fara út">Út</button></div>
     </header>
     <section class="child-journey-hero">
       <div class="child-journey-kicker">Lestrarferðalag</div>
@@ -2857,7 +2876,7 @@ body{font-family:'DM Sans','Manrope',-apple-system,BlinkMacSystemFont,sans-serif
 
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js';
-import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js';
+import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js';
 import { getFirestore } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js';
 import { getStorage } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-storage.js';
 import { getFunctions } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-functions.js';
@@ -2960,8 +2979,26 @@ document.querySelectorAll('[data-nav]').forEach(b => {
   b.addEventListener('click', () => go(b.dataset.nav));
 });
 
+async function childLogout(){
+  const child=getChildSession();
+  try{
+    sessionStorage.setItem('upphatt_skip_child_redirect_once','1');
+    localStorage.setItem('upphatt_skip_child_redirect_once','1');
+    if(child&&child.childKey)localStorage.removeItem('upphatt_child_reading_setup_'+child.childKey);
+    localStorage.removeItem('upphatt_child');
+    localStorage.removeItem('childName');
+  }catch(e){}
+  try{await signOut(auth);}catch(e){}
+  window.location.href='index.html?skipChild=1';
+}
+document.addEventListener('click',e=>{
+  const btn=e.target.closest('[data-child-logout]');
+  if(!btn)return;
+  e.preventDefault();
+  childLogout();
+});
 // Global export
-window._child = { auth, db, storage, functions, CS, ensureAuth, getChildSession, go, toast };
+window._child = { auth, db, storage, functions, CS, ensureAuth, getChildSession, go, toast, childLogout };
 </script>
 
 
@@ -6212,7 +6249,19 @@ function goalOverviewPercentRingSVG(pct,ringClass='goal-overview-ring',size=46,r
   return '<svg class="'+ringClass+doneCls+'" viewBox="0 0 '+size+' '+size+'" aria-hidden="true"><circle class="ring-bg" cx="'+center+'" cy="'+center+'" r="'+r+'" fill="none" stroke-width="5"/><circle class="ring-fill" cx="'+center+'" cy="'+center+'" r="'+r+'" fill="none" stroke-width="5" stroke-linecap="round" stroke-dasharray="'+circ+'" stroke-dashoffset="'+offset+'" transform="rotate(-90 '+center+' '+center+')"/><text x="'+center+'" y="'+(center+3)+'" text-anchor="middle">'+Math.round(cleanPct)+'%</text></svg>';
 }
 
-function goalRingHTML(){ return ''; }
+function goalRingHTML(){
+  const visible=currentGoals.slice(0,2);
+  const items=visible.length?visible.map(g=>{
+    const info=GOAL_TYPES[g.type]||GOAL_TYPES.books;
+    const p=getGoalProgress(g);
+    const pct=Math.max(0,Math.min(100,p.pct||0));
+    const done=p.done||0;
+    const target=p.target||g.target||0;
+    return '<div class="goal-mini" aria-label="Markmið"><span class="goal-mini-icon">'+info.icon+'</span><span class="goal-mini-copy"><span class="goal-mini-title">'+esc(info.name)+'</span><span class="goal-mini-sub">'+esc(String(done))+'/'+esc(String(target))+' '+esc(info.unit)+'</span><span class="goal-mini-line"><span class="goal-mini-fill" style="width:'+pct+'%;min-width:'+(pct>0?'8px':'0')+'"></span></span></span></div>';
+  }).join(''):'<div class="goal-mini goal-mini-placeholder"><span class="goal-mini-icon">◎</span><span class="goal-mini-copy"><span class="goal-mini-title">Markmið</span><span class="goal-mini-sub">Sjá markmið í Árangur</span></span></div>';
+  const edit='<button class="bookshelf-edit-btn goal-edit-btn" id="toggleEditBooks" aria-label="Breyta bókum" type="button"><svg viewBox="0 0 24 24" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4.2L18.8 9.4a2.2 2.2 0 0 0 0-3.1l-1.1-1.1a2.2 2.2 0 0 0-3.1 0L4 15.8V20Z"/><path d="M13.5 6.5l4 4"/></svg><span>Breyta</span></button>';
+  return '<div class="goals-strip" aria-label="Markmið barns"><div class="goals-strip-main"><div class="goals-strip-title"><span class="goals-strip-icon">◎</span> Markmið</div><div class="goals-strip-items">'+items+'</div></div>'+edit+'</div>';
+}
 
 function render(){
   if(celebrating)return; // Don't re-render during celebration animation
@@ -6959,7 +7008,7 @@ document.getElementById('saveGoalBtn').addEventListener('click',async()=>{
 
 document.getElementById('closeGoalOverview').addEventListener('click',()=>closeOv('goalOverviewModal'));
 document.getElementById('closeGoalOverview2').addEventListener('click',()=>closeOv('goalOverviewModal'));
-document.getElementById('editGoalsFromOverview').addEventListener('click',()=>{closeOv('goalOverviewModal');openGoalModal()});
+document.getElementById('editGoalsFromOverview').addEventListener('click',()=>{closeOv('goalOverviewModal');toast('Markmið eru nú stillt í Árangur');});
 document.getElementById('closeGoal').addEventListener('click',()=>closeOv('goalModal'));
 document.getElementById('closeGoal2').addEventListener('click',()=>closeOv('goalModal'));
 
@@ -6998,7 +7047,7 @@ function openDelM(){if(!selIds.size)return;const n=books.filter(b=>selIds.has(b.
 let lpT=null,lpF=false;
 function attachLP(){document.querySelectorAll('[data-open-book]').forEach(el=>{if(el.dataset.lp==='1')return;el.dataset.lp='1';el.addEventListener('contextmenu',e=>e.preventDefault());el.addEventListener('pointerdown',()=>{lpF=false;clearTimeout(lpT);lpT=setTimeout(()=>{lpF=true;const id=el.dataset.openBook;if(editMode)toggleSel(id);else{selIds=new Set([id]);openDelM()}},650)});['pointerup','pointercancel','pointerleave'].forEach(ev=>el.addEventListener(ev,()=>clearTimeout(lpT)));el.addEventListener('click',e=>{if(lpF){e.preventDefault();e.stopPropagation();lpF=false}},true)})}
 
-document.getElementById('toggleEditBooks').addEventListener('click',()=>setEM(!editMode));
+document.addEventListener('click',e=>{const btn=e.target.closest('#toggleEditBooks');if(!btn)return;e.preventDefault();setEM(!editMode);});
 document.getElementById('cancelEditBooks').addEventListener('click',()=>setEM(false));
 // State dropdown — change status of selected books
 document.getElementById('editStateSelect').addEventListener('change',async function(){

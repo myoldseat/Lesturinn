@@ -38,20 +38,20 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
   --gold:#d4a017;
   --r:14px;
   --r-sm:10px;
+  --safe:env(safe-area-inset-bottom,0px);
+  --nav-h:68px;
 }
 
 /* ── Shell ── */
 .shell{
-  width:min(430px,100%);height:100dvh;min-height:100dvh;margin:0 auto;
-  display:grid;grid-template-rows:minmax(0,1fr) auto;
+  width:min(430px,100%);min-height:100dvh;margin:0 auto;
   background:var(--bg);color:var(--text);
   position:relative;overflow:hidden;
 }
-@supports(height:100svh){.shell{height:100svh;min-height:100svh}}
 
 /* ── Screens ── */
-.scr{display:none;height:100%;flex-direction:column;min-height:0}
-.scr.on{display:flex}
+.scr{display:none!important;flex-direction:column;min-height:100dvh}
+.scr.on{display:flex!important}
 
 /* ── Topbar ── */
 .top{
@@ -68,7 +68,7 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
 /* ── Body scroll ── */
 .bod{
   flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;
-  padding:10px 14px 18px;display:flex;flex-direction:column;gap:10px;
+  padding:10px 14px calc(var(--nav-h) + var(--safe) + 18px);display:flex;flex-direction:column;gap:10px;
   -webkit-overflow-scrolling:touch;scrollbar-width:none;
 }
 .bod::-webkit-scrollbar{display:none}
@@ -458,16 +458,16 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
 
 /* ── Bottom nav ── */
 .nav{
-  display:flex;align-items:stretch;background:rgba(5,11,22,.97);
+  position:fixed;bottom:0;left:50%;transform:translateX(-50%);
+  width:min(430px,100vw);height:calc(var(--nav-h) + var(--safe));
+  padding:5px 2px var(--safe);z-index:30;
+  display:flex;align-items:flex-start;background:rgba(5,11,22,.97);
   border-top:1px solid var(--border);
-  height:64px;min-height:64px;
-  padding:5px 2px 0;z-index:30;
-  flex:0 0 64px;
 }
 .nav button{
   flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;
   background:none;border:none;color:var(--muted);
-  font-size:11px;font-weight:500;padding:5px 2px 2px;min-height:0;
+  font-size:11px;font-weight:500;padding:5px 2px 2px;min-height:58px;
   cursor:pointer;position:relative;transition:color .2s;
   -webkit-tap-highlight-color:transparent;
   font-family:inherit;
@@ -498,7 +498,7 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
 /* ── Responsive ── */
 @media(max-width:390px){
   .top{padding:calc(12px + env(safe-area-inset-top,0px)) 12px 8px}
-  .bod{padding:8px 10px 18px;gap:8px}
+  .bod{padding:8px 10px calc(var(--nav-h) + var(--safe) + 18px);gap:8px}
   .cpill-av{width:26px;height:26px;font-size:10px}
   .cpill-name{font-size:11px}
   .rd-row{grid-template-columns:48px 1fr;gap:10px}

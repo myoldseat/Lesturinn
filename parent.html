@@ -521,6 +521,30 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
 .jn-commenter-item{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-sm);padding:9px 12px;margin-bottom:4px}
 .jn-commenter-text{font-size:15px;color:var(--text-bright);line-height:1.35}
 .jn-commenter-ctx{font-size:10px;color:var(--muted);margin-top:3px;font-style:italic}
+
+/* ── Recording cards (Hljóð skjár) ── */
+.rec-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px 16px;margin-bottom:8px;transition:border-color .2s}
+.rec-card:has(.clip-playing){border-color:var(--accent)}
+.rec-head{display:flex;align-items:flex-start;gap:12px}
+.rec-play-main{width:40px;height:40px;border-radius:50%;border:1.5px solid rgba(29,205,211,.3);background:rgba(29,205,211,.06);display:flex;align-items:center;justify-content:center;cursor:pointer;flex:0 0 40px;transition:background .15s,border-color .15s}
+.rec-play-main:active{background:rgba(29,205,211,.15)}
+.rec-info{flex:1;min-width:0}
+.rec-title{font-size:14px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rec-meta{font-size:11px;color:var(--muted);margin-top:2px;display:flex;align-items:center;gap:4px}
+.rec-dots{display:flex;gap:4px;margin-top:6px}
+.rec-dot{width:7px;height:7px;border-radius:50%;background:rgba(29,205,211,.25);border:1.5px solid rgba(29,205,211,.3);transition:all .3s}
+.rec-dot.played{background:var(--accent);border-color:var(--accent)}
+.rec-dot.active{background:var(--accent);border-color:var(--accent);box-shadow:0 0 6px rgba(29,205,211,.5)}
+.rec-star{font-size:18px;color:rgba(29,205,211,.2);cursor:pointer;transition:color .15s;padding:4px;flex:0 0 auto}
+.rec-star.on{color:#f0c94d}
+.rec-clips{margin-top:10px;display:flex;flex-direction:column;gap:4px}
+.rec-clip-row{display:flex;align-items:center;gap:8px;padding:3px 0}
+.rec-clip-btn{width:24px;height:24px;border-radius:50%;border:1px solid rgba(29,205,211,.2);background:rgba(29,205,211,.04);display:flex;align-items:center;justify-content:center;cursor:pointer;flex:0 0 24px;padding:0}
+.rec-clip-num{font-size:11px;font-weight:700;color:var(--muted);width:12px;text-align:center}
+.rec-clip-bar{flex:1;height:3px;border-radius:2px;background:rgba(29,205,211,.1);overflow:hidden}
+.rec-clip-fill{height:100%;width:0%;background:var(--accent);border-radius:2px;transition:width .3s linear}
+.rec-clip-time{font-size:10px;color:var(--muted);font-weight:600;width:32px;text-align:right}
+
 </style>
 </head>
 <body>
@@ -1144,6 +1168,20 @@ updateProgressPill(12);
 function recTab(el) {
   el.closest('.rec-tabs').querySelectorAll('.rec-tab').forEach(t => t.classList.remove('on'));
   el.classList.add('on');
+  const isUppáhalds = el.textContent.trim() === 'Uppáhalds';
+  const sessions = S.sessions || [];
+  const cs = sessions.filter(s => s.childKey === _selectedChild);
+  const withAudio = cs.filter(s => s.hasAudio && (s.audioPath || CLIP_KEYS.some(k => s[k])));
+  if (isUppáhalds) {
+    const favs = withAudio.filter(s => s.favorited);
+    renderRecordings(favs);
+    if (favs.length === 0) {
+      const listEl = document.getElementById('p-recordings-list');
+      if (listEl) listEl.innerHTML = '<div style="text-align:center;padding:24px;color:var(--muted);font-size:13px">Engin uppáhalds enn — ýttu á ★ til að vista</div>';
+    }
+  } else {
+    renderRecordings(withAudio);
+  }
 }
 
 /* ═══════════════════════════════════
@@ -2556,15 +2594,19 @@ function renderRecordings(sessions) {
     const date = s.date ? fmtDateShort(s.date) : '';
     const clipPaths = CLIP_KEYS.filter(k => s[k]);
     heroEl.innerHTML = `
-      <div class="crd" style="padding:14px;margin-bottom:4px" data-doc="${docId}">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-          <div>
-            <div style="font-size:14px;font-weight:700;color:var(--text)">${esc(title)}</div>
-            <div style="font-size:11px;color:var(--muted);margin-top:2px">${mins} mín · ${date} · ${clipPaths.length} hljóðbrot</div>
+      <div class="rec-card" style="border-color:var(--accent);margin-bottom:4px" data-doc="${docId}">
+        <div class="rec-head">
+          <div class="rec-play-main" onclick="playSessionClip('${docId}',0)" style="width:44px;height:44px;flex:0 0 44px;border-color:rgba(29,205,211,.4)">
+            <span style="display:block;width:0;height:0;border-left:11px solid var(--accent);border-top:7px solid transparent;border-bottom:7px solid transparent;margin-left:2px"></span>
           </div>
-          <div class="rec-fav ${s.favorites && Object.values(s.favorites).some(v=>v) ? 'on' : ''}" onclick="toggleFav('${docId}',this)" style="font-size:20px">★</div>
+          <div class="rec-info">
+            <div class="rec-title">${esc(title)}</div>
+            <div class="rec-meta"><span>${mins} mín</span><span>·</span><span>${date}</span><span>·</span><span>${clipPaths.length} hljóðbrot</span></div>
+            <div class="rec-dots">${clipPaths.map((k,i) => '<span class="rec-dot" id="rec-dot-' + docId + '-' + i + '"></span>').join('')}</div>
+          </div>
+          <div class="rec-star ${s.favorited ? 'on' : ''}" onclick="toggleFav('${docId}',this)">★</div>
         </div>
-        <div id="rec-clips-${docId}" style="display:flex;flex-direction:column;gap:6px">
+        <div class="rec-clips" id="rec-clips-${docId}">
           ${clipPaths.map((k,i) => _renderClipRow(docId, i, clipPaths.length)).join('')}
         </div>
       </div>`;
@@ -2577,16 +2619,21 @@ function renderRecordings(sessions) {
     const mins = Math.round((s.seconds||0)/60);
     const date = s.date ? fmtDateShort(s.date) : '';
     const clipPaths = CLIP_KEYS.filter(k => s[k]);
-    const hasFav = s.favorites && Object.values(s.favorites).some(v=>v);
-    return `<div class="rec-item" style="padding:12px 0;border-bottom:1px solid var(--border)" data-doc="${docId}">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-        <div>
-          <div style="font-size:13px;font-weight:600;color:var(--text)">${esc(title)}</div>
-          <div style="font-size:11px;color:var(--muted);margin-top:2px">${mins} mín · ${date} · ${clipPaths.length} hljóðbrot</div>
+    const hasFav = !!s.favorited;
+    const dots = clipPaths.map((k,i) => `<span class="rec-dot" id="rec-dot-${docId}-${i}"></span>`).join('');
+    return `<div class="rec-card" data-doc="${docId}">
+      <div class="rec-head">
+        <div class="rec-play-main" onclick="playSessionClip('${docId}',0)">
+          <span style="display:block;width:0;height:0;border-left:10px solid var(--accent);border-top:6px solid transparent;border-bottom:6px solid transparent;margin-left:2px"></span>
         </div>
-        <div class="rec-fav ${hasFav?'on':''}" onclick="toggleFav('${docId}',this)" style="font-size:18px">★</div>
+        <div class="rec-info">
+          <div class="rec-title">${esc(title)}</div>
+          <div class="rec-meta"><span>${mins} mín</span><span>·</span><span>${date}</span><span>·</span><span>${clipPaths.length} hljóðbrot</span></div>
+          <div class="rec-dots">${dots}</div>
+        </div>
+        <div class="rec-star ${hasFav?'on':''}" onclick="toggleFav('${docId}',this)">★</div>
       </div>
-      <div id="rec-clips-${docId}" style="display:flex;flex-direction:column;gap:6px">
+      <div class="rec-clips" id="rec-clips-${docId}">
         ${clipPaths.map((k,i) => _renderClipRow(docId, i, clipPaths.length)).join('')}
       </div>
     </div>`;
@@ -2594,15 +2641,15 @@ function renderRecordings(sessions) {
 }
 
 function _renderClipRow(docId, clipIndex, totalClips) {
-  return `<div style="display:flex;align-items:center;gap:10px;padding:4px 0" id="clip-row-${docId}-${clipIndex}">
-    <button onclick="playSessionClip('${docId}',${clipIndex})" style="width:28px;height:28px;border-radius:50%;border:1.5px solid rgba(29,205,211,.3);background:rgba(29,205,211,.08);display:flex;align-items:center;justify-content:center;cursor:pointer;flex:0 0 28px;padding:0">
-      <span id="clip-icon-${docId}-${clipIndex}" style="display:block;width:0;height:0;border-left:8px solid var(--accent);border-top:5px solid transparent;border-bottom:5px solid transparent;margin-left:2px"></span>
+  return `<div class="rec-clip-row" id="clip-row-${docId}-${clipIndex}">
+    <button class="rec-clip-btn" onclick="playSessionClip('${docId}',${clipIndex})">
+      <span id="clip-icon-${docId}-${clipIndex}" style="display:block;width:0;height:0;border-left:7px solid var(--accent);border-top:4px solid transparent;border-bottom:4px solid transparent;margin-left:1px"></span>
     </button>
-    <span style="font-size:12px;font-weight:700;color:var(--muted);width:14px;text-align:center;flex:0 0 14px">${clipIndex + 1}</span>
-    <div style="flex:1;height:3px;border-radius:2px;background:rgba(29,205,211,.12);overflow:hidden;position:relative">
-      <div id="clip-prog-${docId}-${clipIndex}" style="height:100%;width:0%;background:var(--accent);border-radius:2px;transition:width .3s linear"></div>
+    <span class="rec-clip-num">${clipIndex + 1}</span>
+    <div class="rec-clip-bar">
+      <div class="rec-clip-fill" id="clip-prog-${docId}-${clipIndex}"></div>
     </div>
-    <span id="clip-time-${docId}-${clipIndex}" style="font-size:10px;color:var(--muted);font-weight:600;width:32px;text-align:right;flex:0 0 32px">--:--</span>
+    <span class="rec-clip-time" id="clip-time-${docId}-${clipIndex}">--:--</span>
   </div>`;
 }
 
@@ -2683,16 +2730,17 @@ function _heroUpdateUI(playing, elapsed) {
   const ring  = document.getElementById('p-audio-progress-ring');
   const icon  = document.getElementById('p-audio-btn-icon');
   const timeEl = document.getElementById('p-audio-time');
-  const metaEl = document.getElementById('p-audio-meta');
 
-  /* Progress hringur — circumference 2π×26 ≈ 163 */
-  const pct = _heroTotalSecs > 0 ? Math.min(elapsed / _heroTotalSecs, 1) : 0;
+  /* Progress hringur — per hljóðbrot, ekki total */
+  /* Nota _heroAudio.duration ef til, annars 15 sek fallback */
+  const clipDur = (_heroAudio && _heroAudio.duration && isFinite(_heroAudio.duration)) ? _heroAudio.duration : 15;
+  const clipElapsed = _heroAudio ? _heroAudio.currentTime : 0;
+  const pct = clipDur > 0 ? Math.min(clipElapsed / clipDur, 1) : 0;
   if (ring) ring.style.strokeDashoffset = 163 * (1 - pct);
 
   /* Play / pause icon */
   if (icon) {
     if (playing) {
-      /* Pause — tvær lóðréttar línur */
       icon.style.cssText = 'width:14px;height:14px;display:flex;gap:4px;align-items:center;justify-content:center;margin-left:0';
       icon.innerHTML = '<span style="display:block;width:4px;height:14px;border-radius:2px;background:var(--accent)"></span><span style="display:block;width:4px;height:14px;border-radius:2px;background:var(--accent)"></span>';
     } else {
@@ -2701,12 +2749,12 @@ function _heroUpdateUI(playing, elapsed) {
     }
   }
 
-  /* Tímatali */
+  /* Tímatali — sýnir clip elapsed / clip duration */
   if (timeEl) {
-    if (playing || elapsed > 0) {
+    if (playing || clipElapsed > 0) {
       timeEl.style.display = 'block';
-      const e = Math.floor(elapsed);
-      const t = Math.floor(_heroTotalSecs);
+      const e = Math.floor(clipElapsed);
+      const t = Math.floor(clipDur);
       timeEl.textContent = `${_fmt(e)} / ${_fmt(t)}`;
     } else {
       timeEl.style.display = 'none';
@@ -2720,8 +2768,7 @@ function _fmt(s) {
 
 function _heroTick() {
   if (!_heroAudio || _heroAudio.paused) return;
-  _heroElapsed += 1/60;
-  _heroUpdateUI(true, _heroElapsed);
+  _heroUpdateUI(true, 0);
   _heroRaf = requestAnimationFrame(_heroTick);
 }
 
@@ -2837,13 +2884,19 @@ function _scUpdateUI(docId, clipIndex, elapsed, total, playing) {
   if (time) time.textContent = _fmt(Math.floor(elapsed));
   if (icon) {
     if (playing) {
-      icon.style.cssText = 'display:flex;gap:3px;align-items:center;justify-content:center;margin-left:0;border:none;width:auto;height:auto';
-      icon.innerHTML = '<span style="display:block;width:3px;height:12px;border-radius:1px;background:var(--accent)"></span><span style="display:block;width:3px;height:12px;border-radius:1px;background:var(--accent)"></span>';
+      icon.style.cssText = 'display:flex;gap:2px;align-items:center;justify-content:center;margin-left:0;border:none;width:auto;height:auto';
+      icon.innerHTML = '<span style="display:block;width:2.5px;height:10px;border-radius:1px;background:var(--accent)"></span><span style="display:block;width:2.5px;height:10px;border-radius:1px;background:var(--accent)"></span>';
     } else {
-      icon.style.cssText = 'display:block;width:0;height:0;border-left:8px solid var(--accent);border-top:5px solid transparent;border-bottom:5px solid transparent;margin-left:2px';
+      icon.style.cssText = 'display:block;width:0;height:0;border-left:7px solid var(--accent);border-top:4px solid transparent;border-bottom:4px solid transparent;margin-left:1px';
       icon.innerHTML = '';
     }
   }
+  /* Highlight rec-dots for this session */
+  const allDots = document.querySelectorAll(`[id^="rec-dot-${docId}-"]`);
+  allDots.forEach((d,i) => {
+    d.classList.toggle('played', i < clipIndex);
+    d.classList.toggle('active', i === clipIndex && playing);
+  });
 }
 
 function _scResetAll() {
@@ -2938,8 +2991,18 @@ window.playSessionClip = async function(docId, clipIndex) {
 window.toggleFav = async function(docId, el) {
   if (!docId) return;
   el.classList.toggle('on');
-  /* TODO: vista í Firestore þegar tengt */
-  toast(el.classList.contains('on') ? 'Vistað ★' : 'Fjarlægt');
+  const isFav = el.classList.contains('on');
+  toast(isFav ? 'Vistað ★' : 'Fjarlægt');
+  try {
+    await updateDoc(doc(db, 'sessions', docId), { favorited: isFav });
+    /* Update local S.sessions so filter works immediately */
+    const s = (S.sessions||[]).find(x => x._docId === docId);
+    if (s) s.favorited = isFav;
+  } catch(e) {
+    console.warn('Fav save failed:', e);
+    el.classList.toggle('on');
+    toast('Villa — reyndu aftur');
+  }
 };
 
 function fmtDateShort(d) {

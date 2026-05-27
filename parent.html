@@ -2935,17 +2935,28 @@ function _scUpdateUI(docId, clipIndex, elapsed, total, playing) {
       icon.innerHTML = '';
     }
   }
-  /* Highlight rec-dots for this session */
-  const allDots = document.querySelectorAll(`[id^="rec-dot-${docId}-"]`);
-  allDots.forEach((d,i) => {
-    d.classList.toggle('played', i < clipIndex);
-    d.classList.toggle('active', i === clipIndex && playing);
+
+}
+
+
+/* Uppfæra rec-dots — kölluð EINU SINNI per clip skipt, ekki á hverju frame */
+function _scUpdateDots(docId, clipIndex, playing) {
+  const allDots = document.querySelectorAll('[id^="rec-dot-' + docId + '-"]');
+  allDots.forEach(function(d, i) {
+    if (i < clipIndex) {
+      d.className = 'rec-dot played';
+    } else if (i === clipIndex && playing) {
+      d.className = 'rec-dot active';
+    } else {
+      d.className = 'rec-dot';
+    }
   });
 }
 
 function _scResetAll() {
   if (_scDocId !== null && _scClipIdx >= 0) {
     _scUpdateUI(_scDocId, _scClipIdx, 0, 0, false);
+    _scUpdateDots(_scDocId, _scClipIdx, false);
   }
   if (_scAudio) { _scAudio.pause(); _scAudio = null; }
   if (_scRaf) { cancelAnimationFrame(_scRaf); _scRaf = null; }
@@ -2976,6 +2987,7 @@ window.playSessionClip = async function(docId, clipIndex) {
     _scAudio.pause();
     if (_scRaf) { cancelAnimationFrame(_scRaf); _scRaf = null; }
     _scUpdateUI(docId, clipIndex, _scAudio.currentTime, _scAudio.duration || 1, false);
+    _scUpdateDots(docId, clipIndex, false);
     _scPlaying = false;
     return;
   }
@@ -2984,6 +2996,7 @@ window.playSessionClip = async function(docId, clipIndex) {
   if (_scDocId === docId && _scClipIdx === clipIndex && _scAudio && _scAudio.paused) {
     _scAudio.play();
     _scRaf = requestAnimationFrame(_scTick);
+    _scUpdateDots(docId, clipIndex, true);
     _scPlaying = true;
     return;
   }
@@ -3005,6 +3018,7 @@ window.playSessionClip = async function(docId, clipIndex) {
     };
     _scAudio.onended = () => {
       _scUpdateUI(docId, clipIndex, _scAudio.duration, _scAudio.duration, false);
+      _scUpdateDots(docId, clipIndex, false);
       if (_scRaf) { cancelAnimationFrame(_scRaf); _scRaf = null; }
       /* Auto-next clip */
       if (clipIndex + 1 < clipPaths.length) {
@@ -3023,6 +3037,7 @@ window.playSessionClip = async function(docId, clipIndex) {
     await _scAudio.play();
     toast('');
     _scPlaying = true;
+    _scUpdateDots(docId, clipIndex, true);
     _scRaf = requestAnimationFrame(_scTick);
   } catch(e) {
     console.warn('Clip play villa:', e);

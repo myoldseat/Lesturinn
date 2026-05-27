@@ -531,10 +531,6 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
 .rec-info{flex:1;min-width:0}
 .rec-title{font-size:14px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .rec-meta{font-size:11px;color:var(--muted);margin-top:2px;display:flex;align-items:center;gap:4px}
-.rec-dots{display:flex;gap:4px;margin-top:6px}
-.rec-dot{width:7px;height:7px;border-radius:50%;background:rgba(29,205,211,.2);border:1.5px solid rgba(29,205,211,.25)}
-.rec-dot.played{background:var(--accent);border-color:var(--accent)}
-.rec-dot.active{background:var(--accent);border-color:var(--accent)}
 .rec-star{font-size:18px;color:rgba(29,205,211,.2);cursor:pointer;transition:color .15s;padding:4px;flex:0 0 auto}
 .rec-star.on{color:#f0c94d}
 .rec-clips{margin-top:10px;display:flex;flex-direction:column;gap:4px}
@@ -544,6 +540,18 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
 .rec-clip-bar{flex:1;height:3px;border-radius:2px;background:rgba(29,205,211,.1);overflow:hidden}
 .rec-clip-fill{height:100%;width:0%;background:var(--accent);border-radius:2px;transition:width .3s linear}
 .rec-clip-time{font-size:10px;color:var(--muted);font-weight:600;width:32px;text-align:right}
+
+
+/* ── Clip dots (static — never re-rendered) ── */
+.clip-dots{display:flex;gap:4px;margin-top:6px}
+.clip-dots span{display:block;width:7px;height:7px;border-radius:50%;background:rgba(29,205,211,.18);border:1.5px solid rgba(29,205,211,.22)}
+
+/* ── Harmonikka (clip list, collapsed by default) ── */
+.rec-clips{max-height:0;overflow:hidden;transition:max-height .25s ease}
+.rec-clips.open{max-height:600px}
+.rec-expand{display:flex;align-items:center;gap:6px;padding:8px 0 0;cursor:pointer;background:none;border:none;font:inherit;color:var(--muted);font-size:11px;font-weight:600;width:100%}
+.rec-expand::after{content:"›";transform:rotate(90deg);transition:transform .2s;font-size:14px;font-weight:700;margin-left:auto}
+.rec-expand.open::after{transform:rotate(-90deg)}
 
 </style>
 </head>
@@ -2599,16 +2607,17 @@ function renderRecordings(sessions, force) {
     heroEl.innerHTML = `
       <div class="rec-card" style="border-color:var(--accent);margin-bottom:4px" data-doc="${docId}">
         <div class="rec-head">
-          <div class="rec-play-main" onclick="playSessionClip('${docId}',0)" style="width:44px;height:44px;flex:0 0 44px;border-color:rgba(29,205,211,.4)">
+          <div class="rec-play-main" onclick="playAllClips('${docId}')" style="width:44px;height:44px;flex:0 0 44px;border-color:rgba(29,205,211,.4)">
             <span style="display:block;width:0;height:0;border-left:11px solid var(--accent);border-top:7px solid transparent;border-bottom:7px solid transparent;margin-left:2px"></span>
           </div>
           <div class="rec-info">
             <div class="rec-title">${esc(title)}</div>
             <div class="rec-meta"><span>${mins} mín</span><span>·</span><span>${date}</span><span>·</span><span>${clipPaths.length} hljóðbrot</span></div>
-            <div class="rec-dots">${clipPaths.map((k,i) => '<span class="rec-dot" data-idx="' + i + '"></span>').join('')}</div>
+            <div class="clip-dots" id="dots-${docId}">${clipPaths.map((k,i) => '<span></span>').join('')}</div>
           </div>
           <div class="rec-star ${s.favorited ? 'on' : ''}" onclick="toggleFav('${docId}',this)">★</div>
         </div>
+        <button class="rec-expand" type="button" onclick="toggleHarmonikka(this)">${clipPaths.length} hljóðbrot</button>
         <div class="rec-clips" id="rec-clips-${docId}">
           ${clipPaths.map((k,i) => _renderClipRow(docId, i, clipPaths.length)).join('')}
         </div>
@@ -2623,19 +2632,19 @@ function renderRecordings(sessions, force) {
     const date = s.date ? fmtDateShort(s.date) : '';
     const clipPaths = CLIP_KEYS.filter(k => s[k]);
     const hasFav = !!s.favorited;
-    const dots = clipPaths.map((k,i) => `<span class="rec-dot" data-idx="${i}"></span>`).join('');
     return `<div class="rec-card" data-doc="${docId}">
       <div class="rec-head">
-        <div class="rec-play-main" onclick="playSessionClip('${docId}',0)">
+        <div class="rec-play-main" onclick="playAllClips('${docId}')">
           <span style="display:block;width:0;height:0;border-left:10px solid var(--accent);border-top:6px solid transparent;border-bottom:6px solid transparent;margin-left:2px"></span>
         </div>
         <div class="rec-info">
           <div class="rec-title">${esc(title)}</div>
           <div class="rec-meta"><span>${mins} mín</span><span>·</span><span>${date}</span><span>·</span><span>${clipPaths.length} hljóðbrot</span></div>
-          <div class="rec-dots">${dots}</div>
+          <div class="clip-dots" id="dots-${docId}">${clipPaths.map((k,i) => '<span></span>').join('')}</div>
         </div>
         <div class="rec-star ${hasFav?'on':''}" onclick="toggleFav('${docId}',this)">★</div>
       </div>
+      <button class="rec-expand" type="button" onclick="toggleHarmonikka(this)">${clipPaths.length} hljóðbrot</button>
       <div class="rec-clips" id="rec-clips-${docId}">
         ${clipPaths.map((k,i) => _renderClipRow(docId, i, clipPaths.length)).join('')}
       </div>
@@ -2673,7 +2682,6 @@ function _buildRecCard(s) {
   const date = s.date ? fmtDateShort(s.date) : '';
   const clipPaths = CLIP_KEYS.filter(k => s[k]);
   const hasFav = !!s.favorited;
-  const dots = clipPaths.map((k,i) => '<span class="rec-dot" data-idx="' + i + '"></span>').join('');
   return '<div class="rec-card" data-doc="' + docId + '">' +
     '<div class="rec-head">' +
       '<div class="rec-play-main" onclick="playSessionClip(\'' + docId + '\',0)">' +
@@ -2682,7 +2690,6 @@ function _buildRecCard(s) {
       '<div class="rec-info">' +
         '<div class="rec-title">' + esc(title) + '</div>' +
         '<div class="rec-meta"><span>' + mins + ' mín</span><span>·</span><span>' + date + '</span><span>·</span><span>' + clipPaths.length + ' hljóðbrot</span></div>' +
-        '<div class="rec-dots">' + dots + '</div>' +
       '</div>' +
       '<div class="rec-star ' + (hasFav ? 'on' : '') + '" onclick="toggleFav(\'' + docId + '\',this)">★</div>' +
     '</div>' +
@@ -2959,26 +2966,12 @@ function _scUpdateUI(docId, clipIndex, elapsed, total, playing) {
 }
 
 
-/* Uppfæra rec-dots — kölluð EINU SINNI per clip skipt, ekki á hverju frame */
-function _scUpdateDots(docId, clipIndex, playing) {
-  /* Per-kort scoping — finna öll kort með þetta docId og uppfæra dots í hverju */
-  document.querySelectorAll('[data-doc="' + docId + '"]').forEach(function(card) {
-    card.querySelectorAll('.rec-dot').forEach(function(d, i) {
-      if (i < clipIndex) {
-        d.className = 'rec-dot played';
-      } else if (i === clipIndex && playing) {
-        d.className = 'rec-dot active';
-      } else {
-        d.className = 'rec-dot';
-      }
-    });
-  });
-}
+
 
 function _scResetAll() {
   if (_scDocId !== null && _scClipIdx >= 0) {
     _scUpdateUI(_scDocId, _scClipIdx, 0, 0, false);
-    _scUpdateDots(_scDocId, _scClipIdx, false);
+    resetClipDots(_scDocId);
   }
   if (_scAudio) { _scAudio.pause(); _scAudio = null; }
   if (_scRaf) { cancelAnimationFrame(_scRaf); _scRaf = null; }
@@ -3009,7 +3002,6 @@ window.playSessionClip = async function(docId, clipIndex) {
     _scAudio.pause();
     if (_scRaf) { cancelAnimationFrame(_scRaf); _scRaf = null; }
     _scUpdateUI(docId, clipIndex, _scAudio.currentTime, _scAudio.duration || 1, false);
-    _scUpdateDots(docId, clipIndex, false);
     _scPlaying = false;
     return;
   }
@@ -3018,7 +3010,6 @@ window.playSessionClip = async function(docId, clipIndex) {
   if (_scDocId === docId && _scClipIdx === clipIndex && _scAudio && _scAudio.paused) {
     _scAudio.play();
     _scRaf = requestAnimationFrame(_scTick);
-    _scUpdateDots(docId, clipIndex, true);
     _scPlaying = true;
     return;
   }
@@ -3040,8 +3031,7 @@ window.playSessionClip = async function(docId, clipIndex) {
     };
     _scAudio.onended = () => {
       _scUpdateUI(docId, clipIndex, _scAudio.duration, _scAudio.duration, false);
-      _scUpdateDots(docId, clipIndex, false);
-      if (_scRaf) { cancelAnimationFrame(_scRaf); _scRaf = null; }
+        if (_scRaf) { cancelAnimationFrame(_scRaf); _scRaf = null; }
       /* Auto-next clip */
       if (clipIndex + 1 < clipPaths.length) {
         _playTransitionTone();
@@ -3059,7 +3049,7 @@ window.playSessionClip = async function(docId, clipIndex) {
     await _scAudio.play();
     toast('');
     _scPlaying = true;
-    _scUpdateDots(docId, clipIndex, true);
+    updateClipDots(docId, clipIndex);
     _scRaf = requestAnimationFrame(_scTick);
   } catch(e) {
     console.warn('Clip play villa:', e);
@@ -3136,6 +3126,55 @@ function _pbCard(b) {
     detail = '<div class="pb-meta">' + (b.totalPages||'?') + ' bls.' + (st==='finished'?' · Lokið':'') + '</div>';
   }
   return '<div class="pb-card"><div class="pb-cover" style="' + coverBg + '">' + coverInner + '</div><div class="pb-info"><div class="pb-title">' + esc(b.title||'Bók') + '</div>' + detail + '</div></div>';
+}
+
+
+
+
+/* ── Harmonikka toggle ── */
+window.toggleHarmonikka = function(btn) {
+  btn.classList.toggle('open');
+  const clips = btn.nextElementSibling;
+  if (clips) clips.classList.toggle('open');
+};
+
+/* ── Play all clips in session (stóri play takkinn) ── */
+window.playAllClips = function(docId) {
+  /* Opna harmonikku */
+  const card = document.querySelector('[data-doc="' + docId + '"]');
+  if (card) {
+    const btn = card.querySelector('.rec-expand');
+    const clips = card.querySelector('.rec-clips');
+    if (btn) btn.classList.add('open');
+    if (clips) clips.classList.add('open');
+  }
+  /* Spila fyrsta clip — auto-next tekur við */
+  window.playSessionClip(docId, 0);
+};
+
+/* ── Update dots (kölluð frá playSessionClip, EKKI frá render) ── */
+function updateClipDots(docId, activeIndex) {
+  const dotsEl = document.getElementById('dots-' + docId);
+  if (!dotsEl) return;
+  const spans = dotsEl.querySelectorAll('span');
+  spans.forEach(function(s, i) {
+    if (i <= activeIndex) {
+      s.style.background = 'var(--accent)';
+      s.style.borderColor = 'var(--accent)';
+    } else {
+      s.style.background = 'rgba(29,205,211,.18)';
+      s.style.borderColor = 'rgba(29,205,211,.22)';
+    }
+  });
+}
+
+function resetClipDots(docId) {
+  const dotsEl = document.getElementById('dots-' + docId);
+  if (!dotsEl) return;
+  dotsEl.querySelectorAll('span').forEach(function(s) {
+    s.style.background = 'rgba(29,205,211,.18)';
+    s.style.borderColor = 'rgba(29,205,211,.22)';
+  });
 }
 
 

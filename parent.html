@@ -1552,8 +1552,10 @@ window._onChildAdded = function() {
 const authMod  = await import('./js/auth.js').catch(e => { console.error('auth.js:', e); return {}; });
 const stateMod = await import('./js/state.js').catch(e => { console.error('state.js:', e); return { S: {} }; });
 const fbMod    = await import('./js/firebase-config.js').catch(e => { console.error('firebase-config:', e); return {}; });
+const libMod   = await import('./js/lib.js').catch(e => { console.error('lib.js:', e); return {}; });
 
 const { initAuth, openAddChildPopup, closeAddChildPopup, logout } = authMod;
+const writeListenEvent = libMod.writeListenEvent || (async () => false);
 const S = stateMod.S || {};
 const { db, collection, onSnapshot, query, where, doc, setDoc, updateDoc, deleteDoc, serverTimestamp, auth, storage, ref, getDownloadURL, signInWithEmailAndPassword } = fbMod;
 let firestoreDeleteDoc = deleteDoc;
@@ -3132,6 +3134,19 @@ function _scTick() {
   _scRaf = requestAnimationFrame(_scTick);
 }
 
+/* 2a: listenerName úr núverandi S (initAuth fyllir enn).
+   Gestur → roleLabel + guestName ("Amma Guðný"); foreldri → parentName.
+   Sameinað/claims-drifið nafn kemur í 2c. */
+const _ROLE_LABELS = { amma:'Amma', afi:'Afi', mamma:'Mamma', pabbi:'Pabbi', annad:'' };
+function _listenerName() {
+  if (S.role === 'guest') {
+    const label = _ROLE_LABELS[S.guestRole] || '';
+    const nm = S.guestName || 'Gestur';
+    return (label ? label + ' ' : '') + nm;
+  }
+  return S.parentName || S.parentDisplayName || (S.parentEmail ? S.parentEmail.split('@')[0] : 'Foreldri');
+}
+
 window.playSessionClip = async function(docId, clipIndex) {
   const session = (S.sessions||[]).find(s => s._docId === docId);
   if (!session) return;
@@ -3199,6 +3214,14 @@ window.playSessionClip = async function(docId, clipIndex) {
     _scPlaying = true;
     updateClipDots(docId, clipIndex);
     _scRaf = requestAnimationFrame(_scTick);
+
+    /* 2a: skrá hlustun við raun-spilun (cooldown í lib ver gegn auto-next/endurteknu) */
+    writeListenEvent({
+      familyId: S.familyId,
+      childKey: session.childKey,
+      listenerName: _listenerName(),
+      sessionDocId: docId,
+    }).catch(e => console.warn('listen-event:', e));
   } catch(e) {
     console.warn('Clip play villa:', e);
     toast('Villa við spilun');

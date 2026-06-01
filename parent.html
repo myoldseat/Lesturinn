@@ -3417,9 +3417,26 @@ document.addEventListener('click', function(e) {
     if (action.dataset.pbAction === 'delete') requestDeleteParentBook(bookId);
     return;
   }
-  if (Date.now() < _pbSuppressClickUntil && e.target.closest('.pb-card')) {
-    e.preventDefault();
-    e.stopPropagation();
+  const card = e.target.closest('.pb-card');
+  if (card) {
+    if (Date.now() < _pbSuppressClickUntil) {
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
+    const row = card.closest('.pb-swipe');
+    if (row && row.classList.contains('open')) {
+      e.preventDefault();
+      e.stopPropagation();
+      closeParentSwipeRows();
+      return;
+    }
+    const bookId = card.dataset.bookId || (row ? row.dataset.bookId : '');
+    if (bookId) {
+      e.preventDefault();
+      e.stopPropagation();
+      openParentBook(bookId);
+    }
   }
 }, true);
 

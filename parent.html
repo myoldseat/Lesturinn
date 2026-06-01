@@ -650,7 +650,7 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
 .pb-grid{display:grid;gap:9px;margin-bottom:6px}
 .pb-empty{border:1px solid var(--border);background:var(--surface);border-radius:var(--r);padding:22px;text-align:center;color:var(--muted);font-size:13px}
 .pb-card{width:100%;display:grid;grid-template-columns:54px minmax(0,1fr);gap:11px;align-items:center;text-align:left;border:1px solid var(--border);background:var(--surface);border-radius:var(--r);padding:10px;color:inherit;font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
-.pb-card:active{border-color:var(--border-hl);background:var(--accent-soft)}.pb-card.pb-done{background:rgba(8,15,27,.72);border-color:rgba(255,255,255,.055);opacity:.82}.pb-card.pb-done .pb-cover{filter:saturate(.72) brightness(.82)}.pb-swipe{position:relative;overflow:hidden;border-radius:var(--r);touch-action:pan-y}.pb-swipe-actions{position:absolute;inset:0 0 0 auto;width:144px;display:grid;grid-template-columns:72px 72px;z-index:0}.pb-swipe-action{border:0;border-left:1px solid rgba(255,255,255,.06);font:inherit;font-size:11px;font-weight:900;color:#fff;cursor:pointer;-webkit-tap-highlight-color:transparent}.pb-swipe-action.move{background:linear-gradient(180deg,rgba(29,205,211,.32),rgba(29,205,211,.18));color:var(--accent)}.pb-swipe-action.delete{background:linear-gradient(180deg,rgba(232,86,86,.42),rgba(232,86,86,.26));color:#ffd9d9}.pb-swipe .pb-card{position:relative;z-index:1;transition:transform .22s cubic-bezier(.22,1,.36,1);will-change:transform;transform:translateX(var(--pb-swipe-x,0px))}.pb-swipe.open .pb-card{transform:translateX(-144px)}.pb-swipe.dragging .pb-card{transition:none}.pb-swipe.open .pb-card{border-color:rgba(29,205,211,.18)}
+.pb-card:active{border-color:var(--border-hl);background:var(--accent-soft)}.pb-card.pb-done{background:rgba(8,15,27,.72);border-color:rgba(255,255,255,.055);opacity:.82}.pb-card.pb-done .pb-cover{filter:saturate(.72) brightness(.82)}.pb-swipe{position:relative;overflow:hidden;border-radius:var(--r);touch-action:pan-y}.pb-swipe-actions{position:absolute;inset:0 0 0 auto;width:144px;display:grid;grid-template-columns:72px 72px;z-index:0}.pb-swipe-action{border:0;border-left:1px solid rgba(255,255,255,.06);font:inherit;font-size:11px;font-weight:900;color:#fff;cursor:pointer;-webkit-tap-highlight-color:transparent}.pb-swipe-action.move{background:linear-gradient(180deg,rgba(29,205,211,.32),rgba(29,205,211,.18));color:var(--accent)}.pb-swipe-action.delete{background:linear-gradient(180deg,rgba(232,86,86,.42),rgba(232,86,86,.26));color:#ffd9d9}.pb-swipe .pb-card{position:relative;z-index:1;background:#081426;transition:transform .22s cubic-bezier(.22,1,.36,1);will-change:transform;transform:translateX(var(--pb-swipe-x,0px))}.pb-swipe.open .pb-card{transform:translateX(-144px)}.pb-swipe.dragging .pb-card{transition:none}.pb-swipe.open .pb-card{border-color:rgba(29,205,211,.18)}.pb-swipe.open .pb-card.pb-done{background:#07101e}
 .pb-cover{width:54px;height:76px;border-radius:8px;overflow:hidden;display:grid;place-items:center;color:rgba(255,255,255,.92);font-size:20px;font-weight:800;box-shadow:0 8px 20px rgba(0,0,0,.25),inset 1px 0 0 rgba(255,255,255,.08)}
 .pb-cover img{width:100%;height:100%;object-fit:cover;display:block}
 .pb-info{min-width:0}.pb-title{font-size:15px;font-weight:800;color:var(--text-bright);line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pb-meta{font-size:12px;font-weight:600;color:var(--muted);margin-top:5px}.pb-bar{height:5px;border-radius:999px;background:rgba(255,255,255,.09);overflow:hidden}.pb-fill{height:100%;border-radius:999px;background:var(--accent)}.pb-pct{font-size:12px;font-weight:800;color:var(--accent);min-width:34px;text-align:right}.pb-status{display:inline-flex;align-items:center;width:max-content;margin-top:7px;border-radius:999px;padding:3px 8px;font-size:10px;font-weight:800}.pb-status-reading{background:rgba(29,205,211,.1);border:1px solid rgba(29,205,211,.22);color:var(--accent)}.pb-status-finished{background:rgba(212,160,23,.1);border:1px solid rgba(212,160,23,.22);color:var(--gold)}.pb-status-shelf{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);color:var(--muted)}
@@ -3300,7 +3300,7 @@ function _pbCard(b) {
         '<div class="pb-pct">' + pct + '%</div>' +
       '</div><span class="pb-status ' + stCls + '">' + stTxt + '</span>';
   }
-  return '<div class="pb-swipe" data-book-id="' + esc(id) + '"><div class="pb-swipe-actions"><button class="pb-swipe-action move" type="button" onclick="closeParentSwipeRows();openParentBook(\'' + esc(id) + '\')">F&aelig;ra</button><button class="pb-swipe-action delete" type="button" onclick="closeParentSwipeRows();requestDeleteParentBook(\'' + esc(id) + '\')">Ey&eth;a</button></div><button class="pb-card ' + (st === 'finished' ? 'pb-done' : '') + '" type="button" data-book-id="' + esc(id) + '" onclick="openParentBook(this.dataset.bookId)"><div class="pb-cover" style="' + coverBg + '">' + coverInner + '</div><div class="pb-info"><div class="pb-title">' + esc(b.title||'BÃ³k') + '</div>' + detail + '</div></button></div>';
+  return '<div class="pb-swipe" data-book-id="' + esc(id) + '"><div class="pb-swipe-actions"><button class="pb-swipe-action move" type="button" data-pb-action="move">F&aelig;ra</button><button class="pb-swipe-action delete" type="button" data-pb-action="delete">Ey&eth;a</button></div><button class="pb-card ' + (st === 'finished' ? 'pb-done' : '') + '" type="button" data-book-id="' + esc(id) + '" onclick="openParentBook(this.dataset.bookId)"><div class="pb-cover" style="' + coverBg + '">' + coverInner + '</div><div class="pb-info"><div class="pb-title">' + esc(b.title||'BÃ³k') + '</div>' + detail + '</div></button></div>';
 }
 
 window.openParentBook = function(bookId) {
@@ -3404,6 +3404,18 @@ window.closeParentSwipeRows = function(except) {
 };
 
 document.addEventListener('click', function(e) {
+  const action = e.target.closest('.pb-swipe-action');
+  if (action) {
+    e.preventDefault();
+    e.stopPropagation();
+    const row = action.closest('.pb-swipe');
+    const bookId = row ? row.dataset.bookId : '';
+    closeParentSwipeRows();
+    if (!bookId) return;
+    if (action.dataset.pbAction === 'move') openParentBook(bookId);
+    if (action.dataset.pbAction === 'delete') requestDeleteParentBook(bookId);
+    return;
+  }
   if (Date.now() < _pbSuppressClickUntil && e.target.closest('.pb-card')) {
     e.preventDefault();
     e.stopPropagation();

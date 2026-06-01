@@ -51,6 +51,26 @@ async function _buildIdentity(user, claims) {
 }
 
 /**
+ * Leysir auðkenni fyrir TILTEKINN notanda (claims + prófíll), með retry/backoff.
+ * Notað af síðum sem hafa sinn eigin onAuthStateChanged (t.d. parent.html með login-formi).
+ * @returns {Promise<object|null>}
+ */
+export async function resolveIdentity(user) {
+  if (!user) return null;
+  for (let i = 0; i < _DELAYS.length; i++) {
+    if (_DELAYS[i] > 0) await _wait(_DELAYS[i]);
+    try {
+      const token  = await user.getIdTokenResult(i > 0); // i>0 → force-refresh
+      const claims = token.claims || {};
+      if (claims.role && claims.familyId) return await _buildIdentity(user, claims);
+    } catch (e) {
+      if (i === _DELAYS.length - 1) return null;
+    }
+  }
+  return null; // notandi en engar nothæfar claims
+}
+
+/**
  * Leysir auth-stöðu án redirect.
  * @returns {Promise<object|null>} auðkenni eða null (enginn notandi / engin nothæf claims)
  */
@@ -58,22 +78,7 @@ export function resolveAuth() {
   return new Promise((resolve) => {
     const unsub = onAuthStateChanged(auth, async (user) => {
       unsub();
-      if (!user) { resolve(null); return; }
-      for (let i = 0; i < _DELAYS.length; i++) {
-        if (_DELAYS[i] > 0) await _wait(_DELAYS[i]);
-        try {
-          // i>0 → force-refresh svo ferskar claims sjáist.
-          const token  = await user.getIdTokenResult(i > 0);
-          const claims = token.claims || {};
-          if (claims.role && claims.familyId) {
-            resolve(await _buildIdentity(user, claims));
-            return;
-          }
-        } catch (e) {
-          if (i === _DELAYS.length - 1) { resolve(null); return; }
-        }
-      }
-      resolve(null); // notandi en engar nothæfar claims
+      resolve(user ? await resolveIdentity(user) : null);
     });
   });
 }

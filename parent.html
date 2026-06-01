@@ -597,12 +597,12 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
 .rec-card.playing{border-color:var(--border-hl)}
 
 /* Spilunarflötur (kemur í stað hringsins) — fallback bylgja, kápa síðar */
-.rec-tile{position:relative;flex:0 0 auto;width:46px;height:46px;border-radius:13px;
+.rec-tile{position:relative;flex:0 0 auto;width:56px;height:56px;border-radius:14px;
   border:1px solid var(--border-hl);background:linear-gradient(150deg,rgba(18,32,52,.95),rgba(11,21,38,.95));
   display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;overflow:hidden;
   -webkit-tap-highlight-color:transparent;transition:border-color .15s,background .15s}
 .rec-tile:active{background:var(--accent-soft)}
-.rec-hero .rec-tile{width:52px;height:52px}
+.rec-hero .rec-tile{width:62px;height:62px;border-radius:15px}
 .rec-card.playing .rec-tile{border-color:var(--accent)}
 .rec-tile-wave{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:3px;opacity:.45}
 .rec-tile-wave i{width:3px;height:11px;border-radius:2px;background:rgba(29,205,211,.5)}
@@ -638,6 +638,11 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
 .rec-clips.single{max-height:600px;margin-top:8px}
 .rec-clips.single .rec-clip-num{display:none}
 .rec-clips.single .rec-clip-btn{display:none}
+
+/* Stök upptaka: grönn inline framvindurönd undir metanum */
+.rec-inline{display:flex;align-items:center;gap:10px;margin-top:10px}
+.rec-inline .rec-clip-bar{flex:1}
+.rec-inline .rec-clip-time{width:auto;font-size:11px;color:var(--muted);font-weight:600}
 
 /* -- Parent bookshelf -- */
 .pb-back{align-self:flex-start;border:1px solid var(--border);background:rgba(255,255,255,.02);color:var(--accent);border-radius:999px;padding:8px 12px;font:inherit;font-size:12px;font-weight:700;cursor:pointer;-webkit-tap-highlight-color:transparent}
@@ -2797,10 +2802,17 @@ function _recCardHTML(s, isHero) {
       + `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>`
       + `</button></div>` : '';
 
-  const clipsClass = multi ? 'rec-clips' : 'rec-clips open single';
-  const clips = `<div class="${clipsClass}" id="rec-clips-${docId}">`
+  /* Stök upptaka: grönn framvindurönd inni í upplýsingadálknum (ekki tóm fullbreidd neðst).
+     Engine-id haldast (clip-prog/clip-time) svo spilun uppfærir hana óbreytt. */
+  const inlineProg = !multi ? `<div class="rec-inline">`
+      + `<div class="rec-clip-bar"><div class="rec-clip-fill" id="clip-prog-${docId}-0"></div></div>`
+      + `<span class="rec-clip-time" id="clip-time-${docId}-0">--:--</span>`
+      + `</div>` : '';
+
+  /* Margra-brota: nákvæmu raðirnar neðst (opnast með örinni). Stök: ekkert hér. */
+  const clips = multi ? `<div class="rec-clips" id="rec-clips-${docId}">`
       + clipPaths.map((k,i) => _renderClipRow(docId, i, n)).join('')
-      + `</div>`;
+      + `</div>` : '';
 
   return `<div class="rec-card${isHero ? ' rec-hero' : ''}" data-doc="${docId}">`
     + `<div class="rec-head">`
@@ -2809,6 +2821,7 @@ function _recCardHTML(s, isHero) {
         + `<div class="rec-title">${esc(title)}</div>`
         + `<div class="rec-meta"><span>${mins} mín</span><span>·</span><span>${date}</span><span>·</span><span>${n} hljóðbrot</span></div>`
         + dotsRow
+        + inlineProg
       + `</div>`
       + `<div class="rec-star ${fav}" onclick="toggleFav('${docId}',this)">★</div>`
     + `</div>`

@@ -1557,7 +1557,7 @@ const libMod   = await import('./js/lib.js').catch(e => { console.error('lib.js:
 const { initAuth, openAddChildPopup, closeAddChildPopup, logout } = authMod;
 const writeListenEvent = libMod.writeListenEvent || (async () => false);
 const S = stateMod.S || {};
-const { db, collection, onSnapshot, query, where, doc, setDoc, updateDoc, deleteDoc, serverTimestamp, auth, storage, ref, getDownloadURL, signInWithEmailAndPassword } = fbMod;
+const { db, collection, onSnapshot, query, where, doc, setDoc, updateDoc, deleteDoc, serverTimestamp, auth, storage, ref, getDownloadURL, signInWithEmailAndPassword, onAuthStateChanged } = fbMod;
 let firestoreDeleteDoc = deleteDoc;
 if (typeof firestoreDeleteDoc !== 'function') {
   const firestoreMod = await import('https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js').catch(() => ({}));
@@ -3734,9 +3734,84 @@ window._getNavParams = function() {
   };
 };
 
+/* ══════════════════════════════════════
+   2b — Sjálfstætt boot (á bak við ?gate=1)
+   Parent á sínar eigin hlustanir og auðkenni úr auth-gate,
+   óháð initAuth/parent-view. Sjálfgefið helst gamla leiðin.
+   ══════════════════════════════════════ */
+let _famUnsub2 = null, _booksUnsub2 = null;
+
+function startParentListeners(familyId) {
+  if (_famUnsub2) { _famUnsub2(); _famUnsub2 = null; }
+  if (_booksUnsub2) { _booksUnsub2(); _booksUnsub2 = null; }
+  /* sessions — sama lögun og parent-view: _docId + sort desc timestamp */
+  const sq = query(collection(db, 'sessions'), where('familyId', '==', familyId));
+  _famUnsub2 = onSnapshot(sq, snap => {
+    S.sessions = snap.docs.map(d => ({ _docId: d.id, ...d.data() }))
+      .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+  }, e => console.error('Family listener villa:', e));
+  /* books — sama lögun: id + data */
+  const bq = query(collection(db, 'books'), where('familyId', '==', familyId));
+  _booksUnsub2 = onSnapshot(bq, snap => {
+    S.books = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  }, e => console.warn('Books listener villa:', e));
+}
+
+function _teardownParentListeners() {
+  if (_famUnsub2) { _famUnsub2(); _famUnsub2 = null; }
+  if (_booksUnsub2) { _booksUnsub2(); _booksUnsub2 = null; }
+}
+window.addEventListener('beforeunload', _teardownParentListeners);
+
+async function bootParentGate() {
+  const gate = await import('./js/auth-gate.js').catch(e => { console.error('auth-gate:', e); return {}; });
+  if (!gate.resolveIdentity) { console.error('auth-gate.resolveIdentity vantar — fell back á initAuth'); initAuth(); startWatching(); return; }
+
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) {
+      _teardownParentListeners();
+      /* Engin hörð redirect enn — login-form parent helst (dev + núverandi hegðun).
+         Redirect-á-index kemur í Skref 4 (gáttin). */
+      document.getElementById('p-login-overlay')?.classList.add('show');
+      return;
+    }
+    const id = await gate.resolveIdentity(user);
+    if (!id || !['parent', 'guest'].includes(id.role)) {
+      console.warn('gate: ekki parent/guest →', id && id.role);
+      document.getElementById('p-login-overlay')?.classList.add('show');
+      return;
+    }
+    /* hydra S — það sem render() og _listenerName() lesa */
+    S.role        = id.role;
+    S.familyId    = id.familyId;
+    S.guestName   = id.guestName || null;
+    S.guestRole   = id.guestRole || null;
+    S.parentName  = id.name || S.parentName || null;
+    S.roleName    = id.roleName || S.roleName || null;
+    S.parentEmail = user.email || S.parentEmail || null;
+    if (id.children && id.children.length) {
+      S.parentChildren = id.children;
+    } else if (id.role === 'guest') {
+      try { S.parentChildren = (JSON.parse(localStorage.getItem('upphatt_guest') || '{}').children) || []; }
+      catch (e) { S.parentChildren = []; }
+    }
+    startParentListeners(id.familyId);
+    document.getElementById('p-login-overlay')?.classList.remove('show');
+    if (typeof go === 'function') go('today');
+    startWatching();
+    console.log('🚪 gate boot OK —', id.role, id.familyId);
+  });
+}
+
 /* ── Boot ── */
-initAuth();
-startWatching(); /* byrja polling strax — render() keyrir þegar S fyllst */
+const _USE_GATE = new URLSearchParams(location.search).has('gate');
+if (_USE_GATE) {
+  console.log('🚪 2b gate-boot virkt (?gate=1)');
+  bootParentGate();
+} else {
+  initAuth();
+  startWatching(); /* byrja polling strax — render() keyrir þegar S fyllst */
+}
 console.log('🚀 parent.html engine started');
 </script>
 </body>

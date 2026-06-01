@@ -1560,7 +1560,7 @@ const S = stateMod.S || {};
 const { db, collection, onSnapshot, query, where, doc, setDoc, updateDoc, deleteDoc, serverTimestamp, auth, storage, ref, getDownloadURL, signInWithEmailAndPassword } = fbMod;
 let firestoreDeleteDoc = deleteDoc;
 if (typeof firestoreDeleteDoc !== 'function') {
-  const firestoreMod = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js').catch(() => ({}));
+  const firestoreMod = await import('https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js').catch(() => ({}));
   firestoreDeleteDoc = firestoreMod.deleteDoc;
 }
 
@@ -3529,9 +3529,21 @@ window.toggleFav = async function(docId, el) {
 
 function fmtDateShort(d) {
   if (!d) return '';
-  const p = d.split('-'); if (p.length !== 3) return d;
-  const MONTHS = ['jan','feb','mar','apr','maí','jún','júl','ág','sep','okt','nóv','des'];
-  return parseInt(p[2]) + '. ' + (MONTHS[parseInt(p[1])-1] || '');
+  const MONTHS = ['jan','feb','mar','apr','maÃ­','jÃºn','jÃºl','Ã¡g','sep','okt','nÃ³v','des'];
+  if (typeof d === 'string') {
+    const p = d.split('-');
+    if (p.length === 3) return parseInt(p[2], 10) + '. ' + (MONTHS[parseInt(p[1], 10)-1] || '');
+    const parsed = new Date(d);
+    if (!isNaN(parsed.getTime())) return parsed.getDate() + '. ' + (MONTHS[parsed.getMonth()] || '');
+    return d;
+  }
+  let date = null;
+  if (d instanceof Date) date = d;
+  else if (typeof d === 'number') date = new Date(d > 100000000000 ? d : d * 1000);
+  else if (typeof d.seconds === 'number') date = new Date(d.seconds * 1000);
+  else if (typeof d.toDate === 'function') date = d.toDate();
+  if (!date || isNaN(date.getTime())) return '';
+  return date.getDate() + '. ' + (MONTHS[date.getMonth()] || '');
 }
 
 /* ── Settings børn ── */

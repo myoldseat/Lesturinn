@@ -245,7 +245,7 @@ body{font-family:'DM Sans','Manrope',-apple-system,BlinkMacSystemFont,sans-serif
     .star-9 { top: 78%; left: 84%; }
 
     .constellation-lines {
-      position: absolute; inset: 0; z-index: 7;
+      position: absolute; inset: 0; z-index: 2;
       pointer-events: none; overflow: visible;
     }
 
@@ -5130,6 +5130,8 @@ window._child = { auth, db, storage, functions, CS, ensureAuth, getChildSession,
         var midY = center.y + dirY * 0.58 + perpY * arc * 0.5;
         var c3x = center.x + dirX * 0.74 - perpX * arc * 0.68;
         var c3y = center.y + dirY * 0.74 - perpY * arc * 0.68;
+        /* Geislalæg frá miðju — falin undir z-9 orbi (constellation-lines er nú z-2),
+           svo taugin virðist koma frá miðju og sést frá brún orbsins og út. */
         return "M " + center.x + " " + center.y + " C " + c1x + " " + c1y + ", " + c2x + " " + c2y + ", " + midX + " " + midY + " S " + c3x + " " + c3y + ", " + target.x + " " + target.y;
       }
 

@@ -42,6 +42,8 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
   --nav-h:68px;
 }
 
+/* ── Boot splash ── */
+.parent-boot{position:fixed;inset:0;z-index:420;background:#07101e;display:grid;place-items:center;opacity:1;pointer-events:auto;transition:opacity .28s ease,visibility .28s ease}.parent-boot.hide{opacity:0;visibility:hidden;pointer-events:none}.parent-boot-inner{display:grid;gap:12px;place-items:center;transform:translateY(-2vh)}.parent-boot-logo{font-size:46px;font-weight:900;letter-spacing:-.04em;color:#e4edf5;text-shadow:0 18px 60px rgba(29,205,211,.16)}.parent-boot-logo span{color:var(--accent)}.parent-boot-mark{width:44px;height:3px;border-radius:999px;background:var(--accent);box-shadow:0 0 28px rgba(29,205,211,.55);animation:parentBootPulse 1.25s ease-in-out infinite}.parent-boot-text{min-height:16px;font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.04em;text-transform:uppercase;opacity:0;animation:parentBootText 1s ease forwards .9s}@keyframes parentBootPulse{0%,100%{opacity:.45;transform:scaleX(.62)}50%{opacity:1;transform:scaleX(1)}}@keyframes parentBootText{to{opacity:1}}
 /* ── Shell ── */
 .shell{
   width:min(430px,100%);min-height:100dvh;margin:0 auto;
@@ -431,6 +433,7 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
 #add-child-popup .confirm-card,#add-child-modal .confirm-card,.add-child-popup .confirm-card,.add-child-modal .confirm-card{background:#0d1a2e;border-color:var(--border-hl);border-radius:22px;color:var(--text)}
 #add-child-popup input,#add-child-modal input,.add-child-popup input,.add-child-modal input{background:rgba(255,255,255,.035);border:1px solid var(--border);border-radius:14px;color:var(--text-bright);padding:13px 14px;font:inherit}
 #add-child-popup button[type="submit"],#add-child-modal button[type="submit"],.add-child-popup button[type="submit"],.add-child-modal button[type="submit"]{background:rgba(29,205,211,.15);border:1px solid rgba(29,205,211,.32);color:var(--accent);border-radius:14px;font-weight:900}
+.parent-add-child-card{width:min(380px,100%);background:#0d1a2e;border:1.5px solid var(--border-hl);border-radius:22px;padding:22px 18px 18px;box-shadow:0 20px 70px rgba(0,0,0,.35)}.parent-add-child-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:18px}.parent-add-child-kicker{font-size:10px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin-bottom:4px}.parent-add-child-title{font-size:22px;font-weight:900;color:var(--text-bright);line-height:1.05}.parent-add-child-sub{font-size:12px;color:var(--muted);line-height:1.4;margin-top:6px}.parent-add-child-close{width:36px;height:36px;border-radius:50%;border:1px solid var(--border);background:rgba(255,255,255,.03);color:var(--muted);font:inherit;font-size:20px;line-height:1;cursor:pointer}.parent-add-child-form{display:grid;gap:12px}.parent-add-child-field label{display:block;font-size:10px;font-weight:900;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}.parent-add-child-field input,.parent-add-child-field select{width:100%;background:rgba(255,255,255,.035);border:1px solid var(--border);border-radius:14px;color:var(--text-bright);padding:13px 14px;font:inherit;font-size:14px;outline:none}.parent-add-child-field input:focus,.parent-add-child-field select:focus{border-color:var(--border-hl);box-shadow:0 0 0 3px rgba(29,205,211,.08)}.parent-add-child-error{min-height:18px;font-size:12px;color:var(--danger);font-weight:700}.parent-add-child-actions{display:grid;grid-template-columns:1fr 1.4fr;gap:9px;margin-top:2px}.parent-add-child-secondary,.parent-add-child-primary{border-radius:14px;padding:12px;font:inherit;font-size:13px;font-weight:900;cursor:pointer}.parent-add-child-secondary{border:1px solid var(--border);background:rgba(255,255,255,.025);color:var(--text)}.parent-add-child-primary{border:1px solid rgba(29,205,211,.32);background:rgba(29,205,211,.14);color:var(--accent)}.parent-add-child-code{display:none;margin-top:14px;border:1px solid rgba(29,205,211,.24);background:rgba(29,205,211,.08);border-radius:16px;padding:14px;text-align:center}.parent-add-child-code.show{display:block}.parent-add-child-code-label{font-size:10px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}.parent-add-child-code-value{font-size:34px;font-weight:900;letter-spacing:.12em;color:var(--accent);text-indent:.12em}
 
 /* ── Confirm popup ── */
 .confirm-overlay{
@@ -658,6 +661,13 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
 </style>
 </head>
 <body>
+<div class="parent-boot" id="parent-boot" aria-live="polite">
+  <div class="parent-boot-inner">
+    <div class="parent-boot-logo"><span>Upp</span>Hátt</div>
+    <div class="parent-boot-mark"></div>
+    <div class="parent-boot-text">Hleð</div>
+  </div>
+</div>
 
 <!-- ═══ Hidden DOM hooks for auth.js + parent-view.js (renderar hér, enginn sér) ═══ -->
 <div style="display:none">
@@ -1186,6 +1196,27 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
     <button class="child-code-copy" type="button" onclick="copyChildCode()">Afrita kóða</button>
   </div>
 </div>
+
+<!-- ═══ Add child modal (parent-native) ═══ -->
+<div class="confirm-overlay" id="parent-add-child-modal">
+  <div class="parent-add-child-card">
+    <div class="parent-add-child-head">
+      <div>
+        <div class="parent-add-child-kicker">Börn</div>
+        <div class="parent-add-child-title">Bæta við barni</div>
+        <div class="parent-add-child-sub">Búðu til barnakóða sem barnið notar til að skrá sig inn.</div>
+      </div>
+      <button class="parent-add-child-close" type="button" onclick="closeAddChildPopup()" aria-label="Loka">×</button>
+    </div>
+    <div class="parent-add-child-form">
+      <div class="parent-add-child-field"><label for="pac-name">Nafn barns</label><input id="pac-name" type="text" autocomplete="off" placeholder="Nafn barns"></div>
+      <div class="parent-add-child-field"><label for="pac-year">Fæðingarár</label><select id="pac-year"></select></div>
+      <div class="parent-add-child-error" id="pac-error"></div>
+      <div class="parent-add-child-actions"><button class="parent-add-child-secondary" type="button" onclick="closeAddChildPopup()">Hætta við</button><button class="parent-add-child-primary" id="pac-submit" type="button" onclick="submitAddChild()">Bæta við</button></div>
+      <div class="parent-add-child-code" id="pac-code-box"><div class="parent-add-child-code-label">Barnakóði</div><div class="parent-add-child-code-value" id="pac-code-value">----</div></div>
+    </div>
+  </div>
+</div>
 <!-- ═══ Confirm popup ═══ -->
 <div class="confirm-overlay" id="confirm-popup">
   <div class="confirm-card">
@@ -1199,7 +1230,7 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
 </div>
 
 <!-- ═══ Login popup ═══ -->
-<div class="confirm-overlay show" id="p-login-overlay" style="z-index:300">
+<div class="confirm-overlay" id="p-login-overlay" style="z-index:300">
   <div class="confirm-card" style="max-width:340px;text-align:left;padding:28px 24px">
     <div style="text-align:center;margin-bottom:16px">
       <div style="font-size:22px;font-weight:600;color:var(--text-bright)"><span style="color:var(--accent)">Upp</span>Hátt</div>
@@ -1522,7 +1553,7 @@ function showAddAnother() {
 function closeAddAnother(addMore) {
   document.getElementById('ph-add-another').classList.remove('show');
   if (addMore) {
-    if (typeof openAddChildPopup === 'function') openAddChildPopup();
+    if (typeof window.openAddChildPopup === 'function') window.openAddChildPopup();
     else toast('openAddChildPopup tengist seinna');
   } else {
     toast('Þú getur alltaf bætt við börnum í Stillingar');
@@ -1557,7 +1588,7 @@ const libMod   = await import('./js/lib.js').catch(e => { console.error('lib.js:
 const { initAuth, openAddChildPopup, closeAddChildPopup, logout } = authMod;
 const writeListenEvent = libMod.writeListenEvent || (async () => false);
 const S = stateMod.S || {};
-const { db, collection, onSnapshot, query, where, doc, setDoc, updateDoc, deleteDoc, serverTimestamp, auth, storage, ref, getDownloadURL, signInWithEmailAndPassword, onAuthStateChanged } = fbMod;
+const { db, collection, onSnapshot, query, where, doc, getDoc, setDoc, updateDoc, deleteDoc, serverTimestamp, auth, storage, ref, getDownloadURL, signInWithEmailAndPassword, onAuthStateChanged } = fbMod;
 let firestoreDeleteDoc = deleteDoc;
 if (typeof firestoreDeleteDoc !== 'function') {
   const firestoreMod = await import('https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js').catch(() => ({}));
@@ -1565,16 +1596,20 @@ if (typeof firestoreDeleteDoc !== 'function') {
 }
 
 console.log('📦 Loaded:', { auth: !!initAuth, S: !!S, db: !!db });
+function hideParentBoot(){ document.getElementById('parent-boot')?.classList.add('hide'); }
+function showParentBoot(){ document.getElementById('parent-boot')?.classList.remove('hide'); }
+function showParentLogin(){ hideParentBoot(); document.getElementById('p-login-overlay')?.classList.add('show'); }
+function hideParentLogin(){ document.getElementById('p-login-overlay')?.classList.remove('show'); }
 
 /* ── goTo bridge: auth.js kallar þetta eftir login ── */
 window.goTo = function(screenId) {
   if (screenId === 'screen-parent-home') {
-    document.getElementById('p-login-overlay')?.classList.remove('show');
+    hideParentLogin();
     go('today');
     startWatching();
   } else if (screenId === 'screen-parent-login' || screenId === 'screen-child-login') {
     /* Sýna login popup á parent.html */
-    document.getElementById('p-login-overlay')?.classList.add('show');
+    showParentLogin();
   }
 };
 
@@ -1582,6 +1617,66 @@ window.goTo = function(screenId) {
 if (openAddChildPopup) window.openAddChildPopup = openAddChildPopup;
 if (closeAddChildPopup) window.closeAddChildPopup = closeAddChildPopup;
 if (logout) { window.logout = logout; window.parentLogout = logout; }
+function _parentBuildYearOptions(){
+  const sel=document.getElementById('pac-year'); if(!sel||sel.dataset.ready)return;
+  const now=new Date().getFullYear();
+  let html='<option value="">Veldu ár</option>';
+  for(let y=now-3;y>=now-18;y--) html+='<option value="'+y+'">'+y+'</option>';
+  sel.innerHTML=html; sel.dataset.ready='1';
+}
+function _parentChildCode(name){
+  const base=(name||'BARN').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^A-Za-z]/g,'').toUpperCase().slice(0,3).padEnd(3,'X');
+  return base + Math.floor(100 + Math.random()*900);
+}
+window.openAddChildPopup = function(){
+  _parentBuildYearOptions();
+  const modal=document.getElementById('parent-add-child-modal');
+  const name=document.getElementById('pac-name');
+  const err=document.getElementById('pac-error');
+  const btn=document.getElementById('pac-submit');
+  const box=document.getElementById('pac-code-box');
+  if(err)err.textContent=''; if(name)name.value=''; if(box)box.classList.remove('show');
+  if(btn){btn.textContent='Bæta við';btn.disabled=false;btn.onclick=submitAddChild;}
+  modal?.classList.add('show');
+  setTimeout(()=>name?.focus(),80);
+};
+window.closeAddChildPopup = function(){ document.getElementById('parent-add-child-modal')?.classList.remove('show'); };
+window.submitAddChild = async function(){
+  const name=document.getElementById('pac-name')?.value.trim()||'';
+  const birthYear=Number(document.getElementById('pac-year')?.value||0)||null;
+  const err=document.getElementById('pac-error');
+  const btn=document.getElementById('pac-submit');
+  if(err)err.textContent='';
+  if(!name){ if(err)err.textContent='Sláðu inn nafn barns.'; return; }
+  if(!birthYear){ if(err)err.textContent='Veldu fæðingarár.'; return; }
+  if(!auth?.currentUser||!S.familyId){ if(err)err.textContent='Innskráningu vantar.'; return; }
+  if(btn){btn.disabled=true;btn.textContent='Vista...';}
+  try{
+    let code=_parentChildCode(name);
+    if(typeof getDoc==='function'){
+      for(let i=0;i<6;i++){
+        const snap=await getDoc(doc(db,'codes',code));
+        if(!snap.exists())break;
+        code=_parentChildCode(name);
+      }
+    }
+    const childKey=Math.random().toString(36).slice(2,12);
+    const newChild={name,key:childKey,code,birthYear,totalPagesRead:0,totalWordsRead:0};
+    await setDoc(doc(db,'codes',code),{familyId:S.familyId,childKey,childName:name,birthYear});
+    const updated=[...(S.parentChildren||[]),newChild];
+    await setDoc(doc(db,'users',auth.currentUser.uid),{children:updated},{merge:true});
+    S.parentChildren=updated;
+    document.getElementById('pac-code-value').textContent=code;
+    document.getElementById('pac-code-box')?.classList.add('show');
+    if(btn){btn.disabled=false;btn.textContent='Loka';btn.onclick=closeAddChildPopup;}
+    _lastChildCount=-1; _lastPbHash=''; render(); updateSettings();
+    toast('Barn skráð');
+  }catch(e){
+    console.error('Add child failed:',e);
+    if(err)err.textContent='Ekki tókst að bæta við barni.';
+    if(btn){btn.disabled=false;btn.textContent='Bæta við';btn.onclick=submitAddChild;}
+  }
+};
 
 /* ── Login functions ── */
 const { parentLoginFromPopup, openParentLoginPopup, closeParentLoginPopup } = authMod;
@@ -1686,7 +1781,7 @@ function saveTotalPagesRead() {
     const sum = cb.reduce((a, b) => a + (b.currentPageTo || 0), 0);
     const storedPages = c.totalPagesRead || 0;
     /* Reikna heildarorð */
-    const wordsNow = cb.reduce((a, b) => a + ((b.currentPageTo || 0) * (b.wordsPerPage || 150)), 0);
+    const wordsNow = cb.reduce((a, b) => a + ((b.currentPageTo || 0) * (bookProgressWordsPerPage(b) || 150)), 0);
     const storedWords = c.totalWordsRead || 0;
 
     if (sum > storedPages || wordsNow > storedWords) {
@@ -1912,7 +2007,7 @@ function renderStats(sessions, books) {
   const child = (S.parentChildren || []).find(c => c.key === _selectedChild);
   const wordsNow = books.reduce((a, b) => {
     const pg = b.currentPageTo || 0;
-    const wpp = b.wordsPerPage || 150;
+    const wpp = bookProgressWordsPerPage(b) || 150;
     return a + (pg * wpp);
   }, 0);
   const totalWords = Math.max(child?.totalWordsRead || 0, wordsNow);
@@ -2238,9 +2333,9 @@ function renderLesefni(books) {
   const fallback = books.slice().sort((a,b) => bTs(b,'updatedAt') - bTs(a,'updatedAt'))[0];
   const book = active || fallback;
   const levels = loadLevels();
-  const key = book?.readingLoadKey || classifyLoadKey(book?.wordsPerPage, book?.totalPages);
+  const key = book?.readingLoadKey || classifyLoadKey(bookTextWordsPerPage(book));
   const idx = Math.max(0, levels.findIndex(l => l.key === key));
-  const label = book?.readingLoadLabel || levels[Math.max(0, idx)]?.label || '-';
+  const label = bookReadingLoadLabel(book);
   const estimate = book?.confidenceLevel && book.confidenceLevel !== 'high' ? ' · áætlað' : '';
   setText('p-lesefni-value', label);
   setText('p-lesefni-note', book ? `Núverandi lestrarstig${estimate}` : 'Bættu bók við bókahillu');
@@ -2266,18 +2361,18 @@ function renderFinishedBookDetails(books) {
   return `<div>${done.map(b => `<div class="progress-list-row"><div><div class="progress-list-title">${esc(b.title || 'Bók')}</div><div class="progress-list-meta">${esc(b.readingLoadLabel || 'Lesefni')} · ${b.totalPages || '?'} bls.</div></div><div class="progress-current-tag">✓</div></div>`).join('')}</div>`;
 }
 function loadLevels() { return [
-  { key:'seedling', label:'Spíra', range:'0-800 orð', desc:'Léttasta lesefnið' },
-  { key:'growing', label:'Vex', range:'801-3.500 orð', desc:'Stuttar bækur og einfaldari texti' },
-  { key:'reading', label:'Les', range:'3.501-12.000 orð', desc:'Sjálfstæðari lestur' },
-  { key:'flowing', label:'Flæðir', range:'12.001-35.000 orð', desc:'Lengri texti' },
-  { key:'soaring', label:'Flýgur', range:'35.000+ orð', desc:'Þyngsta lesefnið' }
+  { key:'seedling', label:'Spíra', range:'0-40 orð á textasíðu', desc:'Mjög léttur texti' },
+  { key:'growing', label:'Vex', range:'41-90 orð á textasíðu', desc:'Stuttar setningar og léttur lestur' },
+  { key:'reading', label:'Les', range:'91-170 orð á textasíðu', desc:'Sjálfstæðari lestur' },
+  { key:'flowing', label:'Flæðir', range:'171-260 orð á textasíðu', desc:'Þéttari texti og lengri kaflar' },
+  { key:'soaring', label:'Flýgur', range:'261+ orð á textasíðu', desc:'Þyngsta lesefnið' }
 ]; }
 function sessionPages(s) { if (Number(s.pagesRead) > 0) return Number(s.pagesRead); const from = Number(s.pageFrom || s.currentPageFrom || 0); const to = Number(s.pageTo || s.currentPageTo || 0); return to > from ? to - from : 0; }
-function sessionWords(s, books) { const pages = sessionPages(s); if (!pages) return 0; const book = books.find(b => (s.bookId && b.id === s.bookId) || (s.bookTitle && b.title === s.bookTitle)); return Math.round(pages * (Number(book?.wordsPerPage) || 150)); }
+function sessionWords(s, books) { const pages = sessionPages(s); if (!pages) return 0; const book = books.find(b => (s.bookId && b.id === s.bookId) || (s.bookTitle && b.title === s.bookTitle)); return Math.round(pages * (bookProgressWordsPerPage(book) || 150)); }
 function sessionKey(s) { const ms = sessionMs(s); return ms ? dateKey(new Date(ms)) : ''; }
 function sessionMs(s) { if (s.date) { const p = nd(s.date).split('-').map(Number); if (p.length === 3) return noon(new Date(p[0], p[1] - 1, p[2])).getTime(); } return s.timestamp || (s.createdAt?.seconds ? s.createdAt.seconds * 1000 : 0) || (s.createdAt?.toMillis ? s.createdAt.toMillis() : 0); }
 function bookFinishedInRange(b, startMs, endMs) { const t = bTs(b,'celebratedAt') || bTs(b,'lastReadAt') || bTs(b,'updatedAt'); return t >= startMs && t <= endMs; }
-function classifyLoadKey(wordsPerPage, totalPages) { const total = (Number(wordsPerPage) || 150) * (Number(totalPages) || 100); if (total <= 800) return 'seedling'; if (total <= 3500) return 'growing'; if (total <= 12000) return 'reading'; if (total <= 35000) return 'flowing'; return 'soaring'; }
+function classifyLoadKey(wordsPerPage) { const w = Number(wordsPerPage) || 0; if (w <= 0) return 'reading'; if (w <= 40) return 'seedling'; if (w <= 90) return 'growing'; if (w <= 170) return 'reading'; if (w <= 260) return 'flowing'; return 'soaring'; }
 function loadLabelFromKey(key) { const l = loadLevels().find(x => x.key === key); return l ? l.label : ''; }
 function bookTextWordsPerPage(book) { return Number(book?.readingDifficultyWordsPerTextPage || book?.readingLoad?.wordsPerPageEstimate || book?.wordsPerPage || book?.scope?.wordsPerPageEstimate || 0) || 0; }
 function bookProgressWordsPerPage(book) { return Number(book?.progressWordsPerBookPage || book?.scope?.progressWordsPerBookPage || bookTextWordsPerPage(book) || 0) || 0; }
@@ -3557,7 +3652,7 @@ window.toggleFav = async function(docId, el) {
 
 function fmtDateShort(d) {
   if (!d) return '';
-  const MONTHS = ['jan','feb','mar','apr','maÃ­','jÃºn','jÃºl','Ã¡g','sep','okt','nÃ³v','des'];
+  const MONTHS = ['jan','feb','mar','apr','ma\u00ed','j\u00fan','j\u00fal','\u00e1g','sep','okt','n\u00f3v','des'];
   if (typeof d === 'string') {
     const p = d.split('-');
     if (p.length === 3) return parseInt(p[2], 10) + '. ' + (MONTHS[parseInt(p[1], 10)-1] || '');
@@ -3721,7 +3816,7 @@ window.doLogin = async function() {
     await signInWithEmailAndPassword(auth, email, pw);
     console.log('✅ Login OK — onAuthStateChanged tekur við');
     /* Loka popup strax — ekki bíða eftir goTo */
-    document.getElementById('p-login-overlay')?.classList.remove('show');
+    hideParentLogin();
     /* onAuthStateChanged í auth.js tekur við héðan */
   } catch(e) {
     console.error('❌ Login villa:', e);
@@ -3775,20 +3870,20 @@ window.addEventListener('beforeunload', _teardownParentListeners);
 
 async function bootParentGate() {
   const gate = await import('./js/auth-gate.js').catch(e => { console.error('auth-gate:', e); return {}; });
-  if (!gate.resolveIdentity) { console.error('auth-gate.resolveIdentity vantar — fell back á initAuth'); initAuth(); startWatching(); return; }
+  if (!gate.resolveIdentity) { console.error('auth-gate.resolveIdentity vantar — fell back á initAuth'); hideParentBoot(); initAuth(); startWatching(); return; }
 
   onAuthStateChanged(auth, async (user) => {
     if (!user) {
       _teardownParentListeners();
       /* Engin hörð redirect enn — login-form parent helst (dev + núverandi hegðun).
          Redirect-á-index kemur í Skref 4 (gáttin). */
-      document.getElementById('p-login-overlay')?.classList.add('show');
+      showParentLogin();
       return;
     }
     const id = await gate.resolveIdentity(user);
     if (!id || !['parent', 'guest'].includes(id.role)) {
       console.warn('gate: ekki parent/guest →', id && id.role);
-      document.getElementById('p-login-overlay')?.classList.add('show');
+      showParentLogin();
       return;
     }
     /* hydra S — það sem render() og _listenerName() lesa */
@@ -3806,7 +3901,8 @@ async function bootParentGate() {
       catch (e) { S.parentChildren = []; }
     }
     startParentListeners(id.familyId);
-    document.getElementById('p-login-overlay')?.classList.remove('show');
+    hideParentLogin();
+    hideParentBoot();
     if (typeof go === 'function') go('today');
     startWatching();
     console.log('🚪 gate boot OK —', id.role, id.familyId);
@@ -3819,6 +3915,7 @@ async function bootParentGate() {
 const _USE_LEGACY = new URLSearchParams(location.search).has('legacy');
 if (_USE_LEGACY) {
   console.log('⚠️ legacy-boot virkt (?legacy=1)');
+  hideParentBoot();
   initAuth();
   startWatching(); /* byrja polling strax — render() keyrir þegar S fyllst */
 } else {

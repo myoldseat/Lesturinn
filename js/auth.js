@@ -119,39 +119,10 @@ async function processAuthUser(user) {
 
   await restoreMissingCodeDocsFromProfile(S.familyId, S.parentChildren);
 
-  document.getElementById('parent-pill').textContent = S.parentName;
-  document.getElementById('parent-hero').textContent = `Góðan dag, ${S.parentName}`;
-
-  if (S.parentChildren.length) {
-    document.getElementById('codes-list').innerHTML =
-      S.parentChildren.map(c => `
-        <div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid rgba(255,255,255,0.15)">
-          <div style="font-size:13px;font-weight:800;color:white">👦 ${c.name}</div>
-          <div style="font-family:Georgia,serif;font-size:20px;font-weight:700;color:rgba(255,255,255,0.9);letter-spacing:3px">${c.code || '—'}</div>
-        </div>`).join('');
-  } else {
-    try {
-      const codesSnap = await getDocs(query(collection(db, 'codes'), where('familyId', '==', S.familyId)));
-      if (!codesSnap.empty) {
-        const codes = codesSnap.docs.map(d => ({ code: d.id, ...d.data() }));
-        S.parentChildren = codes.map(c => ({ name: c.childName, key: c.childKey, code: c.code }));
-      }
-    } catch (e) { console.error('Kóðaleit villa:', e); }
-  }
-
-  const emailEl = document.getElementById('ph-user-email');
-  if (emailEl) emailEl.textContent = S.parentEmail;
-  const fcEl = document.getElementById('ph-family-code');
-  if (fcEl) fcEl.textContent = S.familyCode || '—';
-
-  initParentTheme();
-  startFamilyListener();
-  startBooksListener();
-  goTo('screen-parent-home');
-
-  document.getElementById('login-email').disabled    = false;
-  document.getElementById('login-pw').disabled       = false;
-  document.getElementById('login-error').textContent = '';
+  // ── Gátt: foreldri fer á parent.html ──
+  // Claims (setParentClaims) og familyCode-migration er búið hér að ofan,
+  // svo parent.html getur bootað beint úr claims + users-prófíl.
+  window.location.href = 'parent.html';
 }
 
 // ══════════════════════════════════════════
@@ -344,31 +315,12 @@ export async function famCodeLogin() {
       children: data.children || []
     }));
 
-    // Búa til sýnileg nöfn eftir hlutverki
-    const roleLabels = { amma: 'Amma', afi: 'Afi', mamma: 'Mamma', pabbi: 'Pabbi', annad: '' };
-    const displayRole = roleLabels[_selectedGuestRole] || '';
-    const displayName = displayRole ? `${displayRole} ${guestName}` : guestName;
-
-    document.getElementById('parent-pill').textContent = guestName;
-    document.getElementById('parent-hero').textContent = `Hæ, ${guestName}!`;
-    document.getElementById('codes-list').innerHTML = '';
-    const emailEl = document.getElementById('ph-user-email');
-    if (emailEl) emailEl.textContent = displayName;
-
-    // Fela viðkvæmt fyrir guest
-    const fcEl = document.getElementById('ph-family-code');
-    if (fcEl) fcEl.parentElement.style.display = 'none';
-    const addChildBtn = document.getElementById('ph-add-child-btn');
-    if (addChildBtn) addChildBtn.style.display = 'none';
-    const settingsBtn = document.querySelector('.ph-settings-btn');
-    if (settingsBtn) settingsBtn.style.display = 'none';
-
+    // ── Gátt: gestur fer á parent.html ──
+    // parent.html bootar í gesta-ham úr claims + upphatt_guest og beitir
+    // takmörkunum (body.role-guest) þar.
     closeParentLoginPopup();
-    initParentTheme();
-    startFamilyListener();
-    startBooksListener();
-    goTo('screen-parent-home');
     _anonymousLoginInProgress = false;
+    window.location.href = 'parent.html';
   } catch(e) {
     _anonymousLoginInProgress = false;
     errEl.textContent = 'Villa — reyndu aftur.';
@@ -876,7 +828,7 @@ export async function childLogin() {
     }));
     localStorage.setItem('childName', data.childName);
     _anonymousLoginInProgress = false;
-    window.location.href = 'child-v2.html';
+    window.location.href = 'child.html';
   } catch (e) {
     _anonymousLoginInProgress = false;
     err.textContent = 'Villa: ' + e.message;
@@ -956,7 +908,7 @@ export function initAuth() {
                 S.role = 'child'; S.familyId = data.familyId;
                 S.childKey = data.childKey; S.childName = data.childName;
                 localStorage.setItem('childName', data.childName || 'Lesari');
-                window.location.href = 'child-v2.html';
+                window.location.href = 'child.html';
               } catch (e) {
                 localStorage.removeItem('upphatt_child');
                 await signOut(auth).catch(() => {});
@@ -973,44 +925,8 @@ export function initAuth() {
           if (role === 'guest') {
             const saved = localStorage.getItem('upphatt_guest');
             if (saved) {
-              try {
-                const guestData = JSON.parse(saved);
-                S.role           = 'guest';
-                S.familyId       = guestData.familyId || token.claims.familyId;
-                S.guestName      = guestData.guestName || 'Gestur';
-                S.guestRole      = guestData.guestRole || '';
-                S.parentName     = S.guestName;
-                S.parentEmail    = '';
-                S.parentChildren = guestData.children || [];
-                S.familyCode     = guestData.familyCode || '';
-                S.expandedChildren = {};
-
-                const roleLabels = { amma: 'Amma', afi: 'Afi', mamma: 'Mamma', pabbi: 'Pabbi', annad: '' };
-                const displayRole = roleLabels[S.guestRole] || '';
-                const displayName = displayRole ? `${displayRole} ${S.guestName}` : S.guestName;
-
-                document.getElementById('parent-pill').textContent = S.guestName;
-                document.getElementById('parent-hero').textContent = `Hæ, ${S.guestName}!`;
-                document.getElementById('codes-list').innerHTML    = '';
-                const emailEl = document.getElementById('ph-user-email');
-                if (emailEl) emailEl.textContent = displayName;
-
-                const fcEl = document.getElementById('ph-family-code');
-                if (fcEl) fcEl.parentElement.style.display = 'none';
-                const addChildBtn = document.getElementById('ph-add-child-btn');
-                if (addChildBtn) addChildBtn.style.display = 'none';
-                const settingsBtn = document.querySelector('.ph-settings-btn');
-                if (settingsBtn) settingsBtn.style.display = 'none';
-
-                initParentTheme();
-                startFamilyListener();
-                startBooksListener();
-                goTo('screen-parent-home');
-              } catch (e) {
-                localStorage.removeItem('upphatt_guest');
-                await signOut(auth).catch(() => {});
-                goTo('screen-child-login');
-              }
+              // ── Gátt: gestur fer á parent.html (bootar í gesta-ham úr claims + localStorage) ──
+              window.location.href = 'parent.html';
             } else {
               await signOut(auth).catch(() => {});
               goTo('screen-child-login');

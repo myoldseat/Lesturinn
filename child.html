@@ -1309,7 +1309,7 @@ body{font-family:'DM Sans','Manrope',-apple-system,BlinkMacSystemFont,sans-serif
 .analysis-cell-meta{font-size:10px;color:var(--soft)}
 .analysis-boundary{display:flex;gap:8px;align-items:flex-start;background:rgba(255,180,0,.06);border:1px solid rgba(255,180,0,.18);border-radius:10px;padding:9px 11px;margin-top:8px;font-size:11px;color:#f0c060;line-height:1.4}
 .analysis-boundary-icon{flex:0 0 auto;font-size:12px;margin-top:1px}
-.analysis-question{text-align:center;margin:14px 0 10px;font-size:13px;color:var(--text);font-weight:600}
+.analysis-question{text-align:center;margin:14px 0 10px;font-size:13px;color:var(--text);font-weight:600}.analysis-layout{margin:13px 0 12px;border:1px solid var(--line);background:rgba(7,16,30,.42);border-radius:12px;padding:11px}.analysis-layout-title{font-size:11px;font-weight:900;color:var(--text);margin-bottom:3px}.analysis-layout-sub{font-size:10.5px;color:var(--soft);line-height:1.35;margin-bottom:9px}.analysis-layout-options{display:grid;grid-template-columns:1fr 1fr;gap:7px}.analysis-layout-option{border:1px solid var(--line);background:rgba(255,255,255,.025);color:var(--soft);border-radius:10px;padding:8px;text-align:left;font:inherit;cursor:pointer}.analysis-layout-option strong{display:block;color:var(--text);font-size:11px;margin-bottom:2px}.analysis-layout-option span{display:block;font-size:9.5px;line-height:1.25}.analysis-layout-option.active{border-color:rgba(29,205,211,.55);background:rgba(29,205,211,.12);color:var(--accent)}.analysis-layout-option.active strong{color:var(--accent)}.analysis-layout-result{margin-top:9px;font-size:10.5px;color:var(--soft);line-height:1.35}.analysis-layout-result strong{color:var(--accent)}
 
 .confirm-actions{display:flex;flex-direction:column;gap:7px}
 .confirm-actions .dialog-btn{margin-top:0}
@@ -2548,7 +2548,18 @@ body{font-family:'DM Sans','Manrope',-apple-system,BlinkMacSystemFont,sans-serif
 
   <div class="analysis-question">Virðist þetta vera dæmigerð síða í bókinni?</div>
 
-  <div class="confirm-actions">
+    <div class="analysis-layout" id="analysisLayoutPicker">
+    <div class="analysis-layout-title">Uppbygging bokar</div>
+    <div class="analysis-layout-sub">Veldu þetta til ad leidretta lesin ord i framvindu. Bladsidur teljast afram obreyttar.</div>
+    <div class="analysis-layout-options" id="bookLayoutOptions">
+      <button class="analysis-layout-option" type="button" data-layout="mostlyText"><strong>Flestar sidur texti</strong><span>Telja ord nastum obreytt.</span></button>
+      <button class="analysis-layout-option active" type="button" data-layout="regularIllustrated"><strong>Myndir reglulega</strong><span>Texti a flestum sidum.</span></button>
+      <button class="analysis-layout-option" type="button" data-layout="manyFullPageImages"><strong>Margar myndasidur</strong><span>Framvinda leidrett meira.</span></button>
+      <button class="analysis-layout-option" type="button" data-layout="irregularIllustrated"><strong>Mjog ojofn bok</strong><span>Thettar, lettar og tomar sidur.</span></button>
+    </div>
+    <div class="analysis-layout-result" id="layoutProgressMeta"></div>
+  </div>
+<div class="confirm-actions">
     <button class="dialog-btn confirm-typical" id="confirmTypical">✓ Já, þetta passar</button>
     <button class="dialog-btn confirm-retake" id="confirmRetake">📷 Taka aðra mynd</button>
   </div>
@@ -6631,7 +6642,7 @@ function showStep2Substep(name){
 }
 function resetF(){
   curCov=null;curCovHQ=null;pendingCoverUrl=null;pendingCoverGsPath=null;
-  _pendingBookId=null;_pendingSampleId=null;_pendingAnalysis=null;_isProcessing=false;
+  _pendingBookId=null;_pendingSampleId=null;_pendingAnalysis=null;_selectedLayoutType='regularIllustrated';_isProcessing=false;
   ['bookTitle','bookAuthor','bookPages'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});
   document.getElementById('bookStatus').value='shelf';
   document.getElementById('coverInput').value='';
@@ -6704,6 +6715,37 @@ const FALLBACK_PHOTO_ADVICE =
 function formatThousands(n){
   if(n==null)return '—';
   return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g,'.');
+}
+const BOOK_LAYOUT_PROFILES = {
+  mostlyText: { label: 'Flestar sidur texti', factor: 1.0 },
+  regularIllustrated: { label: 'Myndir reglulega', factor: 0.85 },
+  manyFullPageImages: { label: 'Margar myndasidur', factor: 0.70 },
+  irregularIllustrated: { label: 'Mjog ojofn bok', factor: 0.60 }
+};
+let _selectedLayoutType = 'regularIllustrated';
+function getLayoutProfile(type){ return BOOK_LAYOUT_PROFILES[type] || BOOK_LAYOUT_PROFILES.regularIllustrated; }
+function getAnalysisWordsPerTextPage(){ const rl=_pendingAnalysis&&_pendingAnalysis.readingLoad; return Number(rl&&(rl.wordsPerPage||rl.wordsPerPageEstimate||rl.wordsPerPageApprox))||0; }
+function getProgressWordsPerBookPage(){ const words=getAnalysisWordsPerTextPage(); if(!words)return 0; return Math.max(1,Math.round(words*getLayoutProfile(_selectedLayoutType).factor)); }
+function updateLayoutProgressMeta(){
+  const meta=document.getElementById('layoutProgressMeta'); if(!meta)return;
+  const words=getAnalysisWordsPerTextPage(); const profile=getLayoutProfile(_selectedLayoutType);
+  if(!words){meta.textContent='';return;}
+  const progressWords=getProgressWordsPerBookPage();
+  meta.innerHTML='Lestrarflokkur notar <strong>'+words+' ord</strong> a textasidu. Framvinduord verda <strong>~'+progressWords+' ord</strong> a bokarsidu ('+Math.round(profile.factor*100)+'%).';
+}
+function setupBookLayoutOptions(){
+  const wrap=document.getElementById('bookLayoutOptions'); if(!wrap||wrap.dataset.bound)return;
+  wrap.dataset.bound='1';
+  wrap.addEventListener('click',e=>{const btn=e.target.closest('[data-layout]'); if(!btn)return; _selectedLayoutType=btn.dataset.layout||'regularIllustrated'; wrap.querySelectorAll('[data-layout]').forEach(b=>b.classList.toggle('active',b===btn)); updateLayoutProgressMeta();});
+}
+async function saveBookLayoutProfile(){
+  if(!_pendingBookId||!_pendingAnalysis||!_pendingAnalysis.readingLoad)return;
+  const words=getAnalysisWordsPerTextPage(); if(!words)return;
+  const profile=getLayoutProfile(_selectedLayoutType); const progressWords=getProgressWordsPerBookPage();
+  const totalPages=Number(document.getElementById('bookPages').value||0)||null;
+  const patch={wordsPerPage:words,readingDifficultyWordsPerTextPage:words,layoutType:_selectedLayoutType,layoutLabel:profile.label,progressFactor:profile.factor,progressWordsPerBookPage:progressWords,progressTotalWordsEstimate:totalPages?progressWords*totalPages:null,readingLoadLabel:_pendingAnalysis.readingLoad.label||null,readingLoad:{..._pendingAnalysis.readingLoad,wordsPerPageEstimate:words},scope:_pendingAnalysis.scope||null};
+  if(previewMode){const b=books.find(x=>x.id===_pendingBookId); if(b)Object.assign(b,patch); render();}
+  else await updBook(_pendingBookId,patch);
 }
 
 /* ── SKREF 1 → 2: Vista bók (án readingLoad) ── */
@@ -6845,6 +6887,8 @@ function renderAnalysisPreview(data, dataUrl) {
 
   document.getElementById('analysisBoundary').style.display =
     data.readingLoad.boundaryRisk ? '' : 'none';
+  setupBookLayoutOptions();
+  updateLayoutProgressMeta();
 }
 
 /* ── Confirm-takkar (2 valkostir) ── */
@@ -6874,6 +6918,7 @@ async function handleConfirm(decision) {
       document.getElementById('pageInput').value = '';
       showStep2Substep('take');
     } else {
+      await saveBookLayoutProfile();
       goToDoneStep();
     }
   } catch (err) {
@@ -6908,6 +6953,7 @@ function goToDoneStep() {
   const badges = [];
   if (_pendingAnalysis?.readingLoad) badges.push(_pendingAnalysis.readingLoad.label);
   if (_pendingAnalysis?.scope) badges.push(_pendingAnalysis.scope.label);
+  if (_pendingAnalysis?.readingLoad) badges.push(getLayoutProfile(_selectedLayoutType).label);
   if (badges.length === 0) badges.push('Ekki metið');
   badgesEl.innerHTML = badges.map(b => '<span class="add-done-badge">' + b + '</span>').join('');
 

@@ -1309,7 +1309,7 @@ body{font-family:'DM Sans','Manrope',-apple-system,BlinkMacSystemFont,sans-serif
 .analysis-cell-meta{font-size:10px;color:var(--soft)}
 .analysis-boundary{display:flex;gap:8px;align-items:flex-start;background:rgba(255,180,0,.06);border:1px solid rgba(255,180,0,.18);border-radius:10px;padding:9px 11px;margin-top:8px;font-size:11px;color:#f0c060;line-height:1.4}
 .analysis-boundary-icon{flex:0 0 auto;font-size:12px;margin-top:1px}
-.analysis-question{text-align:center;margin:14px 0 10px;font-size:13px;color:var(--text);font-weight:600}.analysis-layout{margin:13px 0 12px;border:1px solid var(--line);background:rgba(7,16,30,.42);border-radius:12px;padding:11px}.analysis-layout-title{font-size:11px;font-weight:900;color:var(--text);margin-bottom:3px}.analysis-layout-sub{font-size:10.5px;color:var(--soft);line-height:1.35;margin-bottom:9px}.analysis-layout-options{display:grid;grid-template-columns:1fr 1fr;gap:7px}.analysis-layout-option{border:1px solid var(--line);background:rgba(255,255,255,.025);color:var(--soft);border-radius:10px;padding:8px;text-align:left;font:inherit;cursor:pointer}.analysis-layout-option strong{display:block;color:var(--text);font-size:11px;margin-bottom:2px}.analysis-layout-option span{display:block;font-size:9.5px;line-height:1.25}.analysis-layout-option.active{border-color:rgba(29,205,211,.55);background:rgba(29,205,211,.12);color:var(--accent)}.analysis-layout-option.active strong{color:var(--accent)}.analysis-layout-result{margin-top:9px;font-size:10.5px;color:var(--soft);line-height:1.35}.analysis-layout-result strong{color:var(--accent)}
+.analysis-question{text-align:center;margin:14px 0 10px;font-size:13px;color:var(--text);font-weight:600}.analysis-layout{margin:13px 0 12px;border:1px solid var(--line);background:rgba(7,16,30,.42);border-radius:12px;padding:11px}.analysis-layout-title{font-size:12px;font-weight:900;color:var(--text);margin-bottom:3px}.analysis-layout-sub{font-size:11.5px;color:var(--soft);line-height:1.35;margin-bottom:9px}.analysis-layout-options{display:grid;grid-template-columns:1fr 1fr;gap:7px}.analysis-layout-option{border:1px solid var(--line);background:rgba(255,255,255,.025);color:var(--soft);border-radius:10px;padding:8px;text-align:left;font:inherit;cursor:pointer}.analysis-layout-option strong{display:block;color:var(--text);font-size:12px;margin-bottom:2px}.analysis-layout-option span{display:block;font-size:10.5px;line-height:1.25}.analysis-layout-option.active{border-color:rgba(29,205,211,.55);background:rgba(29,205,211,.12);color:var(--accent)}.analysis-layout-option.active strong{color:var(--accent)}.analysis-layout-result{margin-top:9px;font-size:12px;color:var(--soft);line-height:1.35}.analysis-layout-result strong{color:var(--accent)}
 
 .confirm-actions{display:flex;flex-direction:column;gap:7px}
 .confirm-actions .dialog-btn{margin-top:0}
@@ -6532,14 +6532,16 @@ function openJourney(id){
 
   /* Stats: orð/síða · síður · heildarorð */
   const statsEl=document.getElementById('jm-stats');
-  const wpp = b.readingLoad?.wordsPerPageEstimate;
-  const totalWords = b.scope?.totalWordsEstimate;
+  const wpp = b.readingDifficultyWordsPerTextPage || b.readingLoad?.wordsPerPageEstimate || b.wordsPerPage;
+  const progressWpp = b.progressWordsPerBookPage || b.scope?.progressWordsPerBookPage || wpp;
+  const totalWords = b.progressTotalWordsEstimate || b.scope?.progressTotalWordsEstimate || b.scope?.adjustedTotalWordsEstimate || b.scope?.totalWordsEstimate;
   const scopeLbl = b.scope?.label;
   const totalPages = b.totalPages;
   const parts = [];
-  if(wpp) parts.push('~'+wpp+' orð á síðu');
+  if(wpp) parts.push('~'+wpp+' orð á textasíðu');
+  if(progressWpp && progressWpp !== wpp) parts.push('~'+progressWpp+' framvinduorð/síðu');
   if(totalPages) parts.push(totalPages + ' bls.');
-  if(totalWords) parts.push('~'+formatThousandsJm(totalWords)+' orð alls');
+  if(totalWords) parts.push('~'+formatThousandsJm(totalWords)+' orð í framvindu');
   else if(scopeLbl) parts.push(scopeLbl);
   if(parts.length){
     statsEl.textContent = parts.join(' · ');
@@ -6731,7 +6733,9 @@ function updateLayoutProgressMeta(){
   const words=getAnalysisWordsPerTextPage(); const profile=getLayoutProfile(_selectedLayoutType);
   if(!words){meta.textContent='';return;}
   const progressWords=getProgressWordsPerBookPage();
-  meta.innerHTML='Lestrarflokkur notar <strong>'+words+' ord</strong> a textasidu. Framvinduord verda <strong>~'+progressWords+' ord</strong> a bokarsidu ('+Math.round(profile.factor*100)+'%).';
+  const totalPages=Number(document.getElementById('bookPages').value||0)||0;
+  const adjustedTotal=totalPages?progressWords*totalPages:0;
+  meta.innerHTML='Lestrarflokkur: <strong>'+words+' orð á textasíðu</strong>. Framvinda: <strong>~'+progressWords+' orð á bókarsíðu</strong> ('+Math.round(profile.factor*100)+'%).'+(adjustedTotal?' Samtals: <strong>~'+formatThousands(adjustedTotal)+' framvinduorð</strong>.':'');
 }
 function setupBookLayoutOptions(){
   const wrap=document.getElementById('bookLayoutOptions'); if(!wrap||wrap.dataset.bound)return;
@@ -6743,7 +6747,11 @@ async function saveBookLayoutProfile(){
   const words=getAnalysisWordsPerTextPage(); if(!words)return;
   const profile=getLayoutProfile(_selectedLayoutType); const progressWords=getProgressWordsPerBookPage();
   const totalPages=Number(document.getElementById('bookPages').value||0)||null;
-  const patch={wordsPerPage:words,readingDifficultyWordsPerTextPage:words,layoutType:_selectedLayoutType,layoutLabel:profile.label,progressFactor:profile.factor,progressWordsPerBookPage:progressWords,progressTotalWordsEstimate:totalPages?progressWords*totalPages:null,readingLoadLabel:_pendingAnalysis.readingLoad.label||null,readingLoad:{..._pendingAnalysis.readingLoad,wordsPerPageEstimate:words},scope:_pendingAnalysis.scope||null};
+  const rawScope=_pendingAnalysis.scope||null;
+  const rawTotal=rawScope&&rawScope.totalWordsEstimate?Number(rawScope.totalWordsEstimate):null;
+  const adjustedTotal=totalPages?progressWords*totalPages:null;
+  const adjustedScope=rawScope?{...rawScope,rawTotalWordsEstimate:rawTotal,totalWordsEstimate:adjustedTotal||rawTotal,adjustedTotalWordsEstimate:adjustedTotal,progressTotalWordsEstimate:adjustedTotal,progressWordsPerBookPage:progressWords,progressFactor:profile.factor,layoutType:_selectedLayoutType}:null;
+  const patch={wordsPerPage:words,readingDifficultyWordsPerTextPage:words,rawTotalWordsEstimate:rawTotal,layoutType:_selectedLayoutType,layoutLabel:profile.label,progressFactor:profile.factor,progressWordsPerBookPage:progressWords,progressTotalWordsEstimate:adjustedTotal,readingLoadLabel:_pendingAnalysis.readingLoad.label||null,readingLoad:{..._pendingAnalysis.readingLoad,wordsPerPageEstimate:words},scope:adjustedScope};
   if(previewMode){const b=books.find(x=>x.id===_pendingBookId); if(b)Object.assign(b,patch); render();}
   else await updBook(_pendingBookId,patch);
 }
@@ -6872,7 +6880,7 @@ function renderAnalysisPreview(data, dataUrl) {
   if (data.scope) {
     document.getElementById('analysisScopeLabel').textContent = data.scope.label;
     document.getElementById('analysisScopeMeta').textContent =
-      data.scope.totalPages + ' bls. (~' + formatThousands(data.scope.totalWordsEstimate) + ' orð)';
+      data.scope.totalPages + ' bls. · framvinduorð reiknast hér að neðan';
   } else {
     document.getElementById('analysisScopeLabel').textContent = '—';
     document.getElementById('analysisScopeMeta').textContent = 'Vantar blaðsíðufjölda';

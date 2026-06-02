@@ -2278,6 +2278,12 @@ function sessionKey(s) { const ms = sessionMs(s); return ms ? dateKey(new Date(m
 function sessionMs(s) { if (s.date) { const p = nd(s.date).split('-').map(Number); if (p.length === 3) return noon(new Date(p[0], p[1] - 1, p[2])).getTime(); } return s.timestamp || (s.createdAt?.seconds ? s.createdAt.seconds * 1000 : 0) || (s.createdAt?.toMillis ? s.createdAt.toMillis() : 0); }
 function bookFinishedInRange(b, startMs, endMs) { const t = bTs(b,'celebratedAt') || bTs(b,'lastReadAt') || bTs(b,'updatedAt'); return t >= startMs && t <= endMs; }
 function classifyLoadKey(wordsPerPage, totalPages) { const total = (Number(wordsPerPage) || 150) * (Number(totalPages) || 100); if (total <= 800) return 'seedling'; if (total <= 3500) return 'growing'; if (total <= 12000) return 'reading'; if (total <= 35000) return 'flowing'; return 'soaring'; }
+function loadLabelFromKey(key) { const l = loadLevels().find(x => x.key === key); return l ? l.label : ''; }
+function bookTextWordsPerPage(book) { return Number(book?.readingDifficultyWordsPerTextPage || book?.readingLoad?.wordsPerPageEstimate || book?.wordsPerPage || book?.scope?.wordsPerPageEstimate || 0) || 0; }
+function bookProgressWordsPerPage(book) { return Number(book?.progressWordsPerBookPage || book?.scope?.progressWordsPerBookPage || bookTextWordsPerPage(book) || 0) || 0; }
+function bookTotalPages(book) { return Number(book?.totalPages || book?.scope?.totalPages || 0) || 0; }
+function bookReadingLoadLabel(book) { return book?.readingLoadLabel || book?.readingLoad?.label || loadLabelFromKey(book?.readingLoadKey || classifyLoadKey(bookTextWordsPerPage(book), bookTotalPages(book))) || 'Óflokkað'; }
+function bookLayoutLabel(book) { return book?.layoutLabel || book?.scope?.layoutLabel || ({mostlyText:'Já, flestar eru svipaðar',regularIllustrated:'Myndasíður af og til',manyFullPageImages:'Margar heilsíðumyndir',irregularIllustrated:'Ójöfn bók'}[book?.layoutType || book?.scope?.layoutType] || ''); }
 function getAchievements() { const child = (S.parentChildren || []).find(c => c.key === _selectedChild) || {}; const list = child.achievements || child.badges || []; if (!Array.isArray(list) || !list.length) return []; return list.map(a => a.icon || a.label || a.name || '✓'); }
 function emptyBucket(label) { return { label, mins:0, pages:0, words:0, days:0, doneBooks:0, daysInPeriod:7 }; }
 function noon(d) { const x = new Date(d); x.setHours(12,0,0,0); return x; }
@@ -3242,7 +3248,7 @@ function renderParentBookshelf(books) {
   const hash = [_selectedChild].concat(cb.map(b => [
     b.id || b._docId || '', b.title || '', b.status || '', b.currentPageTo || 0,
     b.totalPages || 0, b.progressPercent || 0, b.coverUrl || '', b.coverBase64 || '',
-    b.wordsPerPage || '', b.readingLoadLabel || '', b.updatedAt || '', b.lastReadAt || ''
+    b.wordsPerPage || '', b.readingDifficultyWordsPerTextPage || '', b.progressWordsPerBookPage || '', b.readingLoadLabel || '', b.readingLoad?.label || '', b.layoutLabel || '', b.layoutType || '', b.updatedAt || '', b.lastReadAt || ''
   ].join(':'))).join('|');
   if (hash === _lastPbHash) return;
   _lastPbHash = hash;
@@ -3316,10 +3322,14 @@ window.openParentBook = function(bookId) {
   const coverBg = coverSrc ? '' : 'background:linear-gradient(145deg,' + c1 + ',' + c2 + ')';
   const pct = Math.max(0, Math.min(100, Math.round(book.progressPercent || 0)));
   const statusText = book.status === 'finished' ? 'Lokið' : book.status === 'reading' ? 'Að lesa' : 'Í hillunni';
-  const pages = book.currentPageTo ? 'bls. ' + book.currentPageTo + ' af ' + (book.totalPages || '?') : (book.totalPages ? book.totalPages + ' blaðsíður' : 'Blaðsíðufjöldi vantar');
-  const words = book.wordsPerPage ? '~' + book.wordsPerPage + ' orð á blaðsíðu' : 'Orð á blaðsíðu ekki skráð';
-  const level = book.readingLoadLabel || classifyLoadKey(book.wordsPerPage, book.totalPages) || 'Óflokkað';
-  const source = book.wordCountSource ? ' · ' + book.wordCountSource : '';
+  const totalPages = bookTotalPages(book);
+  const textWords = bookTextWordsPerPage(book);
+  const progressWords = bookProgressWordsPerPage(book);
+  const pages = book.currentPageTo ? 'bls. ' + book.currentPageTo + ' af ' + (totalPages || '?') : (totalPages ? totalPages + ' blaðsíður' : 'Blaðsíðufjöldi vantar');
+  const words = textWords ? '~' + textWords + ' orð á textasíðu' + (progressWords && progressWords !== textWords ? ' · ~' + progressWords + ' framvinduorð/síðu' : '') : 'Orð á blaðsíðu ekki skráð';
+  const level = bookReadingLoadLabel(book);
+  const layout = bookLayoutLabel(book);
+  const source = (layout ? ' · ' + layout : '') + (book.wordCountSource ? ' · ' + book.wordCountSource : '');
   const last = book.lastReadAt ? fmtDateShort(book.lastReadAt) : (book.updatedAt ? fmtDateShort(book.updatedAt) : '');
   const entries = Array.isArray(book.journeyEntries) ? book.journeyEntries.length : 0;
   body.innerHTML = '<div class="pb-detail-top"><div class="pb-detail-cover" style="' + coverBg + '">' + cover + '</div><div><div class="pb-detail-title">' + esc(book.title || 'Bók') + '</div><div class="pb-detail-sub">' + esc(statusText) + (last ? ' · síðast ' + esc(last) : '') + '</div><div style="margin-top:9px"><span class="pb-status ' + (book.status === 'finished' ? 'pb-status-finished' : book.status === 'reading' ? 'pb-status-reading' : 'pb-status-shelf') + '">' + esc(statusText) + '</span></div></div></div>' +
@@ -3803,14 +3813,17 @@ async function bootParentGate() {
   });
 }
 
-/* ── Boot ── */
-const _USE_GATE = new URLSearchParams(location.search).has('gate');
-if (_USE_GATE) {
-  console.log('🚪 2b gate-boot virkt (?gate=1)');
-  bootParentGate();
-} else {
+/* ── Boot ──
+   Gátt-boot er nú sjálfgefið (foreldri + gestur úr claims).
+   Gamla initAuth-leiðin er aðeins öryggisnet á ?legacy=1. */
+const _USE_LEGACY = new URLSearchParams(location.search).has('legacy');
+if (_USE_LEGACY) {
+  console.log('⚠️ legacy-boot virkt (?legacy=1)');
   initAuth();
   startWatching(); /* byrja polling strax — render() keyrir þegar S fyllst */
+} else {
+  console.log('🚪 gate-boot sjálfgefið');
+  bootParentGate();
 }
 console.log('🚀 parent.html engine started');
 </script>

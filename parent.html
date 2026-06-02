@@ -1,8 +1,8 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="is">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -545,9 +545,9 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
 .book-dd-pct{font-size:12px;font-weight:600;color:var(--accent);flex:0 0 auto}
 
 /* ── Full journey overlay ── */
-.jn-all-overlay{display:none;position:fixed;inset:0;z-index:320;background:var(--bg);flex-direction:column}
+.jn-all-overlay{display:none;position:fixed;inset:0;z-index:320;background:var(--bg);flex-direction:column;height:100dvh;overflow:hidden}
 .jn-all-overlay.show{display:flex}
-.jn-all-top{flex:0 0 auto;display:flex;align-items:center;gap:10px;padding:14px 16px 10px;border-bottom:1px solid var(--border)}
+.jn-all-top{flex:0 0 auto;display:flex;align-items:center;gap:10px;padding:calc(14px + env(safe-area-inset-top,0px)) 16px 10px;border-bottom:1px solid var(--border)}
 .jn-all-back{background:none;border:none;color:var(--accent);font-size:22px;cursor:pointer;padding:0;line-height:1;flex:0 0 auto;-webkit-tap-highlight-color:transparent}
 .jn-all-title{flex:1;font-size:15px;font-weight:500;color:var(--text-bright);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .jn-all-share{background:none;border:1px solid var(--border-hl);border-radius:var(--r-sm);color:var(--accent);font-size:12px;font-weight:500;padding:6px 10px;cursor:pointer;transition:background .15s;-webkit-tap-highlight-color:transparent;white-space:nowrap;flex:0 0 auto;font-family:inherit}
@@ -555,7 +555,7 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
 .jn-all-filters{flex:0 0 auto;display:flex;gap:3px;padding:8px 14px;background:rgba(255,255,255,.02);border-bottom:1px solid var(--border)}
 .jn-filter-btn{flex:1;background:none;border:1px solid transparent;border-radius:7px;padding:6px 0;font-size:11px;font-weight:500;color:var(--muted);cursor:pointer;text-align:center;transition:all .15s;-webkit-tap-highlight-color:transparent;font-family:inherit}
 .jn-filter-btn.on{background:rgba(255,255,255,.06);border-color:rgba(29,205,211,.3);color:var(--text-bright)}
-.jn-all-body{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;padding:10px 14px 40px;display:flex;flex-direction:column;gap:4px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.jn-all-body{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;padding:10px 14px calc(40px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:4px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
 .jn-all-body::-webkit-scrollbar{display:none}
 .jn-commenter-group{margin-bottom:14px}
 .jn-commenter-hd{font-size:11px;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px}
@@ -1596,9 +1596,22 @@ if (typeof firestoreDeleteDoc !== 'function') {
 }
 
 console.log('📦 Loaded:', { auth: !!initAuth, S: !!S, db: !!db });
+const PARENT_BOOT_STARTED_AT = Date.now();
+const PARENT_MIN_BOOT_MS = 800;
+const PARENT_MAX_BOOT_MS = 2500;
+function _waitParentBootMin(){
+  return new Promise(resolve => setTimeout(resolve, Math.max(0, PARENT_MIN_BOOT_MS - (Date.now() - PARENT_BOOT_STARTED_AT))));
+}
+async function finishParentBoot(readyPromise){
+  await Promise.race([
+    Promise.all([_waitParentBootMin(), Promise.resolve(readyPromise).catch(() => {})]),
+    new Promise(resolve => setTimeout(resolve, PARENT_MAX_BOOT_MS))
+  ]);
+  hideParentBoot();
+}
 function hideParentBoot(){ document.getElementById('parent-boot')?.classList.add('hide'); }
 function showParentBoot(){ document.getElementById('parent-boot')?.classList.remove('hide'); }
-function showParentLogin(){ hideParentBoot(); document.getElementById('p-login-overlay')?.classList.add('show'); }
+function showParentLogin(){ finishParentBoot(Promise.resolve()).then(() => document.getElementById('p-login-overlay')?.classList.add('show')); }
 function hideParentLogin(){ document.getElementById('p-login-overlay')?.classList.remove('show'); }
 
 /* ── goTo bridge: auth.js kallar þetta eftir login ── */
@@ -1616,7 +1629,13 @@ window.goTo = function(screenId) {
 /* ── Auth functions á window ── */
 if (openAddChildPopup) window.openAddChildPopup = openAddChildPopup;
 if (closeAddChildPopup) window.closeAddChildPopup = closeAddChildPopup;
-if (logout) { window.logout = logout; window.parentLogout = logout; }
+if (logout) {
+  window.logout = async function parentLogoutToIndex() {
+    try { await logout(); }
+    finally { window.location.replace('index.html'); }
+  };
+  window.parentLogout = window.logout;
+}
 function _parentBuildYearOptions(){
   const sel=document.getElementById('pac-year'); if(!sel||sel.dataset.ready)return;
   const now=new Date().getFullYear();
@@ -3849,17 +3868,40 @@ let _famUnsub2 = null, _booksUnsub2 = null;
 function startParentListeners(familyId) {
   if (_famUnsub2) { _famUnsub2(); _famUnsub2 = null; }
   if (_booksUnsub2) { _booksUnsub2(); _booksUnsub2 = null; }
+
+  let sessionsReady = false, booksReady = false;
+  let resolveReady;
+  const ready = new Promise(resolve => { resolveReady = resolve; });
+  const markReady = () => {
+    if (sessionsReady && booksReady) resolveReady();
+  };
+
   /* sessions — sama lögun og parent-view: _docId + sort desc timestamp */
   const sq = query(collection(db, 'sessions'), where('familyId', '==', familyId));
   _famUnsub2 = onSnapshot(sq, snap => {
     S.sessions = snap.docs.map(d => ({ _docId: d.id, ...d.data() }))
       .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
-  }, e => console.error('Family listener villa:', e));
+    sessionsReady = true;
+    markReady();
+  }, e => {
+    console.error('Family listener villa:', e);
+    sessionsReady = true;
+    markReady();
+  });
+
   /* books — sama lögun: id + data */
   const bq = query(collection(db, 'books'), where('familyId', '==', familyId));
   _booksUnsub2 = onSnapshot(bq, snap => {
     S.books = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-  }, e => console.warn('Books listener villa:', e));
+    booksReady = true;
+    markReady();
+  }, e => {
+    console.warn('Books listener villa:', e);
+    booksReady = true;
+    markReady();
+  });
+
+  return ready;
 }
 
 function _teardownParentListeners() {
@@ -3870,7 +3912,8 @@ window.addEventListener('beforeunload', _teardownParentListeners);
 
 async function bootParentGate() {
   const gate = await import('./js/auth-gate.js').catch(e => { console.error('auth-gate:', e); return {}; });
-  if (!gate.resolveIdentity) { console.error('auth-gate.resolveIdentity vantar — fell back á initAuth'); hideParentBoot(); initAuth(); startWatching(); return; }
+  if (!gate.resolveIdentity) { console.error('auth-gate.resolveIdentity vantar — fell back á initAuth'); finishParentBoot(Promise.resolve());
+  initAuth(); startWatching(); return; }
 
   onAuthStateChanged(auth, async (user) => {
     if (!user) {
@@ -3900,11 +3943,22 @@ async function bootParentGate() {
       try { S.parentChildren = (JSON.parse(localStorage.getItem('upphatt_guest') || '{}').children) || []; }
       catch (e) { S.parentChildren = []; }
     }
-    startParentListeners(id.familyId);
+    const parentDataReady = startParentListeners(id.familyId);
     hideParentLogin();
-    hideParentBoot();
-    if (typeof go === 'function') go('today');
-    startWatching();
+    let parentRendered = false;
+    const renderWhenReady = parentDataReady.then(() => {
+      if (!parentRendered) {
+        if (typeof go === 'function') go('today');
+        startWatching();
+        parentRendered = true;
+      }
+    });
+    await finishParentBoot(renderWhenReady);
+    if (!parentRendered) {
+      if (typeof go === 'function') go('today');
+      startWatching();
+      parentRendered = true;
+    }
     console.log('🚪 gate boot OK —', id.role, id.familyId);
   });
 }
@@ -3915,7 +3969,7 @@ async function bootParentGate() {
 const _USE_LEGACY = new URLSearchParams(location.search).has('legacy');
 if (_USE_LEGACY) {
   console.log('⚠️ legacy-boot virkt (?legacy=1)');
-  hideParentBoot();
+  finishParentBoot(Promise.resolve());
   initAuth();
   startWatching(); /* byrja polling strax — render() keyrir þegar S fyllst */
 } else {

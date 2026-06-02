@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="is">
 <head>
 <meta charset="utf-8">
@@ -136,6 +136,16 @@ body{font-family:'DM Sans','Manrope',-apple-system,BlinkMacSystemFont,sans-serif
   border-radius:99px;background:var(--accent);box-shadow:0 0 10px rgba(29,205,211,.4);
 }
 
+/* ── Boot splash ── */
+.child-boot{position:fixed;inset:0;z-index:12000;background:#07101e;display:grid;place-items:center;opacity:1;pointer-events:auto;transition:opacity .28s ease,visibility .28s ease}
+.child-boot.hide{opacity:0;visibility:hidden;pointer-events:none}
+.child-boot-inner{display:grid;gap:12px;place-items:center;transform:translateY(-2vh)}
+.child-boot-logo{font-size:46px;font-weight:900;letter-spacing:-.04em;color:#e4edf5;text-shadow:0 18px 60px rgba(29,205,211,.16)}
+.child-boot-logo span{color:var(--accent)}
+.child-boot-mark{width:44px;height:3px;border-radius:999px;background:var(--accent);box-shadow:0 0 28px rgba(29,205,211,.55);animation:childBootPulse 1.25s ease-in-out infinite}
+.child-boot-text{min-height:16px;font-size:11px;font-weight:800;color:var(--muted);letter-spacing:.04em;text-transform:uppercase;opacity:0;animation:childBootText 1s ease forwards .9s}
+@keyframes childBootPulse{0%,100%{opacity:.45;transform:scaleX(.62)}50%{opacity:1;transform:scaleX(1)}}
+@keyframes childBootText{to{opacity:1}}
 /* ── Login overlay (dev) ── */
 .login-overlay{position:fixed;inset:0;z-index:300;background:rgba(7,13,22,.97);display:grid;place-items:center;padding:20px}
 .login-overlay.hidden{display:none}
@@ -2223,11 +2233,19 @@ body{font-family:'DM Sans','Manrope',-apple-system,BlinkMacSystemFont,sans-serif
 </head>
 <body>
 
+<div class="child-boot" id="child-boot" aria-live="polite">
+  <div class="child-boot-inner">
+    <div class="child-boot-logo"><span>Upp</span>Hátt</div>
+    <div class="child-boot-mark"></div>
+    <div class="child-boot-text">Hleð</div>
+  </div>
+</div>
+
 <!-- ═══════════════════════════════════════════
      DEV LOGIN OVERLAY — barnakóði
      ═══════════════════════════════════════════ -->
 
-<div class="login-overlay" id="c-login-overlay">
+<div class="login-overlay hidden" id="c-login-overlay">
   <div class="login-card">
     <h2><span>Upp</span>Hátt</h2>
     <div class="sub">Skráðu þig inn með barnakóða</div>
@@ -5834,11 +5852,15 @@ async function deleteGoal(index=null){
 }
 
 function startSessionsListener(){
-  if(!FID||!CK||previewMode)return;
-  try{
-    const q2=query(collection(db,'sessions'),where('familyId','==',FID),where('childKey','==',CK));
-    sessionsUnsub=onSnapshot(q2,snap=>{sessions=snap.docs.map(d=>({id:d.id,...d.data()}));render()},e=>console.warn('Sessions listener:',e));
-  }catch(e){console.warn('Sessions query failed:',e)}
+  if(!FID||!CK||previewMode)return Promise.resolve();
+  return new Promise(resolve=>{
+    let done=false;
+    const ready=()=>{if(!done){done=true;resolve();}};
+    try{
+      const q2=query(collection(db,'sessions'),where('familyId','==',FID),where('childKey','==',CK));
+      sessionsUnsub=onSnapshot(q2,snap=>{sessions=snap.docs.map(d=>({id:d.id,...d.data()}));render();ready()},e=>{console.warn('Sessions listener:',e);ready()});
+    }catch(e){console.warn('Sessions query failed:',e);ready()}
+  });
 }
 
 function getPeriodStart(period){
@@ -6000,32 +6022,38 @@ function dismissDemo(){try{localStorage.setItem(DEMO_KEY,'1')}catch(e){}demoDism
 function ts(b,f){const v=b[f];if(!v)return 0;if(typeof v==='number')return v;if(v.toMillis)return v.toMillis();if(v.seconds)return v.seconds*1000;return 0}
 
 function startListener(){
-  if(!FID||!CK)return;if(unsub)unsub();
+  if(!FID||!CK)return Promise.resolve();if(unsub)unsub();
   demoDismissed=isDemoDismissed();
   let q;
   try{
     q=query(collection(db,'books'),where('familyId','==',FID),where('childKey','==',CK));
   }catch(e){
     console.warn('Query build failed, showing demo:',e);
-    books=[...demoBooks];render();return;
+    books=[...demoBooks];render();return Promise.resolve();
   }
-  unsub=onSnapshot(q,async snap=>{
-    const real=snap.docs.map(d=>({id:d.id,...d.data()}));
-    if(real.length>0){
-      if(!demoDismissed)dismissDemo();
-      books=real;
-    }else if(!demoDismissed){
-      books=[...demoBooks];
-    }else{
-      books=[];
-    }
-    for(const b of books){await ensureLocalCover(b)}
-    _booksLoaded=true;
-    render();
-  },e=>{
-    console.error('Books listener error:',e);
-    // On permission/index error, show demo books as fallback
-    if(!books.length&&!demoDismissed){books=[...demoBooks];render()}
+  return new Promise(resolve=>{
+    let done=false;
+    const ready=()=>{if(!done){done=true;resolve();}};
+    unsub=onSnapshot(q,async snap=>{
+      const real=snap.docs.map(d=>({id:d.id,...d.data()}));
+      if(real.length>0){
+        if(!demoDismissed)dismissDemo();
+        books=real;
+      }else if(!demoDismissed){
+        books=[...demoBooks];
+      }else{
+        books=[];
+      }
+      for(const b of books){await ensureLocalCover(b)}
+      _booksLoaded=true;
+      render();
+      ready();
+    },e=>{
+      console.error('Books listener error:',e);
+      // On permission/index error, show demo books as fallback
+      if(!books.length&&!demoDismissed){books=[...demoBooks];render()}
+      ready();
+    });
   });
 }
 
@@ -7248,9 +7276,11 @@ if(previewMode){
   // render shows real covers immediately — no placeholder flash.
   const coverPreload=preloadAllCovers();
 
-  Promise.all([ensureAuth(),coverPreload]).then(()=>{
+  Promise.all([ensureAuth(),coverPreload]).then(async()=>{
     loadGoal();render();
-    startListener();startSessionsListener();startGoalsListener();
+    const childDataReady=Promise.all([startListener(),startSessionsListener(),Promise.resolve(startGoalsListener())]);
+    const finishBoot=window.finishChildBoot||(async p=>{await p;document.getElementById('child-boot')?.classList.add('hide')});
+    await finishBoot(childDataReady);
   }).catch(()=>{});
 }
 </script>
@@ -7270,6 +7300,25 @@ const loginOverlay = document.getElementById('c-login-overlay');
 const loginBtn = document.getElementById('c-login-btn');
 const loginCode = document.getElementById('c-login-code');
 const loginError = document.getElementById('c-login-error');
+const childBoot = document.getElementById('child-boot');
+const CHILD_BOOT_STARTED_AT = Date.now();
+const CHILD_MIN_BOOT_MS = 800;
+const CHILD_MAX_BOOT_MS = 2500;
+function waitChildBootMin(){
+  return new Promise(resolve => setTimeout(resolve, Math.max(0, CHILD_MIN_BOOT_MS - (Date.now() - CHILD_BOOT_STARTED_AT))));
+}
+async function finishChildBoot(readyPromise){
+  await Promise.race([
+    Promise.all([waitChildBootMin(), Promise.resolve(readyPromise).catch(() => {})]),
+    new Promise(resolve => setTimeout(resolve, CHILD_MAX_BOOT_MS))
+  ]);
+  hideChildBoot();
+}
+function hideChildBoot() { childBoot?.classList.add('hide'); }
+function showChildLogin() { finishChildBoot(Promise.resolve()).then(() => loginOverlay?.classList.remove('hidden')); }
+function hideChildLogin() { loginOverlay?.classList.add('hidden'); }
+window.finishChildBoot = finishChildBoot;
+window.hideChildBoot = hideChildBoot;
 
 async function devChildLogin() {
   const rawCode = loginCode.value.toUpperCase().replace(/[^A-Z0-9]/g, '').trim();
@@ -7289,7 +7338,8 @@ async function devChildLogin() {
       familyId: data.familyId, childKey: data.childKey, childName: data.childName, code: rawCode
     }));
     localStorage.setItem('childName', data.childName);
-    loginOverlay.classList.add('hidden');
+    hideChildLogin();
+    hideChildBoot();
     toast('Velkomin, ' + data.childName + '! 🎉');
     // Reload to init books subscription and child-v2 with correct session
     window.location.reload();
@@ -7309,16 +7359,19 @@ loginCode.addEventListener('keydown', e => { if (e.key === 'Enter') devChildLogi
 // ── Auto-login ──
 (async function init() {
   const saved = getChildSession();
-  if (saved) {
-    try {
-      await ensureAuth();
-      CS.familyId = saved.familyId;
-      CS.childKey = saved.childKey;
-      CS.childName = saved.childName;
-      loginOverlay.classList.add('hidden');
-    } catch (e) {
-      console.warn('Auto-login failed:', e.message);
-    }
+  if (!saved) {
+    showChildLogin();
+    return;
+  }
+  try {
+    await ensureAuth();
+    CS.familyId = saved.familyId;
+    CS.childKey = saved.childKey;
+    CS.childName = saved.childName;
+    hideChildLogin();
+  } catch (e) {
+    console.warn('Auto-login failed:', e.message);
+    showChildLogin();
   }
 })();
 </script>

@@ -2835,7 +2835,7 @@ body{font-family:'DM Sans','Manrope',-apple-system,BlinkMacSystemFont,sans-serif
       </div>
       <div class="stats-modal-card">
         <div class="stats-modal-value" id="smListens">12</div>
-        <div class="stats-modal-label">Hlustanir</div>
+        <div class="stats-modal-label">Lestrar</div>
       </div>
     </div>
   </div>
@@ -3320,6 +3320,7 @@ window._child = { auth, db, storage, functions, CS, ensureAuth, getChildSession,
           if (!dateObj || isNaN(dateObj.getTime()) || dateObj.getTime() < arangurStartedAt) return;
           var pagesRead = Number(data.pagesRead || data.pages || 0);
           if (!pagesRead && Number(data.pageTo || 0) && Number(data.pageFrom || 0)) pagesRead = Math.max(0, Number(data.pageTo) - Number(data.pageFrom) + 1);
+          if (!pagesRead && Number(data.pageEnd || 0) && Number(data.pageStart || 0)) pagesRead = Math.max(0, Number(data.pageEnd) - Number(data.pageStart) + 1);
           seconds += Number(data.seconds || data.durationSeconds || 0);
           count++;
           sessionDatesFromFirestore.push(dateObj);
@@ -3357,14 +3358,6 @@ window._child = { auth, db, storage, functions, CS, ensureAuth, getChildSession,
     }
   } catch (e) {}
   sessionDatesFromFirestore.forEach(function (d) { readDays[d.getFullYear() + "-" + d.getMonth() + "-" + d.getDate()] = true; });
-  // Fallback demo days
-  if (Object.keys(readDays).length === 0) {
-    for (var dd = 0; dd < 4; dd++) {
-      var demo = new Date(today);
-      demo.setDate(demo.getDate() + mondayOffset + dd);
-      readDays[demo.getFullYear() + "-" + demo.getMonth() + "-" + demo.getDate()] = true;
-    }
-  }
 
   var streakCount = 0;
   var html = "";
@@ -3458,7 +3451,7 @@ window._child = { auth, db, storage, functions, CS, ensureAuth, getChildSession,
   document.getElementById("statsPill").addEventListener("click", function () {
     // Fill in values
     document.getElementById("smPages").textContent = totalPagesRead;
-    document.getElementById("smTime").textContent = totalMinutesRead + " mÃ­n";
+    document.getElementById("smTime").textContent = totalMinutesRead + " mín";
     document.getElementById("smBooks").textContent = finishedBooksCount;
     document.getElementById("smListens").textContent = listenCount;
     statsModalOverlay.classList.add("open");
@@ -3671,10 +3664,10 @@ window._child = { auth, db, storage, functions, CS, ensureAuth, getChildSession,
     });
   }
 
-  // Fallback: show nothing if no real data (no fake demo line)
-  if (readingHistory.length === 0) {
-    var chartEl = document.getElementById("readingChart");
-    if (chartEl) chartEl.innerHTML = '<div style="text-align:center;padding:32px 16px;color:rgba(148,164,180,0.5);font-size:13px">Lestarlína birtist eftir fyrsta lestur</div>';
+  // If the book progress exists but older sessions do not have page data yet,
+  // show a single real progress point instead of leaving the chart empty.
+  if (readingHistory.length === 0 && totalPagesRead > 0) {
+    readingHistory.push({ date: new Date(), totalPages: totalPagesRead });
   }
 
   // ── Smooth bezier helper ──
@@ -7582,6 +7575,7 @@ loginCode.addEventListener('keydown', e => { if (e.key === 'Enter') devChildLogi
 
 </body>
 </html>
+
 
 
 

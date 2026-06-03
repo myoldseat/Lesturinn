@@ -4166,6 +4166,7 @@ window._child = { auth, db, storage, functions, CS, ensureAuth, getChildSession,
       var lineFadeTimeout = null;
       var flashTimeout = null;
       var pendingSavePayload = null;
+      var lastSavedSessionId = null;
       var saveInFlight = false;
       var listenEventQueue = [];
       var listenAnimationRunning = false;
@@ -4475,6 +4476,7 @@ window._child = { auth, db, storage, functions, CS, ensureAuth, getChildSession,
           stream = micStream;
           recordingStartedAt = Date.now();
           pendingSavePayload = null;
+          lastSavedSessionId = null;
           saveInFlight = false;
           snippetClips = { min1: { chunks: [], mimeType: "" }, min2: { chunks: [], mimeType: "" }, min5: { chunks: [], mimeType: "" }, min8: { chunks: [], mimeType: "" }, min10: { chunks: [], mimeType: "" } };
           clearSnippetTimers();
@@ -4554,6 +4556,7 @@ window._child = { auth, db, storage, functions, CS, ensureAuth, getChildSession,
           setTimeout(function () {
             window.saveChildV2Session(pendingSavePayload).then(function (result) {
               if (result && result.saved) {
+                lastSavedSessionId = result.sessionId || null;
                 pendingSavePayload = null;
                 openPostSavePopup();
               } else {
@@ -4863,13 +4866,17 @@ window._child = { auth, db, storage, functions, CS, ensureAuth, getChildSession,
           var pct = totalPages && finalPage ? Math.min(100, Math.max(0, Math.round((finalPage / totalPages) * 100))) : (book.progressPercent || 0);
           var totalPagesRead = Number(book.totalPagesRead || 0);
           if (pagesRead) totalPagesRead += pagesRead;
+          var wordsPerTextPage = Number(book.readingDifficultyWordsPerTextPage || (book.readingLoad && (book.readingLoad.wordsPerPageEstimate || book.readingLoad.wordsPerPage)) || book.wordsPerPage || 0) || null;
+          var progressWordsPerPage = Number(book.progressWordsPerBookPage || (book.scope && book.scope.progressWordsPerBookPage) || wordsPerTextPage || 0) || null;
+          var wordsReadEstimate = pagesRead && progressWordsPerPage ? Math.round(pagesRead * progressWordsPerPage) : null;
+          var sessionId = lastSavedSessionId || "";
 
           var updateScript = document.createElement("script");
           updateScript.type = "module";
           updateScript.textContent = [
             "import{getFirestore,doc,updateDoc,serverTimestamp}from'https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js';",
-            "import{initializeApp}from'https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js';",
-            "const app=initializeApp({apiKey:'AIzaSyAgTY3Uxd9_ZxixjqLj-sH8V3OhFAzg6DU',authDomain:'lesum-22e85.firebaseapp.com',projectId:'lesum-22e85',storageBucket:'lesum-22e85.firebasestorage.app',messagingSenderId:'204392598388',appId:'1:204392598388:web:2dbbe3f476cd78d2ffba21'});",
+            "import{initializeApp,getApps,getApp}from'https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js';",
+            "const app=getApps().length?getApp():initializeApp({apiKey:'AIzaSyAgTY3Uxd9_ZxixjqLj-sH8V3OhFAzg6DU',authDomain:'lesum-22e85.firebaseapp.com',projectId:'lesum-22e85',storageBucket:'lesum-22e85.firebasestorage.app',messagingSenderId:'204392598388',appId:'1:204392598388:web:2dbbe3f476cd78d2ffba21'});",
             "const db=getFirestore(app);",
             "const bookRef=doc(db,'books','" + setup.bookId + "');",
             "const entries=" + JSON.stringify(book.journeyEntries || []) + ";",
@@ -4884,7 +4891,25 @@ window._child = { auth, db, storage, functions, CS, ensureAuth, getChildSession,
             "  note:" + JSON.stringify(note || "") + ",",
             "  journeyEntries:entries,",
             "  updatedAt:serverTimestamp()",
-            "}).then(()=>console.log('Book updated')).catch(e=>console.warn('Book update failed:',e));"
+            "}).then(()=>console.log('Book updated')).catch(e=>console.warn('Book update failed:',e));",
+            "const sessionId=" + JSON.stringify(sessionId) + ";",
+            "if(sessionId){",
+            "  const sessionRef=doc(db,'sessions',sessionId);",
+            "  updateDoc(sessionRef,{",
+            "    bookId:" + JSON.stringify(setup.bookId) + ",",
+            "    bookTitle:" + JSON.stringify(book.title || '') + ",",
+            "    pageFrom:" + (startPage || "null") + ",",
+            "    pageTo:" + (finalPage || "null") + ",",
+            "    pageStart:" + (startPage || "null") + ",",
+            "    pageEnd:" + (finalPage || "null") + ",",
+            "    pagesRead:" + (pagesRead || "null") + ",",
+            "    totalPages:" + (totalPages || "null") + ",",
+            "    wordsPerTextPage:" + (wordsPerTextPage || "null") + ",",
+            "    progressWordsPerBookPage:" + (progressWordsPerPage || "null") + ",",
+            "    wordsReadEstimate:" + (wordsReadEstimate || "null") + ",",
+            "    updatedAt:serverTimestamp()",
+            "  }).then(()=>console.log('Session updated with reading pages')).catch(e=>console.warn('Session page update failed:',e));",
+            "}"
           ].join("\n");
           document.head.appendChild(updateScript);
           return true;
@@ -5506,7 +5531,7 @@ window._child = { auth, db, storage, functions, CS, ensureAuth, getChildSession,
         }
       };
 
-      await addDoc(collection(db, 'sessions'), {
+      const sessionRef = await addDoc(collection(db, 'sessions'), {
         familyId: childData.familyId, childKey: childData.childKey,
         childName: payload?.childName || childData.childName || 'Barn',
         title: 'Lestur', pageStart: null, pageEnd: null, pagesRead: null,
@@ -5520,7 +5545,7 @@ window._child = { auth, db, storage, functions, CS, ensureAuth, getChildSession,
         analysis, timestamp: ts, date: makeDateKey(new Date(ts)), createdAt: serverTimestamp()
       });
 
-      return { saved: true, uploadCount: uploadCount };
+      return { saved: true, sessionId: sessionRef.id, uploadCount: uploadCount };
     };
 
     function normalizeListenTimestamp(rawTs) {
@@ -7557,4 +7582,9 @@ loginCode.addEventListener('keydown', e => { if (e.key === 'Enter') devChildLogi
 
 </body>
 </html>
+
+
+
+
+
 

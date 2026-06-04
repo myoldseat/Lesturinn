@@ -3780,16 +3780,20 @@ window._child = { auth, db, storage, functions, CS, ensureAuth, getChildSession,
     var dayMs = 86400000;
     var today = dayStart(new Date());
     var days = chartWindowWeeks * 7;
-    var historyKeys = Object.keys(byDay).map(Number);
-    var oldest = historyKeys.length ? Math.min.apply(null, historyKeys) : today.getTime();
+    var historyKeys = Object.keys(byDay).map(Number).sort(function(a,b){return a-b;});
+    var oldest = historyKeys.length ? historyKeys[0] : today.getTime();
     var maxPan = Math.max(0, Math.ceil(Math.max(0, today.getTime() - oldest) / dayMs / 7));
     chartPanWeeks = Math.max(0, Math.min(chartPanWeeks, maxPan));
     var end = new Date(today.getTime() - chartPanWeeks * 7 * dayMs);
-    var start = new Date(end.getTime() - (days - 1) * dayMs);
-    var startMs = start.getTime(), endMs = end.getTime();
+    var defaultStartMs = end.getTime() - (days - 1) * dayMs;
+    var firstInWindow = historyKeys.filter(function(ms){ return ms >= defaultStartMs && ms <= end.getTime(); })[0];
+    var startMs = (chartPanWeeks === 0 && firstInWindow && firstInWindow > defaultStartMs) ? firstInWindow : defaultStartMs;
+    var start = new Date(startMs);
+    var endMs = end.getTime();
+    var effectiveDays = Math.max(1, Math.round((endMs - startMs) / dayMs) + 1);
 
     var cumulative = 0, windowPages = 0, windowMinutes = 0;
-    historyKeys.sort(function(a,b){return a-b;}).forEach(function (ms) {
+    historyKeys.forEach(function (ms) {
       if (ms < startMs) cumulative += byDay[ms].pages;
       if (ms >= startMs && ms <= endMs) { windowPages += byDay[ms].pages; windowMinutes += byDay[ms].minutes; }
     });
@@ -3799,12 +3803,12 @@ window._child = { auth, db, storage, functions, CS, ensureAuth, getChildSession,
     var plotW = W - PAD.left - PAD.right;
     var plotH = H - PAD.top - PAD.bottom;
     var visibleTop = Math.max(20, totalPagesRead, cumulative + windowPages + 10, pilotTiers[pilotTiers.length - 1].pages);
-    function xByIndex(i) { return PAD.left + (i / Math.max(1, days - 1)) * plotW; }
+    function xByIndex(i) { return PAD.left + (i / Math.max(1, effectiveDays - 1)) * plotW; }
     function yByPages(p) { return PAD.top + plotH - (Math.min(p, visibleTop) / visibleTop) * plotH; }
 
     var points = [];
     var running = cumulative;
-    for (var di = 0; di < days; di++) {
+    for (var di = 0; di < effectiveDays; di++) {
       var d = new Date(startMs + di * dayMs);
       var row = byDay[d.getTime()];
       if (row) running += row.pages;

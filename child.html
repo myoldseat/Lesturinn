@@ -1275,6 +1275,19 @@ body{font-family:'DM Sans','Manrope',-apple-system,BlinkMacSystemFont,sans-serif
 
 @media(max-width:420px){#journeyEntries .react{font-size:13px;padding:8px 9px}#journeyEntries .event-quote{font-size:15px!important}}
 
+/* Gold moment in the child journey timeline */
+.child-thread.gold-open{cursor:pointer}
+.child-thread.gold-open .child-thread-meta{color:rgba(245,198,91,.82)}
+.child-bubble.gold-moment{
+  color:#fff4cf;
+  background:linear-gradient(135deg,rgba(122,82,22,.96),rgba(184,125,34,.88) 48%,rgba(255,211,97,.72));
+  border:1px solid rgba(255,218,113,.55);
+  box-shadow:0 0 0 1px rgba(255,218,113,.10) inset,0 12px 32px rgba(221,158,45,.22),0 0 22px rgba(255,211,97,.16);
+}
+.child-bubble.gold-moment small{color:rgba(255,248,221,.82)!important}
+.child-bubble.gold-moment::before{content:"★";margin-right:6px;color:#fff1a6;text-shadow:0 0 10px rgba(255,218,113,.75)}
+.child-gold-cta{display:inline-flex;margin-top:7px;padding:5px 9px;border-radius:999px;background:rgba(6,16,28,.28);border:1px solid rgba(255,244,207,.28);color:#fff7d7;font-size:11px;font-weight:900}
+
 
 
 /* === Final hero/audio refinements: pill above cover + custom gold player === */
@@ -2248,6 +2261,23 @@ body{font-family:'DM Sans','Manrope',-apple-system,BlinkMacSystemFont,sans-serif
   display: grid; place-items: center; cursor: pointer;
 }
 #screen-child-arangur .chart-zoom-btn:active{ background: rgba(36,214,223,0.15); }
+
+/* Windowed achievement chart */
+#screen-child-arangur .chart-hint{display:none!important}
+#screen-child-arangur .chart-zoom-controls{display:none!important}
+#screen-child-arangur .chart-area{overflow:hidden;touch-action:auto;min-height:390px;padding:10px;display:flex;flex-direction:column;gap:10px}
+#screen-child-arangur .chart-window-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap}
+#screen-child-arangur .chart-window-stat{display:grid;gap:2px}
+#screen-child-arangur .chart-window-main{font-size:24px;font-weight:950;color:var(--text);letter-spacing:-.4px}
+#screen-child-arangur .chart-window-sub{font-size:12px;font-weight:800;color:var(--text-soft)}
+#screen-child-arangur .chart-window-controls{display:flex;align-items:center;gap:6px;margin-left:auto;flex-wrap:wrap;justify-content:flex-end}
+#screen-child-arangur .chart-window-nav,#screen-child-arangur .chart-window-chip{height:30px;border-radius:999px;border:1px solid rgba(122,187,218,.18);background:rgba(7,18,32,.72);color:var(--text-soft);font-size:12px;font-weight:900;padding:0 9px}
+#screen-child-arangur .chart-window-chip.on{border-color:rgba(36,214,223,.45);background:rgba(36,214,223,.12);color:var(--teal)}
+#screen-child-arangur .chart-window-nav:disabled{opacity:.35}
+#screen-child-arangur .chart-window-svgwrap{position:relative;flex:1;min-height:260px;border-radius:14px;background:linear-gradient(180deg,rgba(255,255,255,.025),rgba(255,255,255,.005));border:1px solid rgba(122,187,218,.10);overflow:hidden}
+#screen-child-arangur .chart-window-svgwrap svg{position:absolute;inset:0;width:100%;height:100%}
+#screen-child-arangur .chart-window-empty{display:grid;place-items:center;min-height:260px;text-align:center;padding:18px;border-radius:14px;border:1px dashed rgba(36,214,223,.22);color:var(--text-soft);font-size:13px;font-weight:850;line-height:1.45}
+#screen-child-arangur .chart-window-empty strong{color:var(--teal)}
 </style>
 </head>
 <body>
@@ -3321,10 +3351,11 @@ window._child = { auth, db, storage, functions, CS, ensureAuth, getChildSession,
           var pagesRead = Number(data.pagesRead || data.pages || 0);
           if (!pagesRead && Number(data.pageTo || 0) && Number(data.pageFrom || 0)) pagesRead = Math.max(0, Number(data.pageTo) - Number(data.pageFrom) + 1);
           if (!pagesRead && Number(data.pageEnd || 0) && Number(data.pageStart || 0)) pagesRead = Math.max(0, Number(data.pageEnd) - Number(data.pageStart) + 1);
-          seconds += Number(data.seconds || data.durationSeconds || 0);
+          var rowSeconds = Number(data.seconds || data.durationSeconds || 0);
+          seconds += rowSeconds;
           count++;
           sessionDatesFromFirestore.push(dateObj);
-          sessionHistoryFromFirestore.push({ date: dateObj, pagesRead: pagesRead });
+          sessionHistoryFromFirestore.push({ date: dateObj, pagesRead: pagesRead, minutes: Math.round(rowSeconds / 60) });
         });
         totalMinutesRead = Math.round(seconds / 60);
         listenCount = count;
@@ -3710,331 +3741,163 @@ window._child = { auth, db, storage, functions, CS, ensureAuth, getChildSession,
     return new Date(d.getFullYear(), d.getMonth(), d.getDate());
   }
 
+  var chartWindowWeeks = 2;
+  var chartPanWeeks = 0;
+
+  function formatChartMinutes(mins) {
+    mins = Math.max(0, Math.round(Number(mins) || 0));
+    var h = Math.floor(mins / 60), m = mins % 60;
+    if (h && m) return h + ' klst ' + m + ' mín';
+    if (h) return h + ' klst';
+    return mins + ' mín';
+  }
+
+  function buildWindowedDailyData() {
+    var byDay = {};
+    sessionHistoryFromFirestore.forEach(function (s) {
+      if (!s || !s.date) return;
+      var key = dayStart(s.date).getTime();
+      if (!byDay[key]) byDay[key] = { pages: 0, minutes: 0 };
+      byDay[key].pages += Number(s.pagesRead || 0);
+      byDay[key].minutes += Number(s.minutes || 0);
+    });
+    if (Object.keys(byDay).length === 0 && totalPagesRead > 0) {
+      byDay[dayStart(new Date()).getTime()] = { pages: totalPagesRead, minutes: totalMinutesRead || 0 };
+    }
+    return byDay;
+  }
+
   function renderChart() {
-    if (!hasArangurProgress || !readingHistory.length) {
-      var oldSvg = chartArea.querySelector("svg");
-      if (oldSvg) oldSvg.remove();
-      var oldEmpty = chartArea.querySelector(".chart-empty-state");
-      if (!oldEmpty) {
-        chartArea.insertAdjacentHTML("afterbegin", '<div class="chart-empty-state"><span><strong>Hver blaðsíða færir þig 20 cm áfram.</strong><br>Lestarlínan birtist þegar fyrsta lestrarlotan er vistuð.</span></div>');
-      }
+    chartArea.innerHTML = '<div class="chart-tooltip" id="chartTooltip"></div>';
+    if (!hasArangurProgress) {
+      chartArea.innerHTML += '<div class="chart-window-empty"><span><strong>Hver blaðsíða færir þig 20 cm áfram.</strong><br>Lestarlínan birtist þegar fyrsta lestrarlotan er vistuð.</span></div>';
       document.getElementById("chartSub").textContent = "Byrjar þegar fyrsta lotan er vistuð";
       chartSvgEl = null;
       return;
     }
-    var emptyState = chartArea.querySelector(".chart-empty-state");
-    if (emptyState) emptyState.remove();
 
-    var W = 760, H = 420;
-    var PAD = { top: 34, right: 42, bottom: 50, left: 64 };
-    var plotW = W - PAD.left - PAD.right;
-    var plotH = H - PAD.top - PAD.bottom;
+    var byDay = buildWindowedDailyData();
+    var dayMs = 86400000;
+    var today = dayStart(new Date());
+    var days = chartWindowWeeks * 7;
+    var historyKeys = Object.keys(byDay).map(Number);
+    var oldest = historyKeys.length ? Math.min.apply(null, historyKeys) : today.getTime();
+    var maxPan = Math.max(0, Math.ceil(Math.max(0, today.getTime() - oldest) / dayMs / 7));
+    chartPanWeeks = Math.max(0, Math.min(chartPanWeeks, maxPan));
+    var end = new Date(today.getTime() - chartPanWeeks * 7 * dayMs);
+    var start = new Date(end.getTime() - (days - 1) * dayMs);
+    var startMs = start.getTime(), endMs = end.getTime();
 
-    var maxPages = pilotTiers[pilotTiers.length - 1].pages;
-    var maxHeight = maxPages * 0.2;
-
-    // X axis: whole days from first reading to today
-    var now = dayStart(new Date());
-    var firstDay = readingHistory.length ? dayStart(readingHistory[0].date) : new Date(now.getTime() - 14 * 86400000);
-    var totalDays = Math.max(1, Math.round((now.getTime() - firstDay.getTime()) / 86400000));
-    // Add 1-2 days of future space for next milestone teaser
-    var xDays = totalDays + 2;
-
-    function xPos(date) {
-      var dayNum = Math.round((dayStart(date).getTime() - firstDay.getTime()) / 86400000);
-      return PAD.left + (dayNum / xDays) * plotW;
-    }
-    function xPosDay(dayNum) {
-      return PAD.left + (dayNum / xDays) * plotW;
-    }
-    function yPos(pages) {
-      var frac = (pages * 0.2) / maxHeight;
-      return PAD.top + plotH - frac * plotH;
-    }
-
-    var svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" xmlns="http://www.w3.org/2000/svg" id="chartSvg">';
-
-    // Y grid + labels: 1 blaðsíða = 20 cm = 0,2 m
-    var ySteps = [0, 10, 20, 30, 40];
-    for (var yi = 0; yi < ySteps.length; yi++) {
-      var gy = yPos(ySteps[yi] / 0.2);
-      svg += '<line class="chart-grid" x1="' + PAD.left + '" y1="' + gy + '" x2="' + (W - PAD.right) + '" y2="' + gy + '"/>';
-      svg += '<text class="chart-y-text" x="' + (PAD.left - 8) + '" y="' + gy + '">' + ySteps[yi] + ' m</text>';
-    }
-    svg += '<text class="chart-y-text" x="' + PAD.left + '" y="18" text-anchor="start">1 Blaðsíða = 20 cm</text>';
-
-    // X axis labels: whole days, format "9/5"
-    // Show 4-6 labels evenly spaced
-    var xLabelCount = Math.min(6, totalDays);
-    if (xLabelCount < 2) xLabelCount = 2;
-    for (var xi = 0; xi <= xLabelCount; xi++) {
-      var dayNum = Math.round((xi / xLabelCount) * totalDays);
-      var xd = new Date(firstDay.getTime() + dayNum * 86400000);
-      var xx = xPosDay(dayNum);
-      svg += '<text class="chart-x-text" x="' + xx.toFixed(1) + '" y="' + (H - 6) + '">' + fmtDate(xd) + '</text>';
-    }
-
-    // ── Build line points ──
-    var linePoints = [{ x: xPos(firstDay), y: yPos(0) }];
-    for (var li = 0; li < readingHistory.length; li++) {
-      var rh = readingHistory[li];
-      linePoints.push({ x: xPos(rh.date), y: yPos(Math.min(rh.totalPages, maxPages)) });
-    }
-    var lastPages = readingHistory.length ? readingHistory[readingHistory.length - 1].totalPages : 0;
-    // "Þú ert hér" at today
-    var hereX = xPosDay(totalDays);
-    var hereY = yPos(Math.min(lastPages, maxPages));
-    linePoints.push({ x: hereX, y: hereY });
-
-    // Draw smooth bezier line with animation
-    if (linePoints.length > 1) {
-      var pathD = smoothPath(linePoints);
-      var pathLen = approxPathLen(linePoints);
-      svg += '<path class="chart-line-done animate" d="' + pathD + '" style="--line-len:' + pathLen + '"/>';
-    }
-
-    // "Þú ert hér" pulse dot
-    svg += '<circle class="chart-here-pulse" cx="' + hereX.toFixed(1) + '" cy="' + hereY.toFixed(1) + '" r="5"/>';
-    svg += '<circle class="chart-here-dot" cx="' + hereX.toFixed(1) + '" cy="' + hereY.toFixed(1) + '" r="4"/>';
-
-    // Future dashed line to next milestone
-    var nextUnlockedTier = null;
-    for (var nt2 = 0; nt2 < pilotTiers.length; nt2++) {
-      if (totalPagesRead < pilotTiers[nt2].pages) { nextUnlockedTier = pilotTiers[nt2]; break; }
-    }
-    if (nextUnlockedTier) {
-      var futureX = xPosDay(totalDays + 2);
-      var futureY = yPos(Math.min(nextUnlockedTier.pages, maxPages));
-      var futurePath = smoothPath([
-        { x: hereX, y: hereY },
-        { x: futureX, y: futureY }
-      ]);
-      svg += '<path class="chart-line-future" d="' + futurePath + '"/>';
-    }
-
-    // ── Milestone nodes ──
-    // Determine which get labels (last completed + next locked only)
-    var lastCompletedIdx = -1;
-    var nextLockedIdx = -1;
-    for (var ci = 0; ci < pilotTiers.length; ci++) {
-      if (totalPagesRead >= pilotTiers[ci].pages) lastCompletedIdx = ci;
-      else if (nextLockedIdx === -1) nextLockedIdx = ci;
-    }
-
-    // Check for clustered nodes (too close together)
-    var nodePositions = [];
-
-    for (var mi = 0; mi < pilotTiers.length; mi++) {
-      var mt = pilotTiers[mi];
-      var mms = pickOption(mt, seed);
-      var mUnlocked = totalPagesRead >= mt.pages;
-      var isGold2 = mt.pages >= 7500;
-
-      var mDate = null;
-      if (mUnlocked) {
-        for (var rhi = 0; rhi < readingHistory.length; rhi++) {
-          if (readingHistory[rhi].totalPages >= mt.pages) {
-            mDate = readingHistory[rhi].date;
-            break;
-          }
-        }
-      }
-
-      var mx, my;
-      if (mUnlocked && mDate) {
-        mx = xPos(mDate);
-        my = yPos(mt.pages);
-      } else if (mi === nextLockedIdx && nextUnlockedTier) {
-        mx = xPosDay(totalDays + 2);
-        my = yPos(mt.pages);
-      } else {
-        // Further future: stack at right edge
-        mx = W - PAD.right - (pilotTiers.length - mi) * 6;
-        my = yPos(mt.pages);
-      }
-
-      nodePositions.push({ x: mx, y: my, idx: mi, unlocked: mUnlocked, name: mms.name, desc: mms.desc, icon: mms.icon, pages: mt.pages });
-
-      var nodeR = mUnlocked ? 17 : 15;
-      var ringCls = mUnlocked ? (isGold2 ? "chart-node-ring gold" : "chart-node-ring") : "chart-node-ring locked";
-      var emojiCls = mUnlocked ? "chart-emoji" : "chart-emoji locked";
-
-      // Wrap node in clickable group
-      svg += '<g class="chart-node-tap" data-node="' + mi + '" style="cursor:pointer">';
-      // Invisible larger hit area
-      svg += '<circle cx="' + mx.toFixed(1) + '" cy="' + my.toFixed(1) + '" r="28" fill="transparent"/>';
-      svg += '<circle class="' + ringCls + '" cx="' + mx.toFixed(1) + '" cy="' + my.toFixed(1) + '" r="' + nodeR + '"/>';
-      svg += '<text class="' + emojiCls + '" x="' + mx.toFixed(1) + '" y="' + my.toFixed(1) + '">' + mms.icon + '</text>';
-      svg += '</g>';
-      if (mi === lastCompletedIdx || mi === nextLockedIdx) {
-        var labelY = my + 32;
-        svg += '<text class="chart-label" x="' + mx.toFixed(1) + '" y="' + labelY.toFixed(1) + '">' + mt.pages + ' bls</text>';
-      }
-      // Full name is shown on tap
-    }
-
-    // Crosshair lines group (rendered empty, filled on tap)
-    svg += '<line id="chartCrossX" x1="0" y1="0" x2="0" y2="0" stroke="rgba(36,214,223,0.3)" stroke-width="1" stroke-dasharray="3 3" style="display:none"/>';
-    svg += '<line id="chartCrossY" x1="0" y1="0" x2="0" y2="0" stroke="rgba(36,214,223,0.3)" stroke-width="1" stroke-dasharray="3 3" style="display:none"/>';
-
-    svg += '</svg>';
-
-    // Insert SVG (keep zoom controls and tooltip)
-    var existingSvg = chartArea.querySelector("svg");
-    if (existingSvg) existingSvg.remove();
-    chartArea.insertAdjacentHTML("afterbegin", svg);
-    chartSvgEl = document.getElementById("chartSvg");
-
-    // Update subtitle
-    var heightNow = (totalPagesRead * 0.2).toFixed(1);
-    document.getElementById("chartSub").textContent = totalPagesRead + " síður · " + heightNow + " metrar";
-
-    // ── Node tap: show crosshair + mini tooltip ──
-    var crossX = document.getElementById("chartCrossX");
-    var crossY = document.getElementById("chartCrossY");
-    var chartTooltip = document.getElementById("chartTooltip");
-
-    chartSvgEl.addEventListener("click", function (e) {
-      var tap = e.target.closest(".chart-node-tap");
-      if (!tap) {
-        // Tap on empty area: hide crosshair + tooltip
-        crossX.style.display = "none";
-        crossY.style.display = "none";
-        if (chartTooltip) chartTooltip.classList.remove("show");
-        return;
-      }
-      var ni2 = parseInt(tap.getAttribute("data-node"), 10);
-      var nd = nodePositions[ni2];
-      if (!nd) return;
-
-      // Draw crosshair from node to axes
-      crossX.setAttribute("x1", String(PAD.left));
-      crossX.setAttribute("y1", nd.y.toFixed(1));
-      crossX.setAttribute("x2", nd.x.toFixed(1));
-      crossX.setAttribute("y2", nd.y.toFixed(1));
-      crossX.style.display = "";
-
-      crossY.setAttribute("x1", nd.x.toFixed(1));
-      crossY.setAttribute("y1", nd.y.toFixed(1));
-      crossY.setAttribute("x2", nd.x.toFixed(1));
-      crossY.setAttribute("y2", String(H - PAD.bottom));
-      crossY.style.display = "";
-
-      // Tooltip
-      if (chartTooltip) {
-        var htM = (nd.pages * 0.2).toFixed(1).replace(/\.0$/, "");
-        chartTooltip.innerHTML = '<span class="tt-name">' + nd.icon + " " + (nd.unlocked ? nd.name : "???") + '</span>' +
-          '<span class="tt-height">' + nd.pages + ' síður · ' + htM + ' m</span>';
-        chartTooltip.classList.add("show");
-
-        // Position tooltip above node
-        var areaRect = chartArea.getBoundingClientRect();
-        var svgRect = chartSvgEl.getBoundingClientRect();
-        var scaleX = svgRect.width / W;
-        var scaleY = svgRect.height / H;
-        var tipX = nd.x * scaleX + svgRect.left - areaRect.left;
-        var tipY = nd.y * scaleY + svgRect.top - areaRect.top - 40;
-        if (tipY < 0) tipY = nd.y * scaleY + svgRect.top - areaRect.top + 20;
-        chartTooltip.style.left = Math.max(4, Math.min(tipX - 50, areaRect.width - 120)) + "px";
-        chartTooltip.style.top = tipY + "px";
-      }
+    var cumulative = 0, windowPages = 0, windowMinutes = 0;
+    historyKeys.sort(function(a,b){return a-b;}).forEach(function (ms) {
+      if (ms < startMs) cumulative += byDay[ms].pages;
+      if (ms >= startMs && ms <= endMs) { windowPages += byDay[ms].pages; windowMinutes += byDay[ms].minutes; }
     });
 
-    // Reset zoom
-    resetZoom();
-  }
+    var W = 760, H = 390;
+    var PAD = { top: 34, right: 44, bottom: 42, left: 58 };
+    var plotW = W - PAD.left - PAD.right;
+    var plotH = H - PAD.top - PAD.bottom;
+    var visibleTop = Math.max(20, totalPagesRead, cumulative + windowPages + 10, pilotTiers[pilotTiers.length - 1].pages);
+    function xByIndex(i) { return PAD.left + (i / Math.max(1, days - 1)) * plotW; }
+    function yByPages(p) { return PAD.top + plotH - (Math.min(p, visibleTop) / visibleTop) * plotH; }
 
-  // ══════════════════════════════════════════════════════════════
-  // ZOOM & PAN
-  // ══════════════════════════════════════════════════════════════
-  var zoomLevel = 1;
-  var panX = 0, panY = 0;
-  var isDragging = false;
-  var dragStartX = 0, dragStartY = 0;
-  var panStartX = 0, panStartY = 0;
-
-  function applyTransform() {
-    if (!chartSvgEl) return;
-    chartSvgEl.style.width = (zoomLevel * 100) + "%";
-    chartSvgEl.style.height = (zoomLevel * 100) + "%";
-    chartSvgEl.style.transform = "translate(" + panX + "px, " + panY + "px)";
-  }
-
-  function clampPan() {
-    var areaRect = chartArea.getBoundingClientRect();
-    var maxPanX = Math.max(0, areaRect.width * (zoomLevel - 1));
-    var maxPanY = Math.max(0, areaRect.height * (zoomLevel - 1));
-    panX = Math.max(-maxPanX, Math.min(0, panX));
-    panY = Math.max(-maxPanY, Math.min(0, panY));
-  }
-
-  function resetZoom() {
-    zoomLevel = 1; panX = 0; panY = 0;
-    applyTransform();
-  }
-
-  document.getElementById("chartZoomIn").addEventListener("click", function (e) {
-    e.stopPropagation();
-    zoomLevel = Math.min(3, zoomLevel + 0.5);
-    clampPan();
-    applyTransform();
-  });
-  document.getElementById("chartZoomOut").addEventListener("click", function (e) {
-    e.stopPropagation();
-    zoomLevel = Math.max(1, zoomLevel - 0.5);
-    clampPan();
-    applyTransform();
-  });
-  document.getElementById("chartZoomReset").addEventListener("click", function (e) {
-    e.stopPropagation();
-    resetZoom();
-  });
-
-  // Touch/mouse drag to pan
-  chartArea.addEventListener("pointerdown", function (e) {
-    if (zoomLevel <= 1) return;
-    isDragging = true;
-    dragStartX = e.clientX;
-    dragStartY = e.clientY;
-    panStartX = panX;
-    panStartY = panY;
-    chartArea.setPointerCapture(e.pointerId);
-    e.preventDefault();
-  });
-  chartArea.addEventListener("pointermove", function (e) {
-    if (!isDragging) return;
-    panX = panStartX + (e.clientX - dragStartX);
-    panY = panStartY + (e.clientY - dragStartY);
-    clampPan();
-    applyTransform();
-  });
-  chartArea.addEventListener("pointerup", function () { isDragging = false; });
-  chartArea.addEventListener("pointercancel", function () { isDragging = false; });
-
-  // Pinch-to-zoom
-  var lastPinchDist = 0;
-  chartArea.addEventListener("touchstart", function (e) {
-    if (e.touches.length === 2) {
-      var dx = e.touches[0].clientX - e.touches[1].clientX;
-      var dy = e.touches[0].clientY - e.touches[1].clientY;
-      lastPinchDist = Math.sqrt(dx*dx + dy*dy);
+    var points = [];
+    var running = cumulative;
+    for (var di = 0; di < days; di++) {
+      var d = new Date(startMs + di * dayMs);
+      var row = byDay[d.getTime()];
+      if (row) running += row.pages;
+      points.push({ x: xByIndex(di), y: yByPages(running), pages: running, date: d });
     }
-  }, { passive: true });
-  chartArea.addEventListener("touchmove", function (e) {
-    if (e.touches.length === 2) {
-      var dx = e.touches[0].clientX - e.touches[1].clientX;
-      var dy = e.touches[0].clientY - e.touches[1].clientY;
-      var dist = Math.sqrt(dx*dx + dy*dy);
-      if (lastPinchDist > 0) {
-        var ratio = dist / lastPinchDist;
-        zoomLevel = Math.max(1, Math.min(3, zoomLevel * ratio));
-        clampPan();
-        applyTransform();
+
+    var showBadges = chartWindowWeeks <= 2;
+    var currentPages = points.length ? points[points.length - 1].pages : totalPagesRead;
+    var windowHeightM = (windowPages * 0.2).toFixed(1).replace(/\.0$/, '');
+    document.getElementById("chartSub").textContent = chartWindowWeeks + " vikur · " + fmtDate(start) + "–" + (chartPanWeeks === 0 ? "í dag" : fmtDate(end));
+
+    var html = '<div class="chart-window-top">' +
+      '<div class="chart-window-stat"><div class="chart-window-main">' + Math.round(windowPages) + ' bls</div><div class="chart-window-sub">' + windowHeightM + ' m · ' + formatChartMinutes(windowMinutes) + '</div></div>' +
+      '<div class="chart-window-controls"><button class="chart-window-nav" type="button" data-chart-pan="older">‹</button>' +
+      [1,2,4,6,8].map(function(w){ return '<button class="chart-window-chip ' + (w === chartWindowWeeks ? 'on' : '') + '" type="button" data-chart-weeks="' + w + '">' + w + 'v</button>'; }).join('') +
+      '<button class="chart-window-nav" type="button" data-chart-pan="newer" ' + (chartPanWeeks === 0 ? 'disabled' : '') + '>›</button></div></div>';
+
+    var svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" xmlns="http://www.w3.org/2000/svg" id="chartSvg">';
+    [0, .25, .5, .75, 1].forEach(function(frac){
+      var p = visibleTop * frac;
+      var gy = yByPages(p);
+      var meters = (p * 0.2).toFixed(0);
+      svg += '<line class="chart-grid" x1="' + PAD.left + '" y1="' + gy.toFixed(1) + '" x2="' + (W - PAD.right) + '" y2="' + gy.toFixed(1) + '"/>';
+      svg += '<text class="chart-y-text" x="' + (PAD.left - 8) + '" y="' + gy.toFixed(1) + '">' + Math.round(p) + ' bls</text>';
+      if (frac > 0) svg += '<text class="chart-y-text" x="' + (W - PAD.right) + '" y="' + gy.toFixed(1) + '" text-anchor="end">' + meters + ' m</text>';
+    });
+    svg += '<text class="chart-y-text" x="' + PAD.left + '" y="18" text-anchor="start">1 blaðsíða = 20 cm</text>';
+
+    var labelEvery = chartWindowWeeks <= 2 ? 3 : chartWindowWeeks <= 4 ? 7 : 14;
+    for (var xi = 0; xi < points.length; xi++) {
+      if (xi === 0 || xi === points.length - 1 || xi % labelEvery === 0) {
+        svg += '<text class="chart-x-text" x="' + points[xi].x.toFixed(1) + '" y="' + (H - 8) + '">' + (xi === points.length - 1 && chartPanWeeks === 0 ? 'í dag' : fmtDate(points[xi].date)) + '</text>';
       }
-      lastPinchDist = dist;
     }
-  }, { passive: true });
-  chartArea.addEventListener("touchend", function () { lastPinchDist = 0; }, { passive: true });
+
+    var pathD = smoothPath(points);
+    if (pathD) svg += '<path class="chart-line-done animate" d="' + pathD + '" style="--line-len:' + approxPathLen(points) + '"/>';
+    var here = points[points.length - 1];
+    svg += '<circle class="chart-here-pulse" cx="' + here.x.toFixed(1) + '" cy="' + here.y.toFixed(1) + '" r="5"/>';
+    svg += '<circle class="chart-here-dot" cx="' + here.x.toFixed(1) + '" cy="' + here.y.toFixed(1) + '" r="5"/>';
+
+    var nodePositions = [];
+    pilotTiers.forEach(function(mt, mi){
+      var crossed = -1;
+      for (var pi2 = 0; pi2 < points.length; pi2++) { if (points[pi2].pages >= mt.pages) { crossed = pi2; break; } }
+      var unlocked = totalPagesRead >= mt.pages;
+      if (crossed < 0 && !showBadges) return;
+      if (crossed < 0 && unlocked) return;
+      if (crossed < 0 && mt.pages > currentPages + 30) return;
+      var mms = pickOption(mt, seed);
+      var mx = crossed >= 0 ? points[crossed].x : Math.min(W - PAD.right - 14, here.x + 34);
+      var my = yByPages(mt.pages);
+      nodePositions.push({ x: mx, y: my, idx: mi, unlocked: unlocked, name: mms.name, desc: mms.desc, icon: mms.icon, pages: mt.pages });
+      svg += '<g class="chart-node-tap" data-node="' + (nodePositions.length - 1) + '" style="cursor:pointer">';
+      svg += '<circle cx="' + mx.toFixed(1) + '" cy="' + my.toFixed(1) + '" r="30" fill="transparent"/>';
+      if (showBadges) {
+        svg += '<circle class="chart-node-ring ' + (unlocked ? '' : 'locked') + '" cx="' + mx.toFixed(1) + '" cy="' + my.toFixed(1) + '" r="17"/>';
+        svg += '<text class="chart-emoji ' + (unlocked ? '' : 'locked') + '" x="' + mx.toFixed(1) + '" y="' + my.toFixed(1) + '">' + mms.icon + '</text>';
+      } else if (unlocked) {
+        svg += '<circle class="chart-here-dot" cx="' + mx.toFixed(1) + '" cy="' + my.toFixed(1) + '" r="4"/>';
+      }
+      if (showBadges && (unlocked || mt.pages > currentPages)) svg += '<text class="chart-label" x="' + mx.toFixed(1) + '" y="' + (my + 32).toFixed(1) + '">' + mt.pages + ' bls</text>';
+      svg += '</g>';
+    });
+    svg += '</svg>';
+    html += '<div class="chart-window-svgwrap">' + svg + '<div class="chart-tooltip" id="chartTooltip"></div></div>';
+    chartArea.innerHTML = html;
+    chartSvgEl = document.getElementById("chartSvg");
+
+    chartArea.querySelectorAll('[data-chart-weeks]').forEach(function(btn){ btn.addEventListener('click', function(e){ e.stopPropagation(); chartWindowWeeks = Number(btn.dataset.chartWeeks) || 2; chartPanWeeks = 0; renderChart(); }); });
+    chartArea.querySelector('[data-chart-pan="older"]')?.addEventListener('click', function(e){ e.stopPropagation(); chartPanWeeks++; renderChart(); });
+    chartArea.querySelector('[data-chart-pan="newer"]')?.addEventListener('click', function(e){ e.stopPropagation(); chartPanWeeks = Math.max(0, chartPanWeeks - 1); renderChart(); });
+
+    var chartTooltip = document.getElementById("chartTooltip");
+    chartSvgEl.addEventListener("click", function (e) {
+      var tap = e.target.closest(".chart-node-tap");
+      if (!tap || !chartTooltip) { if (chartTooltip) chartTooltip.classList.remove("show"); return; }
+      var nd = nodePositions[parseInt(tap.getAttribute("data-node"), 10)];
+      if (!nd) return;
+      var htM = (nd.pages * 0.2).toFixed(1).replace(/\.0$/, "");
+      chartTooltip.innerHTML = '<span class="tt-name">' + nd.icon + ' ' + (nd.unlocked ? nd.name : 'Næst') + '</span><span class="tt-height">' + nd.pages + ' síður · ' + htM + ' m</span>';
+      chartTooltip.classList.add("show");
+      var wrap = chartArea.querySelector('.chart-window-svgwrap');
+      var areaRect = wrap.getBoundingClientRect();
+      var svgRect = chartSvgEl.getBoundingClientRect();
+      var tipX = nd.x * (svgRect.width / W) + svgRect.left - areaRect.left;
+      var tipY = nd.y * (svgRect.height / H) + svgRect.top - areaRect.top - 40;
+      chartTooltip.style.left = Math.max(4, Math.min(tipX - 50, areaRect.width - 120)) + "px";
+      chartTooltip.style.top = Math.max(4, tipY) + "px";
+    });
+  }
+  // Windowed chart no longer uses manual zoom/pan; keep resetZoom for close handlers.
+  function resetZoom() { chartPanWeeks = Math.max(0, chartPanWeeks); }
 
 })();
 
@@ -6530,7 +6393,7 @@ function childJourneyItems(){
       const ts=entryTs(entry,index)||toMillis(entry.createdAt)||toMillis(entry.timestamp)||toMillis(entry.date)||0;
       const pageMeta=entry.pageFrom?('bls. '+entry.pageFrom+(entry.pageTo?'–'+entry.pageTo:'')):'';
       if(entry.note){out.push({kind:'mine',book,entry,index,ts,text:entry.note,pageMeta});}
-      if(entry.type==='gold_moment'&&entry.text){out.push({kind:'family',book,entry,index,ts,text:entry.text,pageMeta,author:entry.savedBy||'Fjölskylda'});}
+      if(entry.type==='gold_moment'&&entry.text){out.push({kind:'gold',book,entry,index,ts,text:entry.text,pageMeta,author:entry.savedBy||'UppHátt'});}
       (entry.reactions||[]).forEach(r=>{
         out.push({kind:'family',book,entry,index,ts:toMillis(r?.createdAt)||toMillis(r?.timestamp)||toMillis(r?.sentAt)||ts,text:reactionText(r),pageMeta,author:r?.author||r?.name||r?.from||'Fjölskylda'});
       });
@@ -6558,9 +6421,10 @@ function renderChildJourney(){
   /* Þráða — groupa eftir entry index, setning + svör saman */
   const threads = {};
   items.forEach(item => {
-    const key = (item.book?.id||'x') + '-' + item.index;
-    if (!threads[key]) threads[key] = { entry: null, replies: [], book: item.book, ts: item.ts, pageMeta: item.pageMeta };
+    const key = item.kind === 'gold' ? ((item.book?.id||'x') + '-gold-' + item.index) : ((item.book?.id||'x') + '-' + item.index);
+    if (!threads[key]) threads[key] = { entry: null, replies: [], gold: null, book: item.book, ts: item.ts, pageMeta: item.pageMeta };
     if (item.kind === 'mine') { threads[key].entry = item; threads[key].ts = Math.max(threads[key].ts, item.ts); }
+    else if (item.kind === 'gold') { threads[key].gold = item; threads[key].ts = Math.max(threads[key].ts, item.ts); }
     else { threads[key].replies.push(item); threads[key].ts = Math.max(threads[key].ts, item.ts); }
   });
   const sortedThreads = Object.values(threads).sort((a,b) => b.ts - a.ts);
@@ -6577,9 +6441,13 @@ function renderChildJourney(){
   list.innerHTML = sortedThreads.map(thread => {
     const book = thread.book || {};
     const title = book.title || 'Bók';
-    const meta = [thread.pageMeta, thread.entry ? fmtDT(thread.entry.ts) : ''].filter(Boolean).join(' · ');
-    let html = '<div class="child-thread">';
-    html += '<div class="child-thread-meta"><span>' + esc(title) + '</span><span>·</span><span>' + esc(meta) + '</span></div>';
+    const meta = [thread.pageMeta, thread.entry ? fmtDT(thread.entry.ts) : (thread.gold ? fmtDT(thread.gold.ts) : '')].filter(Boolean).join(' · ');
+    let html = '<div class="child-thread' + (thread.gold ? ' gold-open' : '') + '"' + (thread.gold ? ' data-journey-open-book="' + esc(book.id || '') + '" role="button" tabindex="0"' : '') + '>';
+    html += '<div class="child-thread-meta"><span>' + esc(thread.gold ? (thread.gold.author || 'UppHátt') : title) + '</span><span>·</span><span>' + esc(thread.gold ? 'Varðveitt upptaka' : meta) + '</span></div>';
+    if (thread.gold) {
+      const fresh = (now - thread.gold.ts) < freshMs ? ' fresh' : '';
+      html += '<div class="child-bubble-stack"><div class="child-bubble gold-moment' + fresh + '">' + esc(thread.gold.text || '') + '<small>' + esc(title) + (thread.gold.ts ? ' · ' + fmtDT(thread.gold.ts) : '') + '</small><span class="child-gold-cta">Skoða og hlusta</span></div></div>';
+    }
     if (thread.entry) {
       const fresh = (now - thread.entry.ts) < freshMs ? ' fresh' : '';
       html += '<div class="child-bubble-stack"><div class="child-bubble mine' + fresh + '">' + esc(thread.entry.text || '') + '</div></div>';
@@ -6613,6 +6481,8 @@ window._copyJourneySentences=async function(){
   catch(e){toast('Ekki tókst að deila');}
 };
 document.addEventListener('click',e=>{
+  const openBook=e.target.closest('[data-journey-open-book]');
+  if(openBook){openJourney(openBook.dataset.journeyOpenBook);return;}
   const bookBtn=e.target.closest('[data-journey-book]');
   if(bookBtn){childJourneyBookId=bookBtn.dataset.journeyBook||null;renderChildJourney();return;}
   const btn=e.target.closest('[data-journey-filter]');

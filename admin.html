@@ -482,13 +482,18 @@ html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sa
     </div>
     <div class="auth-body">
       <div class="auth-welcome">Admin innskráning</div>
-      <div class="auth-desc">Sláðu inn admin kóðann til að opna stjórnborðið</div>
+      <div class="auth-desc">Skráðu þig inn með admin aðganginum þínum</div>
       <div class="auth-field">
-        <label class="auth-label" for="admin-code-input">Admin kóði</label>
-        <input id="admin-code-input" class="auth-input" type="password" maxlength="32"
-          autocomplete="off" placeholder="Sláðu inn kóða">
+        <label class="auth-label" for="admin-email-input">Netfang</label>
+        <input id="admin-email-input" class="auth-input" type="email"
+          autocomplete="username" placeholder="admin@upphatt.is" style="letter-spacing:normal;text-transform:none">
       </div>
-      <button class="auth-btn" onclick="tryLogin()">Opna stjórnborð</button>
+      <div class="auth-field">
+        <label class="auth-label" for="admin-pass-input">Lykilorð</label>
+        <input id="admin-pass-input" class="auth-input" type="password"
+          autocomplete="current-password" placeholder="••••••••">
+      </div>
+      <button class="auth-btn" id="admin-login-btn" onclick="tryLogin()">Skrá inn</button>
       <div id="auth-error" class="auth-error"></div>
     </div>
   </div>
@@ -535,6 +540,7 @@ html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sa
 
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
 <script>
 console.log('ADMIN SCRIPT STARTED');
 
@@ -547,16 +553,17 @@ const firebaseConfig = {
   appId:'1:204392598388:web:2dbbe3f476cd78d2ffba21'
 };
 
-let db = null;
+let db = null, auth = null;
 function initFirebase() {
   if (db) return db;
   if (!window.firebase) throw new Error('Firebase scripts hlóðust ekki. Prófaðu hard refresh eða athugaðu Network tab.');
   if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
   db = firebase.firestore();
+  auth = firebase.auth();
   return db;
 }
 
-const ADMIN_CODE = 'ADMIN001';
+// Admin-kóðinn fjarlægður — auðkenning er nú gegnum Firebase Auth + admins/{uid}
 const PAGE_SIZE = 50;
 const ANALYTICS_EVENT_LIMIT = 1000;
 
@@ -764,28 +771,78 @@ function dateLabel(v) {
 }
 
 // ══════════════════════════════════════════
-// AUTH
+// AUTH (Firebase Auth + admins/{uid} réttindi)
 // ══════════════════════════════════════════
 
-window.tryLogin = function() {
-  const code = document.getElementById('admin-code-input').value.trim();
-  const err = document.getElementById('auth-error');
-  if (code !== ADMIN_CODE) { err.textContent = 'Rangur kóði'; return; }
-  err.textContent = '';
+async function isAdminUser(user) {
+  if (!user) return false;
+  try {
+    const snap = await db.collection('admins').doc(user.uid).get();
+    return snap.exists;
+  } catch (e) {
+    return false;
+  }
+}
+
+function showAuthScreen() {
+  document.getElementById('admin-page').style.display = 'none';
+  document.getElementById('auth-screen').style.display = 'flex';
+  const p = document.getElementById('admin-pass-input'); if (p) p.value = '';
+  const b = document.getElementById('admin-login-btn'); if (b) { b.disabled = false; b.textContent = 'Skrá inn'; }
+}
+
+function showAdminPage(user) {
   document.getElementById('auth-screen').style.display = 'none';
   document.getElementById('admin-page').style.display = 'block';
-  loadData();
+  const lbl = document.querySelector('.admin-side-user strong');
+  if (lbl && user && user.email) lbl.textContent = user.email;
+}
+
+function resetAdminState() {
+  _sessions = []; _heatmapSessions = []; _listenEvents = []; _users = []; _childBirthYearLookup = {}; _birthYearOptions = []; _families = {}; _lastDoc = null; _hasMore = true;
+}
+
+window.tryLogin = async function() {
+  const email = document.getElementById('admin-email-input').value.trim();
+  const pass = document.getElementById('admin-pass-input').value;
+  const err = document.getElementById('auth-error');
+  const btn = document.getElementById('admin-login-btn');
+  err.textContent = '';
+  if (!email || !pass) { err.textContent = 'Sláðu inn netfang og lykilorð'; return; }
+  btn.disabled = true; btn.textContent = 'Skrái inn...';
+  try {
+    initFirebase();
+    await auth.signInWithEmailAndPassword(email, pass);
+    // onAuthStateChanged tekur við hér að neðan: staðfestir admin-réttindi og opnar borðið
+  } catch (e) {
+    err.textContent = 'Innskráning mistókst — athugaðu netfang og lykilorð';
+    btn.disabled = false; btn.textContent = 'Skrá inn';
+  }
 };
 
 window.doLogout = function() {
-  _sessions = []; _heatmapSessions = []; _listenEvents = []; _users = []; _childBirthYearLookup = {}; _birthYearOptions = []; _families = {}; _lastDoc = null; _hasMore = true;
-  document.getElementById('admin-page').style.display = 'none';
-  document.getElementById('auth-screen').style.display = 'flex';
-  document.getElementById('admin-code-input').value = '';
+  if (auth) auth.signOut();
 };
 
-document.getElementById('admin-code-input').addEventListener('keydown', e => {
+document.getElementById('admin-email-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('admin-pass-input').focus();
+});
+document.getElementById('admin-pass-input').addEventListener('keydown', e => {
   if (e.key === 'Enter') window.tryLogin();
+});
+
+// Gátt: bregst við innskráningarstöðu (líka við endurhleðslu síðu)
+initFirebase();
+auth.onAuthStateChanged(async (user) => {
+  if (!user) { resetAdminState(); showAuthScreen(); return; }
+  const ok = await isAdminUser(user);
+  if (!ok) {
+    document.getElementById('auth-error').textContent = 'Þessi aðgangur hefur ekki admin réttindi';
+    await auth.signOut();   // hrindir af stað onAuthStateChanged(null) -> auth-skjár
+    return;
+  }
+  showAdminPage(user);
+  loadData();
 });
 
 // ══════════════════════════════════════════

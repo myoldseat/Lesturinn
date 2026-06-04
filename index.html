@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="is">
 <head>
 <meta charset="UTF-8">
@@ -21,13 +21,13 @@
 <style>
   .pw-wrap { position: relative; }
   .pw-wrap .rg-input { padding-right: 44px; }
-  .pw-eye { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; font-size: 17px; padding: 4px; line-height: 1; }
+  .pw-eye { position: absolute; right: 9px; top: 50%; transform: translateY(-50%); min-width: 42px; height: 26px; border-radius: 999px; border: 1px solid rgba(29,205,211,.35); background: rgba(29,205,211,.10); color: #1dcdd3; cursor: pointer; font-size: 10px; font-weight: 800; letter-spacing: .03em; padding: 0 7px; line-height: 1; }
   .rg-consent { display: flex; gap: 9px; align-items: flex-start; margin: 4px 0 12px; font-size: 13px; color: #cdd9e5; text-align: left; }
   .rg-consent input { margin-top: 2px; width: 17px; height: 17px; flex: none; accent-color: #1dcdd3; }
   .rg-consent a { color: #1dcdd3; text-decoration: underline; }
   .rg-remember { display: flex; gap: 9px; align-items: center; margin: -2px 0 12px; font-size: 13px; color: #cdd9e5; cursor: pointer; }
   .rg-remember input { width: 17px; height: 17px; accent-color: #1dcdd3; }
-  .rg-google-btn { width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px; background: #fff; color: #1f1f1f; border: none; border-radius: 12px; padding: 13px; font-size: 15px; font-weight: 600; cursor: pointer; margin-bottom: 10px; }
+  .rg-google-btn { display: none !important; }
   .rg-or { display: flex; align-items: center; gap: 10px; color: #7f95a8; font-size: 12px; margin: 6px 0 12px; }
   .rg-or::before, .rg-or::after { content: ""; flex: 1; height: 1px; background: rgba(255,255,255,.12); }
 </style>
@@ -115,7 +115,7 @@
         <label class="rg-label" for="popup-login-pw">Lykilorð</label>
         <div class="pw-wrap">
           <input id="popup-login-pw" class="rg-input" type="password" autocomplete="current-password" placeholder="••••••••">
-          <button type="button" class="pw-eye" aria-label="Sýna lykilorð" onclick="togglePw('popup-login-pw', this)">👁</button>
+          <button type="button" class="pw-eye" aria-label="Sýna lykilorð" onclick="togglePw('popup-login-pw', this)">SÝNA</button>
         </div>
       </div>
       <div style="text-align:right;margin:-6px 0 12px">
@@ -203,8 +203,8 @@
       <div class="rg-or">eða með netfangi</div>
       <div class="rg-field"><label class="rg-label" for="su-name">Fullt nafn</label><input id="su-name" class="rg-input" type="text" autocomplete="name" placeholder="Nafn Nafnsson"></div>
       <div class="rg-field"><label class="rg-label" for="su-email">Netfang</label><input id="su-email" class="rg-input" type="email" autocomplete="email" placeholder="foreldri@dæmi.is"></div>
-      <div class="rg-field"><label class="rg-label" for="su-pw">Lykilorð</label><div class="pw-wrap"><input id="su-pw" class="rg-input" type="password" autocomplete="new-password" placeholder="Minnst 6 stafir"><button type="button" class="pw-eye" aria-label="Sýna lykilorð" onclick="togglePw('su-pw', this)">👁</button></div></div>
-      <div class="rg-field"><label class="rg-label" for="su-pw2">Staðfesta lykilorð</label><div class="pw-wrap"><input id="su-pw2" class="rg-input" type="password" autocomplete="new-password" placeholder="••••••••"><button type="button" class="pw-eye" aria-label="Sýna lykilorð" onclick="togglePw('su-pw2', this)">👁</button></div></div>
+      <div class="rg-field"><label class="rg-label" for="su-pw">Lykilorð</label><div class="pw-wrap"><input id="su-pw" class="rg-input" type="password" autocomplete="new-password" placeholder="Minnst 6 stafir"><button type="button" class="pw-eye" aria-label="Sýna lykilorð" onclick="togglePw('su-pw', this)">SÝNA</button></div></div>
+      <div class="rg-field"><label class="rg-label" for="su-pw2">Staðfesta lykilorð</label><div class="pw-wrap"><input id="su-pw2" class="rg-input" type="password" autocomplete="new-password" placeholder="••••••••"><button type="button" class="pw-eye" aria-label="Sýna lykilorð" onclick="togglePw('su-pw2', this)">SÝNA</button></div></div>
       <label class="rg-consent"><input type="checkbox" id="su-consent"> <span>Ég hef lesið og samþykki <a href="#" onclick="openTermsPopup(); return false;">skilmála UppHátt</a></span></label>
       <div id="signup-error" class="rg-popup-error"></div>
       <button class="rg-popup-btn" onclick="submitSignupPopup()">Stofna aðgang</button>
@@ -256,7 +256,7 @@
     var i = document.getElementById(id); if (!i) return;
     var show = i.type === 'password';
     i.type = show ? 'text' : 'password';
-    if (btn) { btn.textContent = show ? '🙈' : '👁'; btn.setAttribute('aria-label', show ? 'Fela lykilorð' : 'Sýna lykilorð'); }
+    if (btn) { btn.textContent = show ? 'FELA' : 'SÝNA'; btn.setAttribute('aria-label', show ? 'Fela lykilorð' : 'Sýna lykilorð'); }
   };
   window.submitSignupPopup = function () {
     var c = document.getElementById('su-consent');

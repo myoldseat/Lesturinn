@@ -3662,6 +3662,39 @@ function resetClipDots(docId) {
 }
 
 
+function _firstClipPath(s) {
+  for (const k of CLIP_KEYS) if (s && s[k]) return { key: k, path: s[k] };
+  return null;
+}
+
+async function syncGoldMomentForFavorite(session, isFav) {
+  if (!session) return;
+  const book = _recBook(session);
+  const clip = _firstClipPath(session);
+  if (!book || !clip) return;
+
+  const entries = Array.isArray(book.journeyEntries) ? [...book.journeyEntries] : [];
+  const filtered = entries.filter(e => !(e && e.type === 'gold_moment' && e.sessionId === session._docId));
+
+  if (isFav) {
+    const saver = _listenerName();
+    filtered.unshift({
+      type: 'gold_moment',
+      sessionId: session._docId,
+      clipPath: clip.path,
+      clipKey: clip.key,
+      savedBy: saver,
+      text: saver + ' geymdi lesturinn þinn',
+      bookTitle: book.title || session.bookTitle || '',
+      date: 'Í dag',
+      createdAt: Date.now()
+    });
+  }
+
+  await updateDoc(doc(db, 'books', book.id), { journeyEntries: filtered, updatedAt: serverTimestamp() });
+  book.journeyEntries = filtered;
+}
+
 /* ── Toggle favorite ── */
 window.toggleFav = async function(docId, el) {
   if (!docId) return;
@@ -3673,6 +3706,8 @@ window.toggleFav = async function(docId, el) {
     /* Update local S.sessions so filter works immediately */
     const s = (S.sessions||[]).find(x => x._docId === docId);
     if (s) s.favorited = isFav;
+    await syncGoldMomentForFavorite(s, isFav);
+    render();
   } catch(e) {
     console.warn('Fav save failed:', e);
     el.classList.toggle('on');
@@ -3991,4 +4026,5 @@ console.log('🚀 parent.html engine started');
 </script>
 </body>
 </html>
+
 

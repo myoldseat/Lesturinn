@@ -680,8 +680,8 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
   <div id="codes-panel"><div id="codes-list"></div></div>
   <button id="codes-toggle-btn" type="button"></button>
   <div id="parent-content"></div>
-  <div id="ph-user-email">parent@example.test</div>
-  <div id="ph-family-code">FAM0000AA</div>
+  <div id="ph-user-email">—</div>
+  <div id="ph-family-code">—</div>
   <button id="ph-theme-btn" type="button"></button>
   <button id="ph-add-child-btn" type="button"></button>
   <button id="ph-tab-activity" class="ph-tab ph-tab-active" type="button"></button>
@@ -734,7 +734,7 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
           <button type="button" onclick="addFirstChild()" style="background:var(--accent);color:#061018;border:none;border-radius:99px;padding:12px 28px;font:inherit;font-size:14px;font-weight:600;cursor:pointer;transition:filter .15s">+ Skrá fyrsta barn</button>
           <div style="margin-top:20px;padding:14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);text-align:center">
             <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px">Fjölskyldulykillinn þinn</div>
-            <div style="font-size:18px;font-weight:600;color:var(--accent);letter-spacing:2px;font-family:Georgia,serif" id="ph-welcome-fam-code">FAM0000AA</div>
+            <div style="font-size:18px;font-weight:600;color:var(--accent);letter-spacing:2px;font-family:Georgia,serif" id="ph-welcome-fam-code">—</div>
             <div style="font-size:10px;color:var(--muted);margin-top:6px">Deildu með fjölskyldu til að aðrir geti fylgst með</div>
           </div>
         </div>
@@ -754,12 +754,12 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
 
       <div class="cpills" id="p-children-row" aria-label="Veldu barn">
         <button class="cpill sel" type="button" onclick="pickChild(this,'hrafnkell')">
-          <div class="cpill-av">HH</div>
-          <div><div class="cpill-name">Hrafnkell</div><div class="cpill-meta">HRA78 · 4 mín</div></div>
+          <div class="cpill-av">B</div>
+          <div><div class="cpill-name">Sýnishorn</div><div class="cpill-meta">Ekki raunveruleg gögn</div></div>
         </button>
         <button class="cpill" type="button" onclick="pickChild(this,'kolbeinn')">
-          <div class="cpill-av">KK</div>
-          <div><div class="cpill-name">Kolbeinn</div><div class="cpill-meta">KOL58 · 5 mín</div></div>
+          <div class="cpill-av">AB</div>
+          <div><div class="cpill-name">Sýnishorn</div><div class="cpill-meta">Ekki raunveruleg gögn</div></div>
         </button>
       </div>
 
@@ -785,12 +785,12 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
           <div id="p-book-cover-bg" style="flex:0 0 65%;background:linear-gradient(145deg,#6a3140,#c08a36);display:flex;align-items:center;justify-content:center;font-size:30px;font-weight:700;color:rgba(255,255,255,.9);overflow:hidden"><span id="p-book-cover-letter">F</span></div>
           <div style="flex:1;padding:8px 10px;display:flex;flex-direction:column;justify-content:space-between;min-height:0">
             <div>
-              <div class="rd-title" style="font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" id="p-book-title">Fuglabúrið</div>
-              <div class="rd-meta" id="p-book-meta">bls. 60 af 115</div>
+              <div class="rd-title" style="font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" id="p-book-title">Sýnishorn</div>
+              <div class="rd-meta" id="p-book-meta">Ekki raunveruleg bók</div>
             </div>
             <div class="rd-prog" style="margin-top:4px">
-              <div class="rd-bar"><div class="rd-fill" id="p-book-fill" style="width:52%"></div></div>
-              <div class="rd-pct" id="p-book-pct">52%</div>
+              <div class="rd-bar"><div class="rd-fill" id="p-book-fill" style="width:0%"></div></div>
+              <div class="rd-pct" id="p-book-pct">0%</div>
             </div>
           </div>
         </div>
@@ -809,8 +809,8 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
               <div id="p-audio-btn-icon" class="play-tri" style="border-left-width:11px;border-top-width:7px;border-bottom-width:7px;margin-left:3px"></div>
             </div>
           </div>
-          <div class="play-t" style="font-size:11px;font-weight:600;text-align:center;line-height:1.2;padding:0 4px" id="p-audio-title">Fuglabúrið kafli 6</div>
-          <div class="play-m" style="margin-top:3px;text-align:center" id="p-audio-meta">5 mín · í dag</div>
+          <div class="play-t" style="font-size:11px;font-weight:600;text-align:center;line-height:1.2;padding:0 4px" id="p-audio-title">Sýnishorn</div>
+          <div class="play-m" style="margin-top:3px;text-align:center" id="p-audio-meta">Hér birtast hljóðbrot þegar barnið les.</div>
           <div id="p-audio-time" style="font-size:10px;color:var(--accent);margin-top:4px;font-weight:600;display:none">0:00 / 0:00</div>
           <div style="display:flex;align-items:center;gap:6px;margin-top:8px;height:16px;flex:0 0 auto;justify-content:center" id="p-audio-dots"></div>
         </div>
@@ -824,19 +824,19 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
         </div>
         <!-- Síðasta barnafærsla -->
         <div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:8px">
-          <div style="flex:0 0 26px;width:26px;height:26px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;color:#061018;margin-top:1px" id="p-jn-child-av">HH</div>
+          <div style="flex:0 0 26px;width:26px;height:26px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;color:#061018;margin-top:1px" id="p-jn-child-av">B</div>
           <div style="flex:1;background:rgba(29,205,211,.07);border:1px solid rgba(29,205,211,.15);border-radius:10px;padding:7px 10px;min-width:0">
-            <div style="font-size:10px;font-weight:600;color:var(--accent);margin-bottom:3px"><span id="p-jn-child-name">Hrafnkell</span> <span style="font-weight:400;color:var(--muted)" id="p-jn-child-ts">16:42</span></div>
-            <div style="font-size:13px;color:var(--text-bright);line-height:1.3" id="p-jn-child-text">Bókin er byrjuð.</div>
-            <div style="font-size:10px;color:var(--muted);margin-top:3px" id="p-jn-child-meta">bls. 1–10 · 5 mín</div>
+            <div style="font-size:10px;font-weight:600;color:var(--accent);margin-bottom:3px"><span id="p-jn-child-name">Barn</span> <span style="font-weight:400;color:var(--muted)" id="p-jn-child-ts">16:42</span></div>
+            <div style="font-size:13px;color:var(--text-bright);line-height:1.3" id="p-jn-child-text">Sýnishorn - hér birtist fyrsta færsla barnsins.</div>
+            <div style="font-size:10px;color:var(--muted);margin-top:3px" id="p-jn-child-meta">—</div>
           </div>
         </div>
         <!-- Síðasta fjölskyldukomment -->
         <div style="display:flex;gap:8px;align-items:flex-start">
           <div style="flex:0 0 26px;width:26px;height:26px;border-radius:50%;background:rgba(148,164,180,.15);border:1px solid rgba(148,164,180,.2);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;color:#8aa0b4;margin-top:1px" id="p-jn-fam-av">AP</div>
           <div style="flex:1;background:rgba(148,164,180,.05);border:1px solid rgba(148,164,180,.1);border-radius:10px;padding:7px 10px;min-width:0">
-            <div style="font-size:10px;font-weight:600;color:#8aa0b4;margin-bottom:3px"><span id="p-jn-fam-name">Afi Pétur</span> <span style="font-weight:400;color:var(--muted)" id="p-jn-fam-ts">17:05</span></div>
-            <div style="font-size:13px;color:var(--text-bright);line-height:1.3" id="p-jn-fam-text">Hlakka til að heyra næsta kafla!</div>
+            <div style="font-size:10px;font-weight:600;color:#8aa0b4;margin-bottom:3px"><span id="p-jn-fam-name">Fjölskylda</span> <span style="font-weight:400;color:var(--muted)" id="p-jn-fam-ts">17:05</span></div>
+            <div style="font-size:13px;color:var(--text-bright);line-height:1.3" id="p-jn-fam-text">Sýnishorn - hér birtast svör frá fjölskyldunni.</div>
           </div>
         </div>
       </div>
@@ -851,8 +851,8 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
     <header class="top"><div class="brand"><b>Upp</b>Hátt</div><div class="top-title">Ferðalag</div><div class="top-sub"></div></header>
     <div class="bod">
       <div class="cpills" data-child-row aria-label="Veldu barn">
-        <button class="cpill sel" type="button" onclick="pickChild(this,'hrafnkell')"><div class="cpill-av">HH</div><div><div class="cpill-name">Hrafnkell</div></div></button>
-        <button class="cpill" type="button" onclick="pickChild(this,'kolbeinn')"><div class="cpill-av">KK</div><div><div class="cpill-name">Kolbeinn</div></div></button>
+        <button class="cpill sel" type="button" onclick="pickChild(this,'hrafnkell')"><div class="cpill-av">B</div><div><div class="cpill-name">Sýnishorn</div></div></button>
+        <button class="cpill" type="button" onclick="pickChild(this,'kolbeinn')"><div class="cpill-av">AB</div><div><div class="cpill-name">Sýnishorn</div></div></button>
       </div>
 
       <!-- Book hero with cover -->
@@ -861,9 +861,9 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
           <div class="rd-cover" style="width:48px;height:68px;font-size:18px;border-radius:7px"><span>F</span></div>
         </div>
         <div class="jn-hero-info">
-          <div class="rd-title" style="font-size:15px" id="jm-book-title">Fuglabúrið</div>
-          <div class="rd-meta">bls. 60 af 115</div>
-          <div class="rd-prog" style="margin-top:4px"><div class="rd-bar"><div class="rd-fill" style="width:52%"></div></div><div class="rd-pct">52%</div></div>
+          <div class="rd-title" style="font-size:15px" id="jm-book-title">Sýnishorn</div>
+          <div class="rd-meta">Ekki raunveruleg bók</div>
+          <div class="rd-prog" style="margin-top:4px"><div class="rd-bar"><div class="rd-fill" style="width:0%"></div></div><div class="rd-pct">0%</div></div>
         </div>
       </div>
 
@@ -872,13 +872,13 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
 
         <div class="jn-daylbl">Í dag</div>
 
-        <!-- HH færsla -->
+        <!-- B færsla -->
         <div style="display:flex;gap:8px;align-items:flex-start">
-          <div class="jn-av jn-av-child">HH</div>
+          <div class="jn-av jn-av-child">B</div>
           <div class="jn-bubble jn-bubble-child">
-            <div class="jn-bubble-name">Hrafnkell <span class="jn-bubble-ts">16:42</span></div>
-            <div class="jn-bubble-text">Bókin er byrjuð.</div>
-            <div class="jn-bubble-meta">bls. 1–10 · 5 mín</div>
+            <div class="jn-bubble-name">Barn <span class="jn-bubble-ts">16:42</span></div>
+            <div class="jn-bubble-text">Sýnishorn - hér birtist fyrsta færsla barnsins.</div>
+            <div class="jn-bubble-meta">—</div>
           </div>
         </div>
 
@@ -886,8 +886,8 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
         <div style="display:flex;gap:8px;align-items:flex-start">
           <div class="jn-av jn-av-fam">AP</div>
           <div class="jn-bubble jn-bubble-fam">
-            <div class="jn-bubble-name jn-bubble-name-fam">Afi Pétur <span class="jn-bubble-ts">17:05</span></div>
-            <div class="jn-bubble-text">Hlakka til að heyra næsta kafla!</div>
+            <div class="jn-bubble-name jn-bubble-name-fam">Fjölskylda <span class="jn-bubble-ts">17:05</span></div>
+            <div class="jn-bubble-text">Sýnishorn - hér birtast svör frá fjölskyldunni.</div>
             <div class="jn-reply" style="margin-top:6px">
               <input class="jn-reply-input" placeholder="Skrifa svar..." maxlength="80" id="jm-input">
               <button class="jn-reply-btn" type="button" id="jm-send" onclick="sendReply(this)">↑</button>
@@ -897,13 +897,13 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
 
         <div class="jn-daylbl" style="margin-top:8px">20. maí</div>
 
-        <!-- HH færsla -->
+        <!-- B færsla -->
         <div style="display:flex;gap:8px;align-items:flex-start">
-          <div class="jn-av jn-av-child">HH</div>
+          <div class="jn-av jn-av-child">B</div>
           <div class="jn-bubble jn-bubble-child">
-            <div class="jn-bubble-name">Hrafnkell <span class="jn-bubble-ts">15:20</span></div>
-            <div class="jn-bubble-text">Þau fundu nýja vísbendingu.</div>
-            <div class="jn-bubble-meta">bls. 50–60 · 4 mín</div>
+            <div class="jn-bubble-name">Barn <span class="jn-bubble-ts">15:20</span></div>
+            <div class="jn-bubble-text">Hér birtast lestrarsetningar.</div>
+            <div class="jn-bubble-meta">—</div>
           </div>
         </div>
 
@@ -911,8 +911,8 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
         <div style="display:flex;gap:8px;align-items:flex-start">
           <div class="jn-av jn-av-fam">AM</div>
           <div class="jn-bubble jn-bubble-fam">
-            <div class="jn-bubble-name jn-bubble-name-fam">Amma María <span class="jn-bubble-ts">18:30</span></div>
-            <div class="jn-bubble-text">Spennandi! Hver heldurðu að sé þjófurinn?</div>
+            <div class="jn-bubble-name jn-bubble-name-fam">Fjölskylda <span class="jn-bubble-ts">18:30</span></div>
+            <div class="jn-bubble-text">Hér geta fjölskyldumeðlimir svarað.</div>
             <button class="jn-reply-toggle" onclick="openReply(this)" style="margin-top:6px">Svara</button>
             <div class="jn-reply" style="display:none;margin-top:6px">
               <input class="jn-reply-input" placeholder="Skrifa svar..." maxlength="80">
@@ -921,13 +921,13 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
           </div>
         </div>
 
-        <!-- HH færsla -->
+        <!-- B færsla -->
         <div style="display:flex;gap:8px;align-items:flex-start">
-          <div class="jn-av jn-av-child">HH</div>
+          <div class="jn-av jn-av-child">B</div>
           <div class="jn-bubble jn-bubble-child">
-            <div class="jn-bubble-name">Hrafnkell <span class="jn-bubble-ts">14:55</span></div>
-            <div class="jn-bubble-text">Kaflinn endaði á leyndarmáli.</div>
-            <div class="jn-bubble-meta">bls. 42–50 · 6 mín</div>
+            <div class="jn-bubble-name">Barn <span class="jn-bubble-ts">14:55</span></div>
+            <div class="jn-bubble-text">Ferðalagið fyllist þegar barnið les.</div>
+            <div class="jn-bubble-meta">—</div>
           </div>
         </div>
 
@@ -1046,8 +1046,8 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
     <header class="top"><div class="brand"><b>Upp</b>Hátt</div><div class="top-title">Hljóð</div><div class="top-sub"></div></header>
     <div class="bod">
       <div class="cpills" data-child-row aria-label="Veldu barn">
-        <button class="cpill sel" type="button" onclick="pickChild(this,'hrafnkell')"><div class="cpill-av">HH</div><div><div class="cpill-name">Hrafnkell</div></div></button>
-        <button class="cpill" type="button" onclick="pickChild(this,'kolbeinn')"><div class="cpill-av">KK</div><div><div class="cpill-name">Kolbeinn</div></div></button>
+        <button class="cpill sel" type="button" onclick="pickChild(this,'hrafnkell')"><div class="cpill-av">B</div><div><div class="cpill-name">Sýnishorn</div></div></button>
+        <button class="cpill" type="button" onclick="pickChild(this,'kolbeinn')"><div class="cpill-av">AB</div><div><div class="cpill-name">Sýnishorn</div></div></button>
       </div>
 
       <!-- Hero — renderRecordings fyllir þetta -->
@@ -1079,8 +1079,8 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
         <div>
           <div class="st-sec">Aðgangur</div>
           <div class="st-group">
-            <div class="st-row"><span class="st-lbl">Netfang</span><span class="st-val" id="settings-email">parent@example.test</span></div>
-            <div class="st-row"><span class="st-lbl">Fjölskyldulykill</span><span class="st-val ac" id="settings-family-code">FAM0000AA</span></div>
+            <div class="st-row"><span class="st-lbl">Netfang</span><span class="st-val" id="settings-email">—</span></div>
+            <div class="st-row"><span class="st-lbl">Fjölskyldulykill</span><span class="st-val ac" id="settings-family-code">—</span></div>
             <div class="st-row tap" onclick="confirmAction('reset-key')"><span class="st-lbl">Endurnýja fjölskyldulykil</span><span class="st-act">›</span></div>
           </div>
         </div>
@@ -1089,12 +1089,12 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
           <div class="st-sec">Börn</div>
           <div class="st-group" id="st-kids-list">
             <div class="st-row">
-              <div><div class="st-lbl">Hrafnkell Hersir</div><div class="st-sub">HRA78 · 4 mín · 1/7 daga</div></div>
-              <button class="st-code-btn" type="button" onclick="openChildCode('HRA78','Hrafnkell Hersir','HRA78')">Kóði</button>
+              <div><div class="st-lbl">Sýnishorn</div><div class="st-sub">Ekki raunveruleg gögn</div></div>
+              <button class="st-code-btn" type="button" onclick="openChildCode('KÓÐI','Barn','KÓÐI')">Kóði</button>
             </div>
             <div class="st-row">
-              <div><div class="st-lbl">Kolbeinn Kvasir</div><div class="st-sub">KOL58 · 5 mín · 2/7 daga</div></div>
-              <button class="st-code-btn" type="button" onclick="openChildCode('KOL58','Kolbeinn Kvasir','KOL58')">Kóði</button>
+              <div><div class="st-lbl">Sýnishorn</div><div class="st-sub">Ekki raunveruleg gögn</div></div>
+              <button class="st-code-btn" type="button" onclick="openChildCode('KÓÐI','Annað barn','KÓÐI')">Kóði</button>
             </div>
             <div class="st-row tap" onclick="if(typeof openAddChildPopup==='function')openAddChildPopup();else toast('openAddChildPopup tengist seinna')"><span class="st-lbl" style="color:var(--accent)">+ Bæta við barni</span></div>
           </div>
@@ -1284,14 +1284,14 @@ function setParentScreen(t) { go(t); }
 /* ═══════════════════════════════════
    CHILD PILLS (sticky)
    ═══════════════════════════════════ */
-let _child = 'hrafnkell';
+let _child = null;
 function pickChild(el, key) {
   _child = key;
   document.querySelectorAll('.cpill').forEach(p => {
     const match = p.getAttribute('onclick')?.includes("'" + key + "'");
     p.classList.toggle('sel', !!match);
   });
-  toast(key === 'hrafnkell' ? 'Hrafnkell valinn' : 'Kolbeinn valinn');
+  toast('Barn valið');
 }
 
 /* ═══════════════════════════════════
@@ -1680,7 +1680,7 @@ window.submitAddChild = async function(){
     S.parentChildren=updated;
     document.getElementById('pac-code-value').textContent=code;
     document.getElementById('pac-code-box')?.classList.add('show');
-    if(btn){btn.disabled=false;btn.textContent='Loka';btn.onclick=closeAddChildPopup;}
+    if(btn){btn.disabled=false;btn.textContent='Loka';btn.onclick=()=>window.closeAddChildPopup();}
     _lastChildCount=-1; _lastPbHash=''; render(); updateSettings();
     toast('Barn skráð');
   }catch(e){
@@ -1743,7 +1743,6 @@ window.sendEntryReply = async function(btn) {
    ══════════════════════════════════════ */
 let _lastSessionCount = -1;
 let _lastBookCount = -1;
-let _lastChildCount = -1;
 let _watching = false;
 
 function startWatching() {
@@ -1759,11 +1758,10 @@ function checkS() {
   const bc = (S.books || []).length;
   const cc = (S.parentChildren || []).length;
 
-  if (sc !== _lastSessionCount || bc !== _lastBookCount || cc !== _lastChildCount) {
+  if (sc !== _lastSessionCount || bc !== _lastBookCount) {
     _lastSessionCount = sc;
     _lastBookCount = bc;
-    _lastChildCount = cc;
-    console.log('🔄 S changed — sessions:', sc, 'books:', bc, 'children:', cc);
+    console.log('🔄 S changed — sessions:', sc, 'books:', bc);
     saveTotalPagesRead();
     render();
   }
@@ -1828,28 +1826,14 @@ function render() {
   const children = S.parentChildren || [];
   const sessions = S.sessions || [];
   const books    = S.books || [];
-  if (children.length > 0 && (!_selectedChild || !children.find(c => c.key === _selectedChild))) _selectedChild = children[0].key;
-  if (children.length === 0) _selectedChild = null;
+
+  if (!_selectedChild && children.length > 0) _selectedChild = children[0].key;
 
   _childCount = children.length;
   checkEmptyState();
   updateSettings();
-  renderSettingsChildren(children);
-  renderFamilyAccess();
 
-  if (children.length === 0) {
-    renderChildren([]);
-    renderReading([]);
-    renderAudioHero([]);
-    renderWeek([]);
-    renderStreak([]);
-    renderProgress([], []);
-    renderJourneyPreview([], []);
-    renderJourney([]);
-    renderRecordings([]);
-    renderParentBookshelf([]);
-    return;
-  }
+  if (children.length === 0) return;
 
   const cs = sessions.filter(s => s.childKey === _selectedChild);
   const cb = books.filter(b => b.childKey === _selectedChild);
@@ -3640,12 +3624,12 @@ window.toggleClips = function(docId, btn) {
 };
 
 /* ── Play all clips in session (spilunarflöturinn) ──
-   Spilar bara — opnar EKKI lengur listann (punktarnir sýna framvindu). */
+   Spilar bara — opnar EABI lengur listann (punktarnir sýna framvindu). */
 window.playAllClips = function(docId) {
   window.playSessionClip(docId, 0);
 };
 
-/* ── Update dots + virkt kort (kölluð frá playSessionClip, EKKI frá render) ── */
+/* ── Update dots + virkt kort (kölluð frá playSessionClip, EABI frá render) ── */
 function updateClipDots(docId, activeIndex) {
   document.querySelectorAll('.rec-card.playing').forEach(function(c) {
     if (c.getAttribute('data-doc') !== docId) c.classList.remove('playing');
@@ -3686,14 +3670,13 @@ async function syncGoldMomentForFavorite(session, isFav) {
   const filtered = entries.filter(e => !(e && e.type === 'gold_moment' && e.sessionId === session._docId));
 
   if (isFav) {
-    const saver = _listenerName();
     filtered.unshift({
       type: 'gold_moment',
       sessionId: session._docId,
       clipPath: clip.path,
       clipKey: clip.key,
-      savedBy: saver,
-      text: saver + ' geymdi lesturinn þinn',
+      savedBy: _listenerName(),
+      text: _listenerName() + ' geymdi lesturinn þinn',
       bookTitle: book.title || session.bookTitle || '',
       date: 'Í dag',
       createdAt: Date.now()
@@ -3845,7 +3828,9 @@ function closeChildCode() {
 }
 window.closeChildCode = closeChildCode;
 
-async function copyChildCode(code) {
+async function copyChildCode() {
+  const code = document.getElementById('child-code-value')?.textContent?.trim() || '';
+  if (!code) return;
   try {
     await navigator.clipboard?.writeText(code);
     toast('Kóði afritaður');
@@ -3854,14 +3839,12 @@ async function copyChildCode(code) {
   }
 }
 window.copyChildCode = copyChildCode;
-
 /* ── Settings info ── */
 function updateSettings() {
-  const set = (id, v, fallback='—') => { const e = document.getElementById(id); if (e) e.textContent = v || fallback; };
+  const set = (id, v) => { const e = document.getElementById(id); if (e && v) e.textContent = v; };
   set('settings-email', S.parentEmail);
   set('settings-family-code', S.familyCode);
   set('ph-welcome-fam-code', S.familyCode);
-  set('ph-family-code', S.familyCode);
 }
 
 /* ── Helpers ── */
@@ -3967,28 +3950,23 @@ window.addEventListener('beforeunload', _teardownParentListeners);
 
 async function bootParentGate() {
   const gate = await import('./js/auth-gate.js').catch(e => { console.error('auth-gate:', e); return {}; });
-  if (!gate.resolveIdentity) {
-    console.error('auth-gate.resolveIdentity vantar — fell back á initAuth');
-    finishParentBoot(Promise.resolve());
-    initAuth();
-    startWatching();
-    return;
-  }
+  if (!gate.resolveIdentity) { console.error('auth-gate.resolveIdentity vantar — fell back á initAuth'); finishParentBoot(Promise.resolve());
+  initAuth(); startWatching(); return; }
 
   onAuthStateChanged(auth, async (user) => {
     if (!user) {
       _teardownParentListeners();
+      /* Engin hörð redirect enn — login-form parent helst (dev + núverandi hegðun).
+         Redirect-á-index kemur í Skref 4 (gáttin). */
       showParentLogin();
       return;
     }
-
     const id = await gate.resolveIdentity(user);
     if (!id || !['parent', 'guest'].includes(id.role)) {
       console.warn('gate: ekki parent/guest →', id && id.role);
       showParentLogin();
       return;
     }
-
     /* hydra S — það sem render() og _listenerName() lesa */
     S.role        = id.role;
     S.familyId    = id.familyId;
@@ -3997,29 +3975,12 @@ async function bootParentGate() {
     S.parentName  = id.name || S.parentName || null;
     S.roleName    = id.roleName || S.roleName || null;
     S.parentEmail = user.email || S.parentEmail || null;
-    S.familyCode  = id.familyCode || S.familyCode || null;
-
-    let profile = null;
-    if (id.role === 'parent') {
-      try {
-        const ps = await getDoc(doc(db, 'users', user.uid));
-        profile = ps.exists() ? ps.data() : null;
-      } catch (e) {
-        console.warn('parent profile fetch:', e);
-      }
-      if (profile) {
-        S.familyCode = profile.familyCode || S.familyCode || null;
-        S.parentChildren = Array.isArray(profile.children) ? profile.children : [];
-      } else {
-        S.parentChildren = [];
-      }
+    if (id.children && id.children.length) {
+      S.parentChildren = id.children;
     } else if (id.role === 'guest') {
       try { S.parentChildren = (JSON.parse(localStorage.getItem('upphatt_guest') || '{}').children) || []; }
       catch (e) { S.parentChildren = []; }
-    } else {
-      S.parentChildren = Array.isArray(id.children) ? id.children : [];
     }
-
     const parentDataReady = startParentListeners(id.familyId);
     hideParentLogin();
     let parentRendered = false;
@@ -4057,5 +4018,7 @@ console.log('🚀 parent.html engine started');
 </script>
 </body>
 </html>
+
+
 
 

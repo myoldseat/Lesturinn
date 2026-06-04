@@ -1021,5 +1021,9 @@ export function initAuth() {
     if (S.familyUnsub) { S.familyUnsub(); S.familyUnsub = null; }
     S.sessions = [];
     goTo('screen-child-login');
+    // Sumarsprettur: sýna pilot-modalinn aðeins þegar staðfest er að enginn sé innskráður
+    if (localStorage.getItem('upphattPilotGroup') && window.openSummerPilot) {
+      window.openSummerPilot();
+    }
   });
 }

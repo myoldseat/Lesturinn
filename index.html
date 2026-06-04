@@ -18,6 +18,19 @@
 <link rel="icon" href="/favicon.ico">
 <link rel="manifest" href="/manifest.json">
 <link rel="stylesheet" href="styles.css">
+<style>
+  .pw-wrap { position: relative; }
+  .pw-wrap .rg-input { padding-right: 44px; }
+  .pw-eye { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; font-size: 17px; padding: 4px; line-height: 1; }
+  .rg-consent { display: flex; gap: 9px; align-items: flex-start; margin: 4px 0 12px; font-size: 13px; color: #cdd9e5; text-align: left; }
+  .rg-consent input { margin-top: 2px; width: 17px; height: 17px; flex: none; accent-color: #1dcdd3; }
+  .rg-consent a { color: #1dcdd3; text-decoration: underline; }
+  .rg-remember { display: flex; gap: 9px; align-items: center; margin: -2px 0 12px; font-size: 13px; color: #cdd9e5; cursor: pointer; }
+  .rg-remember input { width: 17px; height: 17px; accent-color: #1dcdd3; }
+  .rg-google-btn { width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px; background: #fff; color: #1f1f1f; border: none; border-radius: 12px; padding: 13px; font-size: 15px; font-weight: 600; cursor: pointer; margin-bottom: 10px; }
+  .rg-or { display: flex; align-items: center; gap: 10px; color: #7f95a8; font-size: 12px; margin: 6px 0 12px; }
+  .rg-or::before, .rg-or::after { content: ""; flex: 1; height: 1px; background: rgba(255,255,255,.12); }
+</style>
 </head>
 <body>
 
@@ -89,17 +102,26 @@
     <div id="login-view-a" class="rg-popup-body">
       <div class="rg-popup-welcome">Velkomin/n aftur</div>
       <div class="rg-popup-desc">Skráðu þig inn til að fylgjast með lestri barns þíns</div>
+      <button class="rg-google-btn" onclick="googleSignIn()">
+        <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path fill="#4285F4" d="M17.6 9.2c0-.6-.1-1.2-.2-1.7H9v3.4h4.8a4.1 4.1 0 0 1-1.8 2.7v2.2h2.9c1.7-1.6 2.7-3.9 2.7-6.6z"/><path fill="#34A853" d="M9 18c2.4 0 4.5-.8 6-2.2l-2.9-2.2c-.8.5-1.8.9-3.1.9-2.4 0-4.4-1.6-5.1-3.8H.8v2.3A9 9 0 0 0 9 18z"/><path fill="#FBBC05" d="M3.9 10.7a5.4 5.4 0 0 1 0-3.4V5H.8a9 9 0 0 0 0 8z"/><path fill="#EA4335" d="M9 3.6c1.3 0 2.5.5 3.4 1.3l2.6-2.6A9 9 0 0 0 .8 5l3.1 2.3C4.6 5.2 6.6 3.6 9 3.6z"/></svg>
+        Halda áfram með Google
+      </button>
+      <div class="rg-or">eða með netfangi</div>
       <div class="rg-field">
         <label class="rg-label" for="popup-login-email">Netfang</label>
         <input id="popup-login-email" class="rg-input" type="email" autocomplete="email" placeholder="foreldri@dæmi.is">
       </div>
       <div class="rg-field">
         <label class="rg-label" for="popup-login-pw">Lykilorð</label>
-        <input id="popup-login-pw" class="rg-input" type="password" autocomplete="current-password" placeholder="••••••••">
+        <div class="pw-wrap">
+          <input id="popup-login-pw" class="rg-input" type="password" autocomplete="current-password" placeholder="••••••••">
+          <button type="button" class="pw-eye" aria-label="Sýna lykilorð" onclick="togglePw('popup-login-pw', this)">👁</button>
+        </div>
       </div>
       <div style="text-align:right;margin:-6px 0 12px">
         <button onclick="showForgotPassword()" class="rg-text-link">Gleymt lykilorð?</button>
       </div>
+      <label class="rg-remember"><input type="checkbox" id="remember-me" checked> Mundu mig</label>
       <div id="popup-login-error" class="rg-popup-error"></div>
       <button class="rg-popup-btn" onclick="parentLoginFromPopup()">Skrá inn</button>
       <p class="rg-popup-signup">Ertu ekki með reikning? <span onclick="openSignupPopup()" class="rg-popup-signup-link">Nýskrá hér</span></p>
@@ -174,12 +196,18 @@
     <div id="signup-view-form" class="rg-popup-body">
       <div class="rg-popup-welcome">Byrjaðu hér</div>
       <div class="rg-popup-desc">Stofnaðu aðgang til að fylgjast með lestri barns þíns</div>
+      <button class="rg-google-btn" onclick="googleSignIn()">
+        <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path fill="#4285F4" d="M17.6 9.2c0-.6-.1-1.2-.2-1.7H9v3.4h4.8a4.1 4.1 0 0 1-1.8 2.7v2.2h2.9c1.7-1.6 2.7-3.9 2.7-6.6z"/><path fill="#34A853" d="M9 18c2.4 0 4.5-.8 6-2.2l-2.9-2.2c-.8.5-1.8.9-3.1.9-2.4 0-4.4-1.6-5.1-3.8H.8v2.3A9 9 0 0 0 9 18z"/><path fill="#FBBC05" d="M3.9 10.7a5.4 5.4 0 0 1 0-3.4V5H.8a9 9 0 0 0 0 8z"/><path fill="#EA4335" d="M9 3.6c1.3 0 2.5.5 3.4 1.3l2.6-2.6A9 9 0 0 0 .8 5l3.1 2.3C4.6 5.2 6.6 3.6 9 3.6z"/></svg>
+        Halda áfram með Google
+      </button>
+      <div class="rg-or">eða með netfangi</div>
       <div class="rg-field"><label class="rg-label" for="su-name">Fullt nafn</label><input id="su-name" class="rg-input" type="text" autocomplete="name" placeholder="Nafn Nafnsson"></div>
       <div class="rg-field"><label class="rg-label" for="su-email">Netfang</label><input id="su-email" class="rg-input" type="email" autocomplete="email" placeholder="foreldri@dæmi.is"></div>
-      <div class="rg-field"><label class="rg-label" for="su-pw">Lykilorð</label><input id="su-pw" class="rg-input" type="password" autocomplete="new-password" placeholder="Minnst 6 stafir"></div>
-      <div class="rg-field"><label class="rg-label" for="su-pw2">Staðfesta lykilorð</label><input id="su-pw2" class="rg-input" type="password" autocomplete="new-password" placeholder="••••••••"></div>
+      <div class="rg-field"><label class="rg-label" for="su-pw">Lykilorð</label><div class="pw-wrap"><input id="su-pw" class="rg-input" type="password" autocomplete="new-password" placeholder="Minnst 6 stafir"><button type="button" class="pw-eye" aria-label="Sýna lykilorð" onclick="togglePw('su-pw', this)">👁</button></div></div>
+      <div class="rg-field"><label class="rg-label" for="su-pw2">Staðfesta lykilorð</label><div class="pw-wrap"><input id="su-pw2" class="rg-input" type="password" autocomplete="new-password" placeholder="••••••••"><button type="button" class="pw-eye" aria-label="Sýna lykilorð" onclick="togglePw('su-pw2', this)">👁</button></div></div>
+      <label class="rg-consent"><input type="checkbox" id="su-consent"> <span>Ég hef lesið og samþykki <a href="#" onclick="openTermsPopup(); return false;">skilmála UppHátt</a></span></label>
       <div id="signup-error" class="rg-popup-error"></div>
-      <button class="rg-popup-btn" onclick="firebaseSignupPopup()">Stofna aðgang</button>
+      <button class="rg-popup-btn" onclick="submitSignupPopup()">Stofna aðgang</button>
       <p class="rg-popup-signup">Ertu þegar með reikning? <span onclick="backToLoginFromSignup()" class="rg-popup-signup-link">Innskrá hér</span></p>
     </div>
     <div id="signup-view-success" class="rg-popup-body" style="display:none">
@@ -206,6 +234,94 @@
     <div id="admin-content"></div>
   </div>
 </div>
+<!-- ═══════════════════════════════════════
+     POPUP: SKILMÁLAR (placeholder)
+════════════════════════════════════════ -->
+<div id="terms-popup" class="modal-overlay" style="display:none">
+  <div class="rg-popup-card" style="max-height:85vh;overflow-y:auto">
+    <button class="rg-popup-close" onclick="closeTermsPopup()" aria-label="Loka">✕</button>
+    <div class="rg-popup-header"><p class="rg-popup-subtitle">Skilmálar UppHátt</p></div>
+    <div class="rg-popup-body" style="text-align:left;font-size:14px;line-height:1.6;color:#cdd9e5">
+      <p><strong>[Skilmálar koma hér]</strong></p>
+      <p>Settu lokatexta skilmálanna hér — og sama texta neðst á app.upphatt.is. Þetta er textinn sem notandinn samþykkir við nýskráningu.</p>
+      <button class="rg-popup-btn" style="margin-top:14px" onclick="closeTermsPopup()">Loka</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* Login/signup hjálparföll — eye toggle, samþykkis-gátt, Google placeholder */
+(function () {
+  window.togglePw = function (id, btn) {
+    var i = document.getElementById(id); if (!i) return;
+    var show = i.type === 'password';
+    i.type = show ? 'text' : 'password';
+    if (btn) { btn.textContent = show ? '🙈' : '👁'; btn.setAttribute('aria-label', show ? 'Fela lykilorð' : 'Sýna lykilorð'); }
+  };
+  window.submitSignupPopup = function () {
+    var c = document.getElementById('su-consent');
+    var err = document.getElementById('signup-error');
+    if (!c || !c.checked) { if (err) err.textContent = 'Þú þarft að samþykkja skilmálana til að halda áfram.'; return; }
+    if (window.firebaseSignupPopup) window.firebaseSignupPopup();
+  };
+  window.openTermsPopup = function () { var m = document.getElementById('terms-popup'); if (m) m.style.display = 'flex'; };
+  window.closeTermsPopup = function () { var m = document.getElementById('terms-popup'); if (m) m.style.display = 'none'; };
+  // Placeholder — app.js á að skilgreina raunverulegu Google-innskráninguna (yfirskrifar þetta).
+  if (!window.googleSignIn) {
+    window.googleSignIn = function () { alert('Google innskráning er ekki tengd enn.'); };
+  }
+})();
+</script>
+
+<!-- ═══════════════════════════════════════
+     POPUP: SUMARSPRETTUR (pilot)
+════════════════════════════════════════ -->
+<div id="summer-pilot-popup" class="modal-overlay" style="display:none">
+  <div class="rg-popup-card" style="max-height:90vh;overflow-y:auto">
+    <div class="rg-popup-glow-line"></div>
+    <button class="rg-popup-close" onclick="closeSummerPilot()" aria-label="Loka">✕</button>
+    <div class="rg-popup-header">
+      <div class="rg-popup-brand"><span class="rg-popup-brand-read">Upp</span><span class="rg-popup-brand-glow">Hátt</span></div>
+      <p class="rg-popup-subtitle">Sumarsprettur</p>
+    </div>
+    <div class="rg-popup-body">
+      <div class="rg-popup-welcome">Sumarsprettur UppHátt</div>
+      <div class="rg-popup-desc">
+        Velkomin/n í sumarprófun! Hér heldur barnið lestrinum við í sumar
+        og prófar nýja appið um leið. Stofnaðu aðgang, bættu barninu þínu við —
+        og það byrjar svo að lesa með leynikóða.
+      </div>
+      <button class="rg-popup-btn" onclick="startSummerSignup()">Stofna aðgang og byrja</button>
+      <p class="rg-popup-signup">Ertu þegar með aðgang? <span onclick="summerToLogin()" class="rg-popup-signup-link">Innskrá hér</span></p>
+    </div>
+  </div>
+</div>
+
+<script>
+/* Sumarsprettur (pilot) — kveikist aðeins fyrir þá sem koma frá upphatt.is með ?pilot=pilot1 */
+(function () {
+  var p = new URLSearchParams(window.location.search);
+  if (p.get('pilot') === 'pilot1') {
+    try { localStorage.setItem('upphattPilotGroup', 'pilot1'); } catch (e) {}
+    var m = document.getElementById('summer-pilot-popup');
+    if (m) m.style.display = 'flex';
+  }
+  window.closeSummerPilot = function () {
+    var m = document.getElementById('summer-pilot-popup');
+    if (m) m.style.display = 'none';
+  };
+  window.startSummerSignup = function () {
+    try { localStorage.setItem('upphattPilotGroup', 'pilot1'); } catch (e) {}
+    window.closeSummerPilot();
+    if (window.openSignupPopup) window.openSignupPopup();
+  };
+  window.summerToLogin = function () {
+    window.closeSummerPilot();
+    if (window.openParentLoginPopup) window.openParentLoginPopup();
+  };
+})();
+</script>
+
 <script type="module" src="js/app.js"></script>
 </body>
 </html>

@@ -2386,8 +2386,19 @@ function loadLevels() { return [
   { key:'flowing', label:'Flæðir', range:'171-260 orð á textasíðu', desc:'Þéttari texti og lengri kaflar' },
   { key:'soaring', label:'Flýgur', range:'261+ orð á textasíðu', desc:'Þyngsta lesefnið' }
 ]; }
-function sessionPages(s) { if (Number(s.pagesRead) > 0) return Number(s.pagesRead); const from = Number(s.pageFrom || s.currentPageFrom || 0); const to = Number(s.pageTo || s.currentPageTo || 0); return to > from ? to - from : 0; }
-function sessionWords(s, books) { const pages = sessionPages(s); if (!pages) return 0; const book = books.find(b => (s.bookId && b.id === s.bookId) || (s.bookTitle && b.title === s.bookTitle)); return Math.round(pages * (bookProgressWordsPerPage(book) || 150)); }
+function sessionPages(s) {
+  if (Number(s.pagesRead) > 0) return Number(s.pagesRead);
+  const from = Number(s.pageFrom || s.currentPageFrom || s.pageStart || 0);
+  const to = Number(s.pageTo || s.currentPageTo || s.pageEnd || 0);
+  return to >= from && from > 0 ? Math.max(1, to - from + 1) : 0;
+}
+function sessionWords(s, books) {
+  if (Number(s.wordsReadEstimate) > 0) return Number(s.wordsReadEstimate);
+  const pages = sessionPages(s);
+  if (!pages) return 0;
+  const book = books.find(b => (s.bookId && b.id === s.bookId) || (s.bookTitle && b.title === s.bookTitle));
+  return Math.round(pages * (Number(s.progressWordsPerBookPage || s.wordsPerTextPage || 0) || bookProgressWordsPerPage(book) || 150));
+}
 function sessionKey(s) { const ms = sessionMs(s); return ms ? dateKey(new Date(ms)) : ''; }
 function sessionMs(s) { if (s.date) { const p = nd(s.date).split('-').map(Number); if (p.length === 3) return noon(new Date(p[0], p[1] - 1, p[2])).getTime(); } return s.timestamp || (s.createdAt?.seconds ? s.createdAt.seconds * 1000 : 0) || (s.createdAt?.toMillis ? s.createdAt.toMillis() : 0); }
 function bookFinishedInRange(b, startMs, endMs) { const t = bTs(b,'celebratedAt') || bTs(b,'lastReadAt') || bTs(b,'updatedAt'); return t >= startMs && t <= endMs; }
@@ -3980,3 +3991,4 @@ console.log('🚀 parent.html engine started');
 </script>
 </body>
 </html>
+

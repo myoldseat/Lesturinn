@@ -303,9 +303,13 @@
   var p = new URLSearchParams(window.location.search);
   if (p.get('pilot') === 'pilot1') {
     try { localStorage.setItem('upphattPilotGroup', 'pilot1'); } catch (e) {}
+  }
+  // Birtum modalinn EKKI strax — initAuth kallar window.openSummerPilot()
+  // þegar staðfest er að enginn sé innskráður (kemur í veg fyrir blikk + ranga redirect).
+  window.openSummerPilot = function () {
     var m = document.getElementById('summer-pilot-popup');
     if (m) m.style.display = 'flex';
-  }
+  };
   window.closeSummerPilot = function () {
     var m = document.getElementById('summer-pilot-popup');
     if (m) m.style.display = 'none';

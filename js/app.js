@@ -7,6 +7,7 @@ import {
   openParentLoginPopup, closeParentLoginPopup, parentLoginFromPopup,
   showForgotPassword, backToLogin, sendPasswordReset,
   openSignupPopup, closeSignupPopup, backToLoginFromSignup, firebaseSignupPopup,
+  googleSignIn,
   toggleParentTheme, openAddChildPopup, closeAddChildPopup, submitAddChild,
   famCodeLogin,
   showFamJoin, selectGuestRole,
@@ -43,6 +44,7 @@ window.openSignupPopup       = openSignupPopup;
 window.closeSignupPopup      = closeSignupPopup;
 window.backToLoginFromSignup = backToLoginFromSignup;
 window.firebaseSignupPopup   = firebaseSignupPopup;
+window.googleSignIn          = googleSignIn;
 
 window.toggleParentTheme     = toggleParentTheme;
 window.openAddChildPopup     = openAddChildPopup;

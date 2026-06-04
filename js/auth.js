@@ -3,9 +3,10 @@
 import {
   auth, db, functions,
   signInWithEmailAndPassword, createUserWithEmailAndPassword,
+  signInWithPopup, GoogleAuthProvider,
   sendEmailVerification, sendPasswordResetEmail,
   onAuthStateChanged, signOut, signInAnonymously,
-  setPersistence, browserLocalPersistence,
+  setPersistence, browserLocalPersistence, browserSessionPersistence,
   httpsCallable,
   collection, setDoc, doc, getDoc, getDocs, query, where, serverTimestamp
 } from './firebase-config.js';
@@ -198,6 +199,8 @@ export async function parentLoginFromPopup() {
   try {
     emailEl.disabled = true; pwEl.disabled = true;
     if (btn) { btn.textContent = 'Skrá inn...'; btn.disabled = true; }
+    const remember = document.getElementById('remember-me')?.checked ?? true;
+    await setPersistence(auth, remember ? browserLocalPersistence : browserSessionPersistence);
     const cred = await signInWithEmailAndPassword(auth, email, pw);
     closeParentLoginPopup();
     await processAuthUser(cred.user);
@@ -205,6 +208,51 @@ export async function parentLoginFromPopup() {
     errEl.textContent = 'Innskráning mistókst — athugaðu netfang og lykilorð.';
     emailEl.disabled = false; pwEl.disabled = false;
     if (btn) { btn.textContent = 'Skrá inn'; btn.disabled = false; }
+  }
+}
+
+// ══════════════════════════════════════════
+// GOOGLE INNSKRÁNING (innskráning + nýskráning)
+// ══════════════════════════════════════════
+
+export async function googleSignIn() {
+  const errEl = document.getElementById('popup-login-error') || document.getElementById('signup-error');
+  try {
+    const remember = document.getElementById('remember-me')?.checked ?? true;
+    await setPersistence(auth, remember ? browserLocalPersistence : browserSessionPersistence);
+    const cred = await signInWithPopup(auth, new GoogleAuthProvider());
+    const user = cred.user;
+
+    // Nýr notandi → Google gefur ekkert users-skjal, svo við búum það til (eins og venjuleg nýskráning)
+    const snap = await getDoc(doc(db, 'users', user.uid));
+    if (!snap.exists()) {
+      const familyId   = 'FAM-' + Math.random().toString(36).substr(2,5).toUpperCase();
+      const familyCode = makeFamilyCode();
+      await setDoc(doc(db, 'users', user.uid), {
+        name: user.displayName || 'Foreldri', email: user.email || '', role: 'parent',
+        familyId, familyCode, children: [], createdAt: serverTimestamp(),
+        consentCompleted: true, consentVersion: 'TERMS-2026-06', consentTimestamp: serverTimestamp()
+      });
+      await setDoc(doc(db, 'familycodes', familyCode), {
+        familyId, parentUid: user.uid, parentName: user.displayName || 'Foreldri', createdAt: serverTimestamp()
+      });
+      // Pilot-merking ef komið frá Sumarspretti
+      const pilotGroup = localStorage.getItem('upphattPilotGroup');
+      if (pilotGroup) {
+        await setDoc(doc(db, 'pilots', familyId), {
+          familyId, pilotGroup, uid: user.uid, email: user.email || null, status: 'active', joinedAt: serverTimestamp()
+        });
+        await setDoc(doc(db, 'users', user.uid), { pilotGroup }, { merge: true });
+        localStorage.removeItem('upphattPilotGroup');
+      }
+    }
+
+    closeParentLoginPopup();
+    if (typeof closeSignupPopup === 'function') closeSignupPopup();
+    await processAuthUser(user);
+  } catch (e) {
+    if (errEl) errEl.textContent = 'Google innskráning mistókst.';
+    console.warn('googleSignIn villa:', e);
   }
 }
 
@@ -389,7 +437,8 @@ export async function firebaseSignupPopup() {
 
     // Vista notanda
     await setDoc(doc(db, 'users', user.uid), {
-      name, email, role: 'parent', familyId, familyCode, children: [], createdAt: serverTimestamp()
+      name, email, role: 'parent', familyId, familyCode, children: [], createdAt: serverTimestamp(),
+      consentCompleted: true, consentVersion: 'TERMS-2026-06', consentTimestamp: serverTimestamp()
     });
 
     // Vista í familycodes collection — document ID er kóðinn
@@ -399,6 +448,16 @@ export async function firebaseSignupPopup() {
       parentName: name,
       createdAt:  serverTimestamp()
     });
+
+    // Pilot-merking ef komið frá Sumarspretti (notandi er enn innskráður hér)
+    const pilotGroup = localStorage.getItem('upphattPilotGroup');
+    if (pilotGroup) {
+      await setDoc(doc(db, 'pilots', familyId), {
+        familyId, pilotGroup, uid: user.uid, email, status: 'active', joinedAt: serverTimestamp()
+      });
+      await setDoc(doc(db, 'users', user.uid), { pilotGroup }, { merge: true });
+      localStorage.removeItem('upphattPilotGroup');
+    }
 
     await sendEmailVerification(user);
     await signOut(auth);

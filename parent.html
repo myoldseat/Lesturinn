@@ -1681,7 +1681,9 @@ window.submitAddChild = async function(){
     document.getElementById('pac-code-value').textContent=code;
     document.getElementById('pac-code-box')?.classList.add('show');
     if(btn){btn.disabled=false;btn.textContent='Loka';btn.onclick=()=>window.closeAddChildPopup();}
-    _lastChildCount=-1; _lastPbHash=''; render(); updateSettings();
+    if (typeof _lastChildCount !== 'undefined') _lastChildCount = -1;
+    if (typeof _lastPbHash !== 'undefined') _lastPbHash = '';
+    render(); updateSettings();
     toast('Barn skráð');
   }catch(e){
     console.error('Add child failed:',e);
@@ -4018,6 +4020,7 @@ console.log('🚀 parent.html engine started');
 </script>
 </body>
 </html>
+
 
 
 

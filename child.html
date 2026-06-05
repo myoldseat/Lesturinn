@@ -4539,20 +4539,31 @@ window._child = { auth, db, storage, functions, CS, ensureAuth, getChildSession,
         } catch (e) { return null; }
       }
 
+      function childBookTs(book) {
+        var v = book && (book.lastReadAt || book.updatedAt || book.createdAt || 0);
+        if (v && typeof v.toDate === "function") return v.toDate().getTime();
+        if (typeof v === "string") {
+          var parsed = Date.parse(v);
+          return Number.isFinite(parsed) ? parsed : 0;
+        }
+        return Number(v || 0) || 0;
+      }
+      function pickChildResumeBook(books, setup) {
+        books = Array.isArray(books) ? books.filter(function (b) { return b && b.id; }) : [];
+        var setupIsFresh = setup && setup.bookId && setup.savedAt && (Date.now() - Number(setup.savedAt) < 5 * 60 * 1000);
+        if (setupIsFresh) {
+          var setupBook = books.find(function (b) { return String(b.id) === String(setup.bookId); });
+          if (setupBook) return setupBook;
+        }
+        var reading = books.filter(function (b) { return b.status === "reading"; }).sort(function (a, b) { return childBookTs(b) - childBookTs(a); });
+        if (reading.length) return reading[0];
+        return books.slice().sort(function (a, b) { return childBookTs(b) - childBookTs(a); })[0] || null;
+      }
+
       function renderBookPill() {
         var setup = getChildReadingSetup();
         var books = window._firestoreBooks || [];
-        var activeBook = null;
-
-        if (setup && setup.bookId) {
-          activeBook = books.find(function (b) { return b && String(b.id) === String(setup.bookId); });
-        }
-        if (!activeBook) {
-          activeBook = books.find(function (b) { return b && b.status === "reading"; });
-        }
-        if (!activeBook && books.length) {
-          activeBook = books.slice().sort(function (a, b) { return (b.lastReadAt || 0) - (a.lastReadAt || 0); })[0];
-        }
+        var activeBook = pickChildResumeBook(books, setup);
 
         if (!activeBook) {
           var isLoadingBooks = !window._firestoreBooksLoaded && !books.length;
@@ -4983,6 +4994,7 @@ window._child = { auth, db, storage, functions, CS, ensureAuth, getChildSession,
             id: String(b.id), title: String(b.title), status: b.status || "shelf",
             progressPercent: Number(b.progressPercent || 0), totalPages: Number(b.totalPages || 0),
             pageFrom: b.currentPageFrom || "", pageTo: b.currentPageTo || "",
+            lastReadAt: b.lastReadAt || 0, updatedAt: b.updatedAt || 0, createdAt: b.createdAt || 0,
             coverUrl: b.coverUrl || b.coverBase64 || b.coverImage || b.imagePath || b.imageUrl || null
           };
         });
@@ -4998,7 +5010,7 @@ window._child = { auth, db, storage, functions, CS, ensureAuth, getChildSession,
         }
 
         var previousSelectedId = getSelectedBookId();
-        var activeBook = storedBooks.find(function (b) { return b.status === "reading"; }) || storedBooks[0];
+        var activeBook = pickChildResumeBook(storedBooks, getChildReadingSetup()) || storedBooks[0];
 
         childBookList.innerHTML = storedBooks.map(function (book) {
           var isSelected = book.id === (previousSelectedId || activeBook.id);
@@ -7542,6 +7554,7 @@ loginCode.addEventListener('keydown', e => { if (e.key === 'Enter') devChildLogi
 
 </body>
 </html>
+
 
 
 

@@ -2180,7 +2180,7 @@ body{font-family:'DM Sans','Manrope',-apple-system,BlinkMacSystemFont,sans-serif
 }
 #screen-child-arangur .chart-empty-state strong{color:var(--teal); font-weight:900;}
 #screen-child-arangur .chart-line-done{
-  fill: none; stroke: var(--teal); stroke-width: 4;
+  fill: none; stroke: var(--teal); stroke-width: 6;
   stroke-linecap: round; stroke-linejoin: round;
   filter: drop-shadow(0 0 6px rgba(36,214,223,0.4));
 }
@@ -2192,7 +2192,7 @@ body{font-family:'DM Sans','Manrope',-apple-system,BlinkMacSystemFont,sans-serif
 @keyframes draw-chart-line { to { stroke-dashoffset: 0; } }
 #screen-child-arangur .chart-line-future{
   fill: none; stroke: rgba(122,187,218,0.15);
-  stroke-width: 3; stroke-dasharray: 7 7; stroke-linecap: round;
+  stroke-width: 4; stroke-dasharray: 7 7; stroke-linecap: round;
 }
 #screen-child-arangur .chart-grid{ stroke: rgba(122,187,218,0.10); stroke-width: 1; }
 #screen-child-arangur .chart-node-ring{
@@ -2203,18 +2203,18 @@ body{font-family:'DM Sans','Manrope',-apple-system,BlinkMacSystemFont,sans-serif
   opacity: 0.35;
 }
 #screen-child-arangur .chart-node-ring.gold{ stroke: var(--gold); }
-#screen-child-arangur .chart-emoji{ font-size: 18px; text-anchor: middle; dominant-baseline: central; }
+#screen-child-arangur .chart-emoji{ font-size: 28px; text-anchor: middle; dominant-baseline: central; }
 #screen-child-arangur .chart-emoji.locked{ opacity: 0.3; filter: grayscale(1); }
 #screen-child-arangur .chart-label{
-  font-size: 7.5px; fill: var(--text-muted); font-weight: 700;
+  font-size: 15px; fill: var(--text-muted); font-weight: 850;
   text-anchor: middle;
 }
 #screen-child-arangur .chart-y-text{
-  font-size: 7.5px; fill: var(--text-muted); font-weight: 700;
+  font-size: 14px; fill: var(--text-muted); font-weight: 850;
   text-anchor: end; dominant-baseline: middle;
 }
 #screen-child-arangur .chart-x-text{
-  font-size: 7px; fill: var(--text-muted); font-weight: 700;
+  font-size: 13px; fill: var(--text-muted); font-weight: 850;
   text-anchor: middle;
 }
 /* "Þú ert hér" pulse dot */
@@ -3291,6 +3291,95 @@ window._child = { auth, db, storage, functions, CS, ensureAuth, getChildSession,
   var sessionDatesFromFirestore = [];
   var sessionHistoryFromFirestore = [];
   var arangurStartedAt = 0;
+  var arangurFamilyId = "";
+  var arangurChildKey = "";
+  var arangurDb = null;
+  var arangurFs = null;
+  var arangurBadges = [];
+  var arangurBadgeKeys = new Set();
+  var arangurPersistedPages = 0;
+
+  function arangurBadgesLocalKey(fid, ck) {
+    return "upphatt_arangur_badges_v1_" + fid + "_" + ck;
+  }
+  function badgeKeyForTier(tier, index) {
+    return "height_" + index + "_" + tier.pages;
+  }
+  function normalizeArangurBadges(list) {
+    var seen = new Set();
+    return (Array.isArray(list) ? list : []).filter(function (b) {
+      if (!b || b.type !== "height_badge" || !b.key || seen.has(b.key)) return false;
+      seen.add(b.key);
+      return true;
+    });
+  }
+  function setArangurBadges(list, fid, ck) {
+    arangurBadges = normalizeArangurBadges(list);
+    arangurBadgeKeys = new Set(arangurBadges.map(function (b) { return b.key; }));
+    arangurPersistedPages = arangurBadges.reduce(function (m, b) { return Math.max(m, Number(b.pagesAtUnlock || b.pages || 0)); }, 0);
+    if (fid && ck) {
+      try { localStorage.setItem(arangurBadgesLocalKey(fid, ck), JSON.stringify({ badges: arangurBadges, savedAt: Date.now() })); } catch (e) {}
+    }
+  }
+  function loadArangurBadgesLocal(fid, ck) {
+    try {
+      var raw = localStorage.getItem(arangurBadgesLocalKey(fid, ck));
+      var parsed = raw ? JSON.parse(raw) : null;
+      if (parsed && Array.isArray(parsed.badges)) setArangurBadges(parsed.badges, fid, ck);
+    } catch (e) {}
+  }
+  async function loadArangurBadgesFromGoals(fs, db, fid, ck) {
+    loadArangurBadgesLocal(fid, ck);
+    try {
+      var snap = await fs.getDoc(fs.doc(db, "goals", fid + "_" + ck));
+      if (snap.exists()) setArangurBadges((snap.data() || {}).badges, fid, ck);
+    } catch (e) { console.warn("Could not load arangur badges", e); }
+  }
+  function makeArangurBadge(tier, index) {
+    var ms = pickOption(tier, seed);
+    return {
+      type: "height_badge",
+      key: badgeKeyForTier(tier, index),
+      tierIndex: index,
+      badgeName: ms.name,
+      badgeIcon: ms.icon,
+      badgeDesc: ms.desc,
+      pagesAtUnlock: tier.pages,
+      metersAtUnlock: Number((tier.pages * 0.2).toFixed(1)),
+      unlockedAt: Date.now()
+    };
+  }
+  function isArangurTierUnlocked(tier, index) {
+    return totalPagesRead >= tier.pages || arangurBadgeKeys.has(badgeKeyForTier(tier, index));
+  }
+  async function persistArangurBadges() {
+    if (!arangurFs || !arangurDb || !arangurFamilyId || !arangurChildKey) return;
+    try {
+      await arangurFs.setDoc(arangurFs.doc(arangurDb, "goals", arangurFamilyId + "_" + arangurChildKey), {
+        badges: arangurBadges,
+        familyId: arangurFamilyId,
+        childKey: arangurChildKey,
+        childName: childName,
+        updatedAt: arangurFs.serverTimestamp()
+      }, { merge: true });
+    } catch (e) { console.warn("Could not save arangur badges", e); }
+  }
+  function syncArangurBadges() {
+    if (!arangurFamilyId || !arangurChildKey) return;
+    var changed = false;
+    MILESTONES.forEach(function (tier, index) {
+      var key = badgeKeyForTier(tier, index);
+      if (totalPagesRead >= tier.pages && !arangurBadgeKeys.has(key)) {
+        arangurBadges.push(makeArangurBadge(tier, index));
+        arangurBadgeKeys.add(key);
+        changed = true;
+      }
+    });
+    if (changed) {
+      setArangurBadges(arangurBadges, arangurFamilyId, arangurChildKey);
+      persistArangurBadges();
+    }
+  }
 
   async function loadArangurTotals() {
     try {
@@ -3300,8 +3389,13 @@ window._child = { auth, db, storage, functions, CS, ensureAuth, getChildSession,
       var fid = (shell.CS && shell.CS.familyId) || (saved && saved.familyId);
       var ck = (shell.CS && shell.CS.childKey) || (saved && saved.childKey);
       if (!shell.db || !fid || !ck) return;
+      arangurFamilyId = fid;
+      arangurChildKey = ck;
+      arangurDb = shell.db;
       if (typeof shell.ensureAuth === "function") await shell.ensureAuth();
       var fs = await import("https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js");
+      arangurFs = fs;
+      await loadArangurBadgesFromGoals(fs, shell.db, fid, ck);
       var booksSnap = await fs.getDocs(fs.query(fs.collection(shell.db, "books"), fs.where("familyId", "==", fid), fs.where("childKey", "==", ck)));
       var pages = 0;
       var finished = 0;
@@ -3329,7 +3423,7 @@ window._child = { auth, db, storage, functions, CS, ensureAuth, getChildSession,
         try { localStorage.setItem(baselineKey, JSON.stringify(baseline)); } catch (e) {}
       }
       arangurStartedAt = Number(baseline.startedAt || Date.now());
-      totalPagesRead = Math.max(0, pages - Number(baseline.pages || 0));
+      totalPagesRead = Math.max(arangurPersistedPages, pages);
 
       bookRows.forEach(function (row) {
         var data = row.data || {};
@@ -3337,7 +3431,7 @@ window._child = { auth, db, storage, functions, CS, ensureAuth, getChildSession,
         var finishedDate = finishedAt && typeof finishedAt.toDate === "function" ? finishedAt.toDate() : (finishedAt ? new Date(finishedAt) : null);
         if (data.status === "finished" && finishedDate && !isNaN(finishedDate.getTime()) && finishedDate.getTime() >= arangurStartedAt) finishedAfterBaseline++;
       });
-      finishedBooksCount = finishedAfterBaseline;
+      finishedBooksCount = finished;
 
       try {
         var sessionsSnap = await fs.getDocs(fs.query(fs.collection(shell.db, "sessions"), fs.where("familyId", "==", fid), fs.where("childKey", "==", ck)));
@@ -3345,16 +3439,20 @@ window._child = { auth, db, storage, functions, CS, ensureAuth, getChildSession,
         var count = 0;
         sessionsSnap.forEach(function (docSnap) {
           var data = docSnap.data() || {};
-          var rawDate = data.date || data.createdAt || data.timestamp;
+          var rawDate = data.timestamp || data.createdAt || data.date;
           var dateObj = rawDate && typeof rawDate.toDate === "function" ? rawDate.toDate() : (rawDate ? new Date(rawDate) : null);
-          if (!dateObj || isNaN(dateObj.getTime()) || dateObj.getTime() < arangurStartedAt) return;
+          var rowSeconds = Number(data.seconds || data.durationSeconds || 0);
+          if (!dateObj || isNaN(dateObj.getTime()) || rowSeconds < 60) return;
+
+          // Week strip should match parent calendar: real Firestore sessions mark read days,
+          // independent of arangur baseline/localStorage.
+          sessionDatesFromFirestore.push(dateObj);
+
           var pagesRead = Number(data.pagesRead || data.pages || 0);
           if (!pagesRead && Number(data.pageTo || 0) && Number(data.pageFrom || 0)) pagesRead = Math.max(0, Number(data.pageTo) - Number(data.pageFrom) + 1);
           if (!pagesRead && Number(data.pageEnd || 0) && Number(data.pageStart || 0)) pagesRead = Math.max(0, Number(data.pageEnd) - Number(data.pageStart) + 1);
-          var rowSeconds = Number(data.seconds || data.durationSeconds || 0);
           seconds += rowSeconds;
           count++;
-          sessionDatesFromFirestore.push(dateObj);
           sessionHistoryFromFirestore.push({ date: dateObj, pagesRead: pagesRead, minutes: Math.round(rowSeconds / 60) });
         });
         totalMinutesRead = Math.round(seconds / 60);
@@ -3364,7 +3462,8 @@ window._child = { auth, db, storage, functions, CS, ensureAuth, getChildSession,
   }
 
   await loadArangurTotals();
-  var hasArangurProgress = totalPagesRead > 0 || sessionHistoryFromFirestore.length > 0;
+  syncArangurBadges();
+  var hasArangurProgress = totalPagesRead > 0 || sessionHistoryFromFirestore.length > 0 || arangurBadges.length > 0;
   // RENDER WEEK STRIP
   // ══════════════════════════════════════════════════════════════
   var DAY_NAMES = ["S", "M", "Þ", "M", "F", "F", "L"];
@@ -3373,21 +3472,8 @@ window._child = { auth, db, storage, functions, CS, ensureAuth, getChildSession,
   var dow = today.getDay(); // 0=Sun
   // Start week on Monday
   var mondayOffset = (dow === 0 ? -6 : 1 - dow);
-
-  // Demo: simulate some reading days
+  // Match parent calendar: read days come from Firestore sessions, not localStorage demo state.
   var readDays = {};
-  try {
-    var sessionsRaw = localStorage.getItem("upphatt_sessions_log");
-    var sessions = sessionsRaw ? JSON.parse(sessionsRaw) : [];
-    if (Array.isArray(sessions)) {
-      sessions.forEach(function (s) {
-        if (s && s.date) {
-          var d = new Date(s.date);
-          readDays[d.getFullYear() + "-" + d.getMonth() + "-" + d.getDate()] = true;
-        }
-      });
-    }
-  } catch (e) {}
   sessionDatesFromFirestore.forEach(function (d) { readDays[d.getFullYear() + "-" + d.getMonth() + "-" + d.getDate()] = true; });
 
   var streakCount = 0;
@@ -3416,7 +3502,7 @@ window._child = { auth, db, storage, functions, CS, ensureAuth, getChildSession,
   var currentTierIdx = -1;
   var completedTiers = [];
   for (var t = 0; t < MILESTONES.length; t++) {
-    if (totalPagesRead >= MILESTONES[t].pages) {
+    if (isArangurTierUnlocked(MILESTONES[t], t)) {
       completedTiers.push(t);
     } else {
       if (currentTierIdx === -1) currentTierIdx = t;
@@ -3507,13 +3593,13 @@ window._child = { auth, db, storage, functions, CS, ensureAuth, getChildSession,
   // Find highest unlocked tier index
   var highestUnlockedIdx = -1;
   for (var bu = 0; bu < MILESTONES.length; bu++) {
-    if (totalPagesRead >= MILESTONES[bu].pages) highestUnlockedIdx = bu;
+    if (isArangurTierUnlocked(MILESTONES[bu], bu)) highestUnlockedIdx = bu;
   }
 
   for (var b = 0; b < MILESTONES.length; b++) {
     var tier = MILESTONES[b];
     var ms = pickOption(tier, seed);
-    var unlocked = totalPagesRead >= tier.pages;
+    var unlocked = isArangurTierUnlocked(tier, b);
     var isGold = tier.pages >= 7500;
     var isLatest = (b === highestUnlockedIdx);
 
@@ -3566,7 +3652,7 @@ window._child = { auth, db, storage, functions, CS, ensureAuth, getChildSession,
     var tier = MILESTONES[tierIdx];
     if (!tier) return;
     var ms = pickOption(tier, seed);
-    var isUnlocked = totalPagesRead >= tier.pages;
+    var isUnlocked = isArangurTierUnlocked(tier, tierIdx);
     var isGold = tier.pages >= 7500;
     var heightM = (tier.pages * 0.2).toFixed(1).replace(/\.0$/, "");
 
@@ -3636,7 +3722,7 @@ window._child = { auth, db, storage, functions, CS, ensureAuth, getChildSession,
   for (var pi = 0; pi <= PILOT_MAX_TIER; pi++) {
     var ptier = MILESTONES[pi];
     var pms = pickOption(ptier, seed);
-    var punlocked = totalPagesRead >= ptier.pages;
+    var punlocked = isArangurTierUnlocked(ptier, pi);
     if (!punlocked && !pillNextName) pillNextName = pms.name;
     pillIconsHtml += '<div class="journey-pip' + (punlocked ? '' : ' locked') + '">' + pms.icon + '</div>';
   }
@@ -3802,7 +3888,14 @@ window._child = { auth, db, storage, functions, CS, ensureAuth, getChildSession,
     var PAD = { top: 34, right: 44, bottom: 42, left: 58 };
     var plotW = W - PAD.left - PAD.right;
     var plotH = H - PAD.top - PAD.bottom;
-    var visibleTop = Math.max(20, totalPagesRead, cumulative + windowPages + 10, pilotTiers[pilotTiers.length - 1].pages);
+    var roughCurrentPages = Math.max(totalPagesRead, cumulative + windowPages);
+    var relevantTierTop = 0;
+    pilotTiers.forEach(function (mt) {
+      if (mt.pages <= roughCurrentPages + 30) relevantTierTop = Math.max(relevantTierTop, mt.pages);
+    });
+    var nextTier = pilotTiers.find(function (mt) { return mt.pages > roughCurrentPages; });
+    if (nextTier && nextTier.pages <= roughCurrentPages + 40) relevantTierTop = Math.max(relevantTierTop, nextTier.pages);
+    var visibleTop = Math.max(10, roughCurrentPages + 6, relevantTierTop + 5);
     function xByIndex(i) { return PAD.left + (i / Math.max(1, effectiveDays - 1)) * plotW; }
     function yByPages(p) { return PAD.top + plotH - (Math.min(p, visibleTop) / visibleTop) * plotH; }
 
@@ -3847,14 +3940,14 @@ window._child = { auth, db, storage, functions, CS, ensureAuth, getChildSession,
     var pathD = smoothPath(points);
     if (pathD) svg += '<path class="chart-line-done animate" d="' + pathD + '" style="--line-len:' + approxPathLen(points) + '"/>';
     var here = points[points.length - 1];
-    svg += '<circle class="chart-here-pulse" cx="' + here.x.toFixed(1) + '" cy="' + here.y.toFixed(1) + '" r="5"/>';
-    svg += '<circle class="chart-here-dot" cx="' + here.x.toFixed(1) + '" cy="' + here.y.toFixed(1) + '" r="5"/>';
+    svg += '<circle class="chart-here-pulse" cx="' + here.x.toFixed(1) + '" cy="' + here.y.toFixed(1) + '" r="7"/>';
+    svg += '<circle class="chart-here-dot" cx="' + here.x.toFixed(1) + '" cy="' + here.y.toFixed(1) + '" r="7"/>';
 
     var nodePositions = [];
     pilotTiers.forEach(function(mt, mi){
       var crossed = -1;
       for (var pi2 = 0; pi2 < points.length; pi2++) { if (points[pi2].pages >= mt.pages) { crossed = pi2; break; } }
-      var unlocked = totalPagesRead >= mt.pages;
+      var unlocked = isArangurTierUnlocked(mt, mi);
       if (crossed < 0 && !showBadges) return;
       if (crossed < 0 && unlocked) return;
       if (crossed < 0 && mt.pages > currentPages + 30) return;
@@ -3863,14 +3956,14 @@ window._child = { auth, db, storage, functions, CS, ensureAuth, getChildSession,
       var my = yByPages(mt.pages);
       nodePositions.push({ x: mx, y: my, idx: mi, unlocked: unlocked, name: mms.name, desc: mms.desc, icon: mms.icon, pages: mt.pages });
       svg += '<g class="chart-node-tap" data-node="' + (nodePositions.length - 1) + '" style="cursor:pointer">';
-      svg += '<circle cx="' + mx.toFixed(1) + '" cy="' + my.toFixed(1) + '" r="30" fill="transparent"/>';
+      svg += '<circle cx="' + mx.toFixed(1) + '" cy="' + my.toFixed(1) + '" r="36" fill="transparent"/>';
       if (showBadges) {
-        svg += '<circle class="chart-node-ring ' + (unlocked ? '' : 'locked') + '" cx="' + mx.toFixed(1) + '" cy="' + my.toFixed(1) + '" r="17"/>';
+        svg += '<circle class="chart-node-ring ' + (unlocked ? '' : 'locked') + '" cx="' + mx.toFixed(1) + '" cy="' + my.toFixed(1) + '" r="25"/>';
         svg += '<text class="chart-emoji ' + (unlocked ? '' : 'locked') + '" x="' + mx.toFixed(1) + '" y="' + my.toFixed(1) + '">' + mms.icon + '</text>';
       } else if (unlocked) {
         svg += '<circle class="chart-here-dot" cx="' + mx.toFixed(1) + '" cy="' + my.toFixed(1) + '" r="4"/>';
       }
-      if (showBadges && (unlocked || mt.pages > currentPages)) svg += '<text class="chart-label" x="' + mx.toFixed(1) + '" y="' + (my + 32).toFixed(1) + '">' + mt.pages + ' bls</text>';
+      if (showBadges && (unlocked || mt.pages > currentPages)) svg += '<text class="chart-label" x="' + mx.toFixed(1) + '" y="' + (my + 42).toFixed(1) + '">' + mt.pages + ' bls</text>';
       svg += '</g>';
     });
     svg += '</svg>';
@@ -7449,6 +7542,13 @@ loginCode.addEventListener('keydown', e => { if (e.key === 'Enter') devChildLogi
 
 </body>
 </html>
+
+
+
+
+
+
+
 
 
 

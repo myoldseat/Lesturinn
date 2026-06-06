@@ -3781,13 +3781,8 @@ function getFamilyAccessMembers() {
     return raw.map((m, i) => normalizeFamilyAccessMember(m, i));
   }
   const currentUser = auth?.currentUser || {};
-  const parentName = S.parentName || S.parentDisplayName || currentUser.displayName || S.parentEmail || currentUser.email || 'Mamma';
-  return [
-    { name: parentName, role: 'parent', accessLevel: 'full' },
-    { name: 'Pabbi', role: 'parent', accessLevel: 'full' },
-    { name: 'Amma', role: 'family', accessLevel: 'listen' },
-    { name: 'Afi', role: 'family', accessLevel: 'listen' }
-  ];
+  const parentName = S.parentName || S.parentDisplayName || currentUser.displayName || S.parentEmail || currentUser.email || 'Foreldri';
+  return [{ name: parentName, role: 'parent', accessLevel: 'full' }];
 }
 
 function normalizeFamilyAccessMember(m, i) {
@@ -3843,7 +3838,7 @@ async function copyChildCode() {
 window.copyChildCode = copyChildCode;
 /* ── Settings info ── */
 function updateSettings() {
-  const set = (id, v) => { const e = document.getElementById(id); if (e && v) e.textContent = v; };
+  const set = (id, v) => { const e = document.getElementById(id); if (e) e.textContent = v || '—'; };
   set('settings-email', S.parentEmail);
   set('settings-family-code', S.familyCode);
   set('ph-welcome-fam-code', S.familyCode);
@@ -3977,6 +3972,14 @@ async function bootParentGate() {
     S.parentName  = id.name || S.parentName || null;
     S.roleName    = id.roleName || S.roleName || null;
     S.parentEmail = user.email || S.parentEmail || null;
+    S.familyCode  = id.familyCode || id.code || S.familyCode || null;
+    if (!S.familyCode) {
+      try {
+        const storedParent = JSON.parse(localStorage.getItem('upphatt_parent') || '{}');
+        S.familyCode = storedParent.familyCode || storedParent.code || null;
+      } catch (e) {}
+    }
+    if (!S.familyCode && S.familyId) S.familyCode = 'FAM' + String(S.familyId).replace(/^FAM/i, '').slice(-6).toUpperCase();
     if (id.children && id.children.length) {
       S.parentChildren = id.children;
     } else if (id.role === 'guest') {
@@ -4020,6 +4023,8 @@ console.log('🚀 parent.html engine started');
 </script>
 </body>
 </html>
+
+
 
 
 

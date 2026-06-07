@@ -466,6 +466,75 @@ html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sa
 @media(max-width:560px){
   .admin-grid-top,.admin-metrics-grid{grid-template-columns:1fr}
 }
+/* ── Pilot: Vitnislykkjan (witness loop) ── */
+.pl-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:18px}
+.pl-head h2{font-size:22px;font-weight:800;color:#d9e5ef;letter-spacing:-.4px;margin:0}
+.pl-head h2 small{display:block;font-size:13px;color:#7a8fa0;font-weight:500;margin-top:4px}
+.pl-lens{display:flex;align-items:center;gap:8px;font-size:11px;color:#5d7088;font-weight:700}
+.pl-lens .seg{display:flex;background:rgba(255,255,255,.03);border:1px solid rgba(29,205,211,.14);border-radius:10px;padding:3px}
+.pl-lens button{border:0;background:transparent;color:#7a8fa0;font:inherit;font-size:12px;font-weight:700;padding:6px 12px;border-radius:7px;cursor:pointer}
+.pl-lens button.on{background:rgba(29,205,211,.14);color:#1dcdd3}
+.pl-kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:20px}
+.pl-kpi{position:relative;overflow:hidden;background:rgba(9,20,36,.78);border:1px solid rgba(29,205,211,.12);border-radius:16px;padding:15px 14px;box-shadow:0 18px 42px rgba(0,0,0,.26);transition:.2s}
+.pl-kpi::after{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--st,#1dcdd3)}
+.pl-kpi .q{font-size:10.5px;color:#7a8fa0;font-weight:600;line-height:1.3;min-height:40px}
+.pl-kpi .v{font-family:Georgia,serif;font-size:32px;color:#d9e5ef;line-height:1;margin:8px 0 2px}
+.pl-kpi .v .u{font-size:14px;color:#7a8fa0}
+.pl-kpi .m{display:flex;justify-content:space-between;align-items:center;gap:6px;margin-top:8px}
+.pl-kpi .thr{font-size:10px;color:#5d7088;font-family:monospace}
+.pl-badge{font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.3px;padding:3px 7px;border-radius:99px;color:var(--st);background:color-mix(in srgb,var(--st) 14%,transparent);border:1px solid color-mix(in srgb,var(--st) 32%,transparent)}
+.pl-kpi.pending{opacity:.72}
+.pl-row{display:grid;grid-template-columns:1.35fr 1fr;gap:14px;margin-bottom:14px}
+.pl-card{background:rgba(7,16,30,.5);border:1px solid rgba(29,205,211,.1);border-radius:16px;padding:18px}
+.pl-card h3{font-size:14px;font-weight:800;color:#d9e5ef;margin:0 0 3px}
+.pl-card .sub{font-size:11.5px;color:#7a8fa0;margin-bottom:16px;line-height:1.4}
+.pl-leg{display:flex;gap:16px;font-size:10.5px;color:#5d7088;margin-bottom:14px}
+.pl-leg i{width:10px;height:10px;border-radius:3px;display:inline-block;margin-right:5px;vertical-align:middle}
+.pl-wk{display:grid;grid-template-columns:56px 1fr;gap:10px;align-items:center;margin-bottom:13px}
+.pl-wk .lbl{font-size:12px;color:#7a8fa0;font-weight:600}
+.pl-bars{display:grid;gap:6px}
+.pl-bar{display:grid;grid-template-columns:1fr 96px;gap:9px;align-items:center}
+.pl-track{height:9px;background:rgba(255,255,255,.05);border-radius:99px;overflow:hidden}
+.pl-fill{height:100%;border-radius:99px}
+.pl-fill.heard{background:linear-gradient(90deg,#3e82ad,#4fa8d8)}
+.pl-fill.react{background:linear-gradient(90deg,#1dcdd3,#18bcc2)}
+.pl-fill.warn{background:linear-gradient(90deg,#fbbf24,#ff9d3d)}
+.pl-tag{font-size:10.5px;color:#7a8fa0;font-family:monospace;white-space:nowrap}
+.pl-tag b{color:#d9e5ef}
+.pl-note{font-size:11px;color:#5d7088;border-top:1px solid rgba(29,205,211,.1);padding-top:13px;line-height:1.55}
+.pl-note .flag{color:#fbbf24;font-weight:700}
+.pl-coh{display:flex;align-items:flex-end;gap:8px;height:150px;padding-top:6px}
+.pl-coh .col{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;justify-content:flex-end}
+.pl-coh .bar{width:100%;border-radius:6px 6px 3px 3px;background:linear-gradient(180deg,#1dcdd3,rgba(29,205,211,.25));min-height:3px;position:relative}
+.pl-coh .bar .tip{position:absolute;top:-16px;left:50%;transform:translateX(-50%);font-size:10px;color:#d9e5ef;font-family:monospace}
+.pl-coh .wk{font-size:10px;color:#5d7088}
+.pl-table{width:100%;border-collapse:collapse;font-size:12.5px}
+.pl-table th{text-align:left;font-size:10px;letter-spacing:.5px;text-transform:uppercase;color:#5d7088;font-weight:800;padding:0 9px 10px;border-bottom:1px solid rgba(29,205,211,.12)}
+.pl-table td{padding:11px 9px;border-bottom:1px solid rgba(122,162,200,.07);color:#d9e5ef}
+.pl-table td.num{font-family:monospace;color:#7a8fa0}
+.pl-table tr:last-child td{border-bottom:none}
+.pl-mini{display:inline-block;width:44px;height:7px;border-radius:99px;background:rgba(255,255,255,.06);overflow:hidden;vertical-align:middle;margin-right:6px}
+.pl-mini i{display:block;height:100%}
+.pl-mini i.heard{background:#4fa8d8}.pl-mini i.react{background:#1dcdd3}
+.pl-pill{font-size:10px;font-weight:800;padding:3px 9px;border-radius:99px}
+.pl-pill.ok{color:#4ade80;background:rgba(74,222,128,.12)}
+.pl-pill.risk{color:#fbbf24;background:rgba(251,191,36,.12)}
+.pl-pill.churn{color:#f87171;background:rgba(248,113,113,.12)}
+.pl-pending{background:rgba(29,205,211,.04);border:1px dashed rgba(29,205,211,.22);border-radius:16px;padding:20px;color:#7a8fa0;font-size:12.5px;line-height:1.6;margin-bottom:14px}
+.pl-pending h3{color:#d9e5ef;font-size:14px;margin:0 0 8px}
+.pl-pending code{font-family:monospace;color:#1dcdd3;font-size:11.5px}
+.pl-frame{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.pl-fcard{background:rgba(9,20,36,.78);border:1px solid rgba(29,205,211,.12);border-radius:16px;padding:18px;transition:.2s}
+.pl-fcard .tag{font-size:10px;letter-spacing:.5px;text-transform:uppercase;font-weight:800;color:#1dcdd3;margin-bottom:9px}
+.pl-fcard h4{font-size:13px;color:#d9e5ef;margin:0 0 9px}
+.pl-fcard ul{margin:0;padding-left:16px;display:flex;flex-direction:column;gap:6px}
+.pl-fcard li{font-size:11.5px;color:#7a8fa0;line-height:1.4}
+.pl-foot{margin-top:18px;font-size:11px;color:#5d7088;line-height:1.6;border-top:1px solid rgba(29,205,211,.1);padding-top:14px}
+.pl-foot code{font-family:monospace;color:#7a8fa0}
+.pl.lens-grant .pl-kpi:not([data-lens~="grant"]),.pl.lens-investor .pl-kpi:not([data-lens~="investor"]){opacity:.38}
+.pl.lens-grant .pl-fcard:not(.pl-grantcard),.pl.lens-investor .pl-fcard:not(.pl-invcard){opacity:.4}
+.pl.lens-grant .pl-grantcard,.pl.lens-investor .pl-invcard{box-shadow:0 0 0 1px rgba(29,205,211,.34),0 0 26px rgba(29,205,211,.08)}
+@media(max-width:920px){.pl-kpis{grid-template-columns:repeat(2,1fr)}.pl-row,.pl-frame{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -853,7 +922,8 @@ const TABS = [
   { id:'overview',  icon:'📊', label:'Yfirlit' },
   { id:'sessions',  icon:'🗂️', label:'Lotur' },
   { id:'families',  icon:'👥', label:'Fjölskyldur' },
-  { id:'insights',  icon:'📈', label:'Innsýn' }
+  { id:'insights',  icon:'📈', label:'Innsýn' },
+  { id:'pilot',     icon:'🎧', label:'Vitni' }
 ];
 
 function renderNav() {
@@ -956,7 +1026,7 @@ function buildFamilies() {
     if (!s.familyId) return;
     if (!_families[s.familyId]) _families[s.familyId] = { sessions: [], children: new Set() };
     _families[s.familyId].sessions.push(s);
-    if (s.childName) _families[s.familyId].children.add(s.childName);
+    if (s.childKey || s.childName) _families[s.familyId].children.add(s.childKey || s.childName);
   });
 }
 
@@ -1496,7 +1566,7 @@ function buildFamiliesFromSessions(sessions) {
     if (!s.familyId) return;
     if (!families[s.familyId]) families[s.familyId] = { sessions: [], children: new Set() };
     families[s.familyId].sessions.push(s);
-    if (s.childName) families[s.familyId].children.add(s.childName);
+    if (s.childKey || s.childName) families[s.familyId].children.add(s.childKey || s.childName);
   });
   return families;
 }
@@ -1539,6 +1609,182 @@ function renderContent() {
   if (_activeTab === 'sessions')  el.innerHTML = renderSessions();
   if (_activeTab === 'families')  el.innerHTML = renderFamilies();
   if (_activeTab === 'insights')  el.innerHTML = renderInsights();
+  if (_activeTab === 'pilot')     renderPilotTab();
+}
+
+// ══════════════════════════════════════════
+// PILOT — Vitnislykkjan (the witness loop)
+// Endurnýtir _heatmapSessions + _listenEvents; sækir books fyrir viðbrögð.
+// ══════════════════════════════════════════
+let _pilotBooks = null;
+let _plLens = 'none';
+const PL_DAY = 86400000, PL_WEEKS = 6;
+// Settu pilot-upphafsdag (ms) fyrir alvöru pilot — þá festist vika 0/6 við réttan dag.
+// Dæmi: const PILOT_START = Date.parse('2026-02-01T00:00:00');   null = bráðabirgða "rolling" gluggi.
+const PILOT_START = null;
+const PL_THRESH = { heard:{go:70,amber:50}, reacted:{go:60,amber:40}, retention:{go:50,amber:30}, freq:{go:3,amber:2} };
+
+function _plMs(t){
+  if(!t) return 0;
+  if(typeof t==='number') return t<1e12 ? t*1000 : t;
+  if(t.toMillis) return t.toMillis();
+  if(t.seconds) return t.seconds*1000;
+  const p=Date.parse(t); return Number.isFinite(p)?p:0;
+}
+function _plColor(key,v){ const t=PL_THRESH[key]; if(!t) return '#1dcdd3';
+  if(v>=t.go) return '#4ade80'; if(v>=t.amber) return '#fbbf24'; return '#f87171'; }
+function _plLabel(key,v){ const t=PL_THRESH[key]; if(!t) return '';
+  if(v>=t.go) return 'Á réttri leið'; if(v>=t.amber) return 'Fylgjast með'; return 'Undir mörkum'; }
+
+async function ensurePilotBooks(){
+  if(_pilotBooks) return _pilotBooks;
+  try{
+    const fs = initFirebase();
+    const snap = await fs.collection('books').get();
+    _pilotBooks = snap.docs.map(d=>({ _docId:d.id, ...d.data() }));
+  }catch(e){ console.warn('Pilot books load failed:', e); _pilotBooks = []; }
+  return _pilotBooks;
+}
+
+function _plBuildData(){
+  const sessions = (_heatmapSessions||[]).filter(s => (s.seconds||0) >= 60 && s.familyId);
+  const heard = (_listenEvents||[]).filter(e => e.familyId)
+    .map(e => ({ familyId:e.familyId, childKey:e.childKey, ts:_plMs(e.timestamp), who:e.listenerName||'?' }));
+  const reacted = [];
+  (_pilotBooks||[]).forEach(b => {
+    if(!b.familyId) return;
+    (b.journeyEntries||[]).forEach(en => (en.reactions||[]).forEach(r => {
+      reacted.push({ familyId:b.familyId, childKey:b.childKey, ts:_plMs(r.createdAt), who:r.name||'?' });
+    }));
+  });
+  return { sessions, heard, reacted };
+}
+
+// Strangt childKey-mátun: telst aðeins vitnað ef bæði lota og atburður bera sama childKey.
+// Barna-loturnar bera childKey skv. öryggisreglum; eldri lotur án childKey teljast ekki (varfærið).
+function _plMatch(s,e){ return e.familyId===s.familyId && !!s.childKey && !!e.childKey && e.childKey===s.childKey; }
+function _plWitnessed(s,events){ const t0=_plMs(s.timestamp);
+  return events.some(e => _plMatch(s,e) && e.ts>=t0 && e.ts<=t0+2*PL_DAY); }
+
+function computePilot(){
+  const D=_plBuildData(); const S=D.sessions;
+  if(!S.length) return null;
+  const anchored = Number.isFinite(PILOT_START);
+  const start = anchored ? PILOT_START : (S.reduce((m,s)=>Math.max(m,_plMs(s.timestamp)),0) - PL_WEEKS*7*PL_DAY);
+  const winEnd = start + PL_WEEKS*7*PL_DAY;
+  const inWin = S.filter(s=>{const t=_plMs(s.timestamp); return t>=start && t<winEnd;});
+  const noKey = inWin.filter(s=>!s.childKey).length;
+  const rate=(list,ev)=> list.length ? 100*list.filter(s=>_plWitnessed(s,ev)).length/list.length : 0;
+
+  const heardOverall=rate(inWin,D.heard), reactOverall=rate(inWin,D.reacted);
+  const byWeek=[];
+  for(let w=0;w<PL_WEEKS;w++){ const a=start+w*7*PL_DAY,b=a+7*PL_DAY;
+    const wk=inWin.filter(s=>{const t=_plMs(s.timestamp);return t>=a&&t<b;});
+    byWeek.push({heard:rate(wk,D.heard),react:rate(wk,D.reacted)}); }
+
+  const childOf = s => s.childKey || (s.familyId+'|'+(s.childName||''));
+  const activeIn = w => { const a=start+w*7*PL_DAY,b=a+7*PL_DAY;
+    return new Set(inWin.filter(s=>{const t=_plMs(s.timestamp);return t>=a&&t<b;}).map(childOf)); };
+  const w0=activeIn(0), cohort=[];
+  for(let w=0;w<PL_WEEKS;w++){const act=activeIn(w);cohort.push(w0.size?100*[...w0].filter(k=>act.has(k)).length/w0.size:0);}
+  const retention=cohort[PL_WEEKS-1];
+  const activeKids=new Set(inWin.map(childOf)).size||1;
+  const freq=inWin.length/activeKids/PL_WEEKS;
+
+  const fams={};
+  inWin.forEach(s=>{ (fams[s.familyId] || (fams[s.familyId]={sessions:[],circle:new Set()})).sessions.push(s); });
+  D.heard.forEach(e=>{ if(fams[e.familyId]) fams[e.familyId].circle.add(e.who); });
+  D.reacted.forEach(e=>{ if(fams[e.familyId]) fams[e.familyId].circle.add(e.who); });
+  const now=Date.now();
+  const perFamily=Object.entries(fams).map(([fid,f],idx)=>{
+    const last=f.sessions.reduce((m,s)=>Math.max(m,_plMs(s.timestamp)),0);
+    const daysSince=last?Math.floor((now-last)/PL_DAY):999;
+    const h=rate(f.sessions,D.heard.filter(e=>e.familyId===fid));
+    const r=rate(f.sessions,D.reacted.filter(e=>e.familyId===fid));
+    const fr=f.sessions.length/PL_WEEKS;
+    let st={cls:'ok',label:'Virk'};
+    if(daysSince>=7)st={cls:'churn',label:'Hætt á?'};
+    else if(r<PL_THRESH.reacted.amber||fr<PL_THRESH.freq.amber)st={cls:'risk',label:'Fylgjast með'};
+    return {label:'Hópur '+String.fromCharCode(65+(idx%26)),freq:fr,circle:f.circle.size,heard:h,react:r,daysSince,st};
+  }).sort((a,b)=>a.daysSince-b.daysSince||b.react-a.react);
+
+  return {start,winEnd,anchored,noKey,heardOverall,reactOverall,byWeek,cohort,retention,freq,perFamily,
+          nSess:inWin.length,nHeard:D.heard.length,nReact:D.reacted.length};
+}
+
+async function renderPilotTab(){
+  const el=document.getElementById('admin-content');
+  el.innerHTML='<div class="admin-loading">Hleð vitnislykkju…</div>';
+  await ensurePilotBooks();
+  const M=computePilot();
+  if(!M){ el.innerHTML='<section class="admin-summary-card" style="padding:22px"><h3>Engar lestrarlotur enn</h3><p class="admin-empty" style="margin-top:8px">Vitnislykkjan birtist þegar börn byrja að lesa upphátt.</p></section>'; return; }
+  el.innerHTML=_plHtml(M);
+}
+
+window.setPilotLens = function(l){ _plLens=l; renderPilotTab(); };
+
+function _plHtml(M){
+  const avgCircle = M.perFamily.length ? (M.perFamily.reduce((a,f)=>a+f.circle,0)/M.perFamily.length) : 0;
+  const gap=Math.round(M.heardOverall-M.reactOverall);
+  const h0=M.byWeek[0].heard, hN=M.byWeek[PL_WEEKS-1].heard, decay=h0?Math.round(100*(h0-hN)/h0):0;
+
+  const kpi=(q,val,unit,key,v,lens,pending)=>{
+    const col=pending?'#5d7088':_plColor(key,v), lbl=pending?'Bíður':_plLabel(key,v);
+    const thr=PL_THRESH[key]?('≥ '+PL_THRESH[key].go+unit):'';
+    return `<div class="pl-kpi ${pending?'pending':''}" data-lens="${lens}" style="--st:${col}">
+      <div class="q">${q}</div><div class="v">${val}<span class="u">${unit}</span></div>
+      <div class="m"><span class="thr">${thr}</span><span class="pl-badge" style="--st:${col}">${lbl}</span></div></div>`;
+  };
+  const kpis=`<div class="pl-kpis">
+    ${kpi('Sp.2a · Hlutfall lestrarlota <b>heyrðar</b> ≤48 klst',Math.round(M.heardOverall),'%','heard',M.heardOverall,'grant investor',false)}
+    ${kpi('Sp.2b · …og fengu <b>viðbragð</b> sem barnið sér ≤48 klst',Math.round(M.reactOverall),'%','reacted',M.reactOverall,'grant investor',false)}
+    ${kpi('Sp.1 · Börn virk í viku 0 sem lesa enn í viku 6',Math.round(M.retention),'%','retention',M.retention,'investor',false)}
+    ${kpi('Sp.1 · Lestrarlotur á barn á viku',M.freq.toFixed(1),'/v','freq',M.freq,'investor',false)}
+    ${kpi('Sp.5 · Greiðsluvilji foreldra (úr könnun)','—','','wouldpay',0,'investor',true)}
+  </div>`;
+
+  const weeks=M.byWeek.map((wk,i)=>`<div class="pl-wk"><span class="lbl">Vika ${i}</span><div class="pl-bars">
+      <div class="pl-bar"><span class="pl-track"><span class="pl-fill heard" style="width:${Math.max(2,wk.heard)}%"></span></span><span class="pl-tag">heyrt <b>${Math.round(wk.heard)}%</b></span></div>
+      <div class="pl-bar"><span class="pl-track"><span class="pl-fill ${wk.react<PL_THRESH.reacted.amber?'warn':'react'}" style="width:${Math.max(2,wk.react)}%"></span></span><span class="pl-tag">viðbrögð <b>${Math.round(wk.react)}%</b></span></div>
+    </div></div>`).join('');
+  const note=`<div class="pl-note">${decay>15?'<span class="flag">⚠ </span>':''}Heyrt var ~${gap} prósentustigum hærra en viðbrögð — hlustendur eru til staðar en gera það ekki alltaf <b style="color:#d9e5ef">sýnilegt barninu</b>. `+
+    (decay>15?`Heyrt féll líka ${decay}% frá viku 0 til ${PL_WEEKS-1}: stækkaðu hlustunarhringinn (nú ${avgCircle.toFixed(1)} manns að meðaltali) áður en loforðið brestur.`:`Bæði haldast nokkuð stöðug yfir tímabilið.`)+
+    ` Ódýr tilraun: hvettu einn hlustanda til að senda stutt viðbragð — það lyftir horninu sem skiptir barnið mestu.</div>`;
+  const cohort=`<div class="pl-coh">${M.cohort.map((v,i)=>`<div class="col"><div class="bar" style="height:${Math.max(2,v)}%"><span class="tip">${Math.round(v)}%</span></div><div class="wk">V${i}</div></div>`).join('')}</div>`;
+
+  const rows=M.perFamily.map(f=>`<tr>
+    <td><strong>${esc(f.label)}</strong></td>
+    <td class="num">${f.freq.toFixed(1)}</td><td class="num">${f.circle}</td>
+    <td><span class="pl-mini"><i class="heard" style="width:${Math.round(f.heard)}%"></i></span><span class="num">${Math.round(f.heard)}%</span></td>
+    <td><span class="pl-mini"><i class="react" style="width:${Math.round(f.react)}%"></i></span><span class="num">${Math.round(f.react)}%</span></td>
+    <td class="num">${f.daysSince>=999?'—':f.daysSince+'d'}</td>
+    <td><span class="pl-pill ${f.st.cls}">${esc(f.st.label)}</span></td></tr>`).join('');
+
+  const pending=`<section class="pl-pending"><h3>Eigindleg gögn — bíða könnunar</h3>
+    Tölurnar að ofan koma úr gögnum sem þú safnar nú þegar. Eigindlegu merkin per fjölskyldu — Sp.3 (minnkar nöldur), Sp.4 (barnið upplifir sig heyrt, ekki undir eftirliti), Sp.6 (persónuvernd í lagi), foreldra-/barnatilvitnanir og „bað um að lesa aftur?" — koma úr könnun sem þú átt eftir að bæta við.<br><br>
+    <b style="color:#d9e5ef">Hvar:</b> nýtt safn <code>pilotSurveys/{familyId}</code> — eitt skjal á fjölskyldu með reitunum <code>reducesNagging</code>, <code>childSentiment</code>, <code>privacyOk</code>, <code>wouldPay</code>, <code>pricePoint</code>, <code>parentQuote</code>, <code>childQuote</code>, <code>friction</code>, <code>askedAgain</code>, <code>onboardedUnaided</code> (+ <code>familyId</code>, <code>wave</code>, <code>collectedAt</code>).<br>
+    <b style="color:#d9e5ef">Hvenær:</b> grunnlína í <b>viku 0</b> (virkar uppsetningin án hjálpar? upphafsstaða lestrar) og lokakönnun í <b>viku 6</b> (greiðsluvilji, nöldur, líðan, tilvitnanir). Léttur púls í <b>viku 3</b> nær ástæðum brottfalls á meðan þær eru ferskar.</section>`;
+
+  const frame=`<div class="pl-frame">
+    <div class="pl-fcard pl-grantcard"><div class="tag">Styrkur / Fræ</div><h4>Framkvæmanleiki, samfélagsgildi, velferð barns</h4>
+      <ul><li>Skilja fjölskyldur hugmyndina án aðstoðar? (Sp.3/Sp.4)</li><li>Hlutverk: „Decline by 9" — halda 8–12 ára við lestur.</li><li>Upplifað sem hvatning, ekki eftirlit. (Sp.4)</li><li>Persónuvernd: raddupptökur barna GDPR-hreinar. (Sp.6)</li></ul></div>
+    <div class="pl-fcard pl-invcard"><div class="tag">Fjárfestir / seed</div><h4>Endurkoma, tíðni, greiðsluvilji</h4>
+      <ul><li>6-vikna endurkoma barna. (Sp.1)</li><li>Tíðni: lotur/barn/viku — vani, ekki tilraun.</li><li>Greiðsluvilji og verð. (Sp.5)</li><li>Lífræn dreifing: boð send per heimili.</li></ul></div></div>`;
+
+  const lensBtn=(l,t)=>`<button class="${_plLens===l?'on':''}" onclick="setPilotLens('${l}')">${t}</button>`;
+  return `<div class="pl ${_plLens!=='none'?'lens-'+_plLens:''}">
+    <div class="pl-head"><h2>Vitnislykkjan<small>„Lestu fyrir sjálfan þig, en ekki einn." · framkvæmanleiki + fjölskyldumerki${M.anchored ? "" : " · <b style='color:#fbbf24'>bráðabirgða gluggi</b>"}</small></h2>
+      <div class="pl-lens"><span>Sýn:</span><div class="seg">${lensBtn('none','Bæði')}${lensBtn('grant','Styrkur')}${lensBtn('investor','Fjárfestir')}</div></div></div>
+    ${kpis}
+    <div class="pl-row">
+      <div class="pl-card"><h3>Sp.2 · Er vitnið áreiðanlegt?</h3><div class="sub">Tvennt ólíkt, mælt í sundur: lota sem var <b>heyrð</b> (hlustandi opnaði) vs. fékk <b>viðbragð</b> (skrifað svar). Hlustun skiptir ömmuna máli; viðbragðið gerir „að vera heyrð(ur)" sýnilegt barninu. Innan 48 klst, eftir viku.</div>
+        <div class="pl-leg"><span><i style="background:#4fa8d8"></i>Heyrt</span><span><i style="background:#1dcdd3"></i>Viðbrögð</span></div>${weeks}${note}</div>
+      <div class="pl-card"><h3>Sp.1 · Kemur barnið aftur?</h3><div class="sub">Af börnum virkum í viku 0, hlutfall sem les enn hverja síðari viku. Nýjabrumið dvínar eftir viku 1 — spurningin er hvað stendur eftir.</div>${cohort}</div></div>
+    <div class="pl-card" style="margin-bottom:14px"><h3>Merki eftir fjölskyldum</h3><div class="sub">Þar sem endurkoman raunverulega býr. <b>Hætt á?</b> = engin gild lota í 7+ daga. Heyrt og viðbrögð sýnd í sundur.</div>
+      <table class="pl-table"><thead><tr><th>Hópur</th><th>Lotur/v</th><th>Hringur</th><th>Heyrt</th><th>Viðbrögð</th><th>Síðast</th><th>Staða</th></tr></thead><tbody>${rows}</tbody></table></div>
+    ${pending}${frame}
+    <div class="pl-foot">Reiknað úr <code>${M.nSess}</code> gildum lotum, <code>${M.nHeard}</code> hlustunum, <code>${M.nReact}</code> viðbrögðum. Gluggi: ${M.anchored ? "<b style='color:#4ade80'>fastur</b> (PILOT_START)" : "<b style='color:#fbbf24'>bráðabirgða</b> — nýjasta lota − 6 vikur; settu <code>PILOT_START</code> efst í pilot-einingunni fyrir alvöru pilot"}. Vitnun mátuð strangt á <code>childKey</code>${M.noKey ? " (<b style='color:#fbbf24'>"+M.noKey+"</b> lotur án childKey — ekki taldar)" : " (allar lotur með childKey ✓)"}. Endurnýtir <code>_heatmapSessions</code> + <code>_listenEvents</code>; sækir <code>books</code> fyrir viðbrögð — síðar: sér <code>reactionEvents</code>-safn (eins og listenEvents) þegar þetta þarf að skala.</div>
+  </div>`;
 }
 
 // ── KPIs ──
@@ -1850,6 +2096,15 @@ function shortAnonFamilyId(raw, idx) {
   return `KÓÐI ${code}`;
 }
 
+function anonChildCode(s) {
+  // Stöðugur barnakóði fyrir viðmót — aldrei raunnafn. Byggt á childKey (fallback: familyId+nafn).
+  const raw = (s && (s.childKey || (s.familyId ? s.familyId + '|' + (s.childName || '') : ''))) || 'barn';
+  let hash = 2166136261;
+  for (let i = 0; i < raw.length; i++) { hash ^= raw.charCodeAt(i); hash = Math.imul(hash, 16777619); }
+  const code = Math.abs(hash >>> 0).toString(36).toUpperCase().slice(0, 4).padStart(4, '0');
+  return 'Barn ' + code;
+}
+
 function formatLastActiveFromSession(session) {
   const ts = sessionTimestampMs(session);
   if (!ts) return 'engin virkni';
@@ -2015,7 +2270,7 @@ function renderSessionCards(sessions) {
         <div class="admin-session-top">
           <div class="admin-session-name">
             <div class="admin-avatar">👤</div>
-            <div>${esc(s.childName||'?')}</div>
+            <div>${esc(anonChildCode(s))}</div>
           </div>
           <div class="admin-date-pill">${esc(dateLabel(s.date||s.timestamp))}</div>
         </div>

@@ -1088,6 +1088,718 @@ function getAdminItemBirthYear(item) {
   return _childBirthYearLookup[childLookupKey(familyId, childKey)] || 'unknown';
 }
 
+
+// Lesfimi benchmark helpers - admin-only. Coverage/book WPM is never compared to MMS.
+const SCHOOL_YEAR_CONFIG = {
+  currentSchoolYear: '2025-2026',
+  startYear: 2025,
+  startsAt: '2025-08-20',
+  endsAt: '2026-06-10'
+};
+
+const LESFIMI_BENCHMARKS = {
+  "id": "mms_2025",
+  "source": "Miðstöð menntunar og skólaþjónustu | 2025 | 40681",
+  "title": "Túlkunarrammi fyrir lesfimipróf",
+  "country": "IS",
+  "language": "is",
+  "unit": "words_per_minute",
+  "seasons": [
+    "september",
+    "january",
+    "may"
+  ],
+  "bands": {
+    "low": {
+      "metricBand": "1-4",
+      "label": "Neðstu mörk"
+    },
+    "below": {
+      "metricBand": "5-7",
+      "label": "Undir meðaltali"
+    },
+    "average": {
+      "metricBand": "8-12",
+      "label": "Við meðaltal"
+    },
+    "above": {
+      "metricBand": "13+",
+      "label": "Yfir meðaltali"
+    }
+  },
+  "grades": {
+    "1": {
+      "text": "Kassabíll",
+      "september": {
+        "low": null,
+        "below": {
+          "min": 1,
+          "max": 1
+        },
+        "average": {
+          "min": 2,
+          "max": 19
+        },
+        "above": {
+          "min": 20,
+          "max": 122,
+          "openEnded": true
+        }
+      },
+      "january": {
+        "low": {
+          "min": 1,
+          "max": 2
+        },
+        "below": {
+          "min": 3,
+          "max": 12
+        },
+        "average": {
+          "min": 13,
+          "max": 43
+        },
+        "above": {
+          "min": 44,
+          "max": 138,
+          "openEnded": true
+        }
+      },
+      "may": {
+        "low": {
+          "min": 0,
+          "max": 6
+        },
+        "below": {
+          "min": 7,
+          "max": 22
+        },
+        "average": {
+          "min": 23,
+          "max": 66
+        },
+        "above": {
+          "min": 67,
+          "max": 153,
+          "openEnded": true
+        }
+      }
+    },
+    "2": {
+      "text": "Óskasteinar",
+      "september": {
+        "low": {
+          "min": 5,
+          "max": 13
+        },
+        "below": {
+          "min": 14,
+          "max": 29
+        },
+        "average": {
+          "min": 30,
+          "max": 69
+        },
+        "above": {
+          "min": 70,
+          "max": 162,
+          "openEnded": true
+        }
+      },
+      "january": {
+        "low": {
+          "min": 4,
+          "max": 19
+        },
+        "below": {
+          "min": 20,
+          "max": 41
+        },
+        "average": {
+          "min": 42,
+          "max": 94
+        },
+        "above": {
+          "min": 95,
+          "max": 182,
+          "openEnded": true
+        }
+      },
+      "may": {
+        "low": {
+          "min": 4,
+          "max": 25
+        },
+        "below": {
+          "min": 26,
+          "max": 50
+        },
+        "average": {
+          "min": 51,
+          "max": 112
+        },
+        "above": {
+          "min": 113,
+          "max": 195,
+          "openEnded": true
+        }
+      }
+    },
+    "3": {
+      "text": "Flöskuskeyti",
+      "september": {
+        "low": {
+          "min": 0,
+          "max": 6
+        },
+        "below": {
+          "min": 7,
+          "max": 25
+        },
+        "average": {
+          "min": 26,
+          "max": 77
+        },
+        "above": {
+          "min": 78,
+          "max": 168,
+          "openEnded": true
+        }
+      },
+      "january": {
+        "low": {
+          "min": 0,
+          "max": 11
+        },
+        "below": {
+          "min": 12,
+          "max": 36
+        },
+        "average": {
+          "min": 37,
+          "max": 94
+        },
+        "above": {
+          "min": 95,
+          "max": 182,
+          "openEnded": true
+        }
+      },
+      "may": {
+        "low": {
+          "min": 0,
+          "max": 15
+        },
+        "below": {
+          "min": 16,
+          "max": 43
+        },
+        "average": {
+          "min": 44,
+          "max": 105
+        },
+        "above": {
+          "min": 106,
+          "max": 198,
+          "openEnded": true
+        }
+      }
+    },
+    "4": {
+      "text": "Heimsóknin",
+      "september": {
+        "low": {
+          "min": 0,
+          "max": 17
+        },
+        "below": {
+          "min": 18,
+          "max": 48
+        },
+        "average": {
+          "min": 49,
+          "max": 108
+        },
+        "above": {
+          "min": 109,
+          "max": 202,
+          "openEnded": true
+        }
+      },
+      "january": {
+        "low": {
+          "min": 0,
+          "max": 25
+        },
+        "below": {
+          "min": 26,
+          "max": 58
+        },
+        "average": {
+          "min": 59,
+          "max": 123
+        },
+        "above": {
+          "min": 124,
+          "max": 218,
+          "openEnded": true
+        }
+      },
+      "may": {
+        "low": {
+          "min": 0,
+          "max": 30
+        },
+        "below": {
+          "min": 31,
+          "max": 67
+        },
+        "average": {
+          "min": 68,
+          "max": 134
+        },
+        "above": {
+          "min": 135,
+          "max": 231,
+          "openEnded": true
+        }
+      }
+    },
+    "5": {
+      "text": "Heimsóknin",
+      "september": {
+        "low": {
+          "min": 1,
+          "max": 28
+        },
+        "below": {
+          "min": 29,
+          "max": 65
+        },
+        "average": {
+          "min": 66,
+          "max": 132
+        },
+        "above": {
+          "min": 133,
+          "max": 223,
+          "openEnded": true
+        }
+      },
+      "january": {
+        "low": {
+          "min": 2,
+          "max": 31
+        },
+        "below": {
+          "min": 32,
+          "max": 71
+        },
+        "average": {
+          "min": 72,
+          "max": 143
+        },
+        "above": {
+          "min": 144,
+          "max": 238,
+          "openEnded": true
+        }
+      },
+      "may": {
+        "low": {
+          "min": 1,
+          "max": 36
+        },
+        "below": {
+          "min": 37,
+          "max": 78
+        },
+        "average": {
+          "min": 79,
+          "max": 152
+        },
+        "above": {
+          "min": 153,
+          "max": 269,
+          "openEnded": true
+        }
+      }
+    },
+    "6": {
+      "text": "Skíðaferðin",
+      "september": {
+        "low": {
+          "min": 3,
+          "max": 49
+        },
+        "below": {
+          "min": 50,
+          "max": 85
+        },
+        "average": {
+          "min": 86,
+          "max": 148
+        },
+        "above": {
+          "min": 149,
+          "max": 248,
+          "openEnded": true
+        }
+      },
+      "january": {
+        "low": {
+          "min": 5,
+          "max": 59
+        },
+        "below": {
+          "min": 60,
+          "max": 98
+        },
+        "average": {
+          "min": 99,
+          "max": 162
+        },
+        "above": {
+          "min": 163,
+          "max": 269,
+          "openEnded": true
+        }
+      },
+      "may": {
+        "low": {
+          "min": 6,
+          "max": 64
+        },
+        "below": {
+          "min": 65,
+          "max": 104
+        },
+        "average": {
+          "min": 105,
+          "max": 172
+        },
+        "above": {
+          "min": 173,
+          "max": 279,
+          "openEnded": true
+        }
+      }
+    },
+    "7": {
+      "text": "Skíðaferðin",
+      "september": {
+        "low": {
+          "min": 9,
+          "max": 65
+        },
+        "below": {
+          "min": 66,
+          "max": 103
+        },
+        "average": {
+          "min": 104,
+          "max": 169
+        },
+        "above": {
+          "min": 170,
+          "max": 277,
+          "openEnded": true
+        }
+      },
+      "january": {
+        "low": {
+          "min": 10,
+          "max": 72
+        },
+        "below": {
+          "min": 73,
+          "max": 112
+        },
+        "average": {
+          "min": 113,
+          "max": 179
+        },
+        "above": {
+          "min": 180,
+          "max": 293,
+          "openEnded": true
+        }
+      },
+      "may": {
+        "low": {
+          "min": 11,
+          "max": 77
+        },
+        "below": {
+          "min": 78,
+          "max": 119
+        },
+        "average": {
+          "min": 120,
+          "max": 189
+        },
+        "above": {
+          "min": 190,
+          "max": 307,
+          "openEnded": true
+        }
+      }
+    },
+    "8": {
+      "text": "Góðverk",
+      "september": {
+        "low": {
+          "min": 14,
+          "max": 72
+        },
+        "below": {
+          "min": 73,
+          "max": 114
+        },
+        "average": {
+          "min": 115,
+          "max": 188
+        },
+        "above": {
+          "min": 189,
+          "max": 289,
+          "openEnded": true
+        }
+      },
+      "january": {
+        "low": {
+          "min": 15,
+          "max": 79
+        },
+        "below": {
+          "min": 80,
+          "max": 124
+        },
+        "average": {
+          "min": 125,
+          "max": 203
+        },
+        "above": {
+          "min": 204,
+          "max": 300,
+          "openEnded": true
+        }
+      },
+      "may": {
+        "low": {
+          "min": 21,
+          "max": 86
+        },
+        "below": {
+          "min": 87,
+          "max": 131
+        },
+        "average": {
+          "min": 132,
+          "max": 212
+        },
+        "above": {
+          "min": 213,
+          "max": 309,
+          "openEnded": true
+        }
+      }
+    },
+    "9": {
+      "text": "Góðverk",
+      "september": {
+        "low": {
+          "min": 10,
+          "max": 83
+        },
+        "below": {
+          "min": 84,
+          "max": 134
+        },
+        "average": {
+          "min": 135,
+          "max": 215
+        },
+        "above": {
+          "min": 216,
+          "max": 306,
+          "openEnded": true
+        }
+      },
+      "january": {
+        "low": {
+          "min": 20,
+          "max": 86
+        },
+        "below": {
+          "min": 87,
+          "max": 141
+        },
+        "average": {
+          "min": 142,
+          "max": 224
+        },
+        "above": {
+          "min": 225,
+          "max": 315,
+          "openEnded": true
+        }
+      },
+      "may": {
+        "low": {
+          "min": 0,
+          "max": 94
+        },
+        "below": {
+          "min": 95,
+          "max": 148
+        },
+        "average": {
+          "min": 149,
+          "max": 232
+        },
+        "above": {
+          "min": 233,
+          "max": 318,
+          "openEnded": true
+        }
+      }
+    },
+    "10": {
+      "text": "Góðverk",
+      "september": {
+        "low": {
+          "min": 14,
+          "max": 91
+        },
+        "below": {
+          "min": 92,
+          "max": 145
+        },
+        "average": {
+          "min": 146,
+          "max": 231
+        },
+        "above": {
+          "min": 232,
+          "max": 321,
+          "openEnded": true
+        }
+      },
+      "january": {
+        "low": {
+          "min": 10,
+          "max": 93
+        },
+        "below": {
+          "min": 94,
+          "max": 147
+        },
+        "average": {
+          "min": 148,
+          "max": 233
+        },
+        "above": {
+          "min": 234,
+          "max": 326,
+          "openEnded": true
+        }
+      },
+      "may": {
+        "low": {
+          "min": 0,
+          "max": 99
+        },
+        "below": {
+          "min": 100,
+          "max": 155
+        },
+        "average": {
+          "min": 156,
+          "max": 241
+        },
+        "above": {
+          "min": 242,
+          "max": 342,
+          "openEnded": true
+        }
+      }
+    }
+  }
+};
+
+function currentSchoolYearStartYear(date = new Date()) {
+  const year = date.getFullYear();
+  const month = date.getMonth() + 1;
+  return month >= 8 ? year : year - 1;
+}
+
+function getSchoolYearStartYear(date = new Date()) {
+  const configured = Number(SCHOOL_YEAR_CONFIG && SCHOOL_YEAR_CONFIG.startYear);
+  return Number.isFinite(configured) && configured > 0 ? configured : currentSchoolYearStartYear(date);
+}
+
+function gradeFromBirthYear(birthYear, schoolYearStartYear = currentSchoolYearStartYear()) {
+  const y = Number(birthYear);
+  const sy = Number(schoolYearStartYear);
+  if (!Number.isFinite(y) || !Number.isFinite(sy)) return null;
+  const grade = sy - y - 5;
+  return grade >= 1 && grade <= 10 ? String(grade) : null;
+}
+
+function benchmarkSeason(date = new Date()) {
+  const month = date.getMonth() + 1;
+  if (month >= 8 && month <= 11) return 'september';
+  if (month === 12 || month <= 3) return 'january';
+  return 'may';
+}
+
+function lesfimiSeasonLabel(season) {
+  return ({ september: 'sept.', january: 'jan.', may: 'ma?' })[season] || season || '?';
+}
+
+function getSessionMetricValue(session, group) {
+  const m = session && session.metrics && session.metrics[group];
+  return m && m.usable && m.value != null ? Number(m.value) : null;
+}
+
+function getLesfimiBenchmarkForSession(session) {
+  const birthYear = getAdminItemBirthYear(session);
+  if (!birthYear || birthYear === 'unknown') return { label: 'vantar f??ingar?r', status: 'missing_birth_year' };
+  const ts = sessionTimestampMs(session) || Date.now();
+  const date = new Date(ts);
+  const schoolYearStartYear = getSchoolYearStartYear(date);
+  const grade = gradeFromBirthYear(birthYear, schoolYearStartYear);
+  if (!grade) return { label: 'vantar bekk', status: 'missing_grade', birthYear };
+  const season = benchmarkSeason(date);
+  const average = LESFIMI_BENCHMARKS.grades?.[grade]?.[season]?.average;
+  if (!average) return { label: grade + '. bekkur ? ' + lesfimiSeasonLabel(season) + ' ? vantar vi?mi?', status: 'missing_benchmark', grade, season, birthYear };
+  return {
+    label: grade + '. bekkur ? ' + lesfimiSeasonLabel(season) + ' ? ' + average.min + '?' + average.max,
+    status: 'ok',
+    grade,
+    season,
+    birthYear,
+    min: average.min,
+    max: average.max
+  };
+}
+
+function compareAudioWpmToLesfimi(session) {
+  const bm = getLesfimiBenchmarkForSession(session);
+  const audio = getSessionMetricValue(session, 'audioWpmEstimate');
+  if (bm.status !== 'ok') return { ...bm, audio, comparison: null };
+  if (audio == null) return { ...bm, audio, comparison: 'missing_audio', comparisonLabel: 'vantar hlj??mat' };
+  if (audio < bm.min) return { ...bm, audio, comparison: 'below', comparisonLabel: 'undir bili' };
+  if (audio > bm.max) return { ...bm, audio, comparison: 'above', comparisonLabel: 'yfir bili' };
+  return { ...bm, audio, comparison: 'within', comparisonLabel: 'innan bils' };
+}
+
+function formatWpmMetric(session, group) {
+  const value = getSessionMetricValue(session, group);
+  return value == null ? '?' : Math.round(value) + ' or?/m?n';
+}
+
 function adminBirthYearFilterLabel() {
   if (_adminBirthYear === 'all') return 'Öll fæðingarár';
   if (_adminBirthYear === 'unknown') return 'Óþekkt fæðingarár';
@@ -2371,6 +3083,25 @@ function renderSessionCards(sessions) {
           <div class="admin-profile-text" style="color:${PROFILE_COLORS[prof]}">${esc(PROFILE_LABELS[prof])}</div>
         </div>
         <div class="admin-metrics-grid">
+          <div class="admin-metric">
+            <div class="admin-metric-label">Leshra?i ? b?k</div>
+            <div class="admin-metric-value">${esc(formatWpmMetric(s, 'coverageWpm'))}</div>
+            <div class="admin-tooltip">B?k/?ekjuhra?i: ??tlu? or? sem barni? komst yfir ? m?n?tu. Ekki bori? saman vi? lesfimivi?mi?.</div>
+          </div>
+          <div class="admin-metric">
+            <div class="admin-metric-label">Leshra?i ? hlj??</div>
+            <div class="admin-metric-value">${esc(formatWpmMetric(s, 'audioWpmEstimate'))}</div>
+            <div class="admin-tooltip">??tla?ur leshra?i ?r hlj??greiningu. ?etta er talan sem m? bera varlega saman vi? lesfimivi?mi?.</div>
+          </div>
+          <div class="admin-metric">
+            <div class="admin-metric-label">Vi?mi?</div>
+            <div class="admin-metric-value" style="font-size:14px;line-height:1.25">${esc(compareAudioWpmToLesfimi(s).label)}</div>
+            <div class="admin-tooltip">M?lit?lubil lesfimi mi?a? vi? f??ingar?r barns, sk?la?r og ?rst?ma. Samanbur?ur notar a?eins hlj??-WPM.</div>
+          </div>
+          <div class="admin-metric">
+            <div class="admin-metric-label">Sta?a</div>
+            <div class="admin-metric-value" style="font-size:16px">${esc(compareAudioWpmToLesfimi(s).comparisonLabel || '?')}</div>
+          </div>
           <div class="admin-metric">
             <div class="admin-metric-label">Atkvæði</div>
             <div class="admin-metric-value">${esc(m.syllables||'—')}</div>

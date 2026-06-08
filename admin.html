@@ -445,8 +445,18 @@ html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sa
 }
 @media(max-width:1040px){
   .admin-heatmap-grid{grid-template-columns:1fr}
-  .admin-layout{grid-template-columns:1fr}
-  .admin-sidebar{display:none}
+  .admin-layout{display:block;min-height:100dvh}
+  .admin-sidebar{
+    display:flex;position:sticky;top:0;z-index:40;height:auto;
+    padding:10px 10px 9px;border-right:0;border-bottom:1px solid rgba(29,205,211,0.14);
+    background:rgba(5,13,24,0.98);gap:10px;overflow:hidden
+  }
+  .admin-brand{font-size:16px;padding:0 6px;display:flex;align-items:center;min-width:max-content}
+  .admin-nav{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px;flex:1}
+  .admin-nav::-webkit-scrollbar{display:none}
+  .admin-nav-item{min-width:96px;min-height:46px;border-radius:14px;padding:8px 10px;font-size:11px;gap:4px}
+  .admin-side-bottom{display:none}
+  .admin-main{padding:18px 14px 28px}
   .admin-summary-row{grid-template-columns:1fr}
   .admin-grid-top{grid-template-columns:repeat(2,minmax(0,1fr))}
   .admin-sessions-grid{grid-template-columns:1fr}
@@ -575,7 +585,7 @@ html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sa
       <div class="auth-field">
         <label class="auth-label" for="admin-email-input">Netfang</label>
         <input id="admin-email-input" class="auth-input" type="email"
-          autocomplete="username" placeholder="admin@upphatt.is" style="letter-spacing:normal;text-transform:none">
+          autocomplete="username" placeholder="nafn@netfang" style="letter-spacing:normal;text-transform:none">
       </div>
       <div class="auth-field">
         <label class="auth-label" for="admin-pass-input">Lykilorð</label>
@@ -1755,7 +1765,7 @@ function benchmarkSeason(date = new Date()) {
 }
 
 function lesfimiSeasonLabel(season) {
-  return ({ september: 'sept.', january: 'jan.', may: 'ma?' })[season] || season || '?';
+  return ({ september: 'sept.', january: 'jan.', may: 'ma\u00ed' })[season] || season || '\u2014';
 }
 
 function getSessionMetricValue(session, group) {
@@ -1765,7 +1775,7 @@ function getSessionMetricValue(session, group) {
 
 function getLesfimiBenchmarkForSession(session) {
   const birthYear = getAdminItemBirthYear(session);
-  if (!birthYear || birthYear === 'unknown') return { label: 'vantar f??ingar?r', status: 'missing_birth_year' };
+  if (!birthYear || birthYear === 'unknown') return { label: 'vantar f\u00e6\u00f0ingar\u00e1r', status: 'missing_birth_year' };
   const ts = sessionTimestampMs(session) || Date.now();
   const date = new Date(ts);
   const schoolYearStartYear = getSchoolYearStartYear(date);
@@ -1773,9 +1783,9 @@ function getLesfimiBenchmarkForSession(session) {
   if (!grade) return { label: 'vantar bekk', status: 'missing_grade', birthYear };
   const season = benchmarkSeason(date);
   const average = LESFIMI_BENCHMARKS.grades?.[grade]?.[season]?.average;
-  if (!average) return { label: grade + '. bekkur ? ' + lesfimiSeasonLabel(season) + ' ? vantar vi?mi?', status: 'missing_benchmark', grade, season, birthYear };
+  if (!average) return { label: grade + '. bekkur ? ' + lesfimiSeasonLabel(season) + ' ? vantar vi\u00f0mi\u00f0', status: 'missing_benchmark', grade, season, birthYear };
   return {
-    label: grade + '. bekkur ? ' + lesfimiSeasonLabel(season) + ' ? ' + average.min + '?' + average.max,
+    label: grade + '. bekkur \u00b7 ' + lesfimiSeasonLabel(season) + ' \u00b7 ' + average.min + '\u2013' + average.max,
     status: 'ok',
     grade,
     season,
@@ -1789,7 +1799,7 @@ function compareAudioWpmToLesfimi(session) {
   const bm = getLesfimiBenchmarkForSession(session);
   const audio = getSessionMetricValue(session, 'audioWpmEstimate');
   if (bm.status !== 'ok') return { ...bm, audio, comparison: null };
-  if (audio == null) return { ...bm, audio, comparison: 'missing_audio', comparisonLabel: 'vantar hlj??mat' };
+  if (audio == null) return { ...bm, audio, comparison: 'missing_audio', comparisonLabel: 'vantar hlj\u00f3\u00f0mat' };
   if (audio < bm.min) return { ...bm, audio, comparison: 'below', comparisonLabel: 'undir bili' };
   if (audio > bm.max) return { ...bm, audio, comparison: 'above', comparisonLabel: 'yfir bili' };
   return { ...bm, audio, comparison: 'within', comparisonLabel: 'innan bils' };
@@ -1797,7 +1807,7 @@ function compareAudioWpmToLesfimi(session) {
 
 function formatWpmMetric(session, group) {
   const value = getSessionMetricValue(session, group);
-  return value == null ? '?' : Math.round(value) + ' or?/m?n';
+  return value == null ? '\u2014' : Math.round(value) + ' or\u00f0/m\u00edn';
 }
 
 function adminBirthYearFilterLabel() {
@@ -2384,16 +2394,16 @@ async function ensurePilotBooks(){
 function _plBuildData(){
   const sessions = (_heatmapSessions||[]).filter(s => (s.seconds||0) >= 60 && s.familyId);
   const heard = (_listenEvents||[]).filter(e => e.familyId)
-    .map(e => ({ familyId:e.familyId, childKey:e.childKey, ts:_plMs(e.timestamp), who:e.listenerName||'?' }));
+    .map(e => ({ familyId:e.familyId, childKey:e.childKey, ts:_plMs(e.timestamp), who:e.listenerName||'\u2014' }));
   const reacted = [], saved = [];
   (_pilotBooks||[]).forEach(b => {
     if(!b.familyId) return;
     (b.journeyEntries||[]).forEach(en => {
       (en.reactions||[]).forEach(r => {
-        reacted.push({ familyId:b.familyId, childKey:b.childKey, ts:_plMs(r.createdAt), who:r.name||'?' });
+        reacted.push({ familyId:b.familyId, childKey:b.childKey, ts:_plMs(r.createdAt), who:r.name||'\u2014' });
       });
       if(en.type === 'gold_moment'){
-        saved.push({ familyId:b.familyId, childKey:b.childKey, ts:_plMs(en.createdAt||en.savedAt), who:en.savedBy||'?' });
+        saved.push({ familyId:b.familyId, childKey:b.childKey, ts:_plMs(en.createdAt||en.savedAt), who:en.savedBy||'\u2014' });
       }
     });
   });
@@ -3058,7 +3068,7 @@ function renderSessionCards(sessions) {
     const q = selectedView === 'total' ? (a?.overall?.readingQuality || '—') : (m._unusable || m._missing ? '—' : (getSnippetSlots(s)[Number(selectedView) - 1]?.snippet?.quality || a?.overall?.readingQuality || '—'));
     const score = getSessionScoreForView(s, selectedView);
     const usable = a?.overall?.usableCount ?? 0;
-    const total = a?.overall?.totalSnippets ?? '?';
+    const total = a?.overall?.totalSnippets ?? '\u2014';
     const snippetNote = (m._unusable || m._missing)
       ? `<div class="admin-snippet-note"><strong>${esc(m._viewLabel)}:</strong> ${esc(m._reason || 'ónothæft')}</div>`
       : '';
@@ -3084,23 +3094,23 @@ function renderSessionCards(sessions) {
         </div>
         <div class="admin-metrics-grid">
           <div class="admin-metric">
-            <div class="admin-metric-label">Leshra?i ? b?k</div>
+            <div class="admin-metric-label">Leshra&eth;i &mdash; b&oacute;k</div>
             <div class="admin-metric-value">${esc(formatWpmMetric(s, 'coverageWpm'))}</div>
-            <div class="admin-tooltip">B?k/?ekjuhra?i: ??tlu? or? sem barni? komst yfir ? m?n?tu. Ekki bori? saman vi? lesfimivi?mi?.</div>
+            <div class="admin-tooltip">B&oacute;k/&thorn;ekjuhra&eth;i: &aacute;&aelig;tlu&eth; or&eth; sem barni&eth; komst yfir &aacute; m&iacute;n&uacute;tu. Ekki bori&eth; saman vi&eth; lesfimivi&eth;mi&eth;.</div>
           </div>
           <div class="admin-metric">
-            <div class="admin-metric-label">Leshra?i ? hlj??</div>
+            <div class="admin-metric-label">Leshra&eth;i &mdash; hlj&oacute;&eth;</div>
             <div class="admin-metric-value">${esc(formatWpmMetric(s, 'audioWpmEstimate'))}</div>
-            <div class="admin-tooltip">??tla?ur leshra?i ?r hlj??greiningu. ?etta er talan sem m? bera varlega saman vi? lesfimivi?mi?.</div>
+            <div class="admin-tooltip">&Aacute;&aelig;tla&eth;ur leshra&eth;i &uacute;r hlj&oacute;&eth;greiningu. &THORN;etta er talan sem m&aacute; bera varlega saman vi&eth; lesfimivi&eth;mi&eth;.</div>
           </div>
           <div class="admin-metric">
-            <div class="admin-metric-label">Vi?mi?</div>
+            <div class="admin-metric-label">Vi&eth;mi&eth;</div>
             <div class="admin-metric-value" style="font-size:14px;line-height:1.25">${esc(compareAudioWpmToLesfimi(s).label)}</div>
-            <div class="admin-tooltip">M?lit?lubil lesfimi mi?a? vi? f??ingar?r barns, sk?la?r og ?rst?ma. Samanbur?ur notar a?eins hlj??-WPM.</div>
+            <div class="admin-tooltip">M&aelig;lit&ouml;lubil lesfimi mi&eth;a&eth; vi&eth; f&aelig;&eth;ingar&aacute;r barns, sk&oacute;la&aacute;r og &aacute;rst&iacute;ma. Samanbur&eth;ur notar a&eth;eins hlj&oacute;&eth;-WPM.</div>
           </div>
           <div class="admin-metric">
-            <div class="admin-metric-label">Sta?a</div>
-            <div class="admin-metric-value" style="font-size:16px">${esc(compareAudioWpmToLesfimi(s).comparisonLabel || '?')}</div>
+            <div class="admin-metric-label">Sta&eth;a</div>
+            <div class="admin-metric-value" style="font-size:16px">${esc(compareAudioWpmToLesfimi(s).comparisonLabel || '\u2014')}</div>
           </div>
           <div class="admin-metric">
             <div class="admin-metric-label">Atkvæði</div>

@@ -337,8 +337,19 @@
           </select>
         </div>
         <div>
-          <label for="audioWpmFixed2">Hljóð WPM, deilir 2</label>
+          <label for="audioWpmFixed2">Hljóð WPM, handvirkt</label>
           <input id="audioWpmFixed2" type="number" inputmode="decimal" placeholder="t.d. 53" />
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label for="syllablesPerWordCustom">Deilir atkvæði/orð</label>
+          <input id="syllablesPerWordCustom" type="number" inputmode="decimal" step="0.05" value="1.5" />
+        </div>
+        <div>
+          <label for="divisorNote">Prófunargildi</label>
+          <input id="divisorNote" value="1.5 fyrir léttan barnatexta" />
         </div>
       </div>
 
@@ -423,11 +434,11 @@
 
       <div class="stats">
         <div class="stat">
-          <div class="k">Hljóð WPM, fasti 2</div>
+          <div class="k">Hljóð WPM, valinn deilir</div>
           <div class="v" id="statAudioFixed">—</div>
         </div>
         <div class="stat">
-          <div class="k">Skekkja fasti 2</div>
+          <div class="k">Skekkja valinn deilir</div>
           <div class="v" id="statError">—</div>
         </div>
         <div class="stat">
@@ -551,6 +562,24 @@ Elín vissi ekki hvað hún átti að segja. Reiðin sem hún hafði borið á s
 Elín leit á blaðið, svo á bókasafnið. „Þá byrjum við á að finna söguna,“ sagði hún.
 
 Þau gengu inn í hlýjuna. Við afgreiðsluborðið sat kona með grátt hár og brosti eins og hún hefði beðið eftir þeim allan daginn. Hún rétti þeim lykil án orða.`
+  },
+
+  D_300_GRADE6_CONCEPTS: {
+    id: "D_300_GRADE6_CONCEPTS",
+    title: "Prófun D — 6. bekkur, fræðiheiti og hugtök, 300 orð",
+    level: "6. bekkur fagtexti",
+    words: 300,
+    densityLabel: "fagtexti / hugtök",
+    intendedUse: "fræðiheiti, lengri orð og hugtakaskilningur",
+    text: `Á miðvikudegi vann sjötti bekkur verkefni um vatn, orku og samfélag. Kennarinn bað nemendur að hugsa eins og vísindamenn, landfræðingar og sagnfræðingar í sömu kennslustund. Fyrst skoðuðu þau kort af Íslandi og ræddu hvernig jöklar, ár og jarðhiti hafa mótað byggð landsins. Þau sáu að margar ár renna frá hálendinu til sjávar og að vatnið flytur með sér set, steina og næringarefni.
+
+Síðan gerðu nemendur einfalda tilraun. Þau helltu köldu vatni í glæra krukku, settu litaðan klaka ofan í og fylgdust með því hvernig kaldara vatnið sökk hægt niður. Kennarinn útskýrði hugtökin eðlismassi, hitastig og hringrás. Nemendur tengdu þetta við hafstrauma, veðurfar og lífsskilyrði lífvera í sjónum.
+
+Eftir frímínútur reiknaði hópurinn orkunotkun heimilis. Þau báru saman rafmagnsnotkun ljósaperu, tölvu og þvottavélar og skráðu niðurstöður í töflu. Sumir komust að því að lítil dagleg notkun getur orðið mikil yfir heilt ár. Þá ræddu þau endurnýjanlega orku, ábyrgð neytenda og mikilvægi þess að sóa ekki auðlindum.
+
+Í lok tímans skrifaði hver nemandi stutta niðurstöðu. Arna skrifaði að náttúran væri ekki bara falleg, heldur flókið kerfi þar sem vatn, orka, loftslag og mannlegar ákvarðanir tengdust saman. Hún bætti við að samfélög þyrftu bæði þekkingu og samvinnu til að taka skynsamlegar ákvarðanir. Þegar kennarinn las svarið brosti hann, því þetta var nákvæmlega markmið verkefnisins: að sjá tengslin milli námsgreina og skilja hvers vegna þau skipta máli.
+
+Heima um kvöldið sagði Arna foreldrum sínum frá verkefninu og sýndi þeim teikningu af hringrás vatnsins. Hún hafði merkt uppgufun, úrkomu, grunnvatn og rennsli til sjávar. Pabbi hennar spurði hvort allar þjóðir hefðu jafn góðan aðgang að hreinu vatni. Arna hugsaði sig um og svaraði að náttúrufræði væri líka samfélagsfræði, því auðlindir dreifðust ekki alltaf jafnt. Þess vegna þurfa börn að læra að spyrja gagnrýninna spurninga, lesa upplýsingar vandlega og bera saman ólík sjónarmið áður en þau ákveða.`
   }
 };
 
@@ -567,6 +596,7 @@ let recordedChunks = [];
 let recordedBlob = null;
 let recordingMimeType = "audio/webm";
 let activeCalibrationUnsubscribe = null;
+let latestBackendSummary = null;
 
 const $ = (id) => document.getElementById(id);
 
@@ -602,9 +632,27 @@ function computeMetrics() {
   const wordsRead = getNumber("wordsRead") ?? selected.words;
   const trueWpm = durationSeconds > 0 ? wordsRead / (durationSeconds / 60) : null;
 
-  const audioWpmFixed2 = getNumber("audioWpmFixed2");
-  const audioRangeLow = audioWpmFixed2 ? audioWpmFixed2 * 2 / 2.3 : null;
-  const audioRangeHigh = audioWpmFixed2 ? audioWpmFixed2 * 2 / 1.6 : null;
+  const customDivisorRaw = getNumber("syllablesPerWordCustom");
+  const customDivisor = customDivisorRaw && customDivisorRaw > 0 ? customDivisorRaw : 1.5;
+
+  const backendSyllables = pickNumber(latestBackendSummary?.syllables);
+  const backendDuration = pickNumber(latestBackendSummary?.sessionDuration);
+
+  let audioWpmCustom = null;
+  if (backendSyllables != null && backendDuration && backendDuration > 0) {
+    audioWpmCustom = backendSyllables / customDivisor / (backendDuration / 60);
+  }
+
+  const manualAudioWpm = getNumber("audioWpmFixed2");
+  const audioWpmFixed2 = audioWpmCustom ?? manualAudioWpm;
+
+  const audioRangeLow = backendSyllables != null && backendDuration
+    ? backendSyllables / 2.3 / (backendDuration / 60)
+    : (audioWpmFixed2 ? audioWpmFixed2 * customDivisor / 2.3 : null);
+
+  const audioRangeHigh = backendSyllables != null && backendDuration
+    ? backendSyllables / 1.5 / (backendDuration / 60)
+    : (audioWpmFixed2 ? audioWpmFixed2 * customDivisor / 1.5 : null);
 
   const fixed2ErrorPercent = (audioWpmFixed2 && trueWpm)
     ? ((audioWpmFixed2 - trueWpm) / trueWpm) * 100
@@ -627,7 +675,10 @@ function computeMetrics() {
     fixed2ErrorPercent,
     trueWpmInsideAudioRange,
     combinedRangeLow: combinedLow,
-    combinedRangeHigh: combinedHigh
+    combinedRangeHigh: combinedHigh,
+    customDivisor,
+    backendSyllables,
+    backendDuration
   };
 }
 
@@ -675,7 +726,10 @@ function buildPayload() {
       fixed2ErrorPercent: round(metrics.fixed2ErrorPercent, 1),
       trueWpmInsideAudioRange: metrics.trueWpmInsideAudioRange,
       combinedRangeLow: round(metrics.combinedRangeLow, 1),
-      combinedRangeHigh: round(metrics.combinedRangeHigh, 1)
+      combinedRangeHigh: round(metrics.combinedRangeHigh, 1),
+      selectedSyllablesPerWord: metrics.customDivisor,
+      backendSyllables: metrics.backendSyllables,
+      backendDuration: metrics.backendDuration
     },
 
     createdAtMs: Date.now()
@@ -740,6 +794,7 @@ function renderBackendCalibration(data) {
   const backendMetrics = data.metrics || {};
   const audioMetric = backendMetrics.audioWpmEstimate || {};
   const summary = data.audioAnalysis?.summary || {};
+  latestBackendSummary = summary;
   const audioValue = pickNumber(audioMetric.value);
   const trueWpm = pickNumber(backendMetrics.trueWpm);
   const syllables = pickNumber(summary.syllables);
@@ -773,6 +828,10 @@ function renderBackendCalibration(data) {
     $("statInside").textContent = trueWpm >= rangeLow && trueWpm <= rangeHigh ? "Já" : "Nei";
     $("statCombined").textContent = `${round((trueWpm + rangeLow) / 2, 1)}–${round((trueWpm + rangeHigh) / 2, 1)}`;
   }
+
+  // Re-render using selected divisor. This lets the admin adjust the divisor live
+  // after backend has returned syllables and duration.
+  updateUI();
 }
 
 function watchCalibrationResult(ref) {
@@ -893,6 +952,7 @@ function resetTest() {
   mediaRecorder = null;
   recordedChunks = [];
   recordedBlob = null;
+  latestBackendSummary = null;
   $("startBtn").disabled = false;
   $("stopBtn").disabled = true;
   $("wordsRead").value = selected.words;
@@ -1012,7 +1072,7 @@ function init() {
   $("saveBtn").addEventListener("click", saveToFirestore);
   $("downloadBtn").addEventListener("click", downloadJson);
 
-  ["audioWpmFixed2", "cleanReadingRatio", "wordsRead", "snippetCount", "audioQuality"].forEach(id => {
+  ["audioWpmFixed2", "cleanReadingRatio", "wordsRead", "snippetCount", "audioQuality", "syllablesPerWordCustom", "divisorNote"].forEach(id => {
     $(id).addEventListener("input", updateUI);
     $(id).addEventListener("change", updateUI);
   });

@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="is">
 <head>
   <meta charset="utf-8" />
@@ -566,6 +566,7 @@ let mediaStream = null;
 let recordedChunks = [];
 let recordedBlob = null;
 let recordingMimeType = "audio/webm";
+let activeCalibrationUnsubscribe = null;
 
 const $ = (id) => document.getElementById(id);
 
@@ -726,6 +727,82 @@ function setMessage(text, kind = "warn") {
   el.className = `message ${kind}`;
 }
 
+function pickNumber(...values) {
+  for (const value of values) {
+    const n = Number(value);
+    if (Number.isFinite(n)) return n;
+  }
+  return null;
+}
+
+function renderBackendCalibration(data) {
+  if (!data) return;
+  const backendMetrics = data.metrics || {};
+  const audioMetric = backendMetrics.audioWpmEstimate || {};
+  const summary = data.audioAnalysis?.summary || {};
+  const audioValue = pickNumber(audioMetric.value);
+  const trueWpm = pickNumber(backendMetrics.trueWpm);
+  const syllables = pickNumber(summary.syllables);
+  const durationSec = pickNumber(summary.sessionDuration, data.audioAnalysis?.durationSec, data.durationSeconds);
+  const minutes = durationSec ? durationSec / 60 : null;
+
+  if (audioValue != null) {
+    $("statAudioFixed").textContent = round(audioValue, 1);
+  }
+
+  let rangeLow = null;
+  let rangeHigh = null;
+  if (syllables != null && minutes) {
+    rangeLow = syllables / 2.3 / minutes;
+    rangeHigh = syllables / 1.6 / minutes;
+  } else if (audioValue != null) {
+    rangeLow = audioValue * 1.95 / 2.3;
+    rangeHigh = audioValue * 1.95 / 1.6;
+  }
+
+  if (rangeLow != null && rangeHigh != null) {
+    $("statAudioRange").textContent = `${round(rangeLow, 1)}–${round(rangeHigh, 1)}`;
+  }
+
+  if (trueWpm != null && audioValue != null) {
+    const error = ((audioValue - trueWpm) / trueWpm) * 100;
+    $("statError").textContent = `${round(error, 1)}%`;
+  }
+
+  if (trueWpm != null && rangeLow != null && rangeHigh != null) {
+    $("statInside").textContent = trueWpm >= rangeLow && trueWpm <= rangeHigh ? "Já" : "Nei";
+    $("statCombined").textContent = `${round((trueWpm + rangeLow) / 2, 1)}–${round((trueWpm + rangeHigh) / 2, 1)}`;
+  }
+}
+
+function watchCalibrationResult(ref) {
+  if (activeCalibrationUnsubscribe) {
+    activeCalibrationUnsubscribe();
+    activeCalibrationUnsubscribe = null;
+  }
+
+  activeCalibrationUnsubscribe = ref.onSnapshot((snap) => {
+    if (!snap.exists) return;
+    const data = snap.data();
+    renderBackendCalibration(data);
+
+    if (data.status === "uploaded" || data.status === "processing") {
+      setMessage("Audio uploaded. Waiting for backend analysis...", "warn");
+    } else if (data.status === "done") {
+      setMessage("Backend analysis ready: calibration/" + snap.id, "ok");
+      if (activeCalibrationUnsubscribe) {
+        activeCalibrationUnsubscribe();
+        activeCalibrationUnsubscribe = null;
+      }
+    } else if (data.status === "failed") {
+      setMessage("Backend analysis failed: " + (data.error?.message || "unknown error"), "bad");
+    }
+  }, (err) => {
+    console.warn("Calibration listener failed", err);
+    setMessage("Could not read backend result: " + err.message, "bad");
+  });
+}
+
 function getSupportedAudioMimeType() {
   const candidates = ["audio/webm;codecs=opus", "audio/webm", "audio/mp4"];
   if (!window.MediaRecorder) return "";
@@ -810,6 +887,7 @@ function resetTest() {
   startedAtMs = null;
   endedAtMs = null;
   clearInterval(timerInterval);
+  if (activeCalibrationUnsubscribe) { activeCalibrationUnsubscribe(); activeCalibrationUnsubscribe = null; }
   if (mediaRecorder && mediaRecorder.state !== "inactive") { try { mediaRecorder.stop(); } catch (e) {} }
   if (mediaStream) { mediaStream.getTracks().forEach(track => track.stop()); mediaStream = null; }
   mediaRecorder = null;
@@ -863,6 +941,7 @@ async function saveToFirestore() {
       updatedAt: firebase.firestore.FieldValue.serverTimestamp()
     };
     const ref = await db.collection("calibration").add(withServerTime);
+    watchCalibrationResult(ref);
     if (recordedBlob) {
       setMessage("Saved calibration/" + ref.id + ". Uploading audio...", "warn");
       const upload = await uploadCalibrationAudio(ref.id);
@@ -947,3 +1026,4 @@ init();
 </script>
 </body>
 </html>
+

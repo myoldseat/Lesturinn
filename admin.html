@@ -110,6 +110,12 @@ html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sa
 .admin-side-card h4,.admin-side-user strong{display:block;margin:0 0 6px;font-size:13px;color:#d9e5ef}
 .admin-side-card p,.admin-side-user span{margin:0;color:#7a8fa0;font-size:12px;line-height:1.45}
 .admin-side-user{text-align:left;cursor:pointer}
+.admin-calib-link{display:flex;align-items:center;gap:12px;text-decoration:none;border:1px solid rgba(29,205,211,0.26);background:rgba(29,205,211,0.07);border-radius:18px;padding:14px;cursor:pointer;transition:background .15s,border-color .15s}
+.admin-calib-link:hover{background:rgba(29,205,211,0.13);border-color:rgba(29,205,211,0.40)}
+.admin-calib-ico{font-size:20px;line-height:1;flex:0 0 auto}
+.admin-calib-body{display:block;min-width:0}
+.admin-calib-link strong{display:block;font-size:13px;color:#d9e5ef;margin:0 0 2px}
+.admin-calib-body span{display:block;font-size:11px;color:#7a8fa0;line-height:1.3}
 
 .admin-main{padding:26px 28px 34px}
 .admin-shell{width:min(1180px,100%);margin:0 auto}
@@ -460,6 +466,9 @@ html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sa
   .admin-nav::-webkit-scrollbar{display:none}
   .admin-nav-item{min-width:96px;min-height:46px;border-radius:14px;padding:8px 10px;font-size:11px;gap:4px}
   .admin-side-bottom{display:none}
+  .admin-calib-link{padding:8px 12px;border-radius:14px}
+  .admin-calib-body span{display:none}
+  .admin-calib-link strong{font-size:12px;margin:0}
   .admin-main{padding:18px 14px 28px}
   .admin-summary-row{grid-template-columns:1fr}
   .admin-grid-top{grid-template-columns:repeat(2,minmax(0,1fr))}
@@ -613,6 +622,10 @@ html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sa
     <aside class="admin-sidebar">
       <div class="admin-brand"><span>Upp</span>Hátt</div>
       <nav class="admin-nav" id="admin-nav"></nav>
+      <a class="admin-calib-link" href="/calibration.html" title="Opna calibration — lestrarstikkprufu">
+        <span class="admin-calib-ico" aria-hidden="true">🎯</span>
+        <span class="admin-calib-body"><strong>Calibration</strong><span>Lestrarstikkprufa</span></span>
+      </a>
       <div class="admin-side-bottom">
         <div class="admin-side-card">
           <h4>Admin hamur</h4>

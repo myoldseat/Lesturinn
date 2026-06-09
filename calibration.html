@@ -1,0 +1,949 @@
+<!doctype html>
+<html lang="is">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>UppHátt — Calibration / Lestrarstikkprufa</title>
+
+  <!-- Firebase compat SDKs. Fill in firebaseConfig below. -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-storage-compat.js"></script>
+
+  <style>
+    :root {
+      --teal: #1dcdd3;
+      --bg: #0f1720;
+      --panel: #162231;
+      --panel2: #101923;
+      --text: #eef7f7;
+      --muted: #a9bcc1;
+      --line: rgba(255,255,255,.12);
+      --danger: #ffb4b4;
+      --ok: #b9f8d3;
+      --warn: #ffe7a3;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top left, rgba(29,205,211,.16), transparent 34%),
+                  linear-gradient(180deg, #0d151d, #101820 55%, #0c1218);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    header {
+      padding: 28px 20px 16px;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .back-link {
+      display:inline-flex;align-items:center;gap:6px;
+      color:var(--muted);text-decoration:none;font-size:13px;font-weight:600;
+      margin-bottom:14px;padding:6px 10px;border:1px solid var(--line);border-radius:10px;
+      transition:color .15s,border-color .15s,background .15s;
+    }
+    .back-link:hover{color:var(--teal);border-color:rgba(29,205,211,.4);background:rgba(29,205,211,.06)}
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .mark {
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      background: var(--teal);
+      box-shadow: 0 0 28px rgba(29,205,211,.35);
+    }
+
+    h1 {
+      font-size: clamp(28px, 4vw, 44px);
+      margin: 0;
+      letter-spacing: -.04em;
+    }
+
+    .subtitle {
+      margin: 8px 0 0;
+      color: var(--muted);
+      max-width: 780px;
+      line-height: 1.45;
+    }
+
+    main {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 20px 36px;
+      display: grid;
+      grid-template-columns: 360px minmax(0, 1fr);
+      gap: 18px;
+    }
+
+    @media (max-width: 880px) {
+      main { grid-template-columns: 1fr; }
+    }
+
+    .card {
+      background: rgba(22,34,49,.88);
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      padding: 18px;
+      box-shadow: 0 18px 60px rgba(0,0,0,.22);
+      backdrop-filter: blur(10px);
+    }
+
+    .card h2 {
+      margin: 0 0 12px;
+      font-size: 18px;
+      letter-spacing: -.02em;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      color: var(--muted);
+      margin: 14px 0 6px;
+    }
+
+    input, select, textarea, button {
+      font: inherit;
+    }
+
+    input, select {
+      width: 100%;
+      background: var(--panel2);
+      border: 1px solid var(--line);
+      color: var(--text);
+      border-radius: 12px;
+      padding: 11px 12px;
+      outline: none;
+    }
+
+    input:focus, select:focus {
+      border-color: rgba(29,205,211,.8);
+      box-shadow: 0 0 0 3px rgba(29,205,211,.12);
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .btnrow {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    button {
+      border: 0;
+      border-radius: 14px;
+      padding: 11px 14px;
+      cursor: pointer;
+      font-weight: 750;
+    }
+
+    .primary {
+      background: var(--teal);
+      color: #061214;
+    }
+
+    .secondary {
+      background: rgba(255,255,255,.09);
+      color: var(--text);
+      border: 1px solid var(--line);
+    }
+
+    .danger {
+      background: rgba(255,120,120,.12);
+      color: var(--danger);
+      border: 1px solid rgba(255,180,180,.24);
+    }
+
+    button:disabled {
+      opacity: .48;
+      cursor: not-allowed;
+    }
+
+    .timer {
+      font-variant-numeric: tabular-nums;
+      font-size: 44px;
+      letter-spacing: -.04em;
+      margin: 6px 0 0;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.06);
+      color: var(--muted);
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 12px;
+      margin: 4px 4px 4px 0;
+    }
+
+    .text-panel {
+      min-height: 520px;
+    }
+
+    .test-title {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: start;
+      margin-bottom: 12px;
+    }
+
+    .test-title h2 {
+      margin: 0;
+      font-size: 22px;
+    }
+
+    .reading-text {
+      background: rgba(255,255,255,.96);
+      color: #101820;
+      border-radius: 18px;
+      padding: 22px;
+      line-height: 1.72;
+      font-size: clamp(18px, 2.2vw, 22px);
+      white-space: pre-wrap;
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,.08);
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    @media (max-width: 650px) {
+      .stats { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    .stat {
+      background: rgba(255,255,255,.07);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 12px;
+      min-height: 82px;
+    }
+
+    .stat .k {
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 6px;
+    }
+
+    .stat .v {
+      font-size: 24px;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .small {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+
+    .message {
+      margin-top: 12px;
+      padding: 12px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.06);
+      color: var(--muted);
+      white-space: pre-wrap;
+    }
+
+    .message.ok { color: var(--ok); border-color: rgba(185,248,211,.24); }
+    .message.warn { color: var(--warn); border-color: rgba(255,231,163,.24); }
+    .message.bad { color: var(--danger); border-color: rgba(255,180,180,.24); }
+
+    details {
+      margin-top: 14px;
+      border-top: 1px solid var(--line);
+      padding-top: 12px;
+    }
+
+    summary {
+      cursor: pointer;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    code {
+      background: rgba(255,255,255,.08);
+      padding: 2px 5px;
+      border-radius: 6px;
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <a class="back-link" href="/admin.html">← Til baka í admin</a>
+    <div class="brand">
+      <div class="mark" aria-hidden="true"></div>
+      <div>
+        <h1>UppHátt calibration</h1>
+        <p class="subtitle">
+          Admin/dev-síða fyrir lestrarstikkprufur. Þetta vistar í <code>calibration</code>,
+          ekki í venjulegar lestrarlotur, og á ekki að telja inn í framvindu barns.
+        </p>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="card">
+      <h2>Stillingar prófunar</h2>
+
+      <label for="testText">Prófunartexti</label>
+      <select id="testText"></select>
+
+      <div class="row">
+        <div>
+          <label for="childId">childId</label>
+          <input id="childId" placeholder="t.d. child_123" />
+        </div>
+        <div>
+          <label for="familyId">familyId</label>
+          <input id="familyId" placeholder="t.d. family_123" />
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label for="snippetCount">Snippet fjöldi</label>
+          <select id="snippetCount">
+            <option value="2">2 × 15 sek</option>
+            <option value="3">3 × 15 sek</option>
+            <option value="5">5 × 15 sek</option>
+          </select>
+        </div>
+        <div>
+          <label for="audioWpmFixed2">Hljóð WPM, deilir 2</label>
+          <input id="audioWpmFixed2" type="number" inputmode="decimal" placeholder="t.d. 53" />
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label for="cleanReadingRatio">Hreinn lestur %</label>
+          <input id="cleanReadingRatio" type="number" inputmode="decimal" placeholder="t.d. 67.3" />
+        </div>
+        <div>
+          <label for="audioQuality">Hljóðgæði</label>
+          <select id="audioQuality">
+            <option value="">óskráð</option>
+            <option value="high">high</option>
+            <option value="medium">medium</option>
+            <option value="low">low</option>
+            <option value="unusable">unusable</option>
+          </select>
+        </div>
+      </div>
+
+      <label for="wordsRead">Lesin orð</label>
+      <input id="wordsRead" type="number" inputmode="numeric" />
+      <p class="small">
+        Ef barnið klárar textann, láttu þetta standa sem heildarorð textans.
+        Ef það stoppar fyrr, settu handvirkt fjölda orða sem það náði.
+      </p>
+
+      <div class="btnrow">
+        <button class="primary" id="startBtn">Byrja</button>
+        <button class="secondary" id="stopBtn" disabled>Stoppa</button>
+        <button class="secondary" id="resetBtn">Núllstilla</button>
+      </div>
+
+      <div class="timer" id="timer">00:00.0</div>
+
+      <div class="btnrow">
+        <button class="primary" id="saveBtn">Vista í Firestore</button>
+        <button class="secondary" id="downloadBtn">Sækja JSON</button>
+      </div>
+
+      <div id="message" class="message warn">
+        Firebase er ekki virkt fyrr en þú setur inn firebaseConfig í skránni.
+      </div>
+
+      <details>
+        <summary>Firestore / Firebase tenging</summary>
+        <p class="small">
+          Settu Firebase config í <code>firebaseConfig</code> neðarlega í skránni.
+          Vistað er í <code>calibration</code>. Skjalið fær <code>excludedFromProgress: true</code>.
+        </p>
+      </details>
+    </section>
+
+    <section class="card text-panel">
+      <div class="test-title">
+        <div>
+          <h2 id="selectedTitle"></h2>
+          <div id="pills"></div>
+        </div>
+      </div>
+
+      <div class="reading-text" id="readingText"></div>
+
+      <div class="stats">
+        <div class="stat">
+          <div class="k">Raunorð</div>
+          <div class="v" id="statWords">—</div>
+        </div>
+        <div class="stat">
+          <div class="k">Tími</div>
+          <div class="v" id="statDuration">—</div>
+        </div>
+        <div class="stat">
+          <div class="k">Raun WPM</div>
+          <div class="v" id="statTrueWpm">—</div>
+        </div>
+        <div class="stat">
+          <div class="k">Hljóðbil</div>
+          <div class="v" id="statAudioRange">—</div>
+        </div>
+      </div>
+
+      <div class="stats">
+        <div class="stat">
+          <div class="k">Hljóð WPM, fasti 2</div>
+          <div class="v" id="statAudioFixed">—</div>
+        </div>
+        <div class="stat">
+          <div class="k">Skekkja fasti 2</div>
+          <div class="v" id="statError">—</div>
+        </div>
+        <div class="stat">
+          <div class="k">Raun WPM innan hljóðbils?</div>
+          <div class="v" id="statInside">—</div>
+        </div>
+        <div class="stat">
+          <div class="k">Samsett bil 50/50</div>
+          <div class="v" id="statCombined">—</div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+<script>
+/**
+ * 1) Firebase config
+ * Settu þitt config hér. Láttu þetta ekki vera public ef þú ert með viðkvæmar reglur.
+ * Firestore rules eiga samt alltaf að ráða aðgangi.
+ */
+const firebaseConfig = {
+  apiKey: "AIzaSyAgTY3Uxd9_ZxixjqLj-sH8V3OhFAzg6DU",
+  authDomain: "lesum-22e85.firebaseapp.com",
+  projectId: "lesum-22e85",
+  storageBucket: "lesum-22e85.firebasestorage.app",
+  messagingSenderId: "204392598388",
+  appId: "1:204392598388:web:2dbbe3f476cd78d2ffba21"
+};
+
+let db = null;
+let auth = null;
+let storage = null;
+let firebaseReady = false;
+let adminReady = false;
+let currentUser = null;
+
+try {
+  firebase.initializeApp(firebaseConfig);
+  auth = firebase.auth();
+  db = firebase.firestore();
+  storage = firebase.storage();
+  firebaseReady = true;
+} catch (err) {
+  console.warn("Firebase init failed:", err);
+}
+
+/**
+ * 2) Prófunartextar
+ * wordCount er facit fyrir calibration.
+ */
+const CALIBRATION_TEXTS = {
+  A_150_CHILD: {
+    id: "A_150_CHILD",
+    title: "Prófun A — barnatexti 150 orð",
+    level: "barnatexti",
+    words: 150,
+    densityLabel: "stutt stikkprufa",
+    intendedUse: "yngri/hægari lestur",
+    text: `Á morgnana gekk Sara alltaf sömu leið í skólann. Fyrst fram hjá rauða húsinu, síðan yfir litlu brúna og loks upp brekkuna að hliðinu. Þennan dag sá hún eitthvað glitra í grasinu við brúna. Hún beygði sig niður og fann lítinn lykil með bláu bandi. Á bandinu stóð: Fyrir þann sem þorir að leita.
+
+Sara leit í kringum sig. Enginn var nálægt nema kötturinn Moli, sem sat á steini og horfði á hana eins og hann vissi allt. Hún stakk lyklinum í vasann og hélt áfram. Í frímínútum sagði hún Aroni vini sínum frá fundinum. Aron brosti breitt og spurði hvort þau ættu að prófa gömlu hurðina bak við íþróttahúsið. Sara varð svolítið hrædd, en líka forvitin. Eftir skóla gengu þau að hurðinni. Lykillinn passaði. Hún sneri honum hægt og hurðin opnaðist með mjúku smellhljóði. Fyrir innan sáu þau mjótt ljós og heyrðu einhvern hlæja lágt í fjarska mjög nálægt.`
+  },
+
+  B_300_CHILD: {
+    id: "B_300_CHILD",
+    title: "Prófun B — barnatexti 300 orð",
+    level: "barnatexti",
+    words: 300,
+    densityLabel: "þétt barnasíða",
+    intendedUse: "venjulegur þéttur barnalestur",
+    text: `Kári var viss um að laugardagurinn yrði venjulegur. Hann ætlaði að borða morgunkorn, finna fótboltann sinn og spila úti þar til mamma kallaði hann inn. En þegar hann opnaði útidyrnar lá stór brúnn pakki á tröppunum. Á pakkanum stóð ekkert heimilisfang, bara nafnið hans með silfruðum stöfum.
+
+„Má ég opna hann?“ spurði Kári.
+
+Mamma skoðaði pakkann. „Við skulum gera það saman.“
+
+Inni í pakkanum var gamall áttaviti. Hann var þungur í lófanum og nálin snerist ekki í norður. Hún benti beint að garðinum hjá afa, hinum megin við götuna. Kári hljóp yfir, mamma á eftir. Afi sat í gróðurhúsinu og var að vökva tómatplöntur.
+
+„Þetta var komið fyrir utan,“ sagði Kári og sýndi honum áttavitann.
+
+Afi hætti að vökva. „Ég hef ekki séð þennan í mörg ár,“ sagði hann lágt.
+
+„Átt þú hann?“ spurði mamma.
+
+„Nei,“ svaraði afi. „En ég þekki hann. Hann finnur ekki norður. Hann finnur hluti sem hafa gleymst.“
+
+Kári fann hjartað slá hraðar. Nálin kipptist skyndilega til og benti að skúrnum aftast í garðinum. Skúrinn var alltaf læstur, og afi hafði sagt að þar væri bara ryðgað verkfæri og gömul málning. Nú leit hann samt ekki út fyrir að vera viss.
+
+Þau gengu að skúrnum. Afi leitaði lengi í vasanum sínum, fann lítinn lykil og opnaði. Inni var ryk, kassar og gömul reiðhjól. Áttavitinn byrjaði að titra. Undir teppi í horninu fann Kári litla járnkistu. Hún var köld og þung.
+
+Afi settist á koll. „Þarna er hún þá,“ hvíslaði hann.
+
+Í kistunni voru myndir, bréf og rauður trefill sem Kári hafði aldrei séð. Afi tók trefilinn varlega upp og brosti svo augun urðu blaut. „Þetta var trefillinn hennar ömmu þinnar,“ sagði hann. „Ég hélt hann væri týndur.“
+
+Kári horfði á áttavitann. Nálin var kyrr. Hún benti ekki lengur að skúrnum, heldur beint að hjartanu hans afa.`
+  },
+
+  C_300_YOUTH: {
+    id: "C_300_YOUTH",
+    title: "Prófun C — unglingatexti 300 orð",
+    level: "unglingatexti",
+    words: 300,
+    densityLabel: "þéttari/eldri texti",
+    intendedUse: "eldri lesari eða þyngri málnotkun",
+    text: `Elín ætlaði ekki að svara skilaboðunum. Hún hafði séð þau birtast á skjánum þegar hún sat í strætó, blaut í skónum og of þreytt til að tala við nokkurn mann. Þetta var bara eitt orð: „Komdu.“
+
+Sendandinn var Óskar, sem hafði ekki sent henni neitt síðan í október. Þá höfðu þau rifist fyrir framan hálfan árganginn, og síðan hafði allt orðið skrýtið. Vinir þeirra völdu ekki beint lið, en samt breyttist röðin við borðin í matsalnum. Sumir hlutir þurfa ekki að vera sagðir upphátt til að allir skilji þá.
+
+Hún læsti símanum og horfði út um rúðuna. Borgin var grá og ljósin í búðargluggunum teygðust í pollunum eins og löng, skjálfandi bönd. Þegar strætó stoppaði við bókasafnið stóð Óskar þar undir skyggninu. Hann var með hettuna uppi og bakpokann klemmdan að sér. Elín hefði getað setið áfram. Hún hefði getað látið eins og hún sæi hann ekki. En eitthvað við svipinn á honum fékk hana til að ýta á stopp-takkann.
+
+„Hvað er í gangi?“ spurði hún þegar hún kom út.
+
+Óskar rétti henni blað. Það var gamalt ljósrit úr skólablaði frá því áður en þau fæddust. Á myndinni stóð ung stelpa fyrir framan sama bókasafn, með skilti í höndunum. Fyrirsögnin var: Nemendur bjarga gamla salnum.
+
+„Amma mín,“ sagði Óskar. „Hún dó í morgun.“
+
+Elín vissi ekki hvað hún átti að segja. Reiðin sem hún hafði borið á sér í marga mánuði varð allt í einu lítil og þunn.
+
+„Hún talaði alltaf um þennan sal,“ hélt hann áfram. „Nú á að loka honum. Ég þarf hjálp.“
+
+Elín leit á blaðið, svo á bókasafnið. „Þá byrjum við á að finna söguna,“ sagði hún.
+
+Þau gengu inn í hlýjuna. Við afgreiðsluborðið sat kona með grátt hár og brosti eins og hún hefði beðið eftir þeim allan daginn. Hún rétti þeim lykil án orða.`
+  }
+};
+
+/**
+ * 3) State
+ */
+let selected = CALIBRATION_TEXTS.A_150_CHILD;
+let startedAtMs = null;
+let endedAtMs = null;
+let timerInterval = null;
+let mediaRecorder = null;
+let mediaStream = null;
+let recordedChunks = [];
+let recordedBlob = null;
+let recordingMimeType = "audio/webm";
+
+const $ = (id) => document.getElementById(id);
+
+function fmtDuration(seconds) {
+  if (!Number.isFinite(seconds) || seconds < 0) return "—";
+  const m = Math.floor(seconds / 60);
+  const s = Math.floor(seconds % 60);
+  const d = Math.floor((seconds % 1) * 10);
+  return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}.${d}`;
+}
+
+function round(n, digits = 0) {
+  if (!Number.isFinite(n)) return null;
+  const p = Math.pow(10, digits);
+  return Math.round(n * p) / p;
+}
+
+function getDurationSeconds() {
+  if (!startedAtMs) return 0;
+  const end = endedAtMs || Date.now();
+  return Math.max(0, (end - startedAtMs) / 1000);
+}
+
+function getNumber(id) {
+  const raw = $(id).value;
+  if (raw === "" || raw == null) return null;
+  const n = Number(String(raw).replace(",", "."));
+  return Number.isFinite(n) ? n : null;
+}
+
+function computeMetrics() {
+  const durationSeconds = getDurationSeconds();
+  const wordsRead = getNumber("wordsRead") ?? selected.words;
+  const trueWpm = durationSeconds > 0 ? wordsRead / (durationSeconds / 60) : null;
+
+  const audioWpmFixed2 = getNumber("audioWpmFixed2");
+  const audioRangeLow = audioWpmFixed2 ? audioWpmFixed2 * 2 / 2.3 : null;
+  const audioRangeHigh = audioWpmFixed2 ? audioWpmFixed2 * 2 / 1.6 : null;
+
+  const fixed2ErrorPercent = (audioWpmFixed2 && trueWpm)
+    ? ((audioWpmFixed2 - trueWpm) / trueWpm) * 100
+    : null;
+
+  const trueWpmInsideAudioRange = (trueWpm && audioRangeLow && audioRangeHigh)
+    ? trueWpm >= audioRangeLow && trueWpm <= audioRangeHigh
+    : null;
+
+  const combinedLow = (trueWpm && audioRangeLow) ? (trueWpm + audioRangeLow) / 2 : null;
+  const combinedHigh = (trueWpm && audioRangeHigh) ? (trueWpm + audioRangeHigh) / 2 : null;
+
+  return {
+    durationSeconds,
+    wordsRead,
+    trueWpm,
+    audioWpmFixed2,
+    audioWpmRangeLow: audioRangeLow,
+    audioWpmRangeHigh: audioRangeHigh,
+    fixed2ErrorPercent,
+    trueWpmInsideAudioRange,
+    combinedRangeLow: combinedLow,
+    combinedRangeHigh: combinedHigh
+  };
+}
+
+function buildPayload() {
+  const metrics = computeMetrics();
+  const snippetCount = getNumber("snippetCount") ?? 2;
+  const cleanReadingRatio = getNumber("cleanReadingRatio");
+
+  return {
+    type: "calibration",
+    source: "admin_calibration_page_v1",
+    excludedFromProgress: true,
+
+    childId: $("childId").value.trim() || null,
+    familyId: $("familyId").value.trim() || null,
+
+    testTextId: selected.id,
+    testTitle: selected.title,
+    level: selected.level,
+    expectedWords: selected.words,
+    wordsRead: metrics.wordsRead,
+    completedText: metrics.wordsRead === selected.words,
+
+    startedAtMs,
+    endedAtMs,
+    durationSeconds: round(metrics.durationSeconds, 1),
+
+    audio: {
+      hasRecording: !!recordedBlob,
+      recordingMimeType: recordedBlob ? (recordedBlob.type || recordingMimeType) : null,
+      recordingSize: recordedBlob ? recordedBlob.size : null,
+      snippetCount,
+      snippetSeconds: 15,
+      totalAudioSeconds: snippetCount * 15,
+      audioWpmFixed2: metrics.audioWpmFixed2,
+      cleanReadingRatioPercent: cleanReadingRatio,
+      quality: $("audioQuality").value || null
+    },
+
+    metrics: {
+      trueWpm: round(metrics.trueWpm, 1),
+      audioWpmFixed2: round(metrics.audioWpmFixed2, 1),
+      audioWpmRangeLow: round(metrics.audioWpmRangeLow, 1),
+      audioWpmRangeHigh: round(metrics.audioWpmRangeHigh, 1),
+      fixed2ErrorPercent: round(metrics.fixed2ErrorPercent, 1),
+      trueWpmInsideAudioRange: metrics.trueWpmInsideAudioRange,
+      combinedRangeLow: round(metrics.combinedRangeLow, 1),
+      combinedRangeHigh: round(metrics.combinedRangeHigh, 1)
+    },
+
+    createdAtMs: Date.now()
+  };
+}
+
+function updateUI() {
+  const metrics = computeMetrics();
+  $("timer").textContent = fmtDuration(metrics.durationSeconds);
+
+  $("selectedTitle").textContent = selected.title;
+  $("readingText").textContent = selected.text;
+  $("pills").innerHTML = `
+    <span class="pill">${selected.words} orð</span>
+    <span class="pill">${selected.level}</span>
+    <span class="pill">${selected.densityLabel}</span>
+    <span class="pill">${selected.intendedUse}</span>
+  `;
+
+  $("statWords").textContent = metrics.wordsRead ?? "—";
+  $("statDuration").textContent = metrics.durationSeconds ? fmtDuration(metrics.durationSeconds) : "—";
+  $("statTrueWpm").textContent = metrics.trueWpm ? round(metrics.trueWpm, 1) : "—";
+  $("statAudioFixed").textContent = metrics.audioWpmFixed2 ?? "—";
+
+  if (metrics.audioWpmRangeLow && metrics.audioWpmRangeHigh) {
+    $("statAudioRange").textContent = `${round(metrics.audioWpmRangeLow)}–${round(metrics.audioWpmRangeHigh)}`;
+  } else {
+    $("statAudioRange").textContent = "—";
+  }
+
+  $("statError").textContent = metrics.fixed2ErrorPercent == null
+    ? "—"
+    : `${round(metrics.fixed2ErrorPercent, 1)}%`;
+
+  $("statInside").textContent = metrics.trueWpmInsideAudioRange == null
+    ? "—"
+    : (metrics.trueWpmInsideAudioRange ? "Já" : "Nei");
+
+  if (metrics.combinedRangeLow && metrics.combinedRangeHigh) {
+    $("statCombined").textContent = `${round(metrics.combinedRangeLow)}–${round(metrics.combinedRangeHigh)}`;
+  } else {
+    $("statCombined").textContent = "—";
+  }
+}
+
+function setMessage(text, kind = "warn") {
+  const el = $("message");
+  el.textContent = text;
+  el.className = `message ${kind}`;
+}
+
+function getSupportedAudioMimeType() {
+  const candidates = ["audio/webm;codecs=opus", "audio/webm", "audio/mp4"];
+  if (!window.MediaRecorder) return "";
+  return candidates.find(type => MediaRecorder.isTypeSupported(type)) || "";
+}
+
+async function startRecording() {
+  recordedChunks = [];
+  recordedBlob = null;
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || !window.MediaRecorder) {
+    setMessage("Audio recording is not supported in this browser. Timer still works.", "warn");
+    return false;
+  }
+  try {
+    mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    recordingMimeType = getSupportedAudioMimeType() || "audio/webm";
+    mediaRecorder = new MediaRecorder(mediaStream, recordingMimeType ? { mimeType: recordingMimeType } : undefined);
+    mediaRecorder.ondataavailable = (event) => {
+      if (event.data && event.data.size > 0) recordedChunks.push(event.data);
+    };
+    mediaRecorder.onstop = () => {
+      recordedBlob = new Blob(recordedChunks, { type: recordingMimeType || "audio/webm" });
+      if (mediaStream) mediaStream.getTracks().forEach(track => track.stop());
+      mediaStream = null;
+    };
+    mediaRecorder.start();
+    return true;
+  } catch (err) {
+    console.warn("Calibration recording failed", err);
+    setMessage("Tókst ekki að ræsa hljóðupptöku: " + err.message, "warn");
+    return false;
+  }
+}
+
+function stopRecording() {
+  return new Promise((resolve) => {
+    if (!mediaRecorder || mediaRecorder.state === "inactive") { resolve(); return; }
+    const recorder = mediaRecorder;
+    const done = () => { recorder.removeEventListener("stop", done); resolve(); };
+    recorder.addEventListener("stop", done);
+    recorder.stop();
+  });
+}
+
+function audioFileExtension() {
+  return recordingMimeType.includes("mp4") ? "m4a" : "webm";
+}
+
+async function uploadCalibrationAudio(calibrationId) {
+  if (!recordedBlob || !storage || !currentUser) return null;
+  const filePath = "calibrationAudio/" + currentUser.uid + "/" + calibrationId + "/recording." + audioFileExtension();
+  const ref = storage.ref(filePath);
+  await ref.put(recordedBlob, { contentType: recordedBlob.type || recordingMimeType || "audio/webm" });
+  return { path: filePath, size: recordedBlob.size, contentType: recordedBlob.type || recordingMimeType || "audio/webm" };
+}
+
+async function startTest() {
+  await startRecording();
+  startedAtMs = Date.now();
+  endedAtMs = null;
+  $("startBtn").disabled = true;
+  $("stopBtn").disabled = false;
+  setMessage("Prófun í gangi. Láttu barnið lesa textann og stoppaðu þegar það klárar eða þegar þú vilt enda prufuna.", "warn");
+
+  clearInterval(timerInterval);
+  timerInterval = setInterval(updateUI, 100);
+  updateUI();
+}
+
+async function stopTest() {
+  if (!startedAtMs) return;
+  endedAtMs = Date.now();
+  await stopRecording();
+  $("startBtn").disabled = false;
+  $("stopBtn").disabled = true;
+  clearInterval(timerInterval);
+  updateUI();
+  setMessage("Prófun stoppuð. Settu inn hljóð WPM ef þú ert með það og vistaðu síðan.", "ok");
+}
+
+function resetTest() {
+  startedAtMs = null;
+  endedAtMs = null;
+  clearInterval(timerInterval);
+  if (mediaRecorder && mediaRecorder.state !== "inactive") { try { mediaRecorder.stop(); } catch (e) {} }
+  if (mediaStream) { mediaStream.getTracks().forEach(track => track.stop()); mediaStream = null; }
+  mediaRecorder = null;
+  recordedChunks = [];
+  recordedBlob = null;
+  $("startBtn").disabled = false;
+  $("stopBtn").disabled = true;
+  $("wordsRead").value = selected.words;
+  updateUI();
+  setMessage(firebaseReady
+    ? "Firebase virkt. Tilbúið að vista í calibration."
+    : "Firebase er ekki virkt fyrr en þú setur inn firebaseConfig í skránni.",
+    firebaseReady ? "ok" : "warn"
+  );
+}
+
+async function ensureAdmin() {
+  if (!firebaseReady || !auth || !db) return false;
+  const user = auth.currentUser;
+  if (!user) { setMessage("You must be signed in as admin to save calibration.", "bad"); return false; }
+  const snap = await db.collection("admins").doc(user.uid).get();
+  if (!snap.exists) { setMessage("This user does not have admin access.", "bad"); return false; }
+  currentUser = user;
+  adminReady = true;
+  return true;
+}
+
+async function saveToFirestore() {
+  if (!endedAtMs) {
+    setMessage("Stop the test before saving.", "bad");
+    return;
+  }
+
+  const payload = buildPayload();
+
+  if (!firebaseReady || !db || !storage) {
+    setMessage("Firebase connection is missing. You can still download JSON.", "bad");
+    console.log("Calibration payload:", payload);
+    return;
+  }
+
+  try {
+    if (!adminReady && !(await ensureAdmin())) return;
+    const withServerTime = {
+      ...payload,
+      collection: "calibration",
+      status: recordedBlob ? "created" : "manual_no_audio",
+      createdBy: currentUser ? currentUser.uid : null,
+      createdByEmail: currentUser ? currentUser.email : null,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    };
+    const ref = await db.collection("calibration").add(withServerTime);
+    if (recordedBlob) {
+      setMessage("Saved calibration/" + ref.id + ". Uploading audio...", "warn");
+      const upload = await uploadCalibrationAudio(ref.id);
+      await ref.set({
+        status: "uploaded",
+        audioPath: upload.path,
+        audioUpload: upload,
+        uploadedAt: firebase.firestore.FieldValue.serverTimestamp(),
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      }, { merge: true });
+      setMessage("Saved and audio sent for analysis: calibration/" + ref.id, "ok");
+    } else {
+      setMessage("Saved calibration/" + ref.id + " without audio.", "ok");
+    }
+  } catch (err) {
+    console.error(err);
+    setMessage("Save/upload failed: " + err.message, "bad");
+  }
+}
+
+if (firebaseReady && auth && db) {
+  auth.onAuthStateChanged(async function(user) {
+    currentUser = user || null;
+    adminReady = false;
+    if (!user) { setMessage("Firebase connected. No admin is signed in yet.", "warn"); return; }
+    try {
+      const snap = await db.collection("admins").doc(user.uid).get();
+      adminReady = snap.exists;
+      setMessage(adminReady ? "Admin confirmed: " + (user.email || user.uid) + ". Ready to save to calibration." : "Signed-in user is not admin: " + (user.email || user.uid), adminReady ? "ok" : "bad");
+    } catch (err) {
+      console.warn("Admin check failed", err);
+      setMessage("Tókst ekki að staðfesta admin-aðgang: " + err.message, "bad");
+    }
+  });
+}
+
+function downloadJson() {
+  const payload = buildPayload();
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `upphatt-calibration-${selected.id}-${Date.now()}.json`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+function init() {
+  const select = $("testText");
+  for (const item of Object.values(CALIBRATION_TEXTS)) {
+    const opt = document.createElement("option");
+    opt.value = item.id;
+    opt.textContent = item.title;
+    select.appendChild(opt);
+  }
+
+  select.addEventListener("change", () => {
+    selected = CALIBRATION_TEXTS[select.value];
+    $("wordsRead").value = selected.words;
+    resetTest();
+  });
+
+  $("startBtn").addEventListener("click", startTest);
+  $("stopBtn").addEventListener("click", stopTest);
+  $("resetBtn").addEventListener("click", resetTest);
+  $("saveBtn").addEventListener("click", saveToFirestore);
+  $("downloadBtn").addEventListener("click", downloadJson);
+
+  ["audioWpmFixed2", "cleanReadingRatio", "wordsRead", "snippetCount", "audioQuality"].forEach(id => {
+    $(id).addEventListener("input", updateUI);
+    $(id).addEventListener("change", updateUI);
+  });
+
+  selected = CALIBRATION_TEXTS.A_150_CHILD;
+  $("wordsRead").value = selected.words;
+  resetTest();
+}
+
+init();
+</script>
+</body>
+</html>

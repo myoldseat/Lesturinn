@@ -1041,11 +1041,11 @@ function clearAdminCache() {
 }
 
 function adminCacheStatusLabel() {
-  if (!_adminCacheMeta || !_adminCacheMeta.cachedAt) return 'G?gn s?tt beint ?r Firestore';
+  if (!_adminCacheMeta || !_adminCacheMeta.cachedAt) return 'Gögn sótt beint úr Firestore';
   const mins = Math.max(0, Math.floor((Date.now() - _adminCacheMeta.cachedAt) / 60000));
-  if (_adminCacheMeta.source === 'cache') return 'G?gn ?r 20 m?n cache ? s?tt fyrir ' + mins + ' m?n';
-  if (_adminCacheMeta.source === 'incremental') return 'N? g?gn s?tt ? cache uppf?rt fyrir ' + mins + ' m?n';
-  return 'G?gn s?tt ?r Firestore ? cache uppf?rt fyrir ' + mins + ' m?n';
+  if (_adminCacheMeta.source === 'cache') return 'Gögn úr 20 mín cache · sótt fyrir ' + mins + ' mín';
+  if (_adminCacheMeta.source === 'incremental') return 'Ný gögn sótt · cache uppfært fyrir ' + mins + ' mín';
+  return 'Gögn sótt úr Firestore · cache uppfært fyrir ' + mins + ' mín';
 }
 
 function maxTimestampFrom(items) {
@@ -1062,7 +1062,7 @@ function mergeByDocId(existing, incoming) {
 window.refreshNewAdminData = async function() {
   const el = document.getElementById('admin-content');
   const previous = el ? el.innerHTML : '';
-  if (el) el.innerHTML = '<div class="admin-loading">Hle? a?eins n?jum g?gnum...</div>';
+  if (el) el.innerHTML = '<div class="admin-loading">Hleð aðeins nýjum gögnum...</div>';
   try {
     const firestore = initFirebase();
     const latestSessionTs = Math.max(maxTimestampFrom(_sessions), maxTimestampFrom(_heatmapSessions));
@@ -1917,7 +1917,7 @@ function getLesfimiBenchmarkForSession(session) {
   if (!grade) return { label: 'vantar bekk', status: 'missing_grade', birthYear };
   const season = benchmarkSeason(date);
   const average = LESFIMI_BENCHMARKS.grades?.[grade]?.[season]?.average;
-  if (!average) return { label: grade + '. bekkur ? ' + lesfimiSeasonLabel(season) + ' ? vantar vi\u00f0mi\u00f0', status: 'missing_benchmark', grade, season, birthYear };
+  if (!average) return { label: grade + '. bekkur · ' + lesfimiSeasonLabel(season) + ' · vantar vi\u00f0mi\u00f0', status: 'missing_benchmark', grade, season, birthYear };
   return {
     label: grade + '. bekkur \u00b7 ' + lesfimiSeasonLabel(season) + ' \u00b7 ' + average.min + '\u2013' + average.max,
     status: 'ok',
@@ -2473,8 +2473,8 @@ function adminPatternFilterHtml() {
       <button class="admin-filter-pill ${active==='all'?'active':''}" onclick="setAdminDateFilter('all')">Allt</button>
       <button class="admin-filter-pill ${active==='today'?'active':''}" onclick="setAdminDateFilter('today')">Í dag</button>
       <button class="admin-filter-pill ${active==='last7'?'active':''}" onclick="setAdminDateFilter('last7')">Síðustu 7</button>
-      <button class="admin-filter-pill" onclick="refreshNewAdminData()">Hla?a a?eins n?jum</button>
-      <button class="admin-filter-pill" onclick="loadData(true)">S?kja allt aftur</button><button class="admin-filter-pill danger" onclick="setAdminDateFilter('reset')">Reset</button>
+      <button class="admin-filter-pill" onclick="refreshNewAdminData()">Hlaða aðeins nýjum</button>
+      <button class="admin-filter-pill" onclick="loadData(true)">Sækja allt aftur</button><button class="admin-filter-pill danger" onclick="setAdminDateFilter('reset')">Reset</button>
     </div>
     <div class="admin-filter-select-wrap">
       <span class="admin-pattern-filter-label">Fæðingarár</span>
@@ -2638,26 +2638,93 @@ function computePilot(){
   const activeKids=new Set(inWin.map(childOf)).size||1;
   const freq=inWin.length/activeKids/PL_WEEKS;
 
+  const familyMeta = {};
+  const ensureFamilyMeta = (fid) => {
+    if(!fid) return null;
+    return familyMeta[fid] || (familyMeta[fid] = { children:new Set(), registeredAt:0 });
+  };
+  (_users||[]).forEach(u => {
+    const fid = u.familyId || u.familyCode || '';
+    const meta = ensureFamilyMeta(fid);
+    if(!meta) return;
+    const created = _plMs(u.createdAt || u.consentTimestamp || u.joinedAt);
+    if(created && (!meta.registeredAt || created < meta.registeredAt)) meta.registeredAt = created;
+    (Array.isArray(u.children) ? u.children : []).forEach(ch => {
+      const key = ch && (ch.key || ch.childKey || ch.code || ch.name);
+      if(key) meta.children.add(String(key));
+    });
+  });
+  (_pilots||[]).forEach(p => {
+    const fid = p.familyId || p._docId || '';
+    const meta = ensureFamilyMeta(fid);
+    if(!meta) return;
+    const joined = _plMs(p.joinedAt || p.createdAt);
+    if(joined && (!meta.registeredAt || joined < meta.registeredAt)) meta.registeredAt = joined;
+  });
+
+  const eventsInWindow = (events) => events.filter(e => {
+    const t = _plMs(e.ts || e.timestamp || e.createdAt || e.savedAt);
+    return t >= start && t < winEnd;
+  });
+  const heardWin = eventsInWindow(D.heard);
+  const reactedWin = eventsInWindow(D.reacted);
+  const savedWin = eventsInWindow(D.saved);
+
   const fams={};
-  inWin.forEach(s=>{ (fams[s.familyId] || (fams[s.familyId]={sessions:[],circle:new Set()})).sessions.push(s); });
-  D.heard.forEach(e=>{ if(fams[e.familyId]) fams[e.familyId].circle.add(e.who); });
-  D.reacted.forEach(e=>{ if(fams[e.familyId]) fams[e.familyId].circle.add(e.who); });
-  D.saved.forEach(e=>{ if(fams[e.familyId]) fams[e.familyId].circle.add(e.who); });
+  inWin.forEach(s=>{
+    const f = (fams[s.familyId] || (fams[s.familyId]={sessions:[],circle:new Set(),children:new Set()}));
+    f.sessions.push(s);
+    const ck = s.childKey || s.childId || s.key || s.childName;
+    if(ck) f.children.add(String(ck));
+  });
+  heardWin.forEach(e=>{ if(fams[e.familyId]) fams[e.familyId].circle.add(e.who); });
+  reactedWin.forEach(e=>{ if(fams[e.familyId]) fams[e.familyId].circle.add(e.who); });
+  savedWin.forEach(e=>{ if(fams[e.familyId]) fams[e.familyId].circle.add(e.who); });
   const now=Date.now();
   const perFamily=Object.entries(fams).map(([fid,f],idx)=>{
+    const meta = familyMeta[fid] || { children:new Set(), registeredAt:0 };
     const last=f.sessions.reduce((m,s)=>Math.max(m,_plMs(s.timestamp)),0);
     const daysSince=last?Math.floor((now-last)/PL_DAY):999;
-    const h=rate(f.sessions,D.heard.filter(e=>e.familyId===fid));
-    const r=rate(f.sessions,D.reacted.filter(e=>e.familyId===fid));
-    const sv=rate(f.sessions,D.saved.filter(e=>e.familyId===fid));
+    const registeredAt = meta.registeredAt || f.sessions.reduce((m,s)=>{ const t=_plMs(s.timestamp); return t && (!m || t<m) ? t : m; }, 0);
+    const registeredDays = registeredAt ? Math.max(0, Math.floor((now-registeredAt)/PL_DAY)) : null;
+    const totalChildren = meta.children.size || f.children.size || 0;
+    const activeChildren = f.children.size;
+    const activeDays = new Set(f.sessions.map(s => new Date(_plMs(s.timestamp)).toISOString().slice(0,10))).size;
+    const activeWeeks = new Set(f.sessions.map(s => Math.floor((_plMs(s.timestamp)-start)/(7*PL_DAY))).filter(w => w>=0 && w<PL_WEEKS)).size;
+    const minutesPerWeek = f.sessions.reduce((a,s)=>a+(Number(s.seconds)||0),0)/60/PL_WEEKS;
     const fr=f.sessions.length/PL_WEEKS;
-    let st={cls:'ok',label:'Virk'};
-    if(daysSince>=7)st={cls:'churn',label:'Í hættu'};
-    else if(r<PL_THRESH.reacted.amber||fr<PL_THRESH.freq.amber)st={cls:'risk',label:'Fylgjast með'};
-    return {label:'Hópur '+String.fromCharCode(65+(idx%26)),code:(typeof shortAnonFamilyId==='function'?shortAnonFamilyId(fid):fid.slice(0,6)),freq:fr,circle:f.circle.size,heard:h,react:r,saved:sv,daysSince,st};
-  }).sort((a,b)=>a.daysSince-b.daysSince||b.react-a.react);
+    const heardCount = heardWin.filter(e=>e.familyId===fid).length;
+    const commentCount = reactedWin.filter(e=>e.familyId===fid).length;
+    const savedCount = savedWin.filter(e=>e.familyId===fid).length;
+    let st={cls:'ok',label:'Sterkt'};
+    if(registeredDays !== null && registeredDays < 7 && f.sessions.length <= 1) st={cls:'risk',label:'Nýtt'};
+    else if(daysSince>=21) st={cls:'churn',label:'Dottið út'};
+    else if(daysSince>=7) st={cls:'churn',label:'Á hættu'};
+    else if(daysSince>=3 || fr<PL_THRESH.freq.amber) st={cls:'risk',label:'Fylgjast með'};
+    return {label:'Hópur '+String.fromCharCode(65+(idx%26)),code:(typeof shortAnonFamilyId==='function'?shortAnonFamilyId(fid):fid.slice(0,6)),registeredDays,totalChildren,activeChildren,activeDays,activeWeeks,freq:fr,minutesPerWeek,circle:f.circle.size,heardCount,commentCount,savedCount,daysSince,st};
+  }).sort((a,b)=>a.daysSince-b.daysSince||b.activeDays-a.activeDays||b.commentCount-a.commentCount);
 
-  return {empty:false,allFamilies,start,winEnd,anchored,noKey,heardOverall,reactOverall,savedOverall,byWeek,cohort,retention,freq,perFamily,
+  // ── Vitni → lestur: tímatengd greining (innan barns, fyrir/eftir) ──
+  const PL_LAG = 3;
+  const _dayIx = ms => Math.floor(ms / PL_DAY);
+  const _sessByChild = {}; let _minDay = Infinity, _maxDay = -Infinity;
+  S.forEach(s => { if(!s.childKey) return; const id=s.familyId+'|'+s.childKey; const d=_dayIx(_plMs(s.timestamp));
+    (_sessByChild[id] || (_sessByChild[id]={}))[d] = (_sessByChild[id][d]||0)+1;
+    if(d<_minDay) _minDay=d; if(d>_maxDay) _maxDay=d; });
+  const _witByChild = {};
+  [D.heard, D.reacted, D.saved].forEach(list => list.forEach(e => {
+    if(!e.childKey || !(e.ts>=start && e.ts<winEnd)) return;
+    const id=e.familyId+'|'+e.childKey; (_witByChild[id] || (_witByChild[id]=new Set())).add(_dayIx(e.ts)); }));
+  const _sumRange=(m,a,b)=>{ let t=0; for(let d=a; d<=b; d++) t+=(m[d]||0); return t; };
+  let _nEv=0,_nUp=0,_sumB=0,_sumA=0; const _lagKids=new Set();
+  Object.keys(_witByChild).forEach(id => { const sm=_sessByChild[id]||{};
+    _witByChild[id].forEach(wd => { if(wd-PL_LAG<_minDay || wd+PL_LAG>_maxDay) return;
+      const before=_sumRange(sm,wd-PL_LAG,wd-1), after=_sumRange(sm,wd+1,wd+PL_LAG);
+      _nEv++; _sumB+=before; _sumA+=after; if(after>before)_nUp++; _lagKids.add(id); }); });
+  const _lagB=_nEv?_sumB/_nEv:0, _lagA=_nEv?_sumA/_nEv:0;
+  const lag={ days:PL_LAG, nEvents:_nEv, nChildren:_lagKids.size, before:_lagB, after:_lagA,
+    pct:(_nEv&&_lagB>0)?Math.round(100*(_lagA-_lagB)/_lagB):null, pctUp:_nEv?Math.round(100*_nUp/_nEv):0 };
+  return {empty:false,allFamilies,start,winEnd,anchored,noKey,heardOverall,reactOverall,savedOverall,byWeek,cohort,retention,freq,perFamily,lag,
           nSess:inWin.length,nHeard:D.heard.length,nReact:D.reacted.length,nSaved:D.saved.length};
 }
 
@@ -2700,8 +2767,8 @@ function _plPicker(M){
   const sel = new Set(_pilotFamilies);
   const showAll = !_pilotFamilies.length;
   const rows = fams.map(f=>{
-    const tags = `${f.inPilots ? '<b class="pl-source pilot" title="Pilot-fj?lskylda">P</b>' : ''}${f.inUsers ? '<b class="pl-source user" title="Skr?? fj?lskylda">skr??</b>' : ''}${f.pilotGroup ? '<b class="pl-source group">'+esc(f.pilotGroup)+'</b>' : ''}`;
-    return `<label class="pl-famrow"><input type="checkbox" value="${f.fid}" ${(showAll||sel.has(f.fid))?'checked':''}><span class="c">${esc(f.code)}</span><span class="s">${f.n} lotur ? ${f.days>=999?'engin':f.days+'d s??an'} ${tags}</span></label>`;
+    const tags = `${f.inPilots ? '<b class="pl-source pilot" title="Pilot-fjölskylda">P</b>' : ''}${f.inUsers ? '<b class="pl-source user" title="Skráð fjölskylda">skráð</b>' : ''}${f.pilotGroup ? '<b class="pl-source group">'+esc(f.pilotGroup)+'</b>' : ''}`;
+    return `<label class="pl-famrow"><input type="checkbox" value="${f.fid}" ${(showAll||sel.has(f.fid))?'checked':''}><span class="c">${esc(f.code)}</span><span class="s">${f.n} lotur · ${f.days>=999?'engin':f.days+'d síðan'} ${tags}</span></label>`;
   }).join('');
   const count = _pilotFamilies.length ? (_pilotFamilies.length+' valdar') : ('allar — '+fams.length);
   return `<details class="pl-fampick"><summary>Fjölskyldur í pilot: <b>${count}</b></summary>
@@ -2756,11 +2823,17 @@ function _plHtml(M){
 
   const rows=M.perFamily.map(f=>`<tr>
     <td class="fam"><strong>${esc(f.label)}</strong><small>${esc(f.code)}</small></td>
-    <td class="num">${f.freq.toFixed(1)}</td><td class="num">${f.circle}</td>
-    <td><span class="pl-mini"><i class="heard" style="width:${Math.round(f.heard)}%"></i></span><span class="num">${Math.round(f.heard)}%</span></td>
-    <td><span class="pl-mini"><i class="react" style="width:${Math.round(f.react)}%"></i></span><span class="num">${Math.round(f.react)}%</span></td>
-    <td><span class="pl-mini"><i class="saved" style="width:${Math.round(f.saved)}%"></i></span><span class="num">${Math.round(f.saved)}%</span></td>
-    <td class="num">${f.daysSince>=999?'—':f.daysSince+'d'}</td>
+    <td class="num">${f.registeredDays === null ? '?' : f.registeredDays + 'd'}</td>
+    <td class="num">${f.totalChildren || '?'}</td>
+    <td class="num">${f.activeChildren || 0}/${f.totalChildren || f.activeChildren || 0}</td>
+    <td class="num">${f.activeDays}</td>
+    <td class="num">${f.activeWeeks}</td>
+    <td class="num">${f.freq.toFixed(1)}</td>
+    <td class="num">${Math.round(f.minutesPerWeek)}</td>
+    <td class="num">${f.heardCount}</td>
+    <td class="num">${f.commentCount}</td>
+    <td class="num">${f.savedCount}</td>
+    <td class="num">${f.daysSince>=999?'?':f.daysSince+'d'}</td>
     <td><span class="pl-pill ${f.st.cls}">${esc(f.st.label)}</span></td></tr>`).join('');
 
   const pending=`<section class="pl-pending"><h3>Það sem vantar enn: könnun til fjölskyldna</h3>
@@ -2773,6 +2846,26 @@ function _plHtml(M){
     <div class="pl-fcard pl-invcard"><div class="tag">Fyrir fjárfesti</div><h4>Hvað sannfærir fjárfesti</h4>
       <ul><li>Koma börnin aftur eftir tímabilið?</li><li>Verður þetta að vana (lotur á viku)?</li><li>Myndu foreldrar borga — og hvað?</li><li>Mæla fjölskyldur með því (boð send)?</li></ul></div></div>`;
 
+  const L=M.lag; let lagInner;
+  if(!L || L.nEvents<1){
+    lagInner = `<div class="sub" style="margin-top:8px">Ekki enn nógu margir vitnis-dagar með fullmældum gluggum beggja vegna til að reikna. Birtist þegar fleiri lotur og hlustanir safnast.</div>`;
+  } else {
+    const _c = L.pct===null ? '#9eacba' : (L.pct>0?'#34d399':(L.pct<0?'#f87171':'#9eacba'));
+    const _v = L.pct===null ? 'Ekki hægt að reikna hlutfall (enginn lestur á undan til samanburðar).'
+      : (L.pct>0 ? `Börn lásu <b style="color:${_c}">${L.pct}% meira</b> dagana eftir vitni en dagana á undan.`
+      : (L.pct<0 ? `Börn lásu <b style="color:${_c}">${Math.abs(L.pct)}% minna</b> eftir vitni en á undan.`
+      : 'Enginn munur á lestri fyrir og eftir vitni.'));
+    lagInner = `<div style="display:flex;align-items:center;justify-content:center;gap:18px;margin:14px 0 6px">`
+      + `<div style="text-align:center"><div style="font-size:1.7rem;font-weight:900">${L.before.toFixed(2)}</div><div style="font-size:.7rem;color:#9eacba;font-weight:700;line-height:1.25">lotur/barn<br>${L.days} daga á undan</div></div>`
+      + `<div style="font-size:1.6rem;color:${_c};font-weight:900">&rarr;</div>`
+      + `<div style="text-align:center"><div style="font-size:1.7rem;font-weight:900;color:${_c}">${L.after.toFixed(2)}</div><div style="font-size:.7rem;color:#9eacba;font-weight:700;line-height:1.25">lotur/barn<br>${L.days} daga eftir</div></div>`
+      + `</div>`
+      + `<div style="text-align:center;font-size:.95rem;font-weight:700">${_v}</div>`
+      + `<div style="text-align:center;font-size:.72rem;color:#9eacba;margin-top:6px">Byggt á ${L.nEvents} vitnis-dögum hjá ${L.nChildren} börnum · ${L.pctUp}% atburða sýndu aukningu</div>`;
+  }
+  const lagCard = `<div class="pl-card" style="margin-bottom:14px"><h3>Ýtir vitni undir meiri lestur?</h3>`
+    + `<div class="sub">Innan hvers barns berum við saman lestur <b>${L?L.days:3} daga á undan</b> og <b>${L?L.days:3} daga eftir</b> hvern dag sem einhver hlustaði, hvatti eða geymdi lestur. Sama barn er beggja megin, svo valskekkja milli fjölskyldna fellur út — það er nær orsök en einföld fylgni, en sannar hana ekki (önnur atvik geta fallið á sömu daga). Dagur atburðarins er ekki talinn með, svo lesturinn sem kveikti vitnið bjagar ekki niðurstöðuna.</div>`
+    + lagInner + `</div>`;
   return `<div class="pl ${_plLens!=='none'?'lens-'+_plLens:''}">
     ${head}
     ${kpis}
@@ -2780,8 +2873,9 @@ function _plHtml(M){
       <div class="pl-card"><h3>Er vitnið áreiðanlegt?</h3><div class="sub">Þrjú stig: einhver <b>hlustaði</b> (barnið sér hver), sendi <b>hvatningu</b> í texta, eða <b>geymdi</b> lesturinn — þá getur barnið hlustað á sjálft sig. Innan 48 klst frá lestri.</div>
         <div class="pl-leg"><span><i style="background:#4fa8d8"></i>Hlustað</span><span><i style="background:#1dcdd3"></i>Hvatning</span><span><i style="background:#f5c451"></i>Geymt</span></div>${weeks}${note}</div>
       <div class="pl-card"><h3>Kemur barnið aftur?</h3><div class="sub">Af börnum sem lásu fyrstu vikuna — hve mörg lesa enn hverja viku á eftir.</div>${cohort}</div></div>
-    <div class="pl-card" style="margin-bottom:14px"><h3>Merki eftir fjölskyldum</h3><div class="sub">Hver fjölskylda fyrir sig. Staðan <b>Í hættu</b> þýðir: engin lestrarlota í 7 daga eða lengur.</div>
-      <table class="pl-table"><thead><tr><th>Hópur</th><th>Lotur/v</th><th>Hringur</th><th>Hlustað</th><th>Hvatning</th><th>Geymt</th><th>Síðast</th><th>Staða</th></tr></thead><tbody>${rows}</tbody></table></div>
+    ${lagCard}
+    <div class="pl-card" style="margin-bottom:14px"><h3>Merki eftir fjölskyldum</h3><div class="sub">Hver fjölskylda fyrir sig. Hlustanir, komment og geymt eru hráir fjöldar á tímabilinu. Taflan sýnir ástundun og fjölskyldumerki hlið við hlið.</div>
+      <table class="pl-table"><thead><tr><th>Hópur</th><th>Skráð</th><th>Börn</th><th>Virk</th><th>Dagar</th><th>Vikur</th><th>Lotur/v</th><th>Mín/v</th><th>Hlust.</th><th>Komment</th><th>Geymt</th><th>Síðast</th><th>Staða</th></tr></thead><tbody>${rows}</tbody></table></div>
     ${pending}${frame}
     <div class="pl-foot">Byggt á <code>${M.nSess}</code> lestrarlotum, <code>${M.nHeard}</code> hlustunum, <code>${M.nReact}</code> hvatningum og <code>${M.nSaved}</code> geymdum lestrum á tímabilinu.${M.noKey ? " ("+M.noKey+" eldri lotur án auðkennis voru ekki taldar með.)" : ""} Viðmiðin (mörkin fyrir grænt/gult/rautt) eru bráðabirgða og má stilla síðar.</div>
   </div>`;

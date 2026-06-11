@@ -658,6 +658,49 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
 .pb-cover img{width:100%;height:100%;object-fit:cover;display:block}
 .pb-info{min-width:0}.pb-title{font-size:15px;font-weight:800;color:var(--text-bright);line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pb-meta{font-size:12px;font-weight:600;color:var(--muted);margin-top:5px}.pb-bar{height:5px;border-radius:999px;background:rgba(255,255,255,.09);overflow:hidden}.pb-fill{height:100%;border-radius:999px;background:var(--accent)}.pb-pct{font-size:12px;font-weight:800;color:var(--accent);min-width:34px;text-align:right}.pb-status{display:inline-flex;align-items:center;width:max-content;margin-top:7px;border-radius:999px;padding:3px 8px;font-size:10px;font-weight:800}.pb-status-reading{background:rgba(29,205,211,.1);border:1px solid rgba(29,205,211,.22);color:var(--accent)}.pb-status-finished{background:rgba(212,160,23,.1);border:1px solid rgba(212,160,23,.22);color:var(--gold)}.pb-status-shelf{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);color:var(--muted)}
 .pb-detail-ov{position:fixed;inset:0;z-index:220;background:rgba(7,16,30,.72);backdrop-filter:blur(7px);display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s}.pb-detail-ov.open{opacity:1;pointer-events:auto}.pb-detail-sheet{width:min(430px,100%);max-height:82dvh;overflow:auto;background:rgba(18,32,52,.98);border:1px solid var(--border-hl);border-bottom:0;border-radius:18px 18px 0 0;padding:18px 16px calc(22px + env(safe-area-inset-bottom,0px));transform:translateY(100%);transition:transform .24s cubic-bezier(.22,1,.36,1);scrollbar-width:none}.pb-detail-ov.open .pb-detail-sheet{transform:translateY(0)}.pb-detail-sheet::-webkit-scrollbar{display:none}.pb-grab{width:34px;height:4px;border-radius:999px;background:rgba(255,255,255,.13);margin:0 auto 15px}.pb-detail-top{display:grid;grid-template-columns:72px minmax(0,1fr);gap:13px;align-items:center;margin-bottom:14px}.pb-detail-cover{width:72px;height:102px;border-radius:10px;overflow:hidden;display:grid;place-items:center;font-size:26px;font-weight:800;color:#fff}.pb-detail-cover img{width:100%;height:100%;object-fit:cover}.pb-detail-title{font-size:21px;font-weight:800;color:var(--text-bright);line-height:1.05;letter-spacing:-.02em}.pb-detail-sub{font-size:12px;color:var(--muted);margin-top:6px}.pb-detail-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}.pb-stat{border:1px solid rgba(255,255,255,.07);background:rgba(255,255,255,.025);border-radius:12px;padding:10px}.pb-stat-l{font-size:10px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}.pb-stat-v{font-size:15px;font-weight:800;color:var(--text-bright);margin-top:3px}.pb-note{border-left:2px solid var(--accent);padding-left:10px;margin-top:13px;color:var(--text);font-size:13px;line-height:1.4}.pb-actions{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:13px}.pb-action{border:1px solid var(--border);background:rgba(255,255,255,.025);color:var(--text);border-radius:12px;padding:10px 6px;font:inherit;font-size:11px;font-weight:800;cursor:pointer}.pb-action.on{border-color:var(--border-hl);background:var(--accent-soft);color:var(--accent)}.pb-detail-close{width:100%;margin-top:14px;border:1px solid var(--border-hl);background:var(--accent-soft);color:var(--accent);border-radius:12px;padding:11px;font:inherit;font-size:13px;font-weight:800;cursor:pointer}
+
+/* ── g2 reading graph (snapshot + layers) ── */
+.g2-snapfoot{display:flex;align-items:center;gap:8px;margin-top:8px}
+.g2-verdict{font-size:14px;font-weight:800}.g2-verdict.up{color:#46d39a}.g2-verdict.flat{color:#8aa0b0}.g2-verdict.down{color:#f0883e}
+.g2-snapmeta{font-size:11px;color:#5d7184}
+.g2dval{font-size:9.5px;font-weight:800;fill:#cfe0e8}.g2dval.dark{fill:#06222a}.g2dval.muted{fill:#a6bac8}
+.g2wk{fill:#5d7184;font-size:8.5px;font-weight:600}
+.g2-sheet{position:fixed;inset:0;background:#08111f;z-index:9999;transform:translateY(100%);transition:transform .26s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column}
+.g2-sheet.open{transform:translateY(0)}
+.g2-top{display:flex;align-items:center;gap:10px;padding:calc(14px + env(safe-area-inset-top)) 14px 6px}
+.g2-top .g2t{font-size:16px;font-weight:800;color:#e8f2f5}.g2-top .g2t small{display:block;font-size:10px;color:#5d7184;text-transform:uppercase;letter-spacing:.06em;font-weight:700}
+.g2-ic{border:1px solid rgba(255,255,255,.1);background:transparent;color:#e8f2f5;border-radius:10px;width:34px;height:34px;display:grid;place-items:center;font-size:17px;cursor:pointer;flex:0 0 auto}
+.g2-toplink{margin-left:auto;border:1px solid rgba(29,205,211,.25);background:rgba(29,205,211,.1);color:#1dcdd3;font:inherit;font-size:12.5px;font-weight:800;padding:8px 13px;border-radius:11px;cursor:pointer}
+.g2-body{flex:1;overflow-y:auto;padding:6px 14px calc(20px + env(safe-area-inset-bottom))}
+.g2-seg{display:flex;gap:5px;background:#0e1a28;border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:5px;margin-bottom:10px}
+.g2-seg button{flex:1;border:0;background:transparent;color:#8499a8;font:inherit;font-size:12px;font-weight:700;padding:8px 3px;border-radius:8px;cursor:pointer}
+.g2-seg.metric button[aria-pressed="true"]{background:var(--g2a,#1dcdd3);color:#06222a}
+.g2-seg.sub button[aria-pressed="true"]{background:rgba(29,205,211,.12);color:#1dcdd3}
+.g2-ctx{display:flex;align-items:center;gap:7px;margin:2px 0 6px;min-height:30px}
+.g2-nav{border:1px solid rgba(255,255,255,.07);background:transparent;color:#e8f2f5;border-radius:8px;width:30px;height:30px;cursor:pointer;font-size:13px;display:grid;place-items:center;flex:0 0 auto}
+.g2-nav[disabled]{opacity:.28}
+.g2-crumb{flex:1;text-align:center;font-size:14px;font-weight:800;color:#e8f2f5;line-height:1.05}.g2-crumb small{display:block;font-size:9px;color:#5d7184;text-transform:uppercase;letter-spacing:.05em}
+.g2-tot{text-align:right;flex:0 0 auto;min-width:52px}.g2-tot .n{font-size:17px;font-weight:800;color:#e8f2f5;line-height:1}.g2-tot .u{font-size:10px;color:#8499a8}
+#g2-avgN{font-size:22px;color:#1dcdd3}#g2-avg .g2-tot{min-width:66px}
+.g2-bar{cursor:pointer}.g2-bar.sel{stroke:#fff;stroke-width:1.5}
+.g2-ax{fill:#5d7184;font-size:10px;font-weight:600}.g2-grid{stroke:rgba(255,255,255,.06)}.g2-yt{fill:#5d7184;font-size:9px}
+.g2-estnote{font-size:10px;color:#5d7184;margin:5px 2px 0;display:none}.g2-estnote.show{display:block}
+.g2-minis{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:11px}
+.g2-mini{background:#0e1a28;border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:10px 6px;text-align:center}
+.g2-mini.active{border-color:var(--g2a,#1dcdd3);background:rgba(29,205,211,.07)}
+.g2-mini .n{font-size:15px;font-weight:800;color:#e8f2f5}.g2-mini .l{font-size:9px;color:#8499a8;font-weight:600;margin-top:3px}
+.g2-slist{margin-top:12px;border-top:1px solid rgba(255,255,255,.07);padding-top:2px}
+.g2-srow{display:grid;grid-template-columns:52px 1fr auto;align-items:center;gap:9px;padding:11px 2px;border-top:1px solid rgba(255,255,255,.05);cursor:pointer}
+.g2-srow:first-child{border-top:0}.g2-srow .t{font-weight:800;color:#1dcdd3;font-size:13px}
+.g2-srow .bk{font-weight:700;font-size:12.5px;color:#e8f2f5}.g2-srow .mt{font-size:10.5px;color:#8499a8;margin-top:1px}.g2-srow .cv{color:#5d7184}
+.g2-empty{color:#5d7184;font-size:12px;padding:12px 2px}
+.g2-detail{margin-top:10px;background:#0e1a28;border:1px solid rgba(29,205,211,.18);border-radius:13px;padding:12px;display:none}.g2-detail.show{display:block}
+.g2-detail h4{margin:0 0 8px;font-size:13px;color:#e8f2f5}
+.g2-dr{display:flex;justify-content:space-between;font-size:12.5px;padding:6px 0;border-top:1px solid rgba(255,255,255,.05);color:#e8f2f5}.g2-dr:first-of-type{border-top:0}.g2-dr span{color:#8499a8}
+.g2-reveal{margin-top:9px;border:1px solid rgba(255,255,255,.07);background:transparent;color:#8499a8;border-radius:9px;padding:8px;font:inherit;font-size:11.5px;font-weight:700;cursor:pointer;width:100%}
+.g2-speed{display:none;justify-content:space-between;font-size:12.5px;padding:6px 0;color:#e8f2f5}.g2-speed.show{display:flex}.g2-speed .tag{font-size:9px;color:#5d7184;text-transform:uppercase;margin-left:6px}
+.g2-cap{font-size:11px;color:#5d7184;margin:9px 2px 0;line-height:1.4}
+
 </style>
 </head>
 <body>
@@ -840,6 +883,20 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
           </div>
         </div>
       </div>
+
+      <!-- ── Lestrarþróun bútur (úr grafinu) ── -->
+      <div class="crd progress-click" id="g2-today" onclick="g2Open()" style="cursor:pointer">
+        <div class="crd-head" style="margin-bottom:10px">
+          <span class="crd-lbl">Lestrarþróun</span>
+          <span class="crd-act">Meira ›</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:16px;margin-bottom:8px">
+          <div><div style="font-size:19px;font-weight:800;color:var(--text-bright);line-height:1"><span id="g2t-mins">—</span> <span style="font-size:12px;color:var(--muted);font-weight:600">mín</span></div><div style="font-size:10px;color:var(--muted);font-weight:600;margin-top:2px">þessa viku</div></div>
+          <div><div style="font-size:19px;font-weight:800;color:var(--text-bright);line-height:1" id="g2t-days">—</div><div style="font-size:10px;color:var(--muted);font-weight:600;margin-top:2px">dagar lesnir</div></div>
+          <span class="g2-verdict" id="g2t-verdict" style="margin-left:auto">—</span>
+        </div>
+        <svg id="g2t-snap" viewBox="0 0 360 70" preserveAspectRatio="none" aria-hidden="true" style="width:100%;height:42px;display:block"></svg>
+      </div>
     </div>
   </main>
 
@@ -999,16 +1056,17 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
         </div>
       </section>
 
-      <section class="crd progress-click" onclick="openTrendDetail()">
+      <section class="crd progress-click" onclick="g2Open()">
         <div class="crd-head">
           <div>
             <div class="crd-lbl">Lestrarþróun</div>
-            <div class="progress-note">Litlu súlurnar sýna síðustu fjórar vikur.</div>
+            <div class="progress-note">Mínútur á viku · síðustu 8 vikur</div>
           </div>
           <button class="disclaimer-btn" type="button" onclick="event.stopPropagation();openProgressDisclaimer()">Fyrirvari</button>
         </div>
-        <div class="progress-grid" id="p-progress-grid"></div>
-        <div class="progress-note" style="margin-top:10px;color:var(--accent);font-weight:700">Skoða nánar ›</div>
+        <svg id="g2-snap" viewBox="0 0 360 120" preserveAspectRatio="xMidYMid meet" aria-hidden="true" style="width:100%;height:auto;display:block;margin-top:6px"></svg>
+        <div class="g2-snapfoot"><span class="g2-verdict" id="g2-verdict">—</span><span class="g2-snapmeta" id="g2-snapmeta"></span><span class="progress-note" style="margin-left:auto;color:var(--accent);font-weight:700">Skoða nánar ›</span></div>
+        <div id="p-progress-grid" style="display:none"></div>
       </section>
 
       <section class="progress-secondary">
@@ -2226,6 +2284,8 @@ function renderProgress(sessions, books) {
   renderProgressGrid(buckets);
   renderLesefni(books);
   renderBooksDone(books, current);
+  if(window.g2RenderSnap)window.g2RenderSnap();
+  if(window.g2RenderToday)window.g2RenderToday();
 }
 
 function renderProgressWeek(sessions) {
@@ -4020,6 +4080,230 @@ if (_USE_LEGACY) {
   bootParentGate();
 }
 console.log('🚀 parent.html engine started');
+/* ── g2: snapshot + interactive reading graph (wired to real sessions) ── */
+(function(){
+  const $=id=>document.getElementById(id);
+  const METRICS={
+    skipti:{lab:'skipti',unit:'skipti',color:'#c084fc',est:false,fmt:v=>Math.round(v),fmt1:v=>Math.round(v*10)/10},
+    min:{lab:'mínútur',unit:'mín',color:'#1dcdd3',est:false,fmt:v=>Math.round(v),fmt1:v=>Math.round(v*10)/10},
+    bls:{lab:'blaðsíður',unit:'bls',color:'#5b9bff',est:true,fmt:v=>Math.round(v),fmt1:v=>Math.round(v*10)/10},
+    ord:{lab:'orð',unit:'orð',color:'#46d39a',est:true,fmt:v=>'~'+Math.round(v),fmt1:v=>'~'+Math.round(v)},
+    baekur:{lab:'bækur',unit:'bækur',color:'#ffcf5c',est:false,fmt:v=>Math.round(v),fmt1:v=>Math.round(v*10)/10}
+  };
+  const MO=['jan','feb','mar','apr','maí','jún','júl','ágú','sep','okt','nóv','des'];
+  const MOL=['janúar','febrúar','mars','apríl','maí','júní','júlí','ágúst','september','október','nóvember','desember'];
+  const WD=['M','Þ','M','F','F','L','S'],WDL=['Mánudagur','Þriðjudagur','Miðvikudagur','Fimmtudagur','Föstudagur','Laugardagur','Sunnudagur'];
+  let TODAY=noon(new Date());
+
+  /* data accessors over real sessions/books (module helpers in scope) */
+  const books=()=>(typeof _lastProgressBooks!=='undefined'&&_lastProgressBooks)||[];
+  const sess=()=>(typeof _lastProgressSessions!=='undefined'&&_lastProgressSessions)||[];
+  const smin=s=>Math.floor((s.seconds||0)/60);
+  function sstart(s){const c=s.createdAt,ms=(c&&c.seconds)?c.seconds*1000:(c&&c.toMillis?c.toMillis():0);if(ms){const d=new Date(ms);return d.getHours()*60+d.getMinutes();}return 720;}
+  const dayList=dt=>{const k=dateKey(dt);return sess().filter(s=>sessionKey(s)===k&&(s.seconds||0)>=60);};
+  const sbook=s=>s.title||s.bookTitle||((books().find(b=>(s.bookId&&b.id===s.bookId)||(s.bookTitle&&b.title===s.bookTitle))||{}).title)||'Bók';
+  function sfin(s,dt){const b=books().find(bb=>s.bookId&&bb.id===s.bookId);if(!b)return false;const fm=noon(dt).getTime();return bookFinishedInRange(b,fm,fm+86399000);}
+  function aggM(list,m){if(m==='skipti')return list.length;if(m==='min')return list.reduce((a,s)=>a+smin(s),0);if(m==='bls')return list.reduce((a,s)=>a+sessionPages(s),0);if(m==='ord')return list.reduce((a,s)=>a+sessionWords(s,books()),0);return 0;}
+  function rangeAgg(f,t,m){if(m==='baekur'){const fm=noon(f).getTime(),tm=noon(t).getTime()+86399000;return books().filter(b=>bookFinishedInRange(b,fm,tm)).length;}let v=0;for(let d=new Date(f);d<=t;d.setDate(d.getDate()+1))v+=aggM(dayList(d),m);return v;}
+  const activeDays=(f,t)=>{let n=0;for(let d=new Date(f);d<=t;d.setDate(d.getDate()+1))if(dayList(d).length)n++;return n;};
+  const dayCount=(f,t)=>Math.round((t-f)/86400000)+1;
+  const weekStart=d=>{const x=new Date(d);x.setDate(x.getDate()-((x.getDay()+6)%7));x.setHours(12,0,0,0);return x;};
+  const drawGrid=(W,plotH,padL,padT,steps,M,maxV)=>{let s='';for(let g=0;g<=steps;g++){const y=padT+plotH*(g/steps);s+=`<line class="g2-grid" x1="${padL}" y1="${y.toFixed(1)}" x2="${W-8}" y2="${y.toFixed(1)}"/><text class="g2-yt" x="${padL+2}" y="${(y-2).toFixed(1)}">${M.fmt(maxV*(1-g/steps))}</text>`;}return s;};
+
+  /* ── snapshot ── */
+  window.g2RenderSnap=function(){
+    const svg=$('g2-snap');if(!svg)return;TODAY=noon(new Date());
+    const wk=[];const ws=weekStart(TODAY);
+    for(let i=8;i>=1;i--){const a=new Date(ws);a.setDate(ws.getDate()-i*7);const b=new Date(a);b.setDate(a.getDate()+6);wk.push({v:Math.round(rangeAgg(a,b,'min')),label:a.getDate()+'/'+(a.getMonth()+1)});}
+    const max=Math.max(1,...wk.map(w=>w.v));
+    const W=360,H=120,padT=16,padB=18,plotH=H-padT-padB,baseY=padT+plotH,n=wk.length,gap=7,bw=(W-gap*(n-1))/n;let s='';
+    wk.forEach((w,i)=>{const x=i*(bw+gap),h=plotH*(w.v/max),last=i===n-1,top=baseY-h;
+      s+=`<rect x="${x.toFixed(1)}" y="${top.toFixed(1)}" width="${bw.toFixed(1)}" height="${Math.max(2,h).toFixed(1)}" rx="3" fill="${last?'#1dcdd3':'rgba(29,205,211,.34)'}"/>`;
+      const tall=h>=17,ly=tall?top+12:top-4,cls=tall?(last?'dark':''):'muted';
+      s+=`<text class="g2dval ${cls}" x="${(x+bw/2).toFixed(1)}" y="${ly.toFixed(1)}" text-anchor="middle">${w.v}</text>`;
+      s+=`<text class="g2wk" x="${(x+bw/2).toFixed(1)}" y="${(H-5).toFixed(1)}" text-anchor="middle">${w.label}</text>`;});
+    svg.innerHTML=s;
+    const a3=(wk[5].v+wk[6].v+wk[7].v)/3,p3=(wk[2].v+wk[3].v+wk[4].v)/3,v=$('g2-verdict');let cls,txt;
+    if(a3>p3*1.12){cls='up';txt='↗ Stígandi';}else if(a3<p3*0.88){cls='down';txt='↘ Minnkar';}else{cls='flat';txt='→ Stöðugt';}
+    if(v){v.className='g2-verdict '+cls;v.textContent=txt;}
+    const meta=$('g2-snapmeta');if(meta)meta.textContent='mín á viku · 8 heilar vikur';
+  };
+
+  /* ── compact "Í dag" snippet ── */
+  window.g2RenderToday=function(){
+    const svg=$('g2t-snap');if(!svg)return;TODAY=noon(new Date());
+    const ws=weekStart(TODAY),we=new Date(ws);we.setDate(ws.getDate()+6);const wend=new Date(Math.min(we,TODAY));
+    const mins=Math.round(rangeAgg(ws,wend,'min')),days=activeDays(ws,wend),dc=dayCount(ws,wend);
+    const mEl=$('g2t-mins');if(mEl)mEl.textContent=mins;
+    const dEl=$('g2t-days');if(dEl)dEl.textContent=days+'/'+dc;
+    const wk=[];for(let i=8;i>=1;i--){const a=new Date(ws);a.setDate(ws.getDate()-i*7);const b=new Date(a);b.setDate(a.getDate()+6);wk.push(Math.round(rangeAgg(a,b,'min')));}
+    const max=Math.max(1,...wk),W=360,H=70,n=wk.length,gap=8,bw=(W-gap*(n-1))/n;let s='';
+    wk.forEach((v,i)=>{const x=i*(bw+gap),h=(H-4)*(v/max),last=i===n-1;s+=`<rect x="${x.toFixed(1)}" y="${(H-h).toFixed(1)}" width="${bw.toFixed(1)}" height="${Math.max(2,h).toFixed(1)}" rx="2.5" fill="${last?'#1dcdd3':'rgba(29,205,211,.32)'}"/>`;});
+    svg.innerHTML=s;
+    const a3=(wk[5]+wk[6]+wk[7])/3,p3=(wk[2]+wk[3]+wk[4])/3,v=$('g2t-verdict');let cls,txt;
+    if(a3>p3*1.12){cls='up';txt='↗ Stígandi';}else if(a3<p3*0.88){cls='down';txt='↘ Minnkar';}else{cls='flat';txt='→ Stöðugt';}
+    if(v){v.className='g2-verdict '+cls;v.textContent=txt;}
+  };
+
+  /* ── layer 2 ── */
+  let st={range:'week',metric:'min',focus:noon(new Date()),sel:null};const hist=[];
+  function periodRange(){const f=st.focus;
+    if(st.range==='year')return[new Date(f.getFullYear(),0,1),new Date(Math.min(TODAY,new Date(f.getFullYear(),11,31)))];
+    if(st.range==='month')return[new Date(f.getFullYear(),f.getMonth(),1),new Date(Math.min(TODAY,new Date(f.getFullYear(),f.getMonth()+1,0)))];
+    if(st.range==='week'){const ws=weekStart(f),we=new Date(ws);we.setDate(ws.getDate()+6);return[ws,new Date(Math.min(TODAY,we))];}
+    return[new Date(f.getFullYear(),f.getMonth(),f.getDate()),new Date(f.getFullYear(),f.getMonth(),f.getDate())];}
+  function periodStartFor(d,r){if(r==='year')return new Date(d.getFullYear(),0,1);if(r==='month')return new Date(d.getFullYear(),d.getMonth(),1);if(r==='week')return weekStart(d);return new Date(d.getFullYear(),d.getMonth(),d.getDate());}
+  function atLatest(){return periodStartFor(st.focus,st.range).getTime()>=periodStartFor(TODAY,st.range).getTime();}
+  function buckets(){const m=st.metric,f=st.focus,out=[];
+    if(st.range==='year'){for(let mo=0;mo<12;mo++){const a=new Date(f.getFullYear(),mo,1),b=new Date(f.getFullYear(),mo+1,0);
+      out.push({label:MO[mo],value:rangeAgg(a,b,m),drill:{range:'month',focus:new Date(f.getFullYear(),mo,15)},future:a>TODAY});}}
+    else if(st.range==='month'){const y=f.getFullYear(),mo=f.getMonth(),dim=new Date(y,mo+1,0).getDate();const segs=[];let dd=1;
+      while(dd<=dim){const ss=new Date(y,mo,dd),ws=weekStart(ss),we=new Date(ws);we.setDate(ws.getDate()+6);
+        const endDay=we.getMonth()===mo?Math.min(we.getDate(),dim):dim;segs.push({s:dd,e:endDay,ws:new Date(ws)});dd=endDay+1;}
+      if(segs.length>1&&segs[0].e-segs[0].s+1<4){segs[1].s=segs[0].s;segs.shift();}
+      if(segs.length>1){const L=segs[segs.length-1];if(L.e-L.s+1<4){segs[segs.length-2].e=L.e;segs.pop();}}
+      segs.forEach(g=>{const a=new Date(y,mo,g.s),b=new Date(y,mo,g.e);
+        out.push({label:g.s+'–'+g.e,value:rangeAgg(a,new Date(Math.min(b,TODAY)),m),drill:{range:'week',focus:g.ws},future:a>TODAY});});}
+    else if(st.range==='week'){const ws=weekStart(f);for(let i=0;i<7;i++){const day=new Date(ws);day.setDate(ws.getDate()+i);
+      out.push({label:WD[i],value:rangeAgg(day,day,m),drill:{range:'day',focus:day},future:day>TODAY});}}
+    else{dayList(f).slice().sort((a,b)=>sstart(a)-sstart(b)).forEach((s,i)=>{const v=m==='skipti'?1:m==='min'?smin(s):m==='bls'?sessionPages(s):m==='ord'?sessionWords(s,books()):(sfin(s,f)?1:0);
+      out.push({label:'',value:v,atTime:sstart(s),session:s,sidx:i});});}
+    return out;}
+  function crumb(){const f=st.focus;
+    if(st.range==='year')return['Ár',String(f.getFullYear())];
+    if(st.range==='month')return['Mánuður',MOL[f.getMonth()]+' '+f.getFullYear()];
+    if(st.range==='week'){const ws=weekStart(f),we=new Date(ws);we.setDate(ws.getDate()+6);return['Vika',ws.getDate()+'.–'+we.getDate()+'. '+MO[we.getMonth()]];}
+    return['Dagur',f.getDate()+'. '+MO[f.getMonth()]+' '+f.getFullYear()];}
+  function render(){
+    const M=METRICS[st.metric];const sheet=$('g2-sheet');if(sheet)sheet.style.setProperty('--g2a',M.color);
+    document.querySelectorAll('#g2-metric button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.m===st.metric));
+    document.querySelectorAll('#g2-range button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.r===st.range));
+    $('g2-zoomout').disabled=hist.length===0;$('g2-next').disabled=atLatest();$('g2-estnote').classList.toggle('show',M.est);
+    const c=crumb();$('g2-cscale').textContent=c[0];$('g2-clabel').textContent=c[1];
+    const bks=buckets(),pr=periodRange(),pf=pr[0],pt=pr[1],tot=rangeAgg(pf,pt,st.metric);
+    $('g2-totN').textContent=M.fmt(tot);$('g2-totU').textContent=M.unit;
+    const W=360,H=190,padL=8,padT=10,plotW=W-16,plotH=H-30,baseY=padT+plotH,maxV=Math.max(1,...bks.map(b=>b.value));
+    let s=drawGrid(W,plotH,padL,padT,3,M,maxV);
+    if(st.range==='day'){const t0=360,t1=1320,span=t1-t0;[6,9,12,15,18,21].forEach(h=>{const x=padL+plotW*((h*60-t0)/span);s+=`<text class="g2-ax" x="${x.toFixed(1)}" y="${H-5}" text-anchor="middle">${h}</text>`;});
+      if(!bks.length)s+=`<text class="g2-ax" x="${W/2}" y="${baseY-plotH/2}" text-anchor="middle">Enginn lestur þennan dag</text>`;
+      bks.forEach((b,i)=>{const x=padL+plotW*((b.atTime-t0)/span),h=plotH*(b.value/Math.max(1,maxV)),selc=(st.sel===b.sidx?' sel':'');
+        s+=`<rect class="g2-bar${selc}" data-i="${i}" x="${(x-6.5).toFixed(1)}" y="${(baseY-h).toFixed(1)}" width="13" height="${Math.max(3,h).toFixed(1)}" rx="3" fill="${M.color}"/>`;});
+    }else{const n=bks.length,gap=n>20?1.5:n>12?2.5:5,bw=(plotW-gap*(n-1))/n;
+      bks.forEach((b,i)=>{const x=padL+i*(bw+gap),h=plotH*(b.value/maxV),top=baseY-h;const fill=b.future?'rgba(255,255,255,.05)':(b.value===0?'rgba(255,255,255,.07)':M.color);
+        s+=`<rect class="g2-bar" data-i="${i}" x="${x.toFixed(1)}" y="${top.toFixed(1)}" width="${bw.toFixed(1)}" height="${Math.max(2,h).toFixed(1)}" rx="${Math.min(4,bw/2).toFixed(1)}" fill="${fill}"/>`;
+        if(n<=12&&b.value>0&&!b.future){const tall=h>=17,ly=tall?top+12:top-4,lc=tall?'dark':'muted';s+=`<text class="g2dval ${lc}" x="${(x+bw/2).toFixed(1)}" y="${ly.toFixed(1)}" text-anchor="middle">${M.fmt(b.value)}</text>`;}
+        if(b.label)s+=`<text class="g2-ax" x="${(x+bw/2).toFixed(1)}" y="${H-5}" text-anchor="middle">${b.label}</text>`;});}
+    $('g2-chart').innerHTML=s;$('g2-chart').querySelectorAll('.g2-bar').forEach(r=>r.addEventListener('click',()=>onBar(bks[+r.dataset.i])));
+    const ad=activeDays(pf,pt),dc=dayCount(pf,pt),mn=rangeAgg(pf,pt,'min'),bl=rangeAgg(pf,pt,'bls'),wo=rangeAgg(pf,pt,'ord');
+    const rows=[{k:'_',n:ad+'/'+dc,l:'lesnir dagar'},{k:'min',n:Math.round(mn)+' mín',l:'mínútur'},{k:'bls',n:Math.round(bl)+'',l:'blaðsíður'},{k:'ord',n:'~'+Math.round(wo),l:'orð'}];
+    $('g2-minis').innerHTML=rows.map(x=>`<div class="g2-mini${x.k===st.metric?' active':''}"><div class="n">${x.n}</div><div class="l">${x.l}</div></div>`).join('');
+    const sl=$('g2-slist');
+    if(st.range==='day'){const ses=dayList(st.focus).slice().sort((a,b)=>sstart(a)-sstart(b));sl.style.display='block';
+      sl.innerHTML=ses.length?ses.map((x,i)=>{const h=Math.floor(sstart(x)/60),m2=String(sstart(x)%60).padStart(2,'0');
+        return `<div class="g2-srow" data-si="${i}"><div class="t">${h}:${m2}</div><div><div class="bk">${sbook(x)}${sfin(x,st.focus)?' 📖':''}</div><div class="mt">${smin(x)} mín · ${sessionPages(x)} bls · ~${sessionWords(x,books())} orð</div></div><div class="cv">›</div></div>`;}).join('')
+        :`<div class="g2-empty">Enginn lestur skráður þennan dag.</div>`;
+      sl.querySelectorAll('.g2-srow').forEach(r=>r.addEventListener('click',()=>selectSession(+r.dataset.si)));
+    }else{sl.style.display='none';if(st.sel!==null){st.sel=null;$('g2-detail').classList.remove('show');}}
+  }
+  function onBar(b){if(!b)return;if(st.range==='day'){if(b.session)selectSession(b.sidx);return;}
+    if(b.drill&&!b.future){hist.push({range:st.range,focus:new Date(st.focus)});st.range=b.drill.range;st.focus=b.drill.focus;st.sel=null;$('g2-detail').classList.remove('show');render();}}
+  function shift(dir){const f=new Date(st.focus);
+    if(st.range==='year')f.setFullYear(f.getFullYear()+dir);else if(st.range==='month')f.setMonth(f.getMonth()+dir);else if(st.range==='week')f.setDate(f.getDate()+7*dir);else f.setDate(f.getDate()+dir);
+    if(dir>0&&periodStartFor(f,st.range).getTime()>periodStartFor(TODAY,st.range).getTime())return;
+    st.focus=f;st.sel=null;$('g2-detail').classList.remove('show');render();}
+  function selectSession(i){const ses=dayList(st.focus).slice().sort((a,b)=>sstart(a)-sstart(b)),s=ses[i];if(!s)return;st.sel=i;
+    const h=Math.floor(sstart(s)/60),mn=String(sstart(s)%60).padStart(2,'0'),wd=WDL[(st.focus.getDay()+6)%7],wpm=Math.round(sessionWords(s,books())/Math.max(1,smin(s)));
+    $('g2-dTime').textContent='kl. '+h+':'+mn;$('g2-dDay').textContent=wd+' '+st.focus.getDate()+'. '+MO[st.focus.getMonth()];
+    $('g2-dBook').textContent=sbook(s)+(sfin(s,st.focus)?' (kláraði)':'');$('g2-dLen').textContent=smin(s)+' mín';
+    $('g2-dWords').textContent='~'+sessionWords(s,books())+' orð';$('g2-dSpeed').textContent='~'+wpm+' orð/mín';
+    $('g2-dSpeedRow').classList.remove('show');$('g2-reveal').style.display='block';$('g2-detail').classList.add('show');render();}
+
+  /* ── layer 3: averages ── */
+  let av={gran:'week',offset:0,denom:'all'};
+  function avgWindow(){const N=8,m=st.metric,out=[];
+    for(let k=0;k<N;k++){const idx=av.offset*N+(N-1-k);let a,b,label;
+      if(av.gran==='week'){const ws=weekStart(TODAY);a=new Date(ws);a.setDate(ws.getDate()-idx*7);b=new Date(a);b.setDate(a.getDate()+6);label=a.getDate()+'/'+(a.getMonth()+1);}
+      else{a=new Date(TODAY.getFullYear(),TODAY.getMonth()-idx,1);b=new Date(a.getFullYear(),a.getMonth()+1,0);label=MO[a.getMonth()];}
+      const bc=new Date(Math.min(b,TODAY)),future=a>TODAY,tot=future?0:rangeAgg(a,bc,m),act=future?0:activeDays(a,bc);
+      const denom=av.denom==='all'?Math.max(1,dayCount(a,bc)):Math.max(1,act);
+      out.push({label,value:act?tot/denom:0,future,a,b:bc});}
+    return out;}
+  function renderAvg(){const M=METRICS[st.metric];const sh=$('g2-avg');if(sh)sh.style.setProperty('--g2a',M.color);
+    document.querySelectorAll('#g2-avgMetric button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.m===st.metric));
+    document.querySelectorAll('#g2-avgGran button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.g===av.gran));
+    document.querySelectorAll('#g2-avgDenom button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.d===av.denom));
+    $('g2-avgScale').textContent=av.gran==='week'?'Meðaltal · vikur':'Meðaltal · mánuðir';
+    const wk=avgWindow();$('g2-avgWin').textContent=wk[0].label+' – '+wk[wk.length-1].label;
+    const owS=wk[0].a,owE=wk[wk.length-1].b,owTot=rangeAgg(owS,owE,st.metric),owDen=av.denom==='all'?Math.max(1,dayCount(owS,owE)):Math.max(1,activeDays(owS,owE));
+    $('g2-avgN').textContent=M.fmt1(owTot/owDen);$('g2-avgU').textContent=M.unit+'/dag';
+    $('g2-avgNext').disabled=av.offset===0;$('g2-avgPrev').disabled=false;
+    const W=360,H=180,padL=8,padT=8,plotW=W-16,plotH=H-28,baseY=padT+plotH,maxV=Math.max(.1,...wk.map(w=>w.value));
+    let s=drawGrid(W,plotH,padL,padT,2,M,maxV);const n=wk.length,gap=6,bw=(plotW-gap*(n-1))/n;
+    wk.forEach((w,i)=>{const x=padL+i*(bw+gap),h=plotH*(w.value/maxV),top=baseY-h,fill=w.future?'rgba(255,255,255,.05)':M.color;
+      s+=`<rect x="${x.toFixed(1)}" y="${top.toFixed(1)}" width="${bw.toFixed(1)}" height="${Math.max(2,h).toFixed(1)}" rx="3" fill="${fill}" opacity=".92"/>`;
+      if(w.value>0){const tall=h>=17,ly=tall?top+12:top-4,lc=tall?'dark':'muted';s+=`<text class="g2dval ${lc}" x="${(x+bw/2).toFixed(1)}" y="${ly.toFixed(1)}" text-anchor="middle">${M.fmt1(w.value)}</text>`;}
+      s+=`<text class="g2-ax" x="${(x+bw/2).toFixed(1)}" y="${H-5}" text-anchor="middle">${w.label}</text>`;});
+    $('g2-avgChart').innerHTML=s;
+    const last=wk[wk.length-1];
+    $('g2-avgCap').textContent='Síðasta '+(av.gran==='week'?'vika':'mánuður')+': '+M.fmt1(last.value)+' '+M.unit+' á dag · '+(av.denom==='all'?'deilt með öllum dögum tímabilsins.':'deilt með lesnum dögum.');}
+
+  /* ── build sheets + bind ── */
+  function build(){
+    if($('g2-sheet'))return;
+    const mbtns=m=>`<button data-m="skipti">Skipti</button><button data-m="min" aria-pressed="true">Mín</button><button data-m="bls">Bls</button><button data-m="ord">Orð</button><button data-m="baekur">Bækur</button>`;
+    const wrap=document.createElement('div');
+    wrap.innerHTML=
+    `<div class="g2-sheet" id="g2-sheet">
+      <div class="g2-top"><button class="g2-ic" id="g2-close" aria-label="Loka">✕</button><div class="g2t"><small>Greining</small>Lestrarþróun</div><button class="g2-toplink" id="g2-openavg">Meðaltöl ›</button></div>
+      <div class="g2-body">
+        <div class="g2-seg metric" id="g2-metric">${mbtns()}</div>
+        <div class="g2-seg sub" id="g2-range"><button data-r="day">Dagur</button><button data-r="week" aria-pressed="true">Vika</button><button data-r="month">Mánuður</button><button data-r="year">Ár</button></div>
+        <div class="g2-ctx"><button class="g2-nav" id="g2-zoomout" aria-label="Súmma út">▲</button><button class="g2-nav" id="g2-prev" aria-label="Fyrra">‹</button><div class="g2-crumb"><small id="g2-cscale"></small><span id="g2-clabel"></span></div><button class="g2-nav" id="g2-next" aria-label="Næsta">›</button><div class="g2-tot"><div class="n" id="g2-totN"></div><div class="u" id="g2-totU"></div></div></div>
+        <svg id="g2-chart" viewBox="0 0 360 190" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Lestrargraf"></svg>
+        <p class="g2-estnote" id="g2-estnote">Orð og blaðsíður eru áætluð.</p>
+        <div class="g2-minis" id="g2-minis"></div>
+        <div class="g2-slist" id="g2-slist" style="display:none"></div>
+        <div class="g2-detail" id="g2-detail"><h4>Lestur</h4>
+          <div class="g2-dr"><span>Tímasetning</span><b id="g2-dTime">—</b></div>
+          <div class="g2-dr"><span>Dagur</span><b id="g2-dDay">—</b></div>
+          <div class="g2-dr"><span>Bók</span><b id="g2-dBook">—</b></div>
+          <div class="g2-dr"><span>Lengd</span><b id="g2-dLen">—</b></div>
+          <div class="g2-dr"><span>Áætluð orð</span><b id="g2-dWords">—</b></div>
+          <div class="g2-speed" id="g2-dSpeedRow"><span>Áætlaður hraði<span class="tag">áætlað</span></span><b id="g2-dSpeed">—</b></div>
+          <button class="g2-reveal" id="g2-reveal">Sýna áætlaðan hraða</button></div>
+      </div></div>
+    <div class="g2-sheet" id="g2-avg">
+      <div class="g2-top"><button class="g2-ic" id="g2-avgclose" aria-label="Til baka">‹</button><div class="g2t"><small>Meðaltöl</small>Meðaltal á dag</div></div>
+      <div class="g2-body">
+        <div class="g2-seg metric" id="g2-avgMetric">${mbtns()}</div>
+        <div class="g2-seg sub" id="g2-avgGran"><button data-g="week" aria-pressed="true">Vikur</button><button data-g="month">Mánuðir</button></div>
+        <div class="g2-seg sub" id="g2-avgDenom"><button data-d="all" aria-pressed="true">Allir dagar</button><button data-d="active">Lesnir dagar</button></div>
+        <div class="g2-ctx"><button class="g2-nav" id="g2-avgPrev" aria-label="Eldri">‹</button><div class="g2-crumb"><small id="g2-avgScale"></small><span id="g2-avgWin"></span></div><button class="g2-nav" id="g2-avgNext" aria-label="Nýrri">›</button><div class="g2-tot"><div class="n" id="g2-avgN"></div><div class="u" id="g2-avgU"></div></div></div>
+        <svg id="g2-avgChart" viewBox="0 0 360 180" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Meðaltalsgraf"></svg>
+        <p class="g2-cap" id="g2-avgCap"></p>
+      </div></div>`;
+    document.body.appendChild(wrap);
+    $('g2-close').addEventListener('click',()=>$('g2-sheet').classList.remove('open'));
+    $('g2-openavg').addEventListener('click',()=>{$('g2-avg').classList.add('open');renderAvg();});
+    $('g2-avgclose').addEventListener('click',()=>$('g2-avg').classList.remove('open'));
+    $('g2-reveal').addEventListener('click',()=>{$('g2-dSpeedRow').classList.add('show');$('g2-reveal').style.display='none';});
+    document.querySelectorAll('#g2-metric button').forEach(b=>b.addEventListener('click',()=>{st.metric=b.dataset.m;render();}));
+    document.querySelectorAll('#g2-range button').forEach(b=>b.addEventListener('click',()=>{hist.length=0;st.range=b.dataset.r;st.focus=noon(new Date());st.sel=null;$('g2-detail').classList.remove('show');render();}));
+    $('g2-zoomout').addEventListener('click',()=>{if(hist.length){const p=hist.pop();st.range=p.range;st.focus=p.focus;st.sel=null;$('g2-detail').classList.remove('show');render();}});
+    $('g2-prev').addEventListener('click',()=>shift(-1));$('g2-next').addEventListener('click',()=>shift(1));
+    document.querySelectorAll('#g2-avgMetric button').forEach(b=>b.addEventListener('click',()=>{st.metric=b.dataset.m;renderAvg();}));
+    document.querySelectorAll('#g2-avgGran button').forEach(b=>b.addEventListener('click',()=>{av.gran=b.dataset.g;av.offset=0;renderAvg();}));
+    document.querySelectorAll('#g2-avgDenom button').forEach(b=>b.addEventListener('click',()=>{av.denom=b.dataset.d;renderAvg();}));
+    $('g2-avgPrev').addEventListener('click',()=>{av.offset++;renderAvg();});
+    $('g2-avgNext').addEventListener('click',()=>{if(av.offset>0){av.offset--;renderAvg();}});
+  }
+
+  window.g2Open=function(){TODAY=noon(new Date());st.range='week';st.focus=noon(new Date());st.sel=null;hist.length=0;build();$('g2-detail').classList.remove('show');$('g2-sheet').classList.add('open');render();};
+
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{build();g2RenderSnap();g2RenderToday();});
+  else{build();g2RenderSnap();g2RenderToday();}
+})();
+
 </script>
 </body>
 </html>

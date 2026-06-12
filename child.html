@@ -2,6 +2,29 @@
 <html lang="is">
 <head>
 <meta charset="utf-8">
+<!-- ── Google Analytics 4 + Consent Mode (deilir samþykki við index/forsíðu) ── -->
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){ dataLayer.push(arguments); }
+  gtag('consent', 'default', { analytics_storage:'denied', ad_storage:'denied',
+    ad_user_data:'denied', ad_personalization:'denied', wait_for_update:500 });
+  (function(){ var m=document.cookie.match(/(?:^|;\s*)upphatt_consent=([^;]+)/);
+    if(m && decodeURIComponent(m[1])==='granted') gtag('consent','update',{analytics_storage:'granted'}); })();
+  gtag('js', new Date());
+  gtag('config', 'G-HB25NF1TQ7');
+  // Sjálfstæð track(): les sama samþykkis-cookie, sendir AÐEINS cohort-gögn (engin PII)
+  window.track = function(name, params){
+    try {
+      var m=document.cookie.match(/(?:^|;\s*)upphatt_consent=([^;]+)/);
+      if(!m || decodeURIComponent(m[1])!=='granted') return;
+      if(typeof gtag!=='function') return;
+      gtag('event', name, Object.assign({ pilot_group:(localStorage.getItem('upphattPilotGroup')||'none') }, params||{}));
+    } catch(e){}
+  };
+</script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-HB25NF1TQ7"></script>
+<!-- ───────────────────────────────────────────────────────────────────────── -->
+
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
 <!-- PWA + Favicon -->
 <meta name="theme-color" content="#07101e">
@@ -4444,6 +4467,7 @@ window._child = { auth, db, storage, functions, CS, ensureAuth, getChildSession,
 
           mediaRecorder = new MediaRecorder(stream);
           mediaRecorder.start(1000);
+          if (window.track) track('recording_start');
           scheduleSnippetCaptures();
 
           isRecording = true;
@@ -4480,6 +4504,7 @@ window._child = { auth, db, storage, functions, CS, ensureAuth, getChildSession,
       }
 
       function stopRecording() {
+        if (window.track) track('recording_stop');
         playMicCue("off");
         transitionToSaving();
       }
@@ -4509,6 +4534,7 @@ window._child = { auth, db, storage, functions, CS, ensureAuth, getChildSession,
           setTimeout(function () {
             window.saveChildV2Session(pendingSavePayload).then(function (result) {
               if (result && result.saved) {
+                if (window.track) track('recording_saved');
                 lastSavedSessionId = result.sessionId || null;
                 pendingSavePayload = null;
                 openPostSavePopup();
@@ -4518,6 +4544,7 @@ window._child = { auth, db, storage, functions, CS, ensureAuth, getChildSession,
               buttonState = "idle";
               updateButtonUI();
             }).catch(function () {
+              if (window.track) track('recording_save_error');
               helperTextEl.textContent = "Villa. Reyndu aftur.";
               buttonState = "saving";
               updateButtonUI();
@@ -6096,6 +6123,7 @@ async function addBook(d){
     d.coverBase64=null;
   }
   const ref=await addDoc(collection(db,'books'),d);
+  try { if (window.track) track('book_saved'); } catch (e) {}
   // Cache local base64 thumbnail (not URL) for instant render
   const localSrc=curCovHQ||curCov;
   if(localSrc&&isDataImg(localSrc)){
@@ -6758,6 +6786,7 @@ function resetF(){
   setReady();
 }
 function openAddM(){
+  if (window.track) track('book_add_start');
   resetF();
   openOv('addModal');
   setTimeout(()=>document.getElementById('bookTitle')?.focus(),100);
@@ -7013,7 +7042,8 @@ document.getElementById('pageInput').addEventListener('change', async e => {
       reader.readAsDataURL(file);
     });
     document.getElementById('pagePreviewImg').src = dataUrl;
-    showStep2Substep('processing');
+
+    if (window.track) track('book_photo_taken');    showStep2Substep('processing');
     const base64 = dataUrl.split(',')[1];
     const analyze = httpsCallable(functions, 'analyzePageText');
     const result = await analyze({
@@ -7026,9 +7056,11 @@ document.getElementById('pageInput').addEventListener('change', async e => {
     _pendingSampleId = result.data.sampleId;
     renderAnalysisPreview(result.data, dataUrl);
     showStep2Substep('result');
+    if (window.track) track('book_text_parsed');
   } catch (err) {
     console.error('analyzePageText villa:', err);
     const details = err.details || {};
+    if (window.track) track('book_parse_error', { reason: (details.code || err.code || 'unknown') });
     if (details.code === 'unsuitable_page' || err.code === 'failed-precondition') {
       const advice = details.advice || err.message || FALLBACK_PHOTO_ADVICE;
       document.getElementById('photoAdviceText').textContent = advice;

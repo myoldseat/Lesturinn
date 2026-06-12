@@ -2,6 +2,44 @@
 <html lang="is">
 <head>
 <meta charset="UTF-8">
+
+<!-- ── Google Analytics 4 + Consent Mode v2 ──────────────────────────── -->
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){ dataLayer.push(arguments); }
+  // Sjálfgefið: ENGAR greiningarkökur fyrr en notandi samþykkir
+  gtag('consent', 'default', {
+    analytics_storage: 'denied',
+    ad_storage: 'denied',
+    ad_user_data: 'denied',
+    ad_personalization: 'denied',
+    wait_for_update: 500
+  });
+  // Mundu fyrra samþykki (deilt yfir upphatt.is + app.upphatt.is)
+  (function () {
+    var m = document.cookie.match(/(?:^|;\s*)upphatt_consent=([^;]+)/);
+    if (m && decodeURIComponent(m[1]) === 'granted') {
+      gtag('consent', 'update', { analytics_storage: 'granted' });
+    }
+  })();
+  gtag('js', new Date());
+  gtag('config', 'G-HB25NF1TQ7');
+
+  // PII-laus event-helper (cohort) — sendir EKKERT án samþykkis
+  window.track = function (name, params) {
+    try {
+      if (!window.UpphattConsent || UpphattConsent.read() !== 'granted') return;
+      if (typeof gtag !== 'function') return;
+      gtag('event', name, Object.assign(
+        { pilot_group: (localStorage.getItem('upphattPilotGroup') || 'none') },
+        params || {}
+      ));
+    } catch (e) {}
+  };
+</script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-HB25NF1TQ7"></script>
+<!-- ──────────────────────────────────────────────────────────────────── -->
+
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -30,6 +68,240 @@
   .rg-google-btn { display: none !important; }
   .rg-or { display: flex; align-items: center; gap: 10px; color: #7f95a8; font-size: 12px; margin: 6px 0 12px; }
   .rg-or::before, .rg-or::after { content: ""; flex: 1; height: 1px; background: rgba(255,255,255,.12); }
+</style>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style id="pl-styles">
+  /* Tokens — samhljóða heimasíðunni. (Eru líklega til nú þegar í styles.css;
+     ef svo er má sleppa þessum :root-bút.) */
+  #screen-pilot-landing {
+    --bg: #050b14;
+    --surface: #071221;
+    --teal: #1dcdd3;
+    --teal-dim: rgba(29,205,211,0.10);
+    --white: #f0f4f8;
+    --muted: #7a8fa6;
+    --dim: #4a5f78;
+    --border: rgba(255,255,255,0.06);
+    --font-display: 'Sora', sans-serif;
+    --font-body: 'DM Sans', sans-serif;
+  }
+
+  /* .screen / .screen.active koma úr styles.css appsins */
+
+  /* ── SKJÁRINN ───────────────────────────────────────────────────────── */
+  #screen-pilot-landing {
+    position: fixed; inset: 0;
+    background: var(--bg);
+    color: var(--white);
+    font-family: var(--font-body);
+    overflow-y: auto;
+    -webkit-tap-highlight-color: transparent;
+  }
+  #screen-pilot-landing * { box-sizing: border-box; }
+
+  /* Orb — scoped svo hann leki ekki á aðra skjái */
+  #screen-pilot-landing .pl-orb {
+    position: fixed; top: 40%; left: 50%;
+    transform: translate(-50%,-50%);
+    width: min(105vw, 520px); aspect-ratio: 1/1; border-radius: 50%;
+    background: radial-gradient(circle,
+      rgba(29,205,211,0.55) 0%, rgba(29,205,211,0.26) 34%,
+      rgba(29,205,211,0.07) 64%, transparent 82%);
+    filter: blur(26px); pointer-events: none; z-index: 0;
+    animation: pl-breathe 8.5s ease-in-out infinite;
+  }
+  @keyframes pl-breathe {
+    0%,100% { transform: translate(-50%,-50%) scale(0.80); opacity: 0.36; }
+    50%     { transform: translate(-50%,-50%) scale(1.55); opacity: 0.78; }
+  }
+
+  /* Vörumerki efst */
+  #screen-pilot-landing .pl-brand {
+    position: relative; z-index: 2;
+    display: flex; flex-direction: column; gap: 2px;
+    padding: calc(env(safe-area-inset-top, 0px) + 20px) 24px 0;
+  }
+  #screen-pilot-landing .pl-logo {
+    font-family: var(--font-display); font-size: 1.3rem; font-weight: 700;
+    letter-spacing: -0.03em; line-height: 1;
+  }
+  #screen-pilot-landing .pl-logo .upp  { color: var(--teal); }
+  #screen-pilot-landing .pl-logo .hatt { color: var(--white); }
+  #screen-pilot-landing .pl-logo-tag {
+    font-size: 0.74rem; color: rgba(240,244,248,0.78); letter-spacing: 0.01em;
+  }
+
+  /* Svið — heldur báðum view-um (hero + walkthrough) miðjuðum */
+  #screen-pilot-landing .pl-stage {
+    position: relative; z-index: 1;
+    min-height: calc(100dvh - 70px);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center;
+    padding: 24px 26px calc(40px + env(safe-area-inset-bottom, 0px));
+  }
+  #screen-pilot-landing .pl-view { width: 100%; max-width: 440px; }
+  #screen-pilot-landing .pl-view[hidden] { display: none; }
+  #screen-pilot-landing .pl-view > * { animation: pl-fadeUp 0.5s ease both; }
+  #screen-pilot-landing .pl-view > *:nth-child(1) { animation-delay: 0.05s; }
+  #screen-pilot-landing .pl-view > *:nth-child(2) { animation-delay: 0.12s; }
+  #screen-pilot-landing .pl-view > *:nth-child(3) { animation-delay: 0.19s; }
+  #screen-pilot-landing .pl-view > *:nth-child(4) { animation-delay: 0.26s; }
+  #screen-pilot-landing .pl-view > *:nth-child(5) { animation-delay: 0.33s; }
+  @keyframes pl-fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* ── HERO ───────────────────────────────────────────────────────────── */
+  #screen-pilot-landing .pl-eyebrow {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--teal-dim); border: 1px solid rgba(29,205,211,0.18);
+    color: var(--teal); font-size: 0.64rem; font-weight: 500;
+    letter-spacing: 0.10em; text-transform: uppercase;
+    padding: 5px 12px; border-radius: 100px; margin-bottom: 22px;
+  }
+  #screen-pilot-landing .pl-eyebrow::before {
+    content: ''; width: 5px; height: 5px; border-radius: 50%;
+    background: var(--teal); flex-shrink: 0;
+  }
+  #screen-pilot-landing .pl-title {
+    font-family: var(--font-display);
+    font-size: clamp(2.0rem, 9vw, 3.0rem);
+    font-weight: 700; line-height: 1.12; letter-spacing: -0.03em;
+    color: var(--white); margin-bottom: 14px;
+  }
+  #screen-pilot-landing .pl-title .accent { color: var(--teal); }
+  #screen-pilot-landing .pl-sub {
+    font-size: 0.9rem; font-weight: 300; color: var(--muted);
+    line-height: 1.65; max-width: 320px; margin: 0 auto 30px;
+  }
+
+  /* CTA-stafli */
+  #screen-pilot-landing .pl-ctas {
+    display: flex; flex-direction: column; align-items: center; gap: 12px;
+  }
+  #screen-pilot-landing .pl-btn-primary,
+  #screen-pilot-landing .pl-btn-secondary {
+    width: 100%; max-width: 320px;
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    font-family: var(--font-display); font-weight: 600; font-size: 0.92rem;
+    padding: 14px 26px; border-radius: 100px; cursor: pointer;
+    transition: transform .16s, box-shadow .16s, border-color .16s, background .16s;
+  }
+  #screen-pilot-landing .pl-btn-primary {
+    background: var(--teal); color: #050b14; border: none;
+    box-shadow: 0 0 22px rgba(29,205,211,0.40), 0 0 60px rgba(29,205,211,0.14);
+  }
+  #screen-pilot-landing .pl-btn-primary:active { transform: scale(0.97); box-shadow: 0 0 40px rgba(29,205,211,0.70); }
+  #screen-pilot-landing .pl-btn-secondary {
+    background: transparent; color: var(--white);
+    border: 1px solid rgba(29,205,211,0.28);
+  }
+  #screen-pilot-landing .pl-btn-secondary:active { transform: scale(0.97); border-color: var(--teal); background: var(--teal-dim); }
+  #screen-pilot-landing .pl-btn-ghost {
+    background: none; border: none; cursor: pointer;
+    color: var(--muted); font-family: var(--font-body); font-size: 0.82rem;
+    padding: 6px 10px; margin-top: 2px; transition: color .2s;
+  }
+  #screen-pilot-landing .pl-btn-ghost u { color: var(--teal); text-decoration: none; }
+  #screen-pilot-landing .pl-btn-ghost:active { color: var(--white); }
+  #screen-pilot-landing .pl-note {
+    margin-top: 16px; font-size: 0.68rem; color: var(--dim); letter-spacing: 0.02em;
+  }
+
+  /* ── WALKTHROUGH ────────────────────────────────────────────────────── */
+  #screen-pilot-landing .pl-progress { margin-bottom: 22px; }
+  #screen-pilot-landing .pl-bar {
+    width: 100%; max-width: 220px; height: 3px; margin: 0 auto 14px;
+    background: rgba(255,255,255,0.08); border-radius: 100px; overflow: hidden;
+  }
+  #screen-pilot-landing .pl-bar-fill {
+    height: 100%; width: 0%; background: var(--teal); border-radius: 100px;
+    box-shadow: 0 0 10px rgba(29,205,211,0.5);
+    transition: width .35s cubic-bezier(0.34,1,0.64,1);
+  }
+  #screen-pilot-landing .pl-dots { display: flex; justify-content: center; gap: 7px; margin-bottom: 6px; }
+  #screen-pilot-landing .pl-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: rgba(255,255,255,0.16); transition: background .25s, transform .25s;
+  }
+  #screen-pilot-landing .pl-dot.done   { background: rgba(29,205,211,0.45); }
+  #screen-pilot-landing .pl-dot.active { background: var(--teal); transform: scale(1.35); }
+  #screen-pilot-landing .pl-step-count {
+    font-size: 0.62rem; letter-spacing: 0.10em; text-transform: uppercase; color: var(--teal);
+  }
+
+  #screen-pilot-landing .pl-step-icon {
+    width: 56px; height: 56px; margin: 0 auto 18px;
+    background: var(--teal-dim); border: 1px solid rgba(29,205,211,0.18);
+    border-radius: 15px; display: flex; align-items: center; justify-content: center;
+  }
+  #screen-pilot-landing .pl-step-title {
+    font-family: var(--font-display); font-size: clamp(1.35rem, 6vw, 1.7rem);
+    font-weight: 700; letter-spacing: -0.02em; color: var(--white); margin-bottom: 10px;
+  }
+  #screen-pilot-landing .pl-step-body {
+    font-size: 0.9rem; font-weight: 300; color: var(--muted);
+    line-height: 1.7; max-width: 340px; margin: 0 auto 30px; min-height: 78px;
+  }
+  #screen-pilot-landing .pl-controls {
+    display: flex; align-items: center; gap: 10px;
+    width: 100%; max-width: 320px; margin: 0 auto;
+  }
+  #screen-pilot-landing .pl-back {
+    flex: none; width: 46px; height: 46px; border-radius: 100px;
+    background: transparent; border: 1px solid var(--border); color: var(--muted);
+    cursor: pointer; font-size: 1.1rem; display: flex; align-items: center; justify-content: center;
+    transition: border-color .2s, color .2s, opacity .2s;
+  }
+  #screen-pilot-landing .pl-back:active { color: var(--white); border-color: rgba(29,205,211,0.3); }
+  #screen-pilot-landing .pl-back[disabled] { opacity: 0; pointer-events: none; }
+  #screen-pilot-landing .pl-next {
+    flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+    background: var(--teal); color: #050b14; border: none; cursor: pointer;
+    font-family: var(--font-display); font-weight: 600; font-size: 0.9rem;
+    padding: 14px; border-radius: 100px;
+    box-shadow: 0 0 18px rgba(29,205,211,0.33);
+    transition: transform .15s;
+  }
+  #screen-pilot-landing .pl-next:active { transform: scale(0.98); }
+  #screen-pilot-landing .pl-skip {
+    display: block; margin: 16px auto 0;
+    background: none; border: none; cursor: pointer;
+    color: var(--dim); font-family: var(--font-body); font-size: 0.78rem;
+    padding: 6px 10px; transition: color .2s;
+  }
+  #screen-pilot-landing .pl-skip:active { color: var(--muted); }
+
+  /* Lyklaborðs-fókus sýnilegur (gæða-gólf) */
+  #screen-pilot-landing button:focus-visible {
+    outline: 2px solid var(--teal); outline-offset: 2px;
+  }
+
+  /* Lítil staðfestingar-tóast fyrir preview (CTA-tengingar) */
+  #screen-pilot-landing .pl-toast {
+    position: fixed; left: 50%; bottom: calc(26px + env(safe-area-inset-bottom, 0px));
+    transform: translateX(-50%) translateY(20px);
+    z-index: 9; background: #0c1926; border: 1px solid rgba(29,205,211,0.22);
+    color: var(--white); font-size: 0.82rem; padding: 11px 18px; border-radius: 100px;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.4); opacity: 0; pointer-events: none;
+    transition: opacity .25s, transform .25s;
+  }
+  #screen-pilot-landing .pl-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* ── DESKTOP ────────────────────────────────────────────────────────── */
+  @media (min-width: 900px) {
+    #screen-pilot-landing .pl-orb { width: min(60vw, 620px); top: 44%; }
+    #screen-pilot-landing .pl-stage { min-height: calc(100dvh - 80px); }
+    #screen-pilot-landing .pl-view { max-width: 480px; }
+    #screen-pilot-landing .pl-title { font-size: 3.6rem; }
+    #screen-pilot-landing .pl-sub { font-size: 1.02rem; max-width: 360px; }
+    #screen-pilot-landing .pl-step-icon { width: 64px; height: 64px; }
+  }
+
+  /* ── REDUCED MOTION ─────────────────────────────────────────────────── */
+  @media (prefers-reduced-motion: reduce) {
+    #screen-pilot-landing .pl-orb { animation: none; }
+    #screen-pilot-landing .pl-view > * { animation: none; }
+    #screen-pilot-landing .pl-bar-fill { transition: none; }
+  }
 </style>
 </head>
 <body>
@@ -82,7 +354,59 @@
     </div>
     <div class="cl-divider"><span>eða</span></div>
     <button class="cl-parent-link" onclick="openParentLoginPopup()">Foreldrar og forsjáraðilar hingað !</button>
+    <button class="pl-legal-link" onclick="openLegal('privacy')" style="display:block;margin:14px auto 0">Friðhelgi og skilmálar</button>
   </div>
+</div>
+
+
+<div id="screen-pilot-landing" class="screen">
+  <div class="pl-orb" aria-hidden="true"></div>
+
+  <div class="pl-brand">
+    <div class="pl-logo"><span class="upp">Upp</span><span class="hatt">Hátt</span></div>
+    <div class="pl-logo-tag">Barnið les · Fjölskyldan hlustar</div>
+  </div>
+
+  <div class="pl-stage">
+
+    <!-- ── VIEW: HERO (sýnist alltaf fyrst) ─────────────────────────────── -->
+    <div class="pl-view" id="pl-hero">
+      <div class="pl-eyebrow">Sumarsprettur</div>
+      <h1 class="pl-title">Heimalesturinn<br><span class="accent">gengur upp</span></h1>
+      <p class="pl-sub">Stofnaðu aðgang, bættu barninu þínu við — og það byrjar að lesa með leynikóða.</p>
+
+      <div class="pl-ctas">
+        <button class="pl-btn-primary" onclick="PilotLanding.goSignup()">Byrja sumarprófun</button>
+        <button class="pl-btn-secondary" id="pl-walk-cta" onclick="PilotWalkthrough.start()">Sjá hvernig þetta virkar</button>
+        <button class="pl-btn-ghost" onclick="PilotLanding.goLogin()">Ég er með aðgang — <u>Innskráning</u></button>
+      </div>
+
+      <div class="pl-note">Engin binding — prófun með fyrstu fjölskyldunum</div>
+        <button class="pl-legal-link" onclick="openLegal('privacy')">Friðhelgi og skilmálar</button>
+    </div>
+
+    <!-- ── VIEW: WALKTHROUGH (sami skjár, ekki popup) ───────────────────── -->
+    <div class="pl-view" id="pl-walk" hidden>
+      <div class="pl-progress">
+        <div class="pl-bar"><div class="pl-bar-fill" id="pl-bar-fill"></div></div>
+        <div class="pl-dots" id="pl-dots"></div>
+        <div class="pl-step-count" id="pl-step-count"></div>
+      </div>
+
+      <div class="pl-step-icon" id="pl-step-icon" aria-hidden="true"></div>
+      <h2 class="pl-step-title" id="pl-step-title"></h2>
+      <p class="pl-step-body" id="pl-step-body"></p>
+
+      <div class="pl-controls">
+        <button class="pl-back" id="pl-back" onclick="PilotWalkthrough.prev()" aria-label="Til baka">←</button>
+        <button class="pl-next" id="pl-next" onclick="PilotWalkthrough.next()"></button>
+      </div>
+      <button class="pl-skip" onclick="PilotWalkthrough.skip()">Sleppa útskýringu</button>
+    </div>
+
+  </div>
+
+  <div class="pl-toast" id="pl-toast"></div>
 </div>
 
 
@@ -126,6 +450,7 @@
       <button class="rg-popup-btn" onclick="parentLoginFromPopup()">Skrá inn</button>
       <p class="rg-popup-signup">Ertu ekki með reikning? <span onclick="openSignupPopup()" class="rg-popup-signup-link">Nýskrá hér</span></p>
       <p class="rg-popup-signup">Ert þú fjölskylda? <span onclick="showFamJoin()" class="rg-popup-signup-link">Tengjast hér</span></p>
+      <button class="pl-legal-link" onclick="openLegal('privacy')" style="display:block;margin:10px auto 0">Friðhelgi og skilmálar</button>
     </div>
 
     <!-- View B: Gleymt lykilorð -->
@@ -205,10 +530,11 @@
       <div class="rg-field"><label class="rg-label" for="su-email">Netfang</label><input id="su-email" class="rg-input" type="email" autocomplete="email" placeholder="foreldri@dæmi.is"></div>
       <div class="rg-field"><label class="rg-label" for="su-pw">Lykilorð</label><div class="pw-wrap"><input id="su-pw" class="rg-input" type="password" autocomplete="new-password" placeholder="Minnst 6 stafir"><button type="button" class="pw-eye" aria-label="Sýna lykilorð" onclick="togglePw('su-pw', this)">SÝNA</button></div></div>
       <div class="rg-field"><label class="rg-label" for="su-pw2">Staðfesta lykilorð</label><div class="pw-wrap"><input id="su-pw2" class="rg-input" type="password" autocomplete="new-password" placeholder="••••••••"><button type="button" class="pw-eye" aria-label="Sýna lykilorð" onclick="togglePw('su-pw2', this)">SÝNA</button></div></div>
-      <label class="rg-consent"><input type="checkbox" id="su-consent"> <span>Ég hef lesið og samþykki <a href="#" onclick="openTermsPopup(); return false;">skilmála UppHátt</a></span></label>
+      <label class="rg-consent"><input type="checkbox" id="su-consent"> <span>Ég hef lesið og samþykki <a href="#" onclick="openLegal('terms'); return false;">skilmála og persónuverndarstefnu UppHátt</a></span></label>
       <div id="signup-error" class="rg-popup-error"></div>
       <button class="rg-popup-btn" onclick="submitSignupPopup()">Stofna aðgang</button>
       <p class="rg-popup-signup">Ertu þegar með reikning? <span onclick="backToLoginFromSignup()" class="rg-popup-signup-link">Innskrá hér</span></p>
+      <button class="pl-legal-link" onclick="openLegal('privacy')" style="display:block;margin:10px auto 0">Friðhelgi og skilmálar</button>
     </div>
     <div id="signup-view-success" class="rg-popup-body" style="display:none">
       <div style="text-align:center;padding:12px 0 20px">
@@ -234,17 +560,249 @@
     <div id="admin-content"></div>
   </div>
 </div>
+<style id="lg-styles">
+  #terms-popup{ position:fixed; inset:0; z-index:10000; align-items:center; justify-content:center;
+    padding:16px; background:rgba(3,9,17,.74); -webkit-backdrop-filter:blur(4px); backdrop-filter:blur(4px);
+    font-family:'DM Sans',system-ui,-apple-system,sans-serif; }
+  #terms-popup .lg-card{ width:min(94vw,640px); max-height:88vh; display:flex; flex-direction:column;
+    overflow:hidden; background:#0b1726; border:1px solid rgba(29,205,211,.18); border-radius:18px;
+    box-shadow:0 30px 90px rgba(0,0,0,.55); color:#cdd9e5; }
+  #terms-popup .lg-head{ position:relative; padding:18px 20px 0; flex:0 0 auto; }
+  #terms-popup .lg-title{ font-family:'Sora',sans-serif; font-size:1.05rem; font-weight:700; color:#f0f4f8;
+    margin:0 0 14px; letter-spacing:-.01em; }
+  #terms-popup .lg-x{ position:absolute; top:14px; right:14px; width:34px; height:34px; border-radius:50%;
+    background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.1); color:#9fb0c2; font-size:17px;
+    line-height:1; cursor:pointer; }
+  #terms-popup .lg-tabs{ display:flex; gap:6px; border-bottom:1px solid rgba(255,255,255,.08); }
+  #terms-popup .lg-tab{ flex:1; background:none; border:none; cursor:pointer; padding:11px 8px; font:inherit;
+    font-size:13px; font-weight:700; color:#7a8fa6; border-bottom:2px solid transparent; margin-bottom:-1px; }
+  #terms-popup .lg-tab.is-active{ color:#1dcdd3; border-bottom-color:#1dcdd3; }
+  #terms-popup .lg-body{ flex:1 1 auto; overflow-y:auto; padding:16px 20px 20px; -webkit-overflow-scrolling:touch; }
+  #terms-popup .lg-panel[hidden]{ display:none; }
+  #terms-popup .lg-doc-title{ font-family:'Sora',sans-serif; font-size:1rem; font-weight:700; color:#f0f4f8; margin:0 0 1px; }
+  #terms-popup .lg-meta{ font-size:11px; color:#5f7488; margin:0 0 12px; }
+  #terms-popup h4{ font-family:'Sora',sans-serif; font-size:13.5px; font-weight:700; color:#e6eef6; margin:17px 0 5px; }
+  #terms-popup p{ font-size:13px; line-height:1.62; margin:0 0 9px; }
+  #terms-popup ul{ margin:4px 0 10px; padding-left:18px; }
+  #terms-popup li{ font-size:13px; line-height:1.55; margin:2px 0; }
+  #terms-popup .lg-review{ background:rgba(245,179,66,.14); border:1px solid rgba(245,179,66,.34);
+    color:#f6c761; border-radius:5px; padding:0 5px; font-weight:600; }
+  #terms-popup .lg-review-banner{ background:rgba(245,179,66,.1); border:1px solid rgba(245,179,66,.3);
+    color:#f3c46a; border-radius:10px; padding:10px 12px; font-size:12px; line-height:1.5; margin:0 0 14px; }
+  #terms-popup .lg-foot{ flex:0 0 auto; padding:12px 20px 16px; border-top:1px solid rgba(255,255,255,.07); }
+  #terms-popup .lg-close-btn{ width:100%; background:#1dcdd3; color:#04222a; border:none; border-radius:100px;
+    padding:13px; font:inherit; font-weight:700; cursor:pointer; }
+  #terms-popup .lg-close-btn:active{ transform:scale(.99); }
+  .pl-legal-link{ background:none; border:none; cursor:pointer; margin-top:10px; font-family:'DM Sans',sans-serif;
+    font-size:.7rem; color:#4a5f78; text-decoration:underline; text-underline-offset:2px; }
+  .pl-legal-link:hover{ color:#7a8fa6; }
+  @media (max-width:560px){
+    #terms-popup{ padding:0; }
+    #terms-popup .lg-card{ width:100vw; max-height:100dvh; height:100dvh; border-radius:0; border:0; }
+  }
+</style>
+
 <!-- ═══════════════════════════════════════
-     POPUP: SKILMÁLAR (placeholder)
+     POPUP: FRIÐHELGI & SKILMÁLAR
 ════════════════════════════════════════ -->
-<div id="terms-popup" class="modal-overlay" style="display:none">
-  <div class="rg-popup-card" style="max-height:85vh;overflow-y:auto">
-    <button class="rg-popup-close" onclick="closeTermsPopup()" aria-label="Loka">✕</button>
-    <div class="rg-popup-header"><p class="rg-popup-subtitle">Skilmálar UppHátt</p></div>
-    <div class="rg-popup-body" style="text-align:left;font-size:14px;line-height:1.6;color:#cdd9e5">
-      <p><strong>[Skilmálar koma hér]</strong></p>
-      <p>Settu lokatexta skilmálanna hér — og sama texta neðst á app.upphatt.is. Þetta er textinn sem notandinn samþykkir við nýskráningu.</p>
-      <button class="rg-popup-btn" style="margin-top:14px" onclick="closeTermsPopup()">Loka</button>
+<div id="terms-popup" style="display:none" onclick="if(event.target===this)closeTermsPopup()">
+  <div class="lg-card">
+    <div class="lg-head">
+      <button class="lg-x" onclick="closeTermsPopup()" aria-label="Loka">✕</button>
+      <h3 class="lg-title">Friðhelgi og skilmálar</h3>
+      <div class="lg-tabs">
+        <button class="lg-tab is-active" data-lg="privacy" onclick="switchLegalTab('privacy')">Friðhelgi</button>
+        <button class="lg-tab" data-lg="terms" onclick="switchLegalTab('terms')">Skilmálar</button>
+      </div>
+    </div>
+
+    <div class="lg-body">
+      <div class="lg-review-banner">Drög til yfirlestrar. <span class="lg-review">Gulmerktir</span> hlutar þarf að fylla út eða staðfesta. Mælt með lögfræðilegum yfirlestri áður en pilot fer í loftið — sérstaklega vegna barna og hljóðupptaka.</div>
+
+      <!-- ══════════════ FRIÐHELGI / PERSÓNUVERND ══════════════ -->
+      <div class="lg-panel" id="lg-privacy">
+        <div class="lg-doc-title">Persónuverndarstefna UppHátt</div>
+        <div class="lg-meta">Síðast uppfært: <span class="lg-review">[dagsetning]</span></div>
+
+        <h4>1. Inngangur</h4>
+        <p>Þessi persónuverndarstefna útskýrir hvernig UppHátt vinnur persónuupplýsingar foreldra, barna og tengdra fjölskyldumeðlima þegar þjónustan er notuð.</p>
+        <p>UppHátt er heimalestrarþjónusta þar sem foreldrar geta skráð börn, haldið utan um lestur, vistað tímabundnar hljóðupptökur og veitt fjölskyldumeðlimum aðgang að hlustun þar sem það á við. Þjónustan getur einnig notað myndir af bókakápum eða bókasíðum til að bera kennsl á bók eða áætla textamagn á síðu.</p>
+        <p>Persónuvernd barna er lykilatriði í UppHátt. Við leggjum áherslu á eftirfarandi:</p>
+        <ul>
+          <li>Við söfnum aðeins þeim upplýsingum sem nauðsynlegar eru til að veita þjónustuna.</li>
+          <li>Við seljum ekki persónuupplýsingar.</li>
+          <li>Við notum ekki persónuupplýsingar barna í auglýsingaskyni.</li>
+          <li>Við notum ekki hljóðupptökur til raddauðkenningar eða lífkennagreiningar.</li>
+          <li>Við sendum ekki hljóðupptökur til gervigreindar.</li>
+          <li>Foreldri hefur stjórn á gögnum barnsins í þjónustunni.</li>
+          <li>Hljóðupptökur eru aðeins geymdar tímabundið nema foreldri eða samþykktur fjölskyldumeðlimur stjörnumerki upptöku þar sem slík virkni er í boði.</li>
+        </ul>
+
+        <h4>2. Ábyrgðaraðili</h4>
+        <p>Ábyrgðaraðili vinnslu persónuupplýsinga er: <span class="lg-review">[UppHátt / nafn rekstraraðila / félag síðar]</span></p>
+        <p>Hægt er að hafa samband vegna persónuverndarmála á: <span class="lg-review">[persónuverndarnetfang]</span></p>
+        <p>Í B2C/pilot-notkun er UppHátt ábyrgðaraðili vinnslu. Ef þjónustan verður síðar notuð í samstarfi við skóla, sveitarfélög eða aðrar stofnanir kann ábyrgðarskipting að vera önnur og verður þá fjallað sérstaklega um það.</p>
+
+        <h4>3. Hvaða persónuupplýsingar vinnum við?</h4>
+        <p><strong>3.1 Foreldraaðgangur.</strong> Þegar foreldri stofnar aðgang kunnum við að vinna með: netfang, notandaauðkenni/uid, innskráningaraðferð, familyId/familyCode, hlutverk notanda (t.d. parent), samþykki og dagsetningar þess, stofnunartíma reiknings, síðustu virkni og tæknilegar upplýsingar sem þarf til reksturs. Lykilorð eru meðhöndluð í gegnum auðkenningarþjónustu; UppHátt geymir ekki lykilorð í eigin gagnagrunni.</p>
+        <p><strong>3.2 Barnaprófíll.</strong> Þegar barn er skráð kunnum við að vinna með: nafn eða gælunafn barns, fæðingarár eða aldursviðmið, childKey/auðkenni innan fjölskyldu, tengingu við fjölskyldu, bækur, lestrarstillingar, markmið og stöðu barns. Ekki er krafist kennitölu barns.</p>
+        <p><strong>3.3 Lestrargögn.</strong> Lestrarlotur, dagsetning og tími lestrar, lestrartími, lesnar síður, bækur og staða bóka, markmið/streak/framvinda, hlustanir fjölskyldumeðlima, tæknileg gæðamerki og hvort upptaka/greining hafi tekist.</p>
+        <p><strong>3.4 Hljóðupptökur.</strong> Hljóðskrá af lestri barns, lengd og tími upptöku, tenging við barn/bók/lotu, slóð/auðkenni í geymslu og staða upptöku (virk, stjörnumerkt, eydd, fjarlægð sjálfkrafa). Þegar barn les er hljóðið unnið skammvinnt í bakenda UppHátt, hýstum á EES-svæði, til að meta gæði og hvort nægjanlegt tal sé til staðar. Standist upptaka ekki viðmið er henni eytt strax; annars er hún vistuð tímabundið svo foreldri og þeir fjölskyldumeðlimir sem foreldri veitir aðgang geti hlustað. Hljóðupptökur eru ekki sendar til gervigreindar eða þriðja aðila til greiningar og eru ekki notaðar til raddauðkenningar, lífkennagreiningar, auglýsinga eða sölu.</p>
+        <p><strong>3.5 Mat á upptökum og flokkun bóka.</strong> (a) <em>Mat á hljóðupptöku:</em> reiknirit í okkar eigin umhverfi metur gæði og hvort tal sé til staðar — engin gervigreind, engin sending til þriðja aðila, engin auðkenning barns. (b) <em>Flokkun bóka úr myndum:</em> ef foreldri bætir bók við með mynd er hún greind til að bera kennsl á bók, áætla orðafjölda og flokka eftir textamagni. Þetta eru lýsigögn um bókina, ekki mat á lestrarfærni eða prófílun barns. UppHátt tekur ekki sjálfvirkar ákvarðanir með réttaráhrif á barnið.</p>
+        <p><strong>3.6 Bókakápur og myndir af síðum.</strong> Myndir af kápum, myndir af síðum til að áætla orðafjölda/textaþéttni, útdregnar upplýsingar (heiti, orðafjöldi, textaflokkur) og tæknilegar upplýsingar um greiningu. Greint með skýjaþjónustu Google (þ.m.t. Gemini-líkön þar sem þau eru notuð). Foreldri er hvatt til að taka aðeins mynd af kápu/síðu og forðast aðrar persónuupplýsingar á mynd.</p>
+        <p><strong>3.7 Fjölskyldumeðlimir.</strong> Netfang/auðkenni tengds aðila, tengsl við barn, veittur aðgangur, hlustanir/virkni og dagsetning boðs.</p>
+        <p><strong>3.8 Tæknileg gögn.</strong> IP-tala (ef nauðsynlegt vegna öryggis), tæki/vafri/stýrikerfi, villuskrár, notkunarloggar og upplýsingar sem auðkenningar-, gagnagrunns- eða hýsingarþjónusta þarf.</p>
+        <p><strong>3.9 Samskipti og stuðningur.</strong> Netfang, nafn (ef gefið), efni fyrirspurnar, upplýsingar vegna stuðnings/eyðingar og staða máls.</p>
+
+        <h4>4. Tilgangur og lagagrundvöllur <span class="lg-review">(yfirfara)</span></h4>
+        <ul>
+          <li>Stofna/reka foreldraaðgang — netfang, uid, familyId — <em>samningur</em>.</li>
+          <li>Skrá barn — barnaprófíll, fjölskyldutenging — <em>samþykki/heimild foreldris</em>.</li>
+          <li>Halda utan um heimilislestur — bækur, síður, mínútur, lotur — <em>samningur + samþykki</em>.</li>
+          <li>Fjölskylduhlustun — hljóðupptökur, hlustanir — <em>samþykki foreldris</em>.</li>
+          <li>Mat á hljóðgæðum — hljóðupptaka, gæðamerki — <em>samþykki + lágmörkun</em>.</li>
+          <li>Flokkun bóka — mynd, heiti, orðafjöldi, textaflokkur — <em>samþykki foreldris</em>.</li>
+          <li>Öryggi og rekstur — IP, villuskrár, loggar — <em>lögmætir hagsmunir</em>.</li>
+          <li>Þjónustuskilaboð — netfang — <em>samningur</em>.</li>
+          <li>Pilot-umbætur — samantektir, virkni — <em>lögmætir hagsmunir / ópersónugreinanlegt</em>.</li>
+          <li>Lagaskyldur — nauðsynleg skjöl — <em>lagaskylda</em>.</li>
+        </ul>
+
+        <h4>5. Sérstaklega um börn</h4>
+        <p>Börn stofna ekki sjálf foreldraaðgang. Barn er skráð af foreldri/forsjáraðila sem staðfestir heimild. Við krefjumst ekki meiri upplýsinga en nauðsynlegt er. Foreldri getur skoðað, breytt eða eytt upplýsingum barnsins þar sem slík virkni er í boði eða með því að hafa samband. Foreldri getur afturkallað samþykki fyrir vinnslu sem byggist á samþykki (hljóðupptökur, mat á hljóðgæðum, flokkun bóka úr myndum).</p>
+
+        <h4>6. Sérstaklega um hljóðupptökur</h4>
+        <p><strong>6.1 Hvenær?</strong> Aðeins þegar barn notar lestrarvirkni þar sem upptaka er virk, og aðeins ef foreldri hefur áður veitt samþykki. Hljóð er aðeins ætlað til notkunar innan UppHátt.</p>
+        <p><strong>6.2 Af hverju?</strong> Til að foreldri/samþykktir fjölskyldumeðlimir geti hlustað, til að halda utan um heimilislestur og styðja yfirlit, til að meta tæknileg gæði og lágmarka geymslu, og til að greina tæknileg vandamál þar sem nauðsynlegt/samþykkt.</p>
+        <p><strong>6.3 Hver getur hlustað?</strong> Foreldri og þeir fjölskyldumeðlimir sem foreldri veitir aðgang. UppHátt hlustar ekki almennt á hráar upptökur barna; slíkt er aðeins gert með skýrri heimild foreldris eða þar sem nauðsynlegt og heimilt að lögum.</p>
+        <p><strong>6.4 Hve lengi?</strong> Hljóðupptökur eru geymdar tímabundið í allt að <span class="lg-review">7 daga</span> og eyðast síðan sjálfkrafa. Foreldri (og heimilaðir fjölskyldumeðlimir) geta stjörnumerkt upptöku; stjörnumerkt upptaka er undanþegin sjálfvirkri eyðingu þar til hún er afmerkt, eytt handvirkt, eða barnaprófíl/reikningi er eytt.</p>
+        <p><strong>6.5 Hvað gerum við ekki?</strong> Engin raddauðkenning, lífkennagreining, auglýsingar, sala, opinber birting eða þjálfun gervigreindar. Hljóð er ekki sent til Gemini eða annarrar gervigreindarþjónustu.</p>
+
+        <h4>7. Hver hefur aðgang?</h4>
+        <p>Foreldri/forsjáraðili, annað foreldri eða tengdur aðili með aðgang, boðnir fjölskyldumeðlimir, UppHátt að því marki sem nauðsynlegt er vegna rekstrar/öryggis/stuðnings/umbóta, tæknilegir þjónustuveitendur sem vinna fyrir okkar hönd, og opinberir aðilar ef lög krefjast. Fjölskyldumeðlimir sjá aðeins það sem foreldri veitir aðgang að. Admin-aðgangur er takmarkaður við það nauðsynlega.</p>
+
+        <h4>8. Þjónustuveitendur og undirvinnsluaðilar</h4>
+        <ul>
+          <li>Google / Firebase — auðkenning, gagnagrunnur og geymsla hljóðs og mynda, á EES-svæði þar sem stillt þannig.</li>
+          <li>Google Cloud / Gemini-líkön — greining á myndum af bókum, skv. gagnavinnsluskilmálum Google Cloud.</li>
+          <li>Tölvupóstþjónusta — tilkynningar/þjónustuskilaboð eftir þörfum.</li>
+          <li>Cloudflare — hýsing/dreifing/öryggi fyrir vef eftir því sem við á.</li>
+        </ul>
+        <p>Hljóðupptökur eru ekki sendar til Gemini eða annarrar gervigreindar. Gervigreind er aðeins notuð við greiningu mynda af bókum þar sem foreldri notar þá virkni. Þjónustuveitendur vinna fyrir hönd UppHátt. Við seljum ekki persónuupplýsingar.</p>
+
+        <h4>9. Flutningur gagna milli landa <span class="lg-review">(yfirfara)</span></h4>
+        <p>Hljóð, myndir og lestrargögn eru vistuð hjá skýjaþjónustu Google á EES-svæði þar sem stillt þannig. Að því marki sem tæknileg vinnsla eða stuðningur kann að fela í sér aðgang utan EES byggist slíkur flutningur á viðeigandi verndarráðstöfunum (t.d. stöðluðum samningsskilmálum eða ákvörðun um fullnægjandi vernd).</p>
+
+        <h4>10. Öryggi gagna</h4>
+        <p>Dulkóðuð samskipti, auðkenning notenda, aðgangsstýringar, gagnagrunns-/geymslureglur sem takmarka aðgang við rétta fjölskyldu, takmarkaður admin-aðgangur og ráðstafanir gegn óheimilum aðgangi. Enginn notandi á að sjá gögn annarrar fjölskyldu. Ekkert kerfi er þó 100% öruggt; tilkynntu UppHátt grun um öryggisbrot.</p>
+
+        <h4>11. Geymslutími og eyðing</h4>
+        <ul>
+          <li>Foreldraaðgangur: meðan reikningur er virkur eða þar til honum er lokað.</li>
+          <li>Barnaprófíll: meðan barn er skráð eða þar til foreldri eyðir/óskar eyðingar.</li>
+          <li>Lestrargögn: meðan þjónustan er notuð eða þar til eytt/óskað.</li>
+          <li>Hljóðupptökur: allt að <span class="lg-review">7 daga</span>, þá sjálfvirkt eytt. Stjörnumerktar geymast þar til afmerktar/eytt.</li>
+          <li>Bókakápur: meðan bók er í hillu; eyðast við fjarlægingu eða eyðingu prófíls/reiknings.</li>
+          <li>Myndir af síðum: allt að <span class="lg-review">14 daga</span>, þá sjálfvirkt eytt (má eyða fyrr eftir útreikning).</li>
+          <li>Tækniloggar / support: aðeins eins lengi og nauðsynlegt er.</li>
+        </ul>
+
+        <h4>12. Réttindi notenda</h4>
+        <p>Notandi getur, eftir því sem við á, átt rétt á aðgangi, leiðréttingu, eyðingu, takmörkun vinnslu, andmælum, flutningi gagna og afturköllun samþykkis. Foreldri getur einnig óskað aðgangs/leiðréttingar/eyðingar fyrir barn sem það fer með. Hafðu samband á <span class="lg-review">[persónuverndarnetfang]</span>. Við kunnum að þurfa að staðfesta auðkenni. Réttindi geta verið háð lögbundnum takmörkunum.</p>
+
+        <h4>13. Afturköllun samþykkis</h4>
+        <p>Þar sem vinnsla byggist á samþykki (hljóðupptökur, mat á hljóðgæðum, myndgreining) getur foreldri afturkallað það. Afturköllun getur haft áhrif á virkni og hefur ekki áhrif á lögmæti fyrri vinnslu.</p>
+
+        <h4>14. Vafrakökur og sambærileg tækni</h4>
+        <p>UppHátt notar nauðsynlega tæknilega vistun (localStorage, session storage, vafrakökur) fyrir innskráningu, stillingar og virkni. Greiningarkökur eru aðeins notaðar með samþykki og um þær er upplýst sérstaklega þar sem lög krefjast.</p>
+
+        <h4>15. Pilot / sumarprófun</h4>
+        <p>Í pilot kann UppHátt að vinna með samantektarupplýsingar um notkun (fjölda lota, virka daga, lestrartíma, hlustanir, tæknileg vandamál, hvort upptökur/myndgreining tókust, endurkomu) í dulnefndu/ópersónugreinanlegu formi til að meta og bæta þjónustuna. Hráar hljóðupptökur barna verða ekki notaðar í almennu gæðaeftirliti nema með sérstakri heimild foreldris eða þar sem nauðsynlegt og heimilt.</p>
+
+        <h4>16. Kvartanir</h4>
+        <p>Hafðu samband á <span class="lg-review">[persónuverndarnetfang]</span>. Þú getur einnig kvartað til Persónuverndar eða viðeigandi persónuverndaryfirvalda.</p>
+
+        <h4>17. Breytingar</h4>
+        <p>Stefnan kann að breytast ef þjónustan, tæknileg útfærsla, rekstur eða lög breytast. Verulegar breytingar verða kynntar í appinu, á vef eða með tölvupósti. Nýjasta útgáfa skal vera aðgengileg í þjónustunni eða á vef UppHátt.</p>
+
+        <h4>18. Samband</h4>
+        <p>Persónuvernd: <span class="lg-review">[persónuverndarnetfang]</span> · Almennt: <span class="lg-review">[almennt netfang]</span> · Rekstraraðili: <span class="lg-review">[nafn / félag síðar]</span> · Síðast uppfært: <span class="lg-review">[dagsetning]</span></p>
+      </div>
+
+      <!-- ══════════════ SKILMÁLAR ══════════════ -->
+      <div class="lg-panel" id="lg-terms" hidden>
+        <div class="lg-doc-title">Skilmálar UppHátt</div>
+        <div class="lg-meta">Síðast uppfært: <span class="lg-review">[dagsetning]</span></div>
+
+        <h4>1. Inngangur</h4>
+        <p>Þessir skilmálar gilda um notkun UppHátt, heimalestrarþjónustu fyrir fjölskyldur. Með því að stofna aðgang eða nota þjónustuna samþykkir notandi þessa skilmála. Samþykki notandi þá ekki skal hann ekki nota þjónustuna. UppHátt er í þróun og kann að vera í pilot, sumarprófun eða annarri takmarkaðri prófun.</p>
+
+        <h4>2. Skilgreiningar</h4>
+        <ul>
+          <li><strong>„UppHátt", „við", „þjónustan":</strong> forritið, vefurinn, appið og tengd þjónusta.</li>
+          <li><strong>„Foreldri":</strong> foreldri, forsjáraðili eða fullorðinn með heimild til að skrá barn.</li>
+          <li><strong>„Barn":</strong> barn sem foreldri skráir í UppHátt.</li>
+          <li><strong>„Fjölskylda":</strong> hópur notenda sem tengist sama barni/börnum.</li>
+          <li><strong>„Fjölskyldumeðlimur":</strong> aðili sem foreldri veitir aðgang að lestri/hlustun/völdum upplýsingum.</li>
+          <li><strong>„Lestrargögn":</strong> bækur, síður, mínútur, lotur, hlustanir, markmið, streak, framvinda.</li>
+          <li><strong>„Hljóðupptaka":</strong> upptaka af barni að lesa upphátt.</li>
+          <li><strong>„Myndir af bókum":</strong> myndir af kápum/síðum til að bera kennsl á bók eða áætla textamagn.</li>
+          <li><strong>„Pilot"/„sumarprófun":</strong> tímabundin prófun áður en þjónustan er fullmótuð.</li>
+        </ul>
+
+        <h4>3. Lýsing á þjónustunni</h4>
+        <p>UppHátt hjálpar fjölskyldum að halda utan um heimlestur barna og getur m.a. gert foreldri kleift að: skrá barn, skrá bækur, halda utan um lotur/síður/tíma, vista tímabundnar hljóðupptökur, leyfa völdum fjölskyldumeðlimum að hlusta, skoða yfirlit um framvindu/markmið/virkni og nota myndir af bókum til að bera kennsl á bók eða áætla textamagn.</p>
+        <p>UppHátt er stuðningskerfi fyrir heimilislestur og kemur ekki í stað kennslu, formlegrar lestrargreiningar, sérfræðiþjónustu eða mats skóla.</p>
+
+        <h4>4. Reikningar og skráning</h4>
+        <p>Til að stofna foreldraaðgang þarf notandi að vera orðinn 18 ára. Foreldri ber ábyrgð á allri notkun undir eigin aðgangi, varðveitir innskráningarupplýsingar með öruggum hætti, og ábyrgist að skráðar upplýsingar séu réttar og að það hafi heimild til að skrá barn. Notandi má ekki veita óviðkomandi aðgang að reikningi sínum eða nota aðgang annars án heimildar.</p>
+
+        <h4>5. Skráning barns og sérstakt samþykki</h4>
+        <p>Áður en barn er skráð þarf foreldri að staðfesta heimild til að skrá barnið. Þar sem þjónustan getur unnið með lestrargögn, hljóðupptökur, myndir af bókum og sjálfvirk yfirlit/flokkun þarf foreldri að veita sérstakt samþykki. Það birtist þegar barn er bætt við og fjallar m.a. um: skráningu barns, hljóðupptökur, lestrargögn, fjölskylduhlustun, myndir af bókum, flokkun bóka, geymslutíma og eyðingu.</p>
+
+        <h4>6. Fjölskylduaðgangur og hlustun</h4>
+        <p>Foreldri getur veitt fjölskyldumeðlimum aðgang að völdum upplýsingum eða hljóðupptökum og ber ábyrgð á hverjum slíkur aðgangur er veittur. Fjölskyldumeðlimir mega aðeins nota aðganginn til að fylgjast með/hlusta á heimilislestur og mega ekki dreifa, afrita, birta eða deila upplýsingum/upptökum utan þjónustunnar nema með skýrri heimild foreldris.</p>
+
+        <h4>7. Notkunarreglur</h4>
+        <p>Notandi má ekki: reyna að komast í gögn annarra fjölskyldna, skrá barn án heimildar, deila aðgangi með óheimilum aðilum, skrá röng/villandi gögn, trufla rekstur/öryggi/virkni, komast fram hjá aðgangsstýringum, afrita/scrape-a/endurgera/nýta hugbúnað/gögn/hönnun/viðmót utan eðlilegrar notkunar, eða nota þjónustuna í ólögmætum/skaðlegum/óviðeigandi tilgangi. UppHátt getur takmarkað, lokað eða stöðvað aðgang vegna brota.</p>
+
+        <h4>8. Hljóðupptökur, myndir af bókum og lestrargögn</h4>
+        <p>UppHátt vinnur með lestrargögn, hljóðupptökur og myndir af bókum aðeins eftir því sem lýst er í persónuverndarstefnu og sérstöku samþykki foreldris. Þegar barn les er hljóðið unnið skammvinnt í bakenda til að meta gæði og hvort nægjanlegt tal sé til staðar; standist upptaka ekki viðmið er henni eytt strax, annars vistuð tímabundið svo foreldri og heimilaðir fjölskyldumeðlimir geti hlustað. Þessi vinnsla fer fram með reikniritum í okkar eigin umhverfi — hljóð er ekki sent til gervigreindar eða þriðja aðila, ekki notað til raddauðkenningar/lífkennagreiningar og ekki til auglýsinga/sölu/birtingar. Myndir af bókum eru greindar með skýjaþjónustu Google. Foreldri getur eytt hljóði, myndum og lestrargögnum þar sem slík virkni er í boði; hljóð og myndir af síðum eyðast einnig sjálfkrafa skv. geymslustefnu.</p>
+
+        <h4>9. Pilot / sumarprófun</h4>
+        <p>Á pilot-tíma getur virkni verið ófullkomin, breyst hratt eða verið tímabundið óaðgengileg. Gögn úr pilot kunna að vera notuð í ópersónugreinanlegu/dulnefndu/samanteknu formi til að bæta þjónustuna og greina tæknileg vandamál. UppHátt hlustar ekki á hráar upptökur barna í almennu gæðaskyni nema með skýrri heimild foreldris eða þar sem nauðsynlegt og heimilt.</p>
+
+        <h4>10. Hugverkaréttindi</h4>
+        <p>UppHátt og/eða rétthafar eiga allan rétt til hugbúnaðar, hönnunar, merkja, texta, myndefnis og viðmóts, nema annað sé tekið fram. Notandi fær takmarkaðan, óframseljanlegan notkunarrétt í samræmi við skilmálana; enginn eignarréttur færist til notanda. Óheimilt er að afrita, dreifa, breyta, endurgera eða nýta þjónustuna utan eðlilegrar notkunar nema með skýrri heimild.</p>
+
+        <h4>11. Persónuvernd</h4>
+        <p>Vinnsla persónuupplýsinga fer fram skv. persónuverndarstefnu þjónustunnar, þar sem fram kemur hvaða upplýsingar eru unnar, í hvaða tilgangi, á hvaða grundvelli, hverjir hafa aðgang, hve lengi þær eru geymdar og hvaða réttindi notendur hafa. Barnagögn, hljóðupptökur, myndir af bókum og fjölskylduhlustun eru sérstaklega útskýrð þar og í sérstöku samþykki við skráningu barns.</p>
+
+        <h4>12. Gjöld og greiðslur</h4>
+        <p>UppHátt er í sumarprófun og aðgangur er gjaldfrjáls nema annað sé tekið sérstaklega fram. Verði greidd þjónusta í boði síðar verða verð, greiðsluskilmálar, endurnýjun og uppsögn kynnt sérstaklega áður en greiðslusamband hefst.</p>
+
+        <h4>13. Lokun reiknings og eyðing gagna</h4>
+        <p>Foreldri getur óskað lokunar reiknings eða eyðingar gagna skv. leiðum þjónustunnar eða með því að hafa samband. Foreldri getur eytt tilteknum lestrargögnum, myndum eða hljóðupptökum þar sem slík virkni er í boði. Nánar um geymslutíma/eyðingu í persónuverndarstefnu. UppHátt kann að varðveita tiltekin tæknileg gögn tímabundið vegna öryggis, reksturs eða lagaskyldu.</p>
+
+        <h4>14. Takmörkun ábyrgðar</h4>
+        <p>Við leggjum okkur fram um örugga, gagnlega og aðgengilega þjónustu en ábyrgjumst ekki að hún verði alltaf villulaus, óslitin eða laus við tæknileg vandamál. Sjálfvirk yfirlit, orðafjöldi, bókaflokkun, textaþéttni og aðrar mælingar eru aðeins stuðningsupplýsingar og koma ekki í stað faglegrar greiningar, kennslu, ráðgjafar eða mats skóla. UppHátt ber ekki ábyrgð á ákvörðunum sem teknar eru eingöngu á grundvelli slíkra mælinga. Ekkert hér takmarkar ábyrgð sem óheimilt er að takmarka að lögum.</p>
+
+        <h4>15. Breytingar á skilmálum</h4>
+        <p>UppHátt getur breytt skilmálunum þegar þjónustan, lög, tæknileg útfærsla eða rekstur breytast. Verulegar breytingar verða kynntar í appinu, á vef eða með tölvupósti. Áframhaldandi notkun eftir gildistöku getur falið í sér samþykki breyttra skilmála.</p>
+
+        <h4>16. Framsal eða breyting á rekstri</h4>
+        <p>Ef UppHátt er fært yfir í félag, sameinast öðrum rekstri eða verður hluti af öðrum lögaðila kann samningurinn við notendur að færast til nýs rekstraraðila. Notendum verður tilkynnt eftir því sem við á. Réttindi notenda skv. persónuverndarstefnu og lögum halda áfram að gilda.</p>
+
+        <h4>17. Lög og varnarþing</h4>
+        <p>Skilmálarnir lúta íslenskum lögum. Ágreiningur skal rekinn fyrir íslenskum dómstólum nema ófrávíkjanlegar reglur neytendaréttar kveði á um annað.</p>
+
+        <h4>18. Samband</h4>
+        <p>Netfang: <span class="lg-review">[netfang]</span> · Rekstraraðili: <span class="lg-review">[nafn / félag síðar]</span> · Síðast uppfært: <span class="lg-review">[dagsetning]</span></p>
+      </div>
+    </div>
+
+    <div class="lg-foot">
+      <button class="lg-close-btn" onclick="closeTermsPopup()">Loka</button>
     </div>
   </div>
 </div>
@@ -307,8 +865,17 @@
   // Birtum modalinn EKKI strax — initAuth kallar window.openSummerPilot()
   // þegar staðfest er að enginn sé innskráður (kemur í veg fyrir blikk + ranga redirect).
   window.openSummerPilot = function () {
-    var m = document.getElementById('summer-pilot-popup');
-    if (m) m.style.display = 'flex';
+    // Endurnýtt hook: initAuth kallar þetta (enginn innskráður + pilot) →
+    // sýnir nýju pilot-landinguna í stað gamla modalsins.
+    if (typeof window.showScreen === 'function') {
+      window.showScreen('pilot-landing');
+    } else {
+      document.querySelectorAll('.screen.active').forEach(function (s) { s.classList.remove('active'); });
+      var pl = document.getElementById('screen-pilot-landing');
+      if (pl) pl.classList.add('active');
+    }
+    if (window.PilotWalkthrough && window.PilotWalkthrough.init) window.PilotWalkthrough.init();
+    if (window.track) track('pilot_landing_view');
   };
   window.closeSummerPilot = function () {
     var m = document.getElementById('summer-pilot-popup');
@@ -326,6 +893,264 @@
 })();
 </script>
 
+<script id="pl-controller">
+(function () {
+  "use strict";
+
+  /* ── PilotLanding: CTA-tengingar ────────────────────────────────────────
+     Í appinu skilgreinir app.js nú þegar openSignupPopup() og
+     openParentLoginPopup(). Hér köllum við í þau ef þau eru til,
+     annars sýnum preview-tóast. */
+  var PilotLanding = {
+    goSignup: function () {
+      if (window.track) track('cta_signup_click');
+      if (typeof window.openSignupPopup === 'function') {
+        try { localStorage.setItem('upphattPilotGroup', 'pilot1'); } catch (e) {}
+        window.openSignupPopup();
+      } else { toast('→ openSignupPopup()  (nýskráning opnast í appinu)'); }
+    },
+    goLogin: function () {
+      if (window.track) track('cta_login_click');
+      // Tryggjum pilot-merkingu líka fyrir þá sem fara beint í innskráningu
+      try { localStorage.setItem('upphattPilotGroup', 'pilot1'); } catch (e) {}
+      if (typeof window.openParentLoginPopup === 'function') {
+        window.openParentLoginPopup();
+      } else { toast('→ openParentLoginPopup()  (innskráning opnast í appinu)'); }
+    }
+  };
+
+  /* ── PilotWalkthrough: lítill step-controller ───────────────────────────
+     Einn sannleikur: { active, current }. Skrefin eru GÖGN — bætið við
+     skrefi með einni færslu án þess að snerta rökfræðina (open/closed). */
+  var PilotWalkthrough = (function () {
+    var SEEN_KEY = 'upphattPilotWalkthroughSeen';
+
+    var steps = [
+      { icon: icoUser,  title: 'Stofnaðu aðgang',
+        body: 'Búðu til foreldraaðgang og bættu barninu þínu við. Það tekur innan við mínútu.' },
+      { icon: icoBulb,  title: 'Barnið byrjar með leynikóða',
+        body: 'Barnið slær inn sinn eigin leynikóða og byrjar að lesa upphátt — sjálfstætt, á sínum forsendum.' },
+      { icon: icoEar,   title: 'Þú hlustar þegar þér hentar',
+        body: 'Upptökurnar vistast sjálfkrafa. Þú hlustar, hrósar og fylgist með — þó dagurinn sé annasamur.' },
+      { icon: icoHeart, title: 'Fjölskyldan tekur þátt',
+        body: 'Með þínu leyfi geta amma, afi og aðrir nánir hlustað og hvatt. Lestrarferðalagið verður sameiginlegt.' }
+    ];
+
+    var state = { active: false, current: 0 };
+    var total = steps.length;
+    var el = {};
+
+    function cache() {
+      el.hero      = document.getElementById('pl-hero');
+      el.walk      = document.getElementById('pl-walk');
+      el.bar       = document.getElementById('pl-bar-fill');
+      el.dots      = document.getElementById('pl-dots');
+      el.count     = document.getElementById('pl-step-count');
+      el.icon      = document.getElementById('pl-step-icon');
+      el.title     = document.getElementById('pl-step-title');
+      el.body      = document.getElementById('pl-step-body');
+      el.back      = document.getElementById('pl-back');
+      el.next      = document.getElementById('pl-next');
+      el.walkCta   = document.getElementById('pl-walk-cta');
+    }
+
+    /* init: setur aðeins upp — ENGIN auto-show. Landing sést alltaf fyrst. */
+    function init() {
+      cache();
+      // Punktarnir teiknaðir einu sinni
+      if (el.dots) {
+        el.dots.innerHTML = '';
+        for (var i = 0; i < total; i++) {
+          var d = document.createElement('span');
+          d.className = 'pl-dot';
+          el.dots.appendChild(d);
+        }
+      }
+      // Cosmetic: ef notandi hefur séð útskýringuna áður → breyttu CTA-texta
+      if (seen() && el.walkCta) el.walkCta.textContent = 'Sjá aftur hvernig þetta virkar';
+    }
+
+    function start() {
+      if (window.track) track('walkthrough_start');
+      state.active = true;
+      state.current = 0;
+      show();
+      render();
+    }
+
+    function next() {
+      if (state.current === total - 1) return finish();   // síðasta skref → klára
+      state.current = Math.min(state.current + 1, total - 1);
+      render();
+    }
+
+    function prev() {
+      state.current = Math.max(state.current - 1, 0);
+      render();
+    }
+
+    function skip()   { if (window.track) track('walkthrough_skip', { step_index: state.current }); markSeen(); close(); }   // → aftur á hero
+    function finish() { if (window.track) track('walkthrough_complete'); markSeen(); close(); }   // → aftur á hero
+
+    function close() {
+      state.active = false;
+      show();
+    }
+
+    /* Skiptir milli hero ↔ walkthrough innan SAMA skjás */
+    function show() {
+      if (!el.hero || !el.walk) return;
+      el.hero.hidden = state.active;
+      el.walk.hidden = !state.active;
+      // endurræsir fadeUp-animationina á view-inu sem birtist
+      reflow(state.active ? el.walk : el.hero);
+    }
+
+    function render() {
+      var s = steps[state.current];
+      if (window.track) track('walkthrough_step', { step_index: state.current });
+      var stepNumber = state.current + 1;
+      var percent = Math.round((stepNumber / total) * 100);   // framvinda
+      var isLast = state.current === total - 1;
+
+      el.icon.innerHTML = s.icon();
+      el.title.textContent = s.title;
+      el.body.textContent = s.body;
+      el.bar.style.width = percent + '%';
+      el.count.textContent = 'Skref ' + stepNumber + ' af ' + total;
+
+      // Punktar: i < current → done, i === current → active
+      var dots = el.dots.children;
+      for (var i = 0; i < dots.length; i++) {
+        dots[i].className = 'pl-dot' +
+          (i < state.current ? ' done' : (i === state.current ? ' active' : ''));
+      }
+
+      el.back.disabled = state.current === 0;
+      el.next.innerHTML = isLast
+        ? 'Klára'
+        : 'Áfram <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    }
+
+    function seen() { try { return localStorage.getItem(SEEN_KEY) === '1'; } catch (e) { return false; } }
+    function markSeen() {
+      try { localStorage.setItem(SEEN_KEY, '1'); } catch (e) {}
+      if (el.walkCta) el.walkCta.textContent = 'Sjá aftur hvernig þetta virkar';
+    }
+
+    return { init: init, start: start, next: next, prev: prev, skip: skip, finish: finish };
+  })();
+
+  /* ── Hjálparföll ───────────────────────────────────────────────────── */
+  function reflow(node) { if (node) { void node.offsetWidth; } }
+
+  function toast(msg) {
+    var t = document.getElementById('pl-toast');
+    if (!t) return;
+    t.textContent = msg; t.classList.add('show');
+    clearTimeout(toast._t);
+    toast._t = setTimeout(function () { t.classList.remove('show'); }, 2200);
+  }
+
+  /* Íkonar (stroke teal, sama stíl og heimasíðan) */
+  function icoUser()  { return svg('<path d="M17 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"/><circle cx="10" cy="7" r="4"/><path d="M19 8v6M22 11h-6"/>'); }
+  function icoBulb()  { return svg('<path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.74V17h8v-2.26A7 7 0 0 0 12 2z"/>'); }
+  function icoEar()   { return svg('<path d="M6 8.5a6 6 0 0 1 12 0c0 3-2 4-2 6a3 3 0 0 1-6 0"/><path d="M9 8.5a3 3 0 0 1 6 0"/>'); }
+  function icoHeart() { return svg('<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"/>'); }
+  function svg(inner) {
+    return '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1dcdd3" ' +
+           'stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">' + inner + '</svg>';
+  }
+
+  /* Export */
+  window.PilotLanding = PilotLanding;
+  window.PilotWalkthrough = PilotWalkthrough;
+
+  /* ── Ræsing ─────────────────────────────────────────────────────────────
+     Í PREVIEW köllum við init() strax. Í APPINU gerir initAuth þetta:
+        showScreen('pilot-landing');
+        PilotWalkthrough.init();
+     svo þessa línu má fjarlægja við innlímun. */
+  if (document.readyState !== 'loading') PilotWalkthrough.init();
+  else document.addEventListener('DOMContentLoaded', PilotWalkthrough.init);
+})();
+</script>
+
 <script type="module" src="js/app.js"></script>
+
+<!-- ── Kökuborði (greiningarkökusamþykki) ─────────────────────────────── -->
+<style id="ck-styles">
+  .ck-banner{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:99999;
+    width:calc(100% - 32px);max-width:560px;display:none;
+    background:#0b1726;border:1px solid rgba(29,205,211,.22);border-radius:14px;
+    padding:16px 18px;box-shadow:0 14px 40px rgba(0,0,0,.45);
+    font-family:'DM Sans',system-ui,-apple-system,sans-serif;color:#f0f4f8}
+  .ck-banner.show{display:block;animation:ckup .3s ease both}
+  @keyframes ckup{from{opacity:0;transform:translateX(-50%) translateY(12px)}
+                  to{opacity:1;transform:translateX(-50%) translateY(0)}}
+  .ck-text{font-size:.86rem;line-height:1.55;color:#aebccd;margin:0 0 12px}
+  .ck-text a{color:#1dcdd3;text-decoration:none}
+  .ck-row{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+  .ck-btn{font-family:inherit;font-size:.82rem;font-weight:600;cursor:pointer;
+    padding:9px 16px;border-radius:100px;border:1px solid transparent;transition:transform .15s}
+  .ck-btn:active{transform:scale(.97)}
+  .ck-decline{background:transparent;border-color:rgba(255,255,255,.14);color:#aebccd}
+  .ck-accept{background:#1dcdd3;color:#04222a;box-shadow:0 0 16px rgba(29,205,211,.35)}
+  @media (prefers-reduced-motion:reduce){.ck-banner.show{animation:none}}
+</style>
+<div class="ck-banner" id="ck-banner" role="dialog" aria-live="polite" aria-label="Kökusamþykki">
+  <p class="ck-text">Við notum greiningarkökur (Google Analytics) til að sjá hvernig appið er notað
+    og bæta það. Nauðsynlegar kökur virka alltaf. <a href="#" onclick="openLegal('privacy');return false;">Nánar</a></p>
+  <div class="ck-row">
+    <button class="ck-btn ck-decline" onclick="UpphattConsent.set(false)">Hafna</button>
+    <button class="ck-btn ck-accept"  onclick="UpphattConsent.set(true)">Samþykkja</button>
+  </div>
+</div>
+<script>
+  window.UpphattConsent = (function () {
+    var KEY = 'upphatt_consent';
+    function writeCookie(val) {
+      var c = KEY + '=' + encodeURIComponent(val) + '; path=/; max-age=15552000; SameSite=Lax';
+      if (/(^|\.)upphatt\.is$/.test(location.hostname)) c += '; domain=.upphatt.is';
+      document.cookie = c;
+    }
+    function read() {
+      var m = document.cookie.match(/(?:^|;\s*)upphatt_consent=([^;]+)/);
+      return m ? decodeURIComponent(m[1]) : null;
+    }
+    function set(granted) {
+      writeCookie(granted ? 'granted' : 'denied');
+      if (typeof gtag === 'function')
+        gtag('consent', 'update', { analytics_storage: granted ? 'granted' : 'denied' });
+      var b = document.getElementById('ck-banner'); if (b) b.classList.remove('show');
+    }
+    function init() {
+      if (!read()) { var b = document.getElementById('ck-banner'); if (b) b.classList.add('show'); }
+    }
+    if (document.readyState !== 'loading') init();
+    else document.addEventListener('DOMContentLoaded', init);
+    return { set: set, read: read };
+  })();
+</script>
+<!-- ──────────────────────────────────────────────────────────────────── -->
+
+<script>
+  window.switchLegalTab = function (name) {
+    document.querySelectorAll('#terms-popup .lg-tab').forEach(function (t) {
+      t.classList.toggle('is-active', t.getAttribute('data-lg') === name);
+    });
+    document.querySelectorAll('#terms-popup .lg-panel').forEach(function (p) {
+      p.hidden = (p.id !== 'lg-' + name);
+    });
+  };
+  window.openLegal = function (tab) {
+    var e = document.getElementById('terms-popup');
+    if (e) e.style.display = 'flex';
+    window.switchLegalTab(tab || 'privacy');
+  };
+  window.closeTermsPopup = window.closeTermsPopup || function () {
+    var e = document.getElementById('terms-popup'); if (e) e.style.display = 'none';
+  };
+</script>
 </body>
 </html>

@@ -2,6 +2,29 @@
 <html lang="is">
 <head>
 <meta charset="utf-8">
+<!-- ── Google Analytics 4 + Consent Mode (deilir samþykki við index/forsíðu) ── -->
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){ dataLayer.push(arguments); }
+  gtag('consent', 'default', { analytics_storage:'denied', ad_storage:'denied',
+    ad_user_data:'denied', ad_personalization:'denied', wait_for_update:500 });
+  (function(){ var m=document.cookie.match(/(?:^|;\s*)upphatt_consent=([^;]+)/);
+    if(m && decodeURIComponent(m[1])==='granted') gtag('consent','update',{analytics_storage:'granted'}); })();
+  gtag('js', new Date());
+  gtag('config', 'G-HB25NF1TQ7');
+  // Sjálfstæð track(): les sama samþykkis-cookie, sendir AÐEINS cohort-gögn (engin PII)
+  window.track = function(name, params){
+    try {
+      var m=document.cookie.match(/(?:^|;\s*)upphatt_consent=([^;]+)/);
+      if(!m || decodeURIComponent(m[1])!=='granted') return;
+      if(typeof gtag!=='function') return;
+      gtag('event', name, Object.assign({ pilot_group:(localStorage.getItem('upphattPilotGroup')||'none') }, params||{}));
+    } catch(e){}
+  };
+</script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-HB25NF1TQ7"></script>
+<!-- ───────────────────────────────────────────────────────────────────────── -->
+
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -433,7 +456,17 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
 #add-child-popup .confirm-card,#add-child-modal .confirm-card,.add-child-popup .confirm-card,.add-child-modal .confirm-card{background:#0d1a2e;border-color:var(--border-hl);border-radius:22px;color:var(--text)}
 #add-child-popup input,#add-child-modal input,.add-child-popup input,.add-child-modal input{background:rgba(255,255,255,.035);border:1px solid var(--border);border-radius:14px;color:var(--text-bright);padding:13px 14px;font:inherit}
 #add-child-popup button[type="submit"],#add-child-modal button[type="submit"],.add-child-popup button[type="submit"],.add-child-modal button[type="submit"]{background:rgba(29,205,211,.15);border:1px solid rgba(29,205,211,.32);color:var(--accent);border-radius:14px;font-weight:900}
-.parent-add-child-card{width:min(380px,100%);background:#0d1a2e;border:1.5px solid var(--border-hl);border-radius:22px;padding:22px 18px 18px;box-shadow:0 20px 70px rgba(0,0,0,.35)}.parent-add-child-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:18px}.parent-add-child-kicker{font-size:10px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin-bottom:4px}.parent-add-child-title{font-size:22px;font-weight:900;color:var(--text-bright);line-height:1.05}.parent-add-child-sub{font-size:12px;color:var(--muted);line-height:1.4;margin-top:6px}.parent-add-child-close{width:36px;height:36px;border-radius:50%;border:1px solid var(--border);background:rgba(255,255,255,.03);color:var(--muted);font:inherit;font-size:20px;line-height:1;cursor:pointer}.parent-add-child-form{display:grid;gap:12px}.parent-add-child-field label{display:block;font-size:10px;font-weight:900;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}.parent-add-child-field input,.parent-add-child-field select{width:100%;background:rgba(255,255,255,.035);border:1px solid var(--border);border-radius:14px;color:var(--text-bright);padding:13px 14px;font:inherit;font-size:14px;outline:none}.parent-add-child-field input:focus,.parent-add-child-field select:focus{border-color:var(--border-hl);box-shadow:0 0 0 3px rgba(29,205,211,.08)}.parent-add-child-error{min-height:18px;font-size:12px;color:var(--danger);font-weight:700}.parent-add-child-actions{display:grid;grid-template-columns:1fr 1.4fr;gap:9px;margin-top:2px}.parent-add-child-secondary,.parent-add-child-primary{border-radius:14px;padding:12px;font:inherit;font-size:13px;font-weight:900;cursor:pointer}.parent-add-child-secondary{border:1px solid var(--border);background:rgba(255,255,255,.025);color:var(--text)}.parent-add-child-primary{border:1px solid rgba(29,205,211,.32);background:rgba(29,205,211,.14);color:var(--accent)}.parent-add-child-code{display:none;margin-top:14px;border:1px solid rgba(29,205,211,.24);background:rgba(29,205,211,.08);border-radius:16px;padding:14px;text-align:center}.parent-add-child-code.show{display:block}.parent-add-child-code-label{font-size:10px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}.parent-add-child-code-value{font-size:34px;font-weight:900;letter-spacing:.12em;color:var(--accent);text-indent:.12em}
+.parent-add-child-card{width:min(380px,100%);background:#0d1a2e;border:1.5px solid var(--border-hl);border-radius:22px;padding:22px 18px 18px;box-shadow:0 20px 70px rgba(0,0,0,.35)}.parent-add-child-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:18px}.parent-add-child-kicker{font-size:10px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin-bottom:4px}.parent-add-child-title{font-size:22px;font-weight:900;color:var(--text-bright);line-height:1.05}.parent-add-child-sub{font-size:12px;color:var(--muted);line-height:1.4;margin-top:6px}.parent-add-child-close{width:36px;height:36px;border-radius:50%;border:1px solid var(--border);background:rgba(255,255,255,.03);color:var(--muted);font:inherit;font-size:20px;line-height:1;cursor:pointer}.parent-add-child-form{display:grid;gap:12px}.parent-add-child-field label{display:block;font-size:10px;font-weight:900;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}.parent-add-child-field input,.parent-add-child-field select{width:100%;background:rgba(255,255,255,.035);border:1px solid var(--border);border-radius:14px;color:var(--text-bright);padding:13px 14px;font:inherit;font-size:14px;outline:none}.parent-add-child-field input:focus,.parent-add-child-field select:focus{border-color:var(--border-hl);box-shadow:0 0 0 3px rgba(29,205,211,.08)}/* settings: per-barn aðgerðir, samþykkis-rofi, tenglar */
+.st-child-actions{display:flex;gap:6px;padding:2px 0 12px;flex-wrap:wrap}
+.st-mini{flex:1 1 28%;min-width:88px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);color:var(--text-bright,#e6eef6);border-radius:9px;padding:8px 6px;font:inherit;font-size:11.5px;cursor:pointer}
+.st-mini:active{transform:scale(.98)}
+.st-mini.danger{color:#ff8b8b;border-color:rgba(255,107,107,.32)}
+.st-switch{position:relative;width:42px;height:24px;border-radius:100px;background:rgba(255,255,255,.16);border:none;cursor:pointer;flex:0 0 auto;padding:0;transition:background .15s}
+.st-switch.on{background:var(--accent,#1dcdd3)}
+.st-knob{position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:left .15s}
+.st-switch.on .st-knob{left:21px}
+.st-link{color:var(--accent,#1dcdd3);text-decoration:none;font-size:12.5px;font-weight:600}
+.pac-consent{display:flex;gap:9px;align-items:flex-start;font-size:11.5px;line-height:1.5;color:var(--muted);padding:2px 2px 0;cursor:pointer}.pac-consent input{margin-top:2px;flex:0 0 auto;accent-color:var(--accent)}.parent-add-child-error{min-height:18px;font-size:12px;color:var(--danger);font-weight:700}.parent-add-child-actions{display:grid;grid-template-columns:1fr 1.4fr;gap:9px;margin-top:2px}.parent-add-child-secondary,.parent-add-child-primary{border-radius:14px;padding:12px;font:inherit;font-size:13px;font-weight:900;cursor:pointer}.parent-add-child-secondary{border:1px solid var(--border);background:rgba(255,255,255,.025);color:var(--text)}.parent-add-child-primary{border:1px solid rgba(29,205,211,.32);background:rgba(29,205,211,.14);color:var(--accent)}.parent-add-child-code{display:none;margin-top:14px;border:1px solid rgba(29,205,211,.24);background:rgba(29,205,211,.08);border-radius:16px;padding:14px;text-align:center}.parent-add-child-code.show{display:block}.parent-add-child-code-label{font-size:10px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}.parent-add-child-code-value{font-size:34px;font-weight:900;letter-spacing:.12em;color:var(--accent);text-indent:.12em}
 
 /* ── Confirm popup ── */
 .confirm-overlay{
@@ -1160,10 +1193,28 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
         </div>
 
         <div>
-          <div class="st-sec">Gögn</div>
+          <div class="st-sec">Samþykki</div>
           <div class="st-group">
-            <div class="st-row tap" onclick="confirmAction('delete-child-data')"><span class="st-lbl">Eyða gögnum barns</span><span class="st-act">›</span></div>
-            <div class="st-row tap" onclick="confirmAction('delete-all-data')"><span class="st-lbl">Eyða öllum gögnum</span><span class="st-act">›</span></div>
+            <div class="st-row">
+              <div><div class="st-lbl">Hljóðupptaka og greining</div><div class="st-sub">Sjálfvirkt gæðamat á lestri barns</div></div>
+              <button type="button" id="st-consent-toggle" class="st-switch on" role="switch" aria-checked="true" onclick="toggleAnalysisConsent()"><span class="st-knob"></span></button>
+            </div>
+            <div class="st-row"><span class="st-sub">Staða: <b id="st-consent-state">Virkt</b>. Afturköllun stöðvar upptöku og greiningu fyrir nýjan lestur.</span></div>
+          </div>
+        </div>
+
+        <div>
+          <div class="st-sec">Gögn aðgangs</div>
+          <div class="st-group">
+            <div class="st-row tap" onclick="downloadAccountData()"><span class="st-lbl">Sækja öll gögn (afrit)</span><span class="st-act">›</span></div>
+            <div class="st-row tap" onclick="confirmAction('clear-all-data')"><span class="st-lbl">Hreinsa öll lestrargögn</span><span class="st-act">›</span></div>
+          </div>
+        </div>
+
+        <div>
+          <div class="st-sec">Persónuvernd</div>
+          <div class="st-group">
+            <div class="st-row"><span class="st-lbl">Hafa samband</span><a class="st-link" href="mailto:[netfang]">[netfang]</a></div>
           </div>
         </div>
 
@@ -1270,6 +1321,8 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
     <div class="parent-add-child-form">
       <div class="parent-add-child-field"><label for="pac-name">Nafn barns</label><input id="pac-name" type="text" autocomplete="off" placeholder="Nafn barns"></div>
       <div class="parent-add-child-field"><label for="pac-year">Fæðingarár</label><select id="pac-year"></select></div>
+      <label class="pac-consent"><input type="checkbox" id="pac-guardian-consent"> <span>Ég staðfesti að ég er foreldri/forsjáraðili barnsins og hef heimild til að skrá barnið.</span></label>
+      <label class="pac-consent"><input type="checkbox" id="pac-audio-consent"> <span>Ég samþykki að UppHátt taki upp stutt hljóðbrot af lestri barnsins, meti þau sjálfvirkt með reikniriti og geymi þau í allt að 7 daga — nema ég stjörnumerki/geymi lengur.</span></label>
       <div class="parent-add-child-error" id="pac-error"></div>
       <div class="parent-add-child-actions"><button class="parent-add-child-secondary" type="button" onclick="closeAddChildPopup()">Hætta við</button><button class="parent-add-child-primary" id="pac-submit" type="button" onclick="submitAddChild()">Bæta við</button></div>
       <div class="parent-add-child-code" id="pac-code-box"><div class="parent-add-child-code-label">Barnakóði</div><div class="parent-add-child-code-value" id="pac-code-value">----</div></div>
@@ -1516,20 +1569,24 @@ function confirmAction(type, arg) {
       d.textContent = 'Bókin verður fjarlægð úr bókasafni barnsins. Þetta eyðir ekki barninu eða öðrum gögnum.';
       ok.textContent = 'Eyða bók';
       break;
-    case 'delete-child':
-      t.textContent = 'Eyða ' + arg + '?';
-      d.textContent = 'Barn verður fjarlægt og öll gögn þess eytt. Þetta er óafturkræft.';
+    case 'delete-child': {
+      const nm = (S.parentChildren||[]).find(c=>c.key===arg)?.name || 'barn';
+      t.textContent = 'Eyða ' + nm + '?';
+      d.textContent = 'Barnið og öll gögn þess (lestur, hljóðupptökur, ferðalag, bækur) verða eytt varanlega. Óafturkræft.';
       ok.textContent = 'Eyða barni';
       break;
-    case 'delete-child-data':
-      t.textContent = 'Eyða gögnum barns?';
-      d.textContent = 'Veldu barn og öll lesturgögn, upptökur og ferðalag verða eytt. Barnið sjálft helst.';
-      ok.textContent = 'Eyða gögnum';
+    }
+    case 'clear-child-data': {
+      const nm = (S.parentChildren||[]).find(c=>c.key===arg)?.name || 'barnsins';
+      t.textContent = 'Hreinsa lestur ' + nm + '?';
+      d.textContent = 'Öll lestrargögn, hljóðupptökur og ferðalag barnsins verða eytt. Barnaprófíll og kóði haldast.';
+      ok.textContent = 'Hreinsa lestur';
       break;
-    case 'delete-all-data':
-      t.textContent = 'Eyða öllum gögnum?';
-      d.textContent = 'Öll lestrargögn, upptökur og ferðalag allra barna verða eytt. Byrja upp á nýtt.';
-      ok.textContent = 'Eyða öllu';
+    }
+    case 'clear-all-data':
+      t.textContent = 'Hreinsa öll lestrargögn?';
+      d.textContent = 'Lestrargögn, hljóðupptökur og ferðalag ALLRA barna verða eytt. Barnaprófílar og aðgangur haldast.';
+      ok.textContent = 'Hreinsa allt';
       break;
     case 'reset-key':
       t.textContent = 'Endurnýja fjölskyldulykil?';
@@ -1549,15 +1606,111 @@ function closeConfirm() {
   document.getElementById('confirm-popup').classList.remove('show');
 }
 
-async function doConfirm() {
-  const type = _confirmType;
-  const arg = _confirmArg;
-  closeConfirm();
-  if (type === 'delete-book' && typeof window.deleteParentBook === 'function') {
-    await window.deleteParentBook(arg);
-    return;
+/* ═══ Data-rights aðgerðir (uppfylla skilmála) ═══ */
+function _findChild(key){ return (S.parentChildren||[]).find(c => c.key===key || c.code===key || c.name===key) || null; }
+function _childSessions(child){ return (S.sessions||[]).filter(s => s.childKey===child.key); }
+function _childBooks(child){ return (S.books||[]).filter(b => b.childKey===child.key); }
+
+async function _deleteClips(sessions){
+  if(!_deleteObject) return;
+  for(const s of sessions){
+    const paths = Array.isArray(s.clipPaths) ? s.clipPaths : [];
+    for(const p of paths){ try{ await _deleteObject(ref(storage, p)); }catch(e){ /* skrá horfin/leyfi — höldum áfram */ } }
   }
-  toast(type + (arg ? ': ' + arg : '') + ' — tengist seinna');
+}
+async function clearChildData(child){
+  if(!child) return;
+  const sessions=_childSessions(child), books=_childBooks(child);
+  await _deleteClips(sessions);
+  for(const s of sessions){ try{ await deleteDoc(doc(db,'sessions',s._docId)); }catch(e){ console.warn('session',e); } }
+  for(const b of books){ try{ await deleteDoc(doc(db,'books',b.id)); }catch(e){ console.warn('book',e); } }
+}
+async function deleteChildFull(child){
+  if(!child) return;
+  await clearChildData(child);
+  if(child.code){ try{ await deleteDoc(doc(db,'codes',child.code)); }catch(e){ console.warn('code',e); } }
+  const updated=(S.parentChildren||[]).filter(c => c.key!==child.key);
+  try{ await setDoc(doc(db,'users',auth.currentUser.uid),{children:updated},{merge:true}); }catch(e){ console.warn('users',e); }
+  S.parentChildren=updated;
+}
+async function clearAllData(){
+  const sessions=(S.sessions||[]).slice(), books=(S.books||[]).slice();
+  await _deleteClips(sessions);
+  for(const s of sessions){ try{ await deleteDoc(doc(db,'sessions',s._docId)); }catch(e){} }
+  for(const b of books){ try{ await deleteDoc(doc(db,'books',b.id)); }catch(e){} }
+}
+async function deleteAccountFull(){
+  await clearAllData();
+  for(const c of (S.parentChildren||[])){ if(c.code){ try{ await deleteDoc(doc(db,'codes',c.code)); }catch(e){} } }
+  const uid=auth.currentUser&&auth.currentUser.uid;
+  if(uid){ try{ await deleteDoc(doc(db,'users',uid)); }catch(e){ console.warn('user doc',e); } }
+  if(_deleteUser&&auth.currentUser){ try{ await _deleteUser(auth.currentUser); }catch(e){ console.warn('auth user (gæti þurft nýlega innskráningu)',e); } }
+  try{ localStorage.removeItem('upphatt_parent'); localStorage.removeItem('upphatt_guest'); }catch(e){}
+  try{ if(typeof window.logout==='function'){ await window.logout(); return; } }catch(e){}
+  window.location.href='/';
+}
+
+/* ═══ Samþykki (greining) ═══ */
+async function loadConsent(){
+  try{ const uid=auth.currentUser&&auth.currentUser.uid; if(uid){ const snap=await getDoc(doc(db,'users',uid)); if(snap.exists()){ const d=snap.data(); if(typeof d.audioConsent==='boolean') S.audioConsent=d.audioConsent; } } }catch(e){}
+  renderConsent();
+}
+async function setAnalysisConsent(on){
+  const uid=auth.currentUser&&auth.currentUser.uid;
+  S.audioConsent=!!on;
+  if(uid){ try{ await updateDoc(doc(db,'users',uid),{audioConsent:!!on}); }catch(e){ try{ await setDoc(doc(db,'users',uid),{audioConsent:!!on},{merge:true}); }catch(_){ } } }
+  renderConsent();
+  toast(on ? 'Samþykki virkt' : 'Samþykki afturkallað');
+}
+function renderConsent(){
+  const t=document.getElementById('st-consent-toggle'); if(!t) return;
+  const on=S.audioConsent!==false;
+  t.classList.toggle('on',on); t.setAttribute('aria-checked',on?'true':'false');
+  const lbl=document.getElementById('st-consent-state'); if(lbl) lbl.textContent=on?'Virkt':'Afturkallað';
+}
+window.toggleAnalysisConsent=function(){ setAnalysisConsent(S.audioConsent===false); };
+
+/* ═══ Sækja gögn (afrit) ═══ */
+function _download(filename,obj){
+  try{
+    const blob=new Blob([JSON.stringify(obj,null,2)],{type:'application/json'});
+    const url=URL.createObjectURL(blob); const el=document.createElement('a');
+    el.href=url; el.download=filename; document.body.appendChild(el); el.click();
+    setTimeout(()=>{ URL.revokeObjectURL(url); el.remove(); },100);
+  }catch(e){ toast('Gat ekki búið til afrit'); }
+}
+window.downloadChildData=function(key){
+  const child=_findChild(key); if(!child){ toast('Barn fannst ekki'); return; }
+  _download('upphatt-'+((child.name||'barn').replace(/\s+/g,'-'))+'.json',{
+    exportedAt:new Date().toISOString(), app:'UppHátt', scope:'child',
+    child:{name:child.name,code:child.code,birthYear:child.birthYear},
+    sessions:_childSessions(child), books:_childBooks(child)
+  });
+  toast('Afrit sótt');
+};
+window.downloadAccountData=function(){
+  _download('upphatt-allur-adgangur.json',{
+    exportedAt:new Date().toISOString(), app:'UppHátt', scope:'account',
+    parent:{email:S.parentEmail,familyCode:S.familyCode},
+    children:(S.parentChildren||[]).map(c=>({name:c.name,code:c.code,birthYear:c.birthYear})),
+    sessions:(S.sessions||[]), books:(S.books||[])
+  });
+  toast('Afrit sótt');
+};
+
+/* ═══ Confirm framkvæmd ═══ */
+async function doConfirm() {
+  const type=_confirmType, arg=_confirmArg;
+  closeConfirm();
+  try{
+    if(type==='delete-book' && typeof window.deleteParentBook==='function'){ await window.deleteParentBook(arg); return; }
+    if(type==='clear-child-data'){ await clearChildData(_findChild(arg)); renderSettingsChildren(S.parentChildren||[]); toast('Lestrargögn hreinsuð'); return; }
+    if(type==='delete-child'){ await deleteChildFull(_findChild(arg)); renderSettingsChildren(S.parentChildren||[]); toast('Barni eytt'); return; }
+    if(type==='clear-all-data'){ await clearAllData(); toast('Öll lestrargögn hreinsuð'); return; }
+    if(type==='delete-account'){ await deleteAccountFull(); return; }
+    if(type==='reset-key'){ toast('Endurnýjun lykils tengist auth-einingu — sjá nótu'); return; }
+    toast('Óþekkt aðgerð');
+  }catch(e){ console.error('doConfirm',e); toast('Villa kom upp — reyndu aftur'); }
 }
 
 /* ═══════════════════════════════════
@@ -1653,6 +1806,13 @@ if (typeof firestoreDeleteDoc !== 'function') {
   const firestoreMod = await import('https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js').catch(() => ({}));
   firestoreDeleteDoc = firestoreMod.deleteDoc;
 }
+/* viðbótaraðgerðir fyrir gagnaeyðingu: Storage + auth */
+const _stExtra   = await import('https://www.gstatic.com/firebasejs/12.11.0/firebase-storage.js').catch(() => ({}));
+const _authExtra = await import('https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js').catch(() => ({}));
+const _deleteObject = _stExtra.deleteObject || null;
+const _deleteUser   = _authExtra.deleteUser || null;
+/* deila firebase-handföngum + S + render með klassíska scriptinu (settings/eyðing/samþykki) */
+Object.assign(window, { db, doc, deleteDoc, setDoc, updateDoc, getDoc, ref, storage, auth, S, _deleteObject, _deleteUser, renderSettingsChildren });
 
 console.log('📦 Loaded:', { auth: !!initAuth, S: !!S, db: !!db });
 const PARENT_BOOT_STARTED_AT = Date.now();
@@ -1727,6 +1887,10 @@ window.submitAddChild = async function(){
   if(err)err.textContent='';
   if(!name){ if(err)err.textContent='Sláðu inn nafn barns.'; return; }
   if(!birthYear){ if(err)err.textContent='Veldu fæðingarár.'; return; }
+  const _gc=document.getElementById('pac-guardian-consent');
+  if(!_gc||!_gc.checked){ if(err)err.textContent='Þú þarft að staðfesta að þú hafir heimild til að skrá barnið.'; return; }
+  const _ac=document.getElementById('pac-audio-consent');
+  if(!_ac||!_ac.checked){ if(err)err.textContent='Þú þarft að samþykkja hljóðupptöku til að bæta barni við.'; return; }
   if(!auth?.currentUser||!S.familyId){ if(err)err.textContent='Innskráningu vantar.'; return; }
   if(btn){btn.disabled=true;btn.textContent='Vista...';}
   try{
@@ -3403,6 +3567,7 @@ window.playSessionClip = async function(docId, clipIndex) {
     _scRaf = requestAnimationFrame(_scTick);
 
     /* 2a: skrá hlustun við raun-spilun (cooldown í lib ver gegn auto-next/endurteknu) */
+    if (window.track) track('listen_play');
     writeListenEvent({
       familyId: S.familyId,
       childKey: session.childKey,
@@ -3755,6 +3920,7 @@ window.toggleFav = async function(docId, el) {
   if (!docId) return;
   el.classList.toggle('on');
   const isFav = el.classList.contains('on');
+  if (isFav && window.track) track('clip_favorited');
   toast(isFav ? 'Vistað ★' : 'Fjarlægt');
   try {
     await updateDoc(doc(db, 'sessions', docId), { favorited: isFav });
@@ -3801,7 +3967,11 @@ function renderSettingsChildren(children) {
       <div class="st-child-main"><div class="st-lbl">${esc(name)}</div><div class="st-sub">${esc(code)}</div></div>
       <button class="st-code-btn" type="button" onclick="openChildCode('${esc(key)}','${esc(name)}','${esc(code)}')">Kóði</button>
     </div>
-    <div class="st-child-danger"><button type="button" onclick="confirmAction('delete-child','${esc(name)}')">Eyða barni</button></div>`;
+    <div class="st-child-actions">
+      <button type="button" class="st-mini" onclick="downloadChildData('${esc(key)}')">Sækja gögn</button>
+      <button type="button" class="st-mini" onclick="confirmAction('clear-child-data','${esc(key)}')">Hreinsa lestur</button>
+      <button type="button" class="st-mini danger" onclick="confirmAction('delete-child','${esc(key)}')">Eyða barni</button>
+    </div>`;
   }).join('');
   html += `<div class="st-row tap" onclick="if(typeof openAddChildPopup==='function')openAddChildPopup();else toast('Tengist seinna')"><span class="st-lbl st-add-child">+ Bæta við barni</span></div>`;
   el.innerHTML = html;
@@ -3878,6 +4048,7 @@ function openChildCode(key, name, code) {
   if (nameEl) nameEl.textContent = label;
   if (codeEl) codeEl.textContent = value;
   document.getElementById('child-code-modal')?.classList.add('show');
+  if (window.track) track('child_code_opened');
 }
 window.openChildCode = openChildCode;
 
@@ -3903,6 +4074,7 @@ function updateSettings() {
   set('settings-email', S.parentEmail);
   set('settings-family-code', S.familyCode);
   set('ph-welcome-fam-code', S.familyCode);
+  if (typeof loadConsent === 'function') loadConsent();
 }
 
 /* ── Helpers ── */

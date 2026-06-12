@@ -25,17 +25,29 @@ import {
 } from './parent-view.js';
 import { isAdminCode, openAdminDashboard, closeAdmin } from './admin-view.js';
 
+// ── Greining (cohort-only) ──
+// Þunnt lag: vefur window-föllin svo notanda-aðgerð sendi GA4-event.
+// Snertir EKKI auth.js / child-view.js / parent-view.js.
+// window.track (skilgreint í index.html) gætir samþykkis og sendir aðeins
+// cohort-gögn — engin PII.
+function tracked(fn, eventName) {
+  return function () {
+    try { if (window.track) window.track(eventName); } catch (e) {}
+    return fn.apply(this, arguments);
+  };
+}
+
 // ── Global functions ──
 window.goTo                  = goTo;
 window.firebaseLogin         = firebaseLogin;
 window.firebaseSignup        = firebaseSignup;
-window.childLogin            = childLogin;
+window.childLogin            = tracked(childLogin, 'code_entered');
 window.addChildInput         = addChildInput;
 window.logout                = logout;
 
 window.openParentLoginPopup  = openParentLoginPopup;
 window.closeParentLoginPopup = closeParentLoginPopup;
-window.parentLoginFromPopup  = parentLoginFromPopup;
+window.parentLoginFromPopup  = tracked(parentLoginFromPopup, 'login_submit');
 window.showForgotPassword    = showForgotPassword;
 window.backToLogin           = backToLogin;
 window.sendPasswordReset     = sendPasswordReset;
@@ -43,17 +55,17 @@ window.sendPasswordReset     = sendPasswordReset;
 window.openSignupPopup       = openSignupPopup;
 window.closeSignupPopup      = closeSignupPopup;
 window.backToLoginFromSignup = backToLoginFromSignup;
-window.firebaseSignupPopup   = firebaseSignupPopup;
-window.googleSignIn          = googleSignIn;
+window.firebaseSignupPopup   = tracked(firebaseSignupPopup, 'signup_submit');
+window.googleSignIn          = tracked(googleSignIn, 'signup_google_click');
 
 window.toggleParentTheme     = toggleParentTheme;
 window.openAddChildPopup     = openAddChildPopup;
 window.closeAddChildPopup    = closeAddChildPopup;
-window.submitAddChild        = submitAddChild;
+window.submitAddChild        = tracked(submitAddChild, 'child_add_submit');
 
-window.famCodeLogin          = famCodeLogin;
+window.famCodeLogin          = tracked(famCodeLogin, 'family_login');
 window.showFamJoin           = showFamJoin;
-window.selectGuestRole       = selectGuestRole;
+window.selectGuestRole       = tracked(selectGuestRole, 'family_role_selected');
 
 window.openSettingsPopup     = openSettingsPopup;
 window.closeSettingsPopup    = closeSettingsPopup;

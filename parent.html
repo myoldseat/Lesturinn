@@ -1590,7 +1590,7 @@ function confirmAction(type, arg) {
       break;
     case 'reset-key':
       t.textContent = 'Endurnýja fjölskyldulykil?';
-      d.textContent = 'Nýr lykill verður búinn til. Gamlir barnakóðar virka áfram. Deildu nýja lyklinum með fjölskyldu.';
+      d.textContent = 'Nýr lykill verður búinn til og núverandi gestir missa aðgang (~klst). Barnakóðar haldast. Deildu nýja lyklinum aðeins með þeim sem eiga áfram aðgang.';
       ok.textContent = 'Endurnýja';
       break;
     case 'delete-account':
@@ -1708,7 +1708,12 @@ async function doConfirm() {
     if(type==='delete-child'){ await deleteChildFull(_findChild(arg)); renderSettingsChildren(S.parentChildren||[]); toast('Barni eytt'); return; }
     if(type==='clear-all-data'){ await clearAllData(); toast('Öll lestrargögn hreinsuð'); return; }
     if(type==='delete-account'){ await deleteAccountFull(); return; }
-    if(type==='reset-key'){ toast('Endurnýjun lykils tengist auth-einingu — sjá nótu'); return; }
+    if(type==='reset-key'){
+      if (typeof window.resetFamilyCode !== 'function') { toast('Auth-eining ekki tilbúin'); return; }
+      try { const code = await window.resetFamilyCode(); toast(code ? ('Nýr lykill: ' + code) : 'Lykill endurnýjaður'); }
+      catch(e){ console.error('reset-key', e); toast('Villa við endurnýjun — reyndu aftur'); }
+      return;
+    }
     toast('Óþekkt aðgerð');
   }catch(e){ console.error('doConfirm',e); toast('Villa kom upp — reyndu aftur'); }
 }
@@ -1846,6 +1851,7 @@ window.goTo = function(screenId) {
 };
 
 /* ── Auth functions á window ── */
+if (authMod.resetFamilyCode) window.resetFamilyCode = authMod.resetFamilyCode;
 if (openAddChildPopup) window.openAddChildPopup = openAddChildPopup;
 if (closeAddChildPopup) window.closeAddChildPopup = closeAddChildPopup;
 if (logout) {

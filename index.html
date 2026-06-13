@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="is">
 <head>
 <meta charset="UTF-8">
@@ -309,7 +309,7 @@
 <!-- Hidden legacy elements -->
 <div style="display:none">
   <input id="login-email" type="email">
-  <input id="login-pw" type="password">
+  <input id="login-pw" type="password" autocomplete="current-password">
   <div id="login-error"></div>
   <div id="parent-pill"></div>
   <div id="parent-hero"></div>
@@ -528,8 +528,8 @@
       <div class="rg-or">eða með netfangi</div>
       <div class="rg-field"><label class="rg-label" for="su-name">Fullt nafn</label><input id="su-name" class="rg-input" type="text" autocomplete="name" placeholder="Nafn Nafnsson"></div>
       <div class="rg-field"><label class="rg-label" for="su-email">Netfang</label><input id="su-email" class="rg-input" type="email" autocomplete="email" placeholder="foreldri@dæmi.is"></div>
-      <div class="rg-field"><label class="rg-label" for="su-pw">Lykilorð</label><div class="pw-wrap"><input id="su-pw" class="rg-input" type="password" autocomplete="new-password" placeholder="Minnst 6 stafir"><button type="button" class="pw-eye" aria-label="Sýna lykilorð" onclick="togglePw('su-pw', this)">SÝNA</button></div></div>
-      <div class="rg-field"><label class="rg-label" for="su-pw2">Staðfesta lykilorð</label><div class="pw-wrap"><input id="su-pw2" class="rg-input" type="password" autocomplete="new-password" placeholder="••••••••"><button type="button" class="pw-eye" aria-label="Sýna lykilorð" onclick="togglePw('su-pw2', this)">SÝNA</button></div></div>
+      <div class="rg-field"><label class="rg-label" for="su-pw">Lykilorð</label><div class="pw-wrap"><input id="su-pw" class="rg-input" type="password" autocomplete="new-password" minlength="12" placeholder="Minnst 12 stafir"><button type="button" class="pw-eye" aria-label="Sýna lykilorð" onclick="togglePw('su-pw', this)">SÝNA</button></div></div>
+      <div class="rg-field"><label class="rg-label" for="su-pw2">Staðfesta lykilorð</label><div class="pw-wrap"><input id="su-pw2" class="rg-input" type="password" autocomplete="new-password" minlength="12" placeholder="••••••••"><button type="button" class="pw-eye" aria-label="Sýna lykilorð" onclick="togglePw('su-pw2', this)">SÝNA</button></div></div>
       <label class="rg-consent"><input type="checkbox" id="su-consent"> <span>Ég hef lesið og samþykki <a href="#" onclick="openLegal('terms'); return false;">skilmála og persónuverndarstefnu UppHátt</a></span></label>
       <div id="signup-error" class="rg-popup-error"></div>
       <button class="rg-popup-btn" onclick="submitSignupPopup()">Stofna aðgang</button>
@@ -581,10 +581,33 @@
   #terms-popup .lg-panel[hidden]{ display:none; }
   #terms-popup .lg-doc-title{ font-family:'Sora',sans-serif; font-size:1rem; font-weight:700; color:#f0f4f8; margin:0 0 1px; }
   #terms-popup .lg-meta{ font-size:11px; color:#5f7488; margin:0 0 12px; }
-  #terms-popup h4{ font-family:'Sora',sans-serif; font-size:13.5px; font-weight:700; color:#e6eef6; margin:17px 0 5px; }
-  #terms-popup p{ font-size:13px; line-height:1.62; margin:0 0 9px; }
-  #terms-popup ul{ margin:4px 0 10px; padding-left:18px; }
+  #terms-popup h4{ font-family:'Sora',sans-serif; font-size:13.5px; font-weight:700; color:var(--teal,#1dcdd3); margin:18px 0 7px; letter-spacing:-.01em; }
+  #terms-popup p{ font-size:13px; line-height:1.62; margin:0 0 9px; color:#cfdbe8; }
+  #terms-popup .lg-subhead{ font-family:'Sora',sans-serif; font-size:12px; font-weight:700; color:#e6eef6;
+    text-transform:uppercase; letter-spacing:.04em; margin:13px 0 4px; }
+  /* Toluleg upptalning - brand-litadur hringur utan um tolustafinn */
+  #terms-popup ol.lg-steps{ list-style:none; counter-reset:lg-step; margin:8px 0 13px; padding-left:0; }
+  #terms-popup ol.lg-steps>li{ counter-increment:lg-step; position:relative; padding-left:33px;
+    min-height:23px; margin:7px 0; font-size:13px; line-height:1.5; color:#cfdbe8; }
+  #terms-popup ol.lg-steps>li::before{ content:counter(lg-step); position:absolute; left:0; top:-1px;
+    width:23px; height:23px; border-radius:50%; background:var(--teal-dim,rgba(29,205,211,.1));
+    border:1px solid rgba(29,205,211,.5); color:var(--teal,#1dcdd3); font-family:'Sora',sans-serif;
+    font-size:11px; font-weight:700; display:flex; align-items:center; justify-content:center; }
+  /* Punkta-upptalning - fingerd brand-merking */
+  #terms-popup ul.lg-list{ list-style:none; margin:8px 0 13px; padding-left:0; }
+  #terms-popup ul.lg-list>li{ position:relative; padding-left:18px; margin:6px 0; font-size:13px;
+    line-height:1.5; color:#cfdbe8; }
+  #terms-popup ul.lg-list>li::before{ content:""; position:absolute; left:2px; top:8px; width:6px; height:6px;
+    border-radius:50%; background:var(--teal,#1dcdd3); }
+  #terms-popup ul:not(.lg-list){ margin:4px 0 10px; padding-left:18px; }
   #terms-popup li{ font-size:13px; line-height:1.55; margin:2px 0; }
+  /* Tafla (tilgangur / lagagrundvollur) */
+  #terms-popup table.lg-table{ width:100%; border-collapse:collapse; margin:8px 0 13px; }
+  #terms-popup table.lg-table th{ text-align:left; padding:7px 10px; font-family:'Sora',sans-serif;
+    font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:.03em;
+    color:var(--teal,#1dcdd3); border-bottom:1px solid rgba(29,205,211,.32); }
+  #terms-popup table.lg-table td{ padding:7px 10px; font-size:12.5px; line-height:1.45; color:#cfdbe8;
+    border-bottom:1px solid rgba(255,255,255,.06); vertical-align:top; }
   #terms-popup .lg-review{ background:rgba(245,179,66,.14); border:1px solid rgba(245,179,66,.34);
     color:#f6c761; border-radius:5px; padding:0 5px; font-weight:600; }
   #terms-popup .lg-review-banner{ background:rgba(245,179,66,.1); border:1px solid rgba(245,179,66,.3);
@@ -625,179 +648,300 @@
         <div class="lg-meta">Síðast uppfært: <span class="lg-review">[dagsetning]</span></div>
 
         <h4>1. Inngangur</h4>
-        <p>Þessi persónuverndarstefna útskýrir hvernig UppHátt vinnur persónuupplýsingar foreldra, barna og tengdra fjölskyldumeðlima þegar þjónustan er notuð.</p>
-        <p>UppHátt er heimalestrarþjónusta þar sem foreldrar geta skráð börn, haldið utan um lestur, vistað tímabundnar hljóðupptökur og veitt fjölskyldumeðlimum aðgang að hlustun þar sem það á við. Þjónustan getur einnig notað myndir af bókakápum eða bókasíðum til að bera kennsl á bók eða áætla textamagn á síðu.</p>
-        <p>Persónuvernd barna er lykilatriði í UppHátt. Við leggjum áherslu á eftirfarandi:</p>
-        <ul>
-          <li>Við söfnum aðeins þeim upplýsingum sem nauðsynlegar eru til að veita þjónustuna.</li>
-          <li>Við seljum ekki persónuupplýsingar.</li>
-          <li>Við notum ekki persónuupplýsingar barna í auglýsingaskyni.</li>
-          <li>Við notum ekki hljóðupptökur til raddauðkenningar eða lífkennagreiningar.</li>
-          <li>Við sendum ekki hljóðupptökur til gervigreindar.</li>
-          <li>Foreldri hefur stjórn á gögnum barnsins í þjónustunni.</li>
-          <li>Hljóðupptökur eru aðeins geymdar tímabundið nema foreldri eða samþykktur fjölskyldumeðlimur stjörnumerki upptöku þar sem slík virkni er í boði.</li>
-        </ul>
+        <p>UppHátt er byggt fyrir börn og fjölskyldur. Þess vegna er persónuvernd ekki aukaatriði hjá okkur, heldur hluti af hönnun þjónustunnar frá upphafi.</p>
+        <p>Við söfnum aðeins þeim upplýsingum sem þarf til að þjónustan virki, geymum þær ekki lengur en nauðsynlegt er og gefum foreldrum stjórn á upplýsingum barnsins.</p>
+        <p>Við seljum ekki persónuupplýsingar, notum þær ekki í auglýsingaskyni og notum hljóðupptökur ekki til raddauðkenningar eða lífkennagreiningar.</p>
+        <p>Vinnsla persónuupplýsinga hjá UppHátt fylgir í hvívetna lögum nr. 90/2018 um persónuvernd og vinnslu persónuupplýsinga og almennu persónuverndarreglugerð Evrópusambandsins (GDPR).</p>
 
-        <h4>2. Ábyrgðaraðili</h4>
-        <p>Ábyrgðaraðili vinnslu persónuupplýsinga er: <span class="lg-review">[UppHátt / nafn rekstraraðila / félag síðar]</span></p>
-        <p>Hægt er að hafa samband vegna persónuverndarmála á: <span class="lg-review">[persónuverndarnetfang]</span></p>
-        <p>Í B2C/pilot-notkun er UppHátt ábyrgðaraðili vinnslu. Ef þjónustan verður síðar notuð í samstarfi við skóla, sveitarfélög eða aðrar stofnanir kann ábyrgðarskipting að vera önnur og verður þá fjallað sérstaklega um það.</p>
+        <h4>2. Hver ber ábyrgð á upplýsingunum?</h4>
+        <p>Ábyrgðaraðili vinnslu persónuupplýsinga er:</p>
+        <p><span class="lg-review">[Nafn rekstraraðila]</span> · <span class="lg-review">[Kennitala]</span> · <span class="lg-review">[Heimilisfang]</span> · <span class="lg-review">[Netfang]</span></p>
+        <p>Ef þú hefur spurningar um persónuvernd eða vilt nýta réttindi þín samkvæmt persónuverndarlögum geturðu haft samband við okkur á framangreint netfang.</p>
 
-        <h4>3. Hvaða persónuupplýsingar vinnum við?</h4>
-        <p><strong>3.1 Foreldraaðgangur.</strong> Þegar foreldri stofnar aðgang kunnum við að vinna með: netfang, notandaauðkenni/uid, innskráningaraðferð, familyId/familyCode, hlutverk notanda (t.d. parent), samþykki og dagsetningar þess, stofnunartíma reiknings, síðustu virkni og tæknilegar upplýsingar sem þarf til reksturs. Lykilorð eru meðhöndluð í gegnum auðkenningarþjónustu; UppHátt geymir ekki lykilorð í eigin gagnagrunni.</p>
-        <p><strong>3.2 Barnaprófíll.</strong> Þegar barn er skráð kunnum við að vinna með: nafn eða gælunafn barns, fæðingarár eða aldursviðmið, childKey/auðkenni innan fjölskyldu, tengingu við fjölskyldu, bækur, lestrarstillingar, markmið og stöðu barns. Ekki er krafist kennitölu barns.</p>
-        <p><strong>3.3 Lestrargögn.</strong> Lestrarlotur, dagsetning og tími lestrar, lestrartími, lesnar síður, bækur og staða bóka, markmið/streak/framvinda, hlustanir fjölskyldumeðlima, tæknileg gæðamerki og hvort upptaka/greining hafi tekist.</p>
-        <p><strong>3.4 Hljóðupptökur.</strong> Hljóðskrá af lestri barns, lengd og tími upptöku, tenging við barn/bók/lotu, slóð/auðkenni í geymslu og staða upptöku (virk, stjörnumerkt, eydd, fjarlægð sjálfkrafa). Þegar barn les er hljóðið unnið skammvinnt í bakenda UppHátt, hýstum á EES-svæði, til að meta gæði og hvort nægjanlegt tal sé til staðar. Standist upptaka ekki viðmið er henni eytt strax; annars er hún vistuð tímabundið svo foreldri og þeir fjölskyldumeðlimir sem foreldri veitir aðgang geti hlustað. Hljóðupptökur eru ekki sendar til gervigreindar eða þriðja aðila til greiningar og eru ekki notaðar til raddauðkenningar, lífkennagreiningar, auglýsinga eða sölu.</p>
-        <p><strong>3.5 Mat á upptökum og flokkun bóka.</strong> (a) <em>Mat á hljóðupptöku:</em> reiknirit í okkar eigin umhverfi metur gæði og hvort tal sé til staðar — engin gervigreind, engin sending til þriðja aðila, engin auðkenning barns. (b) <em>Flokkun bóka úr myndum:</em> ef foreldri bætir bók við með mynd er hún greind til að bera kennsl á bók, áætla orðafjölda og flokka eftir textamagni. Þetta eru lýsigögn um bókina, ekki mat á lestrarfærni eða prófílun barns. UppHátt tekur ekki sjálfvirkar ákvarðanir með réttaráhrif á barnið.</p>
-        <p><strong>3.6 Bókakápur og myndir af síðum.</strong> Myndir af kápum, myndir af síðum til að áætla orðafjölda/textaþéttni, útdregnar upplýsingar (heiti, orðafjöldi, textaflokkur) og tæknilegar upplýsingar um greiningu. Greint með skýjaþjónustu Google (þ.m.t. Gemini-líkön þar sem þau eru notuð). Foreldri er hvatt til að taka aðeins mynd af kápu/síðu og forðast aðrar persónuupplýsingar á mynd.</p>
-        <p><strong>3.7 Fjölskyldumeðlimir.</strong> Netfang/auðkenni tengds aðila, tengsl við barn, veittur aðgangur, hlustanir/virkni og dagsetning boðs.</p>
-        <p><strong>3.8 Tæknileg gögn.</strong> IP-tala (ef nauðsynlegt vegna öryggis), tæki/vafri/stýrikerfi, villuskrár, notkunarloggar og upplýsingar sem auðkenningar-, gagnagrunns- eða hýsingarþjónusta þarf.</p>
-        <p><strong>3.9 Samskipti og stuðningur.</strong> Netfang, nafn (ef gefið), efni fyrirspurnar, upplýsingar vegna stuðnings/eyðingar og staða máls.</p>
+        <h4>3. Hvaða upplýsingar vinnum við?</h4>
+        <p>Til að geta veitt þjónustuna vinnum við með eftirfarandi upplýsingar:</p>
+        <p class="lg-subhead">Foreldrar og forsjáraðilar</p>
+        <ol class="lg-steps">
+          <li>Netfang</li>
+          <li>Aðgangsupplýsingar</li>
+          <li>Stillingar og samþykki</li>
+          <li>Samskipti við þjónustuver</li>
+        </ol>
+        <p class="lg-subhead">Börn</p>
+        <ol class="lg-steps">
+          <li>Nafn eða gælunafn</li>
+          <li>Aldur eða fæðingarár</li>
+          <li>Lestrarmarkmið og framvinda</li>
+          <li>Bækur sem skráðar eru í þjónustuna</li>
+        </ol>
+        <p class="lg-subhead">Lestrarvirkni</p>
+        <ol class="lg-steps">
+          <li>Lestrarlotur</li>
+          <li>Lestrartími</li>
+          <li>Lesnar síður</li>
+          <li>Framvinda og markmið</li>
+        </ol>
+        <p class="lg-subhead">Hljóðupptökur</p>
+        <p>Ef foreldri velur að virkja hljóðupptökur getur þjónustan vistað upptökur af lestri barns í takmarkaðan tíma svo foreldrar og samþykktir fjölskyldumeðlimir geti hlustað á lesturinn.</p>
+        <p class="lg-subhead">Myndir af bókum</p>
+        <p>Ef foreldri velur að bæta bók við með mynd getur þjónustan unnið mynd af bókakápu eða síðu til að bera kennsl á bók eða meta textamagn hennar.</p>
+        <p class="lg-subhead">Tæknilegar upplýsingar</p>
+        <p>Til að tryggja öryggi og stöðugan rekstur kunnum við að vinna með takmarkaðar tæknilegar upplýsingar um notkun þjónustunnar.</p>
 
-        <h4>4. Tilgangur og lagagrundvöllur <span class="lg-review">(yfirfara)</span></h4>
-        <ul>
-          <li>Stofna/reka foreldraaðgang — netfang, uid, familyId — <em>samningur</em>.</li>
-          <li>Skrá barn — barnaprófíll, fjölskyldutenging — <em>samþykki/heimild foreldris</em>.</li>
-          <li>Halda utan um heimilislestur — bækur, síður, mínútur, lotur — <em>samningur + samþykki</em>.</li>
-          <li>Fjölskylduhlustun — hljóðupptökur, hlustanir — <em>samþykki foreldris</em>.</li>
-          <li>Mat á hljóðgæðum — hljóðupptaka, gæðamerki — <em>samþykki + lágmörkun</em>.</li>
-          <li>Flokkun bóka — mynd, heiti, orðafjöldi, textaflokkur — <em>samþykki foreldris</em>.</li>
-          <li>Öryggi og rekstur — IP, villuskrár, loggar — <em>lögmætir hagsmunir</em>.</li>
-          <li>Þjónustuskilaboð — netfang — <em>samningur</em>.</li>
-          <li>Pilot-umbætur — samantektir, virkni — <em>lögmætir hagsmunir / ópersónugreinanlegt</em>.</li>
-          <li>Lagaskyldur — nauðsynleg skjöl — <em>lagaskylda</em>.</li>
-        </ul>
+        <h4>4. Af hverju vinnum við upplýsingarnar?</h4>
+        <p>Við vinnum persónuupplýsingar aðeins í skýrum tilgangi og á viðeigandi lagagrundvelli.</p>
+        <table class="lg-table">
+          <thead><tr><th>Tilgangur</th><th>Lagagrundvöllur</th></tr></thead>
+          <tbody>
+            <tr><td>Að stofna og reka aðgang</td><td>Samningur</td></tr>
+            <tr><td>Að halda utan um lestur og framvindu</td><td>Samningur</td></tr>
+            <tr><td>Að gera fjölskyldumeðlimum kleift að hlusta á lestur</td><td>Samþykki foreldris</td></tr>
+            <tr><td>Að vinna hljóðmælingar (lengd, talvirkni, atkvæðatoppa) úr upptöku</td><td>Samþykki foreldris</td></tr>
+            <tr><td>Að vinna myndir af bókum þegar foreldri notar þá virkni</td><td>Samþykki foreldris</td></tr>
+            <tr><td>Að tryggja öryggi og stöðugan rekstur þjónustunnar</td><td>Lögmætir hagsmunir</td></tr>
+            <tr><td>Að uppfylla lagaskyldur</td><td>Lagaskylda</td></tr>
+          </tbody>
+        </table>
+        <p>Við vinnum aldrei persónuupplýsingar í öðrum tilgangi en þeim sem lýst er í þessari stefnu.</p>
 
-        <h4>5. Sérstaklega um börn</h4>
-        <p>Börn stofna ekki sjálf foreldraaðgang. Barn er skráð af foreldri/forsjáraðila sem staðfestir heimild. Við krefjumst ekki meiri upplýsinga en nauðsynlegt er. Foreldri getur skoðað, breytt eða eytt upplýsingum barnsins þar sem slík virkni er í boði eða með því að hafa samband. Foreldri getur afturkallað samþykki fyrir vinnslu sem byggist á samþykki (hljóðupptökur, mat á hljóðgæðum, flokkun bóka úr myndum).</p>
+        <h4>5. Börn og samþykki foreldra</h4>
+        <p>UppHátt er þjónusta sem foreldrar eða forsjáraðilar setja upp fyrir börn sín.</p>
+        <p>Börn stofna ekki sjálf foreldraaðgang og veita ekki sjálf samþykki fyrir vinnslu persónuupplýsinga.</p>
+        <p>Foreldri eða forsjáraðili stjórnar þeim upplýsingum sem skráðar eru um barn og getur óskað eftir aðgangi, leiðréttingu eða eyðingu upplýsinga eftir því sem við á.</p>
+        <p>Við leggjum sérstaka áherslu á að safna ekki meiri upplýsingum um börn en nauðsynlegt er.</p>
 
-        <h4>6. Sérstaklega um hljóðupptökur</h4>
-        <p><strong>6.1 Hvenær?</strong> Aðeins þegar barn notar lestrarvirkni þar sem upptaka er virk, og aðeins ef foreldri hefur áður veitt samþykki. Hljóð er aðeins ætlað til notkunar innan UppHátt.</p>
-        <p><strong>6.2 Af hverju?</strong> Til að foreldri/samþykktir fjölskyldumeðlimir geti hlustað, til að halda utan um heimilislestur og styðja yfirlit, til að meta tæknileg gæði og lágmarka geymslu, og til að greina tæknileg vandamál þar sem nauðsynlegt/samþykkt.</p>
-        <p><strong>6.3 Hver getur hlustað?</strong> Foreldri og þeir fjölskyldumeðlimir sem foreldri veitir aðgang. UppHátt hlustar ekki almennt á hráar upptökur barna; slíkt er aðeins gert með skýrri heimild foreldris eða þar sem nauðsynlegt og heimilt að lögum.</p>
-        <p><strong>6.4 Hve lengi?</strong> Hljóðupptökur eru geymdar tímabundið í allt að <span class="lg-review">7 daga</span> og eyðast síðan sjálfkrafa. Foreldri (og heimilaðir fjölskyldumeðlimir) geta stjörnumerkt upptöku; stjörnumerkt upptaka er undanþegin sjálfvirkri eyðingu þar til hún er afmerkt, eytt handvirkt, eða barnaprófíl/reikningi er eytt.</p>
-        <p><strong>6.5 Hvað gerum við ekki?</strong> Engin raddauðkenning, lífkennagreining, auglýsingar, sala, opinber birting eða þjálfun gervigreindar. Hljóð er ekki sent til Gemini eða annarrar gervigreindarþjónustu.</p>
+        <h4>6. Hljóðupptökur</h4>
+        <p>Hljóðupptökur eru aðeins gerðar þegar foreldri hefur virkjað slíka virkni.</p>
+        <p>Tilgangur upptakanna er að:</p>
+        <ol class="lg-steps">
+          <li>gera foreldrum kleift að hlusta á lestur barns síns</li>
+          <li>gera samþykktum fjölskyldumeðlimum kleift að hlusta</li>
+          <li>styðja við yfirlit yfir heimalestrarvenjur</li>
+        </ol>
+        <p>Hljóðupptökur eru ekki notaðar til:</p>
+        <ol class="lg-steps">
+          <li>raddauðkenningar</li>
+          <li>lífkennagreiningar</li>
+          <li>auglýsinga</li>
+          <li>sölu upplýsinga</li>
+          <li>þjálfunar gervigreindar</li>
+        </ol>
+        <p>Hljóðupptökur barna eru ekki sendar til Gemini eða annarrar gervigreindarþjónustu.</p>
+        <p>UppHátt getur einnig unnið tæknilegar mælingar úr upptöku, svo sem lengd, talvirkni og svokallaða atkvæðatoppa. Slíkar mælingar fara fram í okkar eigin umhverfi og eru notaðar til að meta hvort upptaka innihaldi lestur og til að styðja yfirlit um heimilislestur, til dæmis með því að tengja lestrartíma við áætlað textamagn.</p>
+        <p>Þessar mælingar eru ekki notaðar til að auðkenna barn, ekki til raddauðkenningar, ekki til lífkennagreiningar og ekki sem formlegt mat á lestrarfærni barns.</p>
+        <p>Ef upptaka inniheldur ekki nægjanlegan lestur er henni eytt strax. Aðrar upptökur eru geymdar tímabundið og eyðast sjálfkrafa nema foreldri velji sérstaklega að varðveita þær þar sem slík virkni er í boði.</p>
 
-        <h4>7. Hver hefur aðgang?</h4>
-        <p>Foreldri/forsjáraðili, annað foreldri eða tengdur aðili með aðgang, boðnir fjölskyldumeðlimir, UppHátt að því marki sem nauðsynlegt er vegna rekstrar/öryggis/stuðnings/umbóta, tæknilegir þjónustuveitendur sem vinna fyrir okkar hönd, og opinberir aðilar ef lög krefjast. Fjölskyldumeðlimir sjá aðeins það sem foreldri veitir aðgang að. Admin-aðgangur er takmarkaður við það nauðsynlega.</p>
+        <h4>7. Myndir af bókum og síðum</h4>
+        <p>Foreldrar geta valið að bæta bókum við með mynd af bókakápu eða síðu.</p>
+        <p>Slíkar myndir eru aðeins notaðar til að:</p>
+        <ol class="lg-steps">
+          <li>bera kennsl á bók</li>
+          <li>áætla textamagn</li>
+          <li>flokka bók eftir lestrarþyngd eða umfangi</li>
+        </ol>
+        <p>Myndir af bókakápum og bókasíðum geta verið greindar með þjónustu Google, þar á meðal Gemini-líkönum. Slík greining er aðeins notuð vegna bókarinnar sjálfrar og er ekki notuð til að meta barn, auðkenna barn eða búa til persónusnið um barn.</p>
+        <p>Þegar textamagn bókar eða síðu hefur verið áætlað getur UppHátt notað þær upplýsingar ásamt lestrartíma til að sýna foreldri betra samhengi um umfang lestrar, til dæmis áætlaðan orðafjölda. Slíkar tölur eru áætlanir og eiga að styðja samtal um lestur, ekki vera formlegt próf eða greining á barni.</p>
+        <p>Foreldrar eru hvattir til að taka aðeins myndir sem tengjast bókinni sjálfri og forðast að persónugreinanlegar upplýsingar sjáist á myndum.</p>
 
-        <h4>8. Þjónustuveitendur og undirvinnsluaðilar</h4>
-        <ul>
-          <li>Google / Firebase — auðkenning, gagnagrunnur og geymsla hljóðs og mynda, á EES-svæði þar sem stillt þannig.</li>
-          <li>Google Cloud / Gemini-líkön — greining á myndum af bókum, skv. gagnavinnsluskilmálum Google Cloud.</li>
-          <li>Tölvupóstþjónusta — tilkynningar/þjónustuskilaboð eftir þörfum.</li>
-          <li>Cloudflare — hýsing/dreifing/öryggi fyrir vef eftir því sem við á.</li>
-        </ul>
-        <p>Hljóðupptökur eru ekki sendar til Gemini eða annarrar gervigreindar. Gervigreind er aðeins notuð við greiningu mynda af bókum þar sem foreldri notar þá virkni. Þjónustuveitendur vinna fyrir hönd UppHátt. Við seljum ekki persónuupplýsingar.</p>
+        <h4>8. Hver hefur aðgang að upplýsingunum?</h4>
+        <p>Aðgangur að upplýsingum er takmarkaður við:</p>
+        <ol class="lg-steps">
+          <li>foreldra eða forsjáraðila</li>
+          <li>fjölskyldumeðlimi sem foreldri hefur sérstaklega veitt aðgang</li>
+          <li>starfsfólk eða þjónustuaðila sem þurfa slíkan aðgang til að reka og viðhalda þjónustunni</li>
+          <li>opinbera aðila þegar lög krefjast þess</li>
+        </ol>
+        <p>Enginn notandi hefur aðgang að upplýsingum annarra fjölskyldna.</p>
 
-        <h4>9. Flutningur gagna milli landa <span class="lg-review">(yfirfara)</span></h4>
-        <p>Hljóð, myndir og lestrargögn eru vistuð hjá skýjaþjónustu Google á EES-svæði þar sem stillt þannig. Að því marki sem tæknileg vinnsla eða stuðningur kann að fela í sér aðgang utan EES byggist slíkur flutningur á viðeigandi verndarráðstöfunum (t.d. stöðluðum samningsskilmálum eða ákvörðun um fullnægjandi vernd).</p>
+        <h4>9. Þjónustuveitendur</h4>
+        <p>Til að reka UppHátt nýtum við trausta þjónustuveitendur sem aðstoða við hýsingu, auðkenningu notenda, gagnageymslu, öryggi, myndgreiningu og aðra nauðsynlega þjónustu. Meðal þeirra eru:</p>
+        <ol class="lg-steps">
+          <li><strong>Google / Firebase</strong> — auðkenning notenda, gagnagrunnur og geymsla hljóðs og mynda.</li>
+          <li><strong>Google Cloud / Gemini-líkön</strong> — greining á myndum af bókum.</li>
+          <li><strong>Tölvupóstþjónusta</strong> — þjónustuskilaboð og tilkynningar eftir þörfum.</li>
+          <li><strong>Cloudflare</strong> — hýsing, dreifing og öryggi vefs eftir því sem við á.</li>
+        </ol>
+        <p>Slíkir aðilar vinna eingöngu með upplýsingar samkvæmt fyrirmælum UppHátt og í samræmi við gildandi persónuverndarlög.</p>
+        <p>Við seljum aldrei persónuupplýsingar til þriðju aðila.</p>
 
-        <h4>10. Öryggi gagna</h4>
-        <p>Dulkóðuð samskipti, auðkenning notenda, aðgangsstýringar, gagnagrunns-/geymslureglur sem takmarka aðgang við rétta fjölskyldu, takmarkaður admin-aðgangur og ráðstafanir gegn óheimilum aðgangi. Enginn notandi á að sjá gögn annarrar fjölskyldu. Ekkert kerfi er þó 100% öruggt; tilkynntu UppHátt grun um öryggisbrot.</p>
+        <h4>10. Flutningur upplýsinga milli landa</h4>
+        <p>Meginhýsing gagna UppHátt er í Firebase/Google Cloud í <span class="lg-review">Frankfurt í Þýskalandi</span>, innan Evrópska efnahagssvæðisins. Aðrir þjónustuveitendur (svo sem tölvupóst- og öryggisþjónusta) kunna að vinna takmarkaðar upplýsingar í þágu reksturs, og fer sú vinnsla einnig fram innan EES þar sem því verður við komið.</p>
+        <p>Þegar foreldri notar myndgreiningu til að bæta við bók eða meta textamagn á síðu eru myndir af bókakápum eða bókasíðum greindar með þjónustu Google, þar á meðal Gemini-líkönum. Slík vinnsla fer fram í samræmi við skilmála Google Cloud. Þar sem um er að ræða myndir af bókum en ekki hljóðupptökur barns eða lestrarferil barns teljum við slíka vinnslu síður viðkvæma.</p>
+        <p>Hljóðupptökur barna eru ekki sendar til Gemini eða annarrar gervigreindarþjónustu.</p>
+        <p>Ef vinnsla þjónustuveitanda kann í undantekningartilvikum að fela í sér aðgang eða vinnslu utan EES, byggist slíkur flutningur á viðeigandi verndarráðstöfunum samkvæmt GDPR, svo sem stöðluðum samningsskilmálum eða annarri viðurkenndri heimild.</p>
 
-        <h4>11. Geymslutími og eyðing</h4>
-        <ul>
-          <li>Foreldraaðgangur: meðan reikningur er virkur eða þar til honum er lokað.</li>
-          <li>Barnaprófíll: meðan barn er skráð eða þar til foreldri eyðir/óskar eyðingar.</li>
-          <li>Lestrargögn: meðan þjónustan er notuð eða þar til eytt/óskað.</li>
-          <li>Hljóðupptökur: allt að <span class="lg-review">7 daga</span>, þá sjálfvirkt eytt. Stjörnumerktar geymast þar til afmerktar/eytt.</li>
-          <li>Bókakápur: meðan bók er í hillu; eyðast við fjarlægingu eða eyðingu prófíls/reiknings.</li>
-          <li>Myndir af síðum: allt að <span class="lg-review">14 daga</span>, þá sjálfvirkt eytt (má eyða fyrr eftir útreikning).</li>
-          <li>Tækniloggar / support: aðeins eins lengi og nauðsynlegt er.</li>
-        </ul>
+        <h4>11. Öryggi upplýsinga</h4>
+        <p>Við gerum viðeigandi ráðstafanir til að vernda upplýsingar gegn óheimilum aðgangi, breytingum, glötun eða misnotkun.</p>
+        <p>UppHátt er hannað með persónuvernd að leiðarljósi. Það þýðir meðal annars að við söfnum sem minnstu, takmörkum aðgang og geymum upplýsingar ekki lengur en þörf er á.</p>
+        <p>Þótt engin tæknilausn geti tryggt fullkomið öryggi vinnum við stöðugt að því að viðhalda öruggri og traustri þjónustu.</p>
 
-        <h4>12. Réttindi notenda</h4>
-        <p>Notandi getur, eftir því sem við á, átt rétt á aðgangi, leiðréttingu, eyðingu, takmörkun vinnslu, andmælum, flutningi gagna og afturköllun samþykkis. Foreldri getur einnig óskað aðgangs/leiðréttingar/eyðingar fyrir barn sem það fer með. Hafðu samband á <span class="lg-review">[persónuverndarnetfang]</span>. Við kunnum að þurfa að staðfesta auðkenni. Réttindi geta verið háð lögbundnum takmörkunum.</p>
+        <h4>12. Hve lengi geymum við upplýsingar?</h4>
+        <p>Við geymum upplýsingar aðeins eins lengi og nauðsynlegt er til að veita þjónustuna eða uppfylla lagaskyldur. Almennt gildir:</p>
+        <ol class="lg-steps">
+          <li>Aðgangsupplýsingar eru geymdar meðan reikningur er virkur.</li>
+          <li>Upplýsingar um lestur eru geymdar meðan fjölskyldan notar þjónustuna.</li>
+          <li>Hljóðupptökur eru geymdar tímabundið, allt að <span class="lg-review">[7 dögum]</span>, og eyðast þá sjálfkrafa nema foreldri ákveði að varðveita þær.</li>
+          <li>Myndir af bókakápum eru geymdar meðan bókin er skráð í þjónustunni.</li>
+          <li>Myndir af bókasíðum eru geymdar allt að <span class="lg-review">[14 dögum]</span> meðan textamagn er metið og eyðast þá sjálfkrafa (má eyða fyrr).</li>
+          <li>Upplýsingar sem ekki eru lengur nauðsynlegar eru eyddar eða gerðar ópersónugreinanlegar.</li>
+        </ol>
 
-        <h4>13. Afturköllun samþykkis</h4>
-        <p>Þar sem vinnsla byggist á samþykki (hljóðupptökur, mat á hljóðgæðum, myndgreining) getur foreldri afturkallað það. Afturköllun getur haft áhrif á virkni og hefur ekki áhrif á lögmæti fyrri vinnslu.</p>
+        <h4>13. Réttindi þín</h4>
+        <p>Samkvæmt persónuverndarlögum getur þú átt rétt á að:</p>
+        <ol class="lg-steps">
+          <li>fá aðgang að upplýsingum um þig</li>
+          <li>fá rangar upplýsingar leiðréttar</li>
+          <li>óska eftir eyðingu upplýsinga</li>
+          <li>takmarka vinnslu upplýsinga</li>
+          <li>andmæla vinnslu í ákveðnum tilvikum</li>
+          <li>fá upplýsingar afhentar á færanlegu formi</li>
+          <li>afturkalla samþykki sem áður hefur verið veitt</li>
+        </ol>
+        <p>Foreldri eða forsjáraðili getur einnig óskað eftir aðgangi, leiðréttingu eða eyðingu upplýsinga um barn sem það fer með forsjá fyrir.</p>
+        <p>Til að nýta þessi réttindi geturðu haft samband við okkur.</p>
 
-        <h4>14. Vafrakökur og sambærileg tækni</h4>
-        <p>UppHátt notar nauðsynlega tæknilega vistun (localStorage, session storage, vafrakökur) fyrir innskráningu, stillingar og virkni. Greiningarkökur eru aðeins notaðar með samþykki og um þær er upplýst sérstaklega þar sem lög krefjast.</p>
+        <h4>14. Vafrakökur og greining</h4>
+        <p>UppHátt notar nauðsynlegar tæknilegar lausnir til að halda utan um innskráningu, öryggi og stillingar.</p>
+        <p>Ef notaðar eru greiningarlausnir sem krefjast samþykkis verður þess óskað sérstaklega áður en þær eru virkjaðar.</p>
 
-        <h4>15. Pilot / sumarprófun</h4>
-        <p>Í pilot kann UppHátt að vinna með samantektarupplýsingar um notkun (fjölda lota, virka daga, lestrartíma, hlustanir, tæknileg vandamál, hvort upptökur/myndgreining tókust, endurkomu) í dulnefndu/ópersónugreinanlegu formi til að meta og bæta þjónustuna. Hráar hljóðupptökur barna verða ekki notaðar í almennu gæðaeftirliti nema með sérstakri heimild foreldris eða þar sem nauðsynlegt og heimilt.</p>
+        <h4>15. Pilot og þróun þjónustunnar</h4>
+        <p>Á þróunartíma þjónustunnar kunnum við að skoða samanteknar og ópersónugreinanlegar upplýsingar um notkun til að bæta upplifun notenda og þróa þjónustuna áfram.</p>
+        <p>Markmiðið er ávallt að bæta þjónustuna án þess að skerða friðhelgi einstaklinga.</p>
+        <p>Hráar hljóðupptökur barna eru ekki notaðar í almennu gæðaeftirliti nema með sérstakri heimild foreldris eða þar sem slíkt er nauðsynlegt og heimilt að lögum.</p>
 
         <h4>16. Kvartanir</h4>
-        <p>Hafðu samband á <span class="lg-review">[persónuverndarnetfang]</span>. Þú getur einnig kvartað til Persónuverndar eða viðeigandi persónuverndaryfirvalda.</p>
+        <p>Ef þú hefur áhyggjur af því hvernig við vinnum persónuupplýsingar viljum við hvetja þig til að hafa fyrst samband við okkur.</p>
+        <p>Þú átt einnig rétt á að leggja fram kvörtun til Persónuverndar.</p>
 
-        <h4>17. Breytingar</h4>
-        <p>Stefnan kann að breytast ef þjónustan, tæknileg útfærsla, rekstur eða lög breytast. Verulegar breytingar verða kynntar í appinu, á vef eða með tölvupósti. Nýjasta útgáfa skal vera aðgengileg í þjónustunni eða á vef UppHátt.</p>
+        <h4>17. Breytingar á persónuverndarstefnu</h4>
+        <p>Við kunnum að uppfæra þessa persónuverndarstefnu ef þjónustan, lög eða starfsemi UppHátt breytast.</p>
+        <p>Nýjasta útgáfan verður ávallt aðgengileg í þjónustunni eða á vef UppHátt.</p>
 
-        <h4>18. Samband</h4>
-        <p>Persónuvernd: <span class="lg-review">[persónuverndarnetfang]</span> · Almennt: <span class="lg-review">[almennt netfang]</span> · Rekstraraðili: <span class="lg-review">[nafn / félag síðar]</span> · Síðast uppfært: <span class="lg-review">[dagsetning]</span></p>
+        <h4>18. Hafa samband</h4>
+        <p>Persónuvernd: <span class="lg-review">[netfang]</span> · Almennar fyrirspurnir: <span class="lg-review">[netfang]</span> · Rekstraraðili: <span class="lg-review">[nafn]</span> · Síðast uppfært: <span class="lg-review">[dagsetning]</span></p>
       </div>
 
       <!-- ══════════════ SKILMÁLAR ══════════════ -->
       <div class="lg-panel" id="lg-terms" hidden>
-        <div class="lg-doc-title">Skilmálar UppHátt</div>
+        <div class="lg-doc-title">Notendaskilmálar UppHátt</div>
         <div class="lg-meta">Síðast uppfært: <span class="lg-review">[dagsetning]</span></div>
 
-        <h4>1. Inngangur</h4>
-        <p>Þessir skilmálar gilda um notkun UppHátt, heimalestrarþjónustu fyrir fjölskyldur. Með því að stofna aðgang eða nota þjónustuna samþykkir notandi þessa skilmála. Samþykki notandi þá ekki skal hann ekki nota þjónustuna. UppHátt er í þróun og kann að vera í pilot, sumarprófun eða annarri takmarkaðri prófun.</p>
+        <h4>1. Um UppHátt</h4>
+        <p>UppHátt er þjónusta sem styður við heimilislestur barna og gerir fjölskyldum kleift að halda utan um lestur, fylgjast með framvindu og hlusta á lestur þegar það hentar.</p>
+        <p>Markmið UppHátt er að styrkja lestrarvenjur barna og skapa fleiri sameiginlegar lestrarstundir innan fjölskyldunnar.</p>
+        <p>UppHátt er í þróun og getur verið í pilot- eða sumarprófun. Á slíku tímabili getur virkni verið ófullkomin, breyst hratt eða verið tímabundið óaðgengileg.</p>
+        <p>Með því að nota UppHátt samþykkir þú þessa notendaskilmála. Ef þú samþykkir ekki skilmálana skaltu ekki nota þjónustuna.</p>
 
-        <h4>2. Skilgreiningar</h4>
-        <ul>
-          <li><strong>„UppHátt", „við", „þjónustan":</strong> forritið, vefurinn, appið og tengd þjónusta.</li>
-          <li><strong>„Foreldri":</strong> foreldri, forsjáraðili eða fullorðinn með heimild til að skrá barn.</li>
-          <li><strong>„Barn":</strong> barn sem foreldri skráir í UppHátt.</li>
-          <li><strong>„Fjölskylda":</strong> hópur notenda sem tengist sama barni/börnum.</li>
-          <li><strong>„Fjölskyldumeðlimur":</strong> aðili sem foreldri veitir aðgang að lestri/hlustun/völdum upplýsingum.</li>
-          <li><strong>„Lestrargögn":</strong> bækur, síður, mínútur, lotur, hlustanir, markmið, streak, framvinda.</li>
-          <li><strong>„Hljóðupptaka":</strong> upptaka af barni að lesa upphátt.</li>
-          <li><strong>„Myndir af bókum":</strong> myndir af kápum/síðum til að bera kennsl á bók eða áætla textamagn.</li>
-          <li><strong>„Pilot"/„sumarprófun":</strong> tímabundin prófun áður en þjónustan er fullmótuð.</li>
+        <h4>2. Hver má nota UppHátt?</h4>
+        <p>Til að stofna aðgang að UppHátt þarf notandi að vera 18 ára eða eldri.</p>
+        <p>Foreldrar og forsjáraðilar geta stofnað aðgang að UppHátt. Börn nota þjónustuna undir umsjón foreldris eða forsjáraðila.</p>
+        <p>Foreldri ber ábyrgð á þeim upplýsingum sem skráðar eru í þjónustuna og þeim aðgangi sem veittur er öðrum fjölskyldumeðlimum.</p>
+
+        <h4>3. Fjölskylduaðgangar</h4>
+        <p>Foreldri getur boðið öðrum fjölskyldumeðlimum að taka þátt í þjónustunni. Foreldri stjórnar því:</p>
+        <ul class="lg-list">
+          <li>hver fær aðgang</li>
+          <li>hvaða upplýsingar eru sýnilegar</li>
+          <li>hver getur hlustað á upptökur</li>
+          <li>hvenær aðgangur er afturkallaður</li>
+        </ul>
+        <p>Boðnir aðilar mega aðeins nota aðgang sinn í samræmi við tilgang þjónustunnar.</p>
+
+        <h4>4. Hvernig má nota þjónustuna?</h4>
+        <p>Þjónustan er ætluð til einkanota innan fjölskyldu og til að styðja við lestur barna. Óheimilt er að:</p>
+        <ul class="lg-list">
+          <li>nota þjónustuna í ólögmætum tilgangi</li>
+          <li>reyna að komast yfir gögn annarra notenda</li>
+          <li>deila aðgangi sínum með óviðkomandi aðilum</li>
+          <li>trufla rekstur þjónustunnar</li>
+          <li>reyna að komast framhjá öryggisráðstöfunum þjónustunnar</li>
+          <li>afrita eða endurdreifa efni úr þjónustunni án heimildar</li>
         </ul>
 
-        <h4>3. Lýsing á þjónustunni</h4>
-        <p>UppHátt hjálpar fjölskyldum að halda utan um heimlestur barna og getur m.a. gert foreldri kleift að: skrá barn, skrá bækur, halda utan um lotur/síður/tíma, vista tímabundnar hljóðupptökur, leyfa völdum fjölskyldumeðlimum að hlusta, skoða yfirlit um framvindu/markmið/virkni og nota myndir af bókum til að bera kennsl á bók eða áætla textamagn.</p>
-        <p>UppHátt er stuðningskerfi fyrir heimilislestur og kemur ekki í stað kennslu, formlegrar lestrargreiningar, sérfræðiþjónustu eða mats skóla.</p>
+        <h4>5. Bækur, efni og upplýsingar</h4>
+        <p>Notendur bera ábyrgð á þeim upplýsingum sem þeir skrá í þjónustuna.</p>
+        <p>Þegar bók er skráð eða mynd af bók notuð til að bæta bók við þjónustuna skal notandi tryggja að notkunin sé lögmæt og í samræmi við gildandi reglur.</p>
+        <p>UppHátt ber ekki ábyrgð á efni sem notendur skrá sjálfir.</p>
 
-        <h4>4. Reikningar og skráning</h4>
-        <p>Til að stofna foreldraaðgang þarf notandi að vera orðinn 18 ára. Foreldri ber ábyrgð á allri notkun undir eigin aðgangi, varðveitir innskráningarupplýsingar með öruggum hætti, og ábyrgist að skráðar upplýsingar séu réttar og að það hafi heimild til að skrá barn. Notandi má ekki veita óviðkomandi aðgang að reikningi sínum eða nota aðgang annars án heimildar.</p>
+        <h4>6. Hljóðupptökur</h4>
+        <p>Þegar foreldri velur að virkja hljóðupptökur getur þjónustan vistað lestur barns í samræmi við stillingar þjónustunnar.</p>
+        <p>Hljóðupptökur eru ætlaðar foreldrum og þeim fjölskyldumeðlimum sem foreldri hefur veitt aðgang. Óheimilt er að:</p>
+        <ul class="lg-list">
+          <li>birta upptökur opinberlega án viðeigandi heimilda</li>
+          <li>nota upptökur í atvinnuskyni án heimildar</li>
+          <li>nota þjónustuna til að safna eða dreifa efni sem brýtur gegn lögum</li>
+        </ul>
+        <p>Nánari upplýsingar um meðferð hljóðupptaka má finna í Persónuverndarstefnu UppHátt.</p>
 
-        <h4>5. Skráning barns og sérstakt samþykki</h4>
-        <p>Áður en barn er skráð þarf foreldri að staðfesta heimild til að skrá barnið. Þar sem þjónustan getur unnið með lestrargögn, hljóðupptökur, myndir af bókum og sjálfvirk yfirlit/flokkun þarf foreldri að veita sérstakt samþykki. Það birtist þegar barn er bætt við og fjallar m.a. um: skráningu barns, hljóðupptökur, lestrargögn, fjölskylduhlustun, myndir af bókum, flokkun bóka, geymslutíma og eyðingu.</p>
+        <h4>7. Lestrarupplýsingar og framvinda</h4>
+        <p>UppHátt getur birt samantektir um lestur, svo sem lestrartíma, lesnar síður, framvindu og aðrar upplýsingar sem hjálpa fjölskyldum að fylgjast með lestri.</p>
+        <p>Slíkar upplýsingar eru ætlaðar til stuðnings og hvatningar. Þær eru ekki ætlaðar sem formlegt námsmat, greining á lestrarfærni eða faglegt mat á stöðu barns.</p>
 
-        <h4>6. Fjölskylduaðgangur og hlustun</h4>
-        <p>Foreldri getur veitt fjölskyldumeðlimum aðgang að völdum upplýsingum eða hljóðupptökum og ber ábyrgð á hverjum slíkur aðgangur er veittur. Fjölskyldumeðlimir mega aðeins nota aðganginn til að fylgjast með/hlusta á heimilislestur og mega ekki dreifa, afrita, birta eða deila upplýsingum/upptökum utan þjónustunnar nema með skýrri heimild foreldris.</p>
+        <h4>8. Persónuvernd</h4>
+        <p>Meðferð persónuupplýsinga er lýst í Persónuverndarstefnu UppHátt.</p>
+        <p>Persónuverndarstefnan er órjúfanlegur hluti af notkun þjónustunnar og er aðgengileg á vef UppHátt og í þjónustunni sjálfri.</p>
 
-        <h4>7. Notkunarreglur</h4>
-        <p>Notandi má ekki: reyna að komast í gögn annarra fjölskyldna, skrá barn án heimildar, deila aðgangi með óheimilum aðilum, skrá röng/villandi gögn, trufla rekstur/öryggi/virkni, komast fram hjá aðgangsstýringum, afrita/scrape-a/endurgera/nýta hugbúnað/gögn/hönnun/viðmót utan eðlilegrar notkunar, eða nota þjónustuna í ólögmætum/skaðlegum/óviðeigandi tilgangi. UppHátt getur takmarkað, lokað eða stöðvað aðgang vegna brota.</p>
+        <h4>9. Hugverkaréttur</h4>
+        <p>Hugbúnaður, hönnun, vörumerki, útlit, texti, myndmál og annað efni sem tilheyrir UppHátt er eign UppHátt eða leyfishafa þess.</p>
+        <p>Notkun þjónustunnar veitir ekki eignarrétt að efni eða hugverkum UppHátt. Óheimilt er að:</p>
+        <ul class="lg-list">
+          <li>afrita þjónustuna</li>
+          <li>endurbirta efni hennar</li>
+          <li>breyta henni eða reyna að komast yfir frumkóða hennar</li>
+          <li>nota vörumerki UppHátt án leyfis</li>
+        </ul>
+        <p>nema þar sem lög leyfa sérstaklega.</p>
 
-        <h4>8. Hljóðupptökur, myndir af bókum og lestrargögn</h4>
-        <p>UppHátt vinnur með lestrargögn, hljóðupptökur og myndir af bókum aðeins eftir því sem lýst er í persónuverndarstefnu og sérstöku samþykki foreldris. Þegar barn les er hljóðið unnið skammvinnt í bakenda til að meta gæði og hvort nægjanlegt tal sé til staðar; standist upptaka ekki viðmið er henni eytt strax, annars vistuð tímabundið svo foreldri og heimilaðir fjölskyldumeðlimir geti hlustað. Þessi vinnsla fer fram með reikniritum í okkar eigin umhverfi — hljóð er ekki sent til gervigreindar eða þriðja aðila, ekki notað til raddauðkenningar/lífkennagreiningar og ekki til auglýsinga/sölu/birtingar. Myndir af bókum eru greindar með skýjaþjónustu Google. Foreldri getur eytt hljóði, myndum og lestrargögnum þar sem slík virkni er í boði; hljóð og myndir af síðum eyðast einnig sjálfkrafa skv. geymslustefnu.</p>
+        <h4>10. Áskriftir og greiðslur</h4>
+        <p>Ef greidd þjónusta eða áskriftir verða í boði munu upplýsingar um verð, greiðslur, endurnýjun og uppsögn koma fram með skýrum hætti áður en greiðsluskylda stofnast.</p>
+        <p>Notendur greiða aldrei fyrir þjónustu nema hafa samþykkt það sérstaklega.</p>
 
-        <h4>9. Pilot / sumarprófun</h4>
-        <p>Á pilot-tíma getur virkni verið ófullkomin, breyst hratt eða verið tímabundið óaðgengileg. Gögn úr pilot kunna að vera notuð í ópersónugreinanlegu/dulnefndu/samanteknu formi til að bæta þjónustuna og greina tæknileg vandamál. UppHátt hlustar ekki á hráar upptökur barna í almennu gæðaskyni nema með skýrri heimild foreldris eða þar sem nauðsynlegt og heimilt.</p>
+        <h4>11. Breytingar á þjónustunni</h4>
+        <p>UppHátt getur frá tíma til annars:</p>
+        <ul class="lg-list">
+          <li>bætt við nýrri virkni</li>
+          <li>breytt núverandi virkni</li>
+          <li>fjarlægt virkni</li>
+          <li>uppfært tæknilegar lausnir</li>
+        </ul>
+        <p>Markmið slíkra breytinga er að bæta þjónustuna og tryggja öryggi hennar, stöðugleika og notagildi. Á pilot- eða þróunartíma geta slíkar breytingar verið tíðari.</p>
 
-        <h4>10. Hugverkaréttindi</h4>
-        <p>UppHátt og/eða rétthafar eiga allan rétt til hugbúnaðar, hönnunar, merkja, texta, myndefnis og viðmóts, nema annað sé tekið fram. Notandi fær takmarkaðan, óframseljanlegan notkunarrétt í samræmi við skilmálana; enginn eignarréttur færist til notanda. Óheimilt er að afrita, dreifa, breyta, endurgera eða nýta þjónustuna utan eðlilegrar notkunar nema með skýrri heimild.</p>
+        <h4>12. Takmörkun ábyrgðar</h4>
+        <p>UppHátt leitast við að veita örugga og áreiðanlega þjónustu. Þó getur engin netþjónusta ábyrgst samfelldan rekstur án truflana eða villna.</p>
+        <p>UppHátt ber ekki ábyrgð á:</p>
+        <ul class="lg-list">
+          <li>tímabundnu þjónusturofi</li>
+          <li>nettengingarvandamálum hjá notendum</li>
+          <li>röngum upplýsingum sem notendur skrá sjálfir</li>
+          <li>ákvörðunum sem teknar eru á grundvelli upplýsinga úr þjónustunni</li>
+          <li>tímabundnum takmörkunum eða breytingum á virkni á pilot- eða þróunartíma</li>
+          <li>óviðráðanlegum atvikum utan stjórn rekstraraðila</li>
+        </ul>
+        <p>Ekkert í þessum skilmálum takmarkar lögbundin réttindi neytenda samkvæmt íslenskum lögum.</p>
 
-        <h4>11. Persónuvernd</h4>
-        <p>Vinnsla persónuupplýsinga fer fram skv. persónuverndarstefnu þjónustunnar, þar sem fram kemur hvaða upplýsingar eru unnar, í hvaða tilgangi, á hvaða grundvelli, hverjir hafa aðgang, hve lengi þær eru geymdar og hvaða réttindi notendur hafa. Barnagögn, hljóðupptökur, myndir af bókum og fjölskylduhlustun eru sérstaklega útskýrð þar og í sérstöku samþykki við skráningu barns.</p>
+        <h4>13. Lokun aðgangs</h4>
+        <p>Foreldri getur hætt notkun þjónustunnar hvenær sem er. UppHátt getur lokað eða takmarkað aðgang ef:</p>
+        <ul class="lg-list">
+          <li>skilmálar eru brotnir</li>
+          <li>þjónustan er misnotuð</li>
+          <li>notkun veldur öryggisáhættu fyrir aðra notendur eða þjónustuna sjálfa</li>
+          <li>lög eða stjórnvaldsfyrirmæli krefjast þess</li>
+        </ul>
 
-        <h4>12. Gjöld og greiðslur</h4>
-        <p>UppHátt er í sumarprófun og aðgangur er gjaldfrjáls nema annað sé tekið sérstaklega fram. Verði greidd þjónusta í boði síðar verða verð, greiðsluskilmálar, endurnýjun og uppsögn kynnt sérstaklega áður en greiðslusamband hefst.</p>
+        <h4>14. Breytingar á skilmálum</h4>
+        <p>UppHátt getur uppfært þessa skilmála ef þjónustan, lög eða starfsemi UppHátt breytast.</p>
+        <p>Verulegar breytingar verða kynntar með eðlilegum hætti áður en þær taka gildi. Áframhaldandi notkun þjónustunnar eftir gildistöku breytinga telst samþykki fyrir uppfærðum skilmálum.</p>
 
-        <h4>13. Lokun reiknings og eyðing gagna</h4>
-        <p>Foreldri getur óskað lokunar reiknings eða eyðingar gagna skv. leiðum þjónustunnar eða með því að hafa samband. Foreldri getur eytt tilteknum lestrargögnum, myndum eða hljóðupptökum þar sem slík virkni er í boði. Nánar um geymslutíma/eyðingu í persónuverndarstefnu. UppHátt kann að varðveita tiltekin tæknileg gögn tímabundið vegna öryggis, reksturs eða lagaskyldu.</p>
+        <h4>15. Framsal eða breyting á rekstri</h4>
+        <p>Ef rekstur UppHátt færist til nýs lögaðila, sameinast öðrum rekstri eða verður hluti af öðru félagi, kann samningurinn við notendur að færast til nýs rekstraraðila.</p>
+        <p>Notendum verður tilkynnt um slíkt eftir því sem við á. Réttindi notenda samkvæmt persónuverndarstefnu og gildandi lögum haldast óbreytt.</p>
 
-        <h4>14. Takmörkun ábyrgðar</h4>
-        <p>Við leggjum okkur fram um örugga, gagnlega og aðgengilega þjónustu en ábyrgjumst ekki að hún verði alltaf villulaus, óslitin eða laus við tæknileg vandamál. Sjálfvirk yfirlit, orðafjöldi, bókaflokkun, textaþéttni og aðrar mælingar eru aðeins stuðningsupplýsingar og koma ekki í stað faglegrar greiningar, kennslu, ráðgjafar eða mats skóla. UppHátt ber ekki ábyrgð á ákvörðunum sem teknar eru eingöngu á grundvelli slíkra mælinga. Ekkert hér takmarkar ábyrgð sem óheimilt er að takmarka að lögum.</p>
+        <h4>16. Lög og varnarþing</h4>
+        <p>Um þessa skilmála gilda íslensk lög.</p>
+        <p>Rísi ágreiningur um notkun þjónustunnar skal leitast við að leysa hann með samkomulagi. Takist það ekki getur ágreiningur verið lagður fyrir íslenska dómstóla samkvæmt gildandi lögum.</p>
 
-        <h4>15. Breytingar á skilmálum</h4>
-        <p>UppHátt getur breytt skilmálunum þegar þjónustan, lög, tæknileg útfærsla eða rekstur breytast. Verulegar breytingar verða kynntar í appinu, á vef eða með tölvupósti. Áframhaldandi notkun eftir gildistöku getur falið í sér samþykki breyttra skilmála.</p>
-
-        <h4>16. Framsal eða breyting á rekstri</h4>
-        <p>Ef UppHátt er fært yfir í félag, sameinast öðrum rekstri eða verður hluti af öðrum lögaðila kann samningurinn við notendur að færast til nýs rekstraraðila. Notendum verður tilkynnt eftir því sem við á. Réttindi notenda skv. persónuverndarstefnu og lögum halda áfram að gilda.</p>
-
-        <h4>17. Lög og varnarþing</h4>
-        <p>Skilmálarnir lúta íslenskum lögum. Ágreiningur skal rekinn fyrir íslenskum dómstólum nema ófrávíkjanlegar reglur neytendaréttar kveði á um annað.</p>
-
-        <h4>18. Samband</h4>
-        <p>Netfang: <span class="lg-review">[netfang]</span> · Rekstraraðili: <span class="lg-review">[nafn / félag síðar]</span> · Síðast uppfært: <span class="lg-review">[dagsetning]</span></p>
+        <h4>17. Hafa samband</h4>
+        <p>Almennar fyrirspurnir: <span class="lg-review">[netfang]</span> · Rekstraraðili: <span class="lg-review">[nafn rekstraraðila]</span> · <span class="lg-review">[kennitala]</span> · Síðast uppfært: <span class="lg-review">[dagsetning]</span></p>
       </div>
     </div>
 
@@ -859,12 +1003,15 @@
 /* Sumarsprettur (pilot) — kveikist aðeins fyrir þá sem koma frá upphatt.is með ?pilot=pilot1 */
 (function () {
   var p = new URLSearchParams(window.location.search);
-  if (p.get('pilot') === 'pilot1') {
+  var isPilotEntry = p.get('pilot') === 'pilot1';
+  window.__upphattPilotEntry = isPilotEntry;
+  if (isPilotEntry) {
     try { localStorage.setItem('upphattPilotGroup', 'pilot1'); } catch (e) {}
   }
   // Birtum modalinn EKKI strax — initAuth kallar window.openSummerPilot()
   // þegar staðfest er að enginn sé innskráður (kemur í veg fyrir blikk + ranga redirect).
   window.openSummerPilot = function () {
+    if (!window.__upphattPilotEntry) return false;
     // Endurnýtt hook: initAuth kallar þetta (enginn innskráður + pilot) →
     // sýnir nýju pilot-landinguna í stað gamla modalsins.
     if (typeof window.showScreen === 'function') {
@@ -876,6 +1023,7 @@
     }
     if (window.PilotWalkthrough && window.PilotWalkthrough.init) window.PilotWalkthrough.init();
     if (window.track) track('pilot_landing_view');
+    return true;
   };
   window.closeSummerPilot = function () {
     var m = document.getElementById('summer-pilot-popup');

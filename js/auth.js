@@ -422,7 +422,7 @@ export async function firebaseSignupPopup() {
   errEl.textContent = '';
   if (!name)         { errEl.textContent = 'Sláðu inn fullt nafn.'; return; }
   if (!email)        { errEl.textContent = 'Sláðu inn netfang.'; return; }
-  if (pw.length < 6) { errEl.textContent = 'Lykilorð verður að vera minnst 6 stafir.'; return; }
+  if (pw.length < 12) { errEl.textContent = 'Lykilorð verður að vera minnst 12 stafir.'; return; }
   if (pw !== pw2)    { errEl.textContent = 'Lykilorðin passa ekki saman.'; return; }
   try {
     _signupInProgress = true;
@@ -469,6 +469,8 @@ export async function firebaseSignupPopup() {
     let msg = 'Villa við skráningu. Reyndu aftur.';
     if (e.code === 'auth/email-already-in-use') msg = 'Þetta netfang er þegar skráð.';
     if (e.code === 'auth/invalid-email')        msg = 'Netfang er ekki gilt.';
+    if (e.code === 'auth/password-does-not-meet-requirements')
+      msg = 'Lykilorð verður að vera minnst 12 stafir.';
     errEl.textContent = msg;
     ['su-name','su-email','su-pw','su-pw2'].forEach(id => {
       const el = document.getElementById(id); if (el) el.disabled = false;
@@ -509,6 +511,21 @@ export function openSettingsPopup() {
 export function closeSettingsPopup() {
   const modal = document.getElementById('settings-modal');
   if (modal) modal.style.display = 'none';
+}
+
+// ══════════════════════════════════════════
+// ENDURNÝJA FJÖLSKYLDULYKIL
+// Kallar resetFamilyCode CF, uppfærir birta kóðann. Engin gögn eytt.
+// ══════════════════════════════════════════
+export async function resetFamilyCode() {
+  const res  = await httpsCallable(functions, 'resetFamilyCode')();
+  const code = res?.data?.familyCode;
+  if (code) {
+    S.familyCode = code;
+    const el = document.getElementById('settings-family-code');
+    if (el) el.textContent = code;
+  }
+  return code;
 }
 
 export function confirmDeleteChild(key) {
@@ -1021,9 +1038,8 @@ export function initAuth() {
     if (S.familyUnsub) { S.familyUnsub(); S.familyUnsub = null; }
     S.sessions = [];
     goTo('screen-child-login');
-    // Sumarsprettur: sýna pilot-modalinn aðeins þegar staðfest er að enginn sé innskráður
-    if (localStorage.getItem('upphattPilotGroup') && window.openSummerPilot) {
-      window.openSummerPilot();
-    }
+    // Sumarsprettur: sýna pilot-landing aðeins þegar núverandi heimsókn kom með ?pilot=pilot1.
+    // upphattPilotGroup er bara cohort-merking fyrir signup, ekki routing-trigger.
+    if (window.openSummerPilot && window.openSummerPilot()) return;
   });
 }

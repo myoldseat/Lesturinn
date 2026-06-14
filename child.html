@@ -2886,6 +2886,9 @@ body{font-family:'DM Sans','Manrope',-apple-system,BlinkMacSystemFont,sans-serif
   background:rgba(255,255,255,.06);color:#e5edf6;font-size:20px;line-height:1;cursor:pointer}
 .line-expand-title{font:900 1.05rem 'DM Sans',sans-serif;color:#e5edf6;margin:2px 0 12px}
 .line-expand-body .line-wrap{background:transparent;border:0;padding:0;cursor:default}
+.stats-restart{display:block;width:100%;margin-top:14px;border:1px solid rgba(122,150,180,.25);
+  background:transparent;color:#8fa3b8;border-radius:12px;padding:10px;font:800 .78rem 'DM Sans',sans-serif;cursor:pointer}
+.stats-restart:hover{border-color:rgba(36,214,223,.4);color:#24d6df}
 /* fix modal */
 .fix-overlay{position:fixed;inset:0;z-index:1200;display:none;align-items:center;justify-content:center;
   background:rgba(3,8,16,.66);backdrop-filter:blur(4px);padding:20px}
@@ -3025,6 +3028,7 @@ body{font-family:'DM Sans','Manrope',-apple-system,BlinkMacSystemFont,sans-serif
         <div class="stats-modal-label">Lestrar</div>
       </div>
     </div>
+    <button class="stats-restart" id="statsRestart" type="button">↻ Byrja upp á nýtt (frá í dag)</button>
   </div>
 </div>
 
@@ -3362,7 +3366,7 @@ window._child = { auth, db, storage, functions, CS, ensureAuth, getChildSession,
   var METRICS = {
     height: {
       key: "height", label: "Hæð / Lengd", kind: "line", tiers: HEIGHT_TIERS,
-      progress: function () { return totalPagesRead; },
+      progress: function () { return journeyPages; },
       toUnit: function (p) { return p * 0.2; },
       fmtUnit: function (v) { return fmtMeters(v); },
       fmtProgress: function (p) { return p + " bls"; },
@@ -3381,6 +3385,7 @@ window._child = { auth, db, storage, functions, CS, ensureAuth, getChildSession,
   // ── STATE ──
   var childName = "Lesari";
   var totalPagesRead = 0, totalMinutesRead = 0, finishedBooksCount = 0, listenCount = 0;
+  var baseline = null, journeyPages = 0;
   var sessionDates = [], byDay = {}, pbLongestSession = 0;
   var awarded = [], awardedKeys = new Set(), dayCorrections = {};
   var fs = null, db = null, fid = "", ck = "";
@@ -3417,7 +3422,7 @@ window._child = { auth, db, storage, functions, CS, ensureAuth, getChildSession,
     awardedKeys = new Set(awarded.map(function (b) { return b.key; }));
   }
   function cacheLocal() {
-    try { localStorage.setItem(goalsLocalKey(), JSON.stringify({ badges: awarded, dayCorrections: dayCorrections, savedAt: Date.now() })); } catch (e) {}
+    try { localStorage.setItem(goalsLocalKey(), JSON.stringify({ badges: awarded, dayCorrections: dayCorrections, baseline: baseline, savedAt: Date.now() })); } catch (e) {}
   }
   function loadCache() {
     try {
@@ -3425,6 +3430,7 @@ window._child = { auth, db, storage, functions, CS, ensureAuth, getChildSession,
       var p = raw ? JSON.parse(raw) : null;
       if (p && Array.isArray(p.badges)) setAwarded(p.badges);
       if (p && p.dayCorrections) dayCorrections = p.dayCorrections;
+      if (p && p.baseline) baseline = p.baseline;
     } catch (e) {}
   }
   async function loadGoals() {
@@ -3436,6 +3442,7 @@ window._child = { auth, db, storage, functions, CS, ensureAuth, getChildSession,
         var data = snap.data() || {};
         setAwarded(data.badges);
         if (data.dayCorrections) dayCorrections = data.dayCorrections;
+        if (data.baseline) baseline = data.baseline;
       }
     } catch (e) { console.warn("Could not load goals", e); }
   }
@@ -3443,7 +3450,7 @@ window._child = { auth, db, storage, functions, CS, ensureAuth, getChildSession,
     if (!fs || !db || !fid || !ck) return;
     try {
       await fs.setDoc(fs.doc(db, "goals", fid + "_" + ck), {
-        badges: awarded, dayCorrections: dayCorrections,
+        badges: awarded, dayCorrections: dayCorrections, baseline: baseline,
         familyId: fid, childKey: ck, childName: childName, updatedAt: fs.serverTimestamp()
       }, { merge: true });
     } catch (e) { console.warn("Could not save goals", e); }
@@ -3509,6 +3516,13 @@ window._child = { auth, db, storage, functions, CS, ensureAuth, getChildSession,
         pages += Math.max(0, Math.min(readPages || 0, totalPages || readPages || 0));
       });
       totalPagesRead = pages; finishedBooksCount = finished;
+      // ── RESTART: ef ekkert baseline -> byrjaðu upp á nýtt í dag ──
+      if (!baseline || typeof baseline.startedAt !== "number") {
+        baseline = { startedAt: dayStart(new Date()).getTime(), pages: totalPagesRead };
+        awarded = []; awardedKeys = new Set(); dayCorrections = {};
+        cacheLocal(); persistGoals();
+      }
+      journeyPages = Math.max(0, totalPagesRead - (baseline.pages || 0));
 
       try {
         var sessSnap = await fs.getDocs(fs.query(fs.collection(db, "sessions"),
@@ -3520,6 +3534,7 @@ window._child = { auth, db, storage, functions, CS, ensureAuth, getChildSession,
           var dt = rawDate && typeof rawDate.toDate === "function" ? rawDate.toDate() : (rawDate ? new Date(rawDate) : null);
           var sec = Number(data.seconds || data.durationSeconds || 0);
           if (!dt || isNaN(dt.getTime()) || sec < 60) return;
+          if (baseline && dt.getTime() < baseline.startedAt) return;
           sessionDates.push(dt);
           var pr = Number(data.pagesRead || data.pages || 0);
           if (!pr && Number(data.pageTo || 0) && Number(data.pageFrom || 0)) pr = Math.max(0, Number(data.pageTo) - Number(data.pageFrom) + 1);
@@ -3631,10 +3646,12 @@ window._child = { auth, db, storage, functions, CS, ensureAuth, getChildSession,
   // LESLÍNA — x=tími, y=uppsafnaðar síður, fest við books, kennileiti á y-ás
   // ══════════════════════════════════════════════════════════════
   function buildLineSVG(metric, W, H) {
-    var booksTotal = totalPagesRead;
+    var booksTotal = journeyPages;
     var series = dailySeries();
     var todayMs = dayStart(new Date()).getTime();
     var pts = [], cum = 0;
+    var originDay = (baseline && baseline.startedAt) ? baseline.startedAt : (series.length ? series[0].day : todayMs);
+    pts.push({ day: originDay, cum: 0, origin: true, fixable: false });
     series.forEach(function (s) { cum += s.pages; pts.push({ day: s.day, cum: cum, estimated: s.estimated, fixable: s.estimated }); });
     if (booksTotal > cum) {
       if (pts.length && pts[pts.length - 1].day === todayMs) { pts[pts.length - 1].cum = booksTotal; pts[pts.length - 1].anchor = true; pts[pts.length - 1].fixable = false; }
@@ -3662,6 +3679,7 @@ window._child = { auth, db, storage, functions, CS, ensureAuth, getChildSession,
     pts.forEach(function (pt, i) { d += (i ? " L " : "M ") + x(pt.day).toFixed(1) + " " + y(pt.cum).toFixed(1); });
     s += '<path class="line-path" d="' + d + '"/>';
     pts.forEach(function (pt) {
+      if (pt.origin) return;
       var cls = pt.anchor ? "line-here" : (pt.estimated ? "line-pt est" : "line-pt");
       s += '<circle class="' + cls + '" data-day="' + pt.day + '" data-fix="' + (pt.fixable ? 1 : 0) + '" cx="' + x(pt.day).toFixed(1) + '" cy="' + y(pt.cum).toFixed(1) + '" r="' + (pt.anchor ? 6 : 4) + '"/>';
     });
@@ -3778,6 +3796,13 @@ window._child = { auth, db, storage, functions, CS, ensureAuth, getChildSession,
     renderActive();
   }
 
+  async function doRestart() {
+    baseline = { startedAt: dayStart(new Date()).getTime(), pages: totalPagesRead };
+    awarded = []; awardedKeys = new Set(); dayCorrections = {};
+    cacheLocal(); try { await persistGoals(); } catch (e) {}
+    if (typeof location !== "undefined" && location.reload) location.reload();
+  }
+
   function showMoliCelebration(b) {
     var t = window._child && window._child.toast;
     var msg = "🎉 Nýr áfangi: " + b.name + (b.fact ? " — " + b.fact : "");
@@ -3814,9 +3839,13 @@ window._child = { auth, db, storage, functions, CS, ensureAuth, getChildSession,
     var leOv = $("lineExpandOverlay"), leClose = $("lineExpandClose");
     if (leClose) leClose.addEventListener("click", function () { leOv.classList.remove("open"); });
     if (leOv) leOv.addEventListener("click", function (e) { if (e.target === leOv) leOv.classList.remove("open"); });
+    var rBtn = $("statsRestart");
+    if (rBtn) rBtn.addEventListener("click", function () {
+      if (window.confirm("Byrja árangur upp á nýtt frá deginum í dag? Eldri gögn eyðast ekki, en grafið byrjar á núlli.")) doRestart();
+    });
     var sPill = $("statsPill"), sOv = $("statsModalOverlay"), sClose = $("statsModalClose");
     if (sPill) sPill.addEventListener("click", function () {
-      setText("smPages", totalPagesRead); setText("smTime", fmtMinutes(totalMinutesRead));
+      setText("smPages", journeyPages); setText("smTime", fmtMinutes(totalMinutesRead));
       setText("smBooks", finishedBooksCount); setText("smListens", listenCount);
       if (sOv) sOv.classList.add("open");
     });

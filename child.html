@@ -4640,6 +4640,7 @@ window._child = { auth, db, storage, functions, CS, ensureAuth, getChildSession,
 
       // ── Post-save popup ──
       var postSaveOverlay = document.getElementById("post-save-overlay");
+      var postSaveMandatory = false;
       var postSaveCloseBtn = document.getElementById("post-save-close");
       var postSaveJourneyBtn = document.getElementById("post-save-save-journey");
       var postSaveNote = document.getElementById("post-save-note");
@@ -4661,6 +4662,12 @@ window._child = { auth, db, storage, functions, CS, ensureAuth, getChildSession,
         if (postSaveTagline) postSaveTagline.textContent = tagline;
 
         var setup = getChildReadingSetup();
+        postSaveMandatory = !!(setup && setup.bookId);
+        if (postSaveCloseBtn) postSaveCloseBtn.style.display = postSaveMandatory ? "none" : "";
+        var introEl = postSaveOverlay.querySelector(".post-save-intro");
+        if (introEl) introEl.textContent = postSaveMandatory
+          ? "Skráðu blaðsíðu og eina setningu til að ljúka lestrinum."
+          : "Bættu einu atriði við lestrarferðalagið.";
         if (postSaveEndPageInput) {
           postSaveEndPageInput.value = "";
           postSaveEndPageInput.placeholder = setup && setup.pageFrom ? String(Number(setup.pageFrom) + 8) : "29";
@@ -4674,8 +4681,9 @@ window._child = { auth, db, storage, functions, CS, ensureAuth, getChildSession,
         setTimeout(function () { if (postSaveNoteInput) postSaveNoteInput.focus(); }, 80);
       }
 
-      function closePostSavePopup() {
+      function closePostSavePopup(force) {
         if (!postSaveOverlay) return;
+        if (postSaveMandatory && !force) return;
         postSaveOverlay.classList.remove("open");
         postSaveOverlay.setAttribute("aria-hidden", "true");
       }
@@ -4769,7 +4777,7 @@ window._child = { auth, db, storage, functions, CS, ensureAuth, getChildSession,
           postSaveJourneyBtn.textContent = "Vistað";
           postSaveJourneyBtn.disabled = true;
           if (postSaveNote) postSaveNote.classList.add("show");
-          setTimeout(closePostSavePopup, 850);
+          setTimeout(function () { closePostSavePopup(true); }, 850);
         });
       }
 

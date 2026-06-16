@@ -2910,7 +2910,7 @@ body{font-family:'DM Sans','Manrope',-apple-system,BlinkMacSystemFont,sans-serif
   <div class="arangur-app" id="arangurApp">
   <header class="child-top">
     <div class="child-top-brand"><b>Upp</b>Hátt</div>
-    <div class="child-top-title">Árangur</div>
+    <div class="child-top-title">Ferðalag</div>
     <div class="child-top-side"><button class="child-logout-btn" type="button" data-child-logout aria-label="Fara út">Út</button></div>
     <span class="child-top-hidden" id="childName">Lesari</span>
   </header>
@@ -3100,7 +3100,7 @@ body{font-family:'DM Sans','Manrope',-apple-system,BlinkMacSystemFont,sans-serif
   <div class="child-journey-app">
     <header class="child-top">
       <div class="child-top-brand"><b>Upp</b>Hátt</div>
-      <div class="child-top-title">Ferðalag</div>
+      <div class="child-top-title">Saman</div>
       <div class="child-top-side"><button class="child-logout-btn" type="button" data-child-logout aria-label="Fara út">Út</button></div>
     </header>
     <section class="child-journey-hero">
@@ -3124,7 +3124,7 @@ body{font-family:'DM Sans','Manrope',-apple-system,BlinkMacSystemFont,sans-serif
   </button>
   <button class="child-nav-tab" type="button" data-nav="journey">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 5h14v14H5z"/><path d="M8 9h8"/><path d="M8 13h5"/><path d="M17 17l2 2"/></svg>
-    Ferðalag
+    Saman
   </button>
   <button class="child-nav-tab" type="button" data-nav="bookshelf">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
@@ -3132,7 +3132,7 @@ body{font-family:'DM Sans','Manrope',-apple-system,BlinkMacSystemFont,sans-serif
   </button>
   <button class="child-nav-tab" type="button" data-nav="arangur">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4h8v5a4 4 0 0 1-8 0z"/><path d="M16 6h3v2a4 4 0 0 1-4 4"/><path d="M8 6H5v2a4 4 0 0 0 4 4"/><path d="M12 13v5"/><path d="M8 21h8"/></svg>
-    Árangur
+    Ferðalag
   </button>
   <button class="child-nav-context" type="button" id="navContextBtn" data-nav="context">
     <span id="navContextLabel">Velja bók</span>
@@ -3860,6 +3860,16 @@ window._child = { auth, db, storage, functions, CS, ensureAuth, getChildSession,
   renderPBHero();
   renderWeekStrip();
   setMetric("height");
+  try { window.__arangurData = { pages: (typeof journeyPages === "number" ? journeyPages : totalPagesRead) || 0, mins: totalMinutesRead || 0 }; document.dispatchEvent(new Event("arangur-data")); } catch (e) {}
+  window.__logJourneyPreference = function (view) {
+    try {
+      if (!fs || !db || !fid || !ck) return;
+      var day = new Date().toISOString().slice(0, 10); // YYYY-MM-DD (Ísland = UTC)
+      fs.setDoc(fs.doc(db, "journeyPreference", fid + "_" + ck + "_" + day), {
+        familyId: fid, childKey: ck, view: view, day: day, updatedAt: fs.serverTimestamp()
+      }, { merge: true }).catch(function (e) { console.warn("journeyPreference log failed", e); });
+    } catch (e) {}
+  };
   if (newly.length && newly.length <= 2) showMoliCelebration(newly[newly.length - 1]);
 
 })();
@@ -6388,6 +6398,56 @@ function childJourneyItems(){
   });
   return out.sort((a,b)=>(b.ts-a.ts));
 }
+/* ── Saman "Nýtt": stöðug röð, óséð fjölskyldu-svör birt + hverfa þegar barn sér þau ── */
+function _samanSeenKey(){ try{ var cs=JSON.parse(localStorage.getItem('upphatt_child')||'null'); return 'samanSeen_'+((cs&&cs.childKey)||'anon'); }catch(e){ return 'samanSeen_anon'; } }
+function _samanSeenSet(){ try{ return new Set(JSON.parse(localStorage.getItem(_samanSeenKey())||'[]')); }catch(e){ return new Set(); } }
+function _samanSeenSave(set){ try{ localStorage.setItem(_samanSeenKey(), JSON.stringify(Array.from(set).slice(-800))); }catch(e){} }
+function _samanReplyId(r){ return (r&&r.book&&r.book.id||'x')+'|'+((r&&r.index!=null)?r.index:'')+'|'+((r&&r.ts)||0)+'|'+((r&&r.author)||'')+'|'+String((r&&r.text)||'').slice(0,40); }
+var _samanObs=null;
+function _samanBuildBanner(list){
+  var old=document.getElementById('samanNewBanner'); if(old&&old.parentNode) old.parentNode.removeChild(old);
+  var ub=list.querySelectorAll('.child-bubble.family.unseen'); if(!ub.length) return;
+  var authors=[]; ub.forEach(function(b){ var a=b.getAttribute('data-reply-author')||''; if(a&&authors.indexOf(a)<0) authors.push(a); });
+  var who = authors.length===1 ? authors[0] : (authors.length===2 ? authors[0]+' og '+authors[1] : 'fjölskyldunni');
+  var n=ub.length;
+  var banner=document.createElement('button');
+  banner.id='samanNewBanner'; banner.type='button'; banner.className='saman-new-banner';
+  banner.innerHTML='<span class="dot"></span><span class="txt">Nýtt frá '+esc(who)+' · '+n+(n===1?' svar':' svör')+'</span><span class="chev">›</span>';
+  banner.addEventListener('click', function(){
+    var first=list.querySelector('.child-bubble.family.unseen');
+    if(first){ var th=first.closest('.child-thread'); if(th){ th.scrollIntoView({behavior:'smooth',block:'center'}); th.classList.remove('saman-highlight'); void th.offsetWidth; th.classList.add('saman-highlight'); } }
+  });
+  list.parentNode.insertBefore(banner, list);
+}
+function _decorateSamanNew(list){
+  if(!list) return;
+  if(_samanObs){ try{_samanObs.disconnect();}catch(e){} _samanObs=null; }
+  _samanBuildBanner(list);
+  var threads=[];
+  list.querySelectorAll('.child-thread').forEach(function(th){ if(th.querySelector('.child-bubble.family.unseen')) threads.push(th); });
+  if(!threads.length) return;
+  var timers=new WeakMap();
+  _samanObs=new IntersectionObserver(function(entries){
+    entries.forEach(function(en){
+      var th=en.target;
+      if(en.isIntersecting && en.intersectionRatio>=0.4){
+        if(timers.get(th)) return;
+        timers.set(th, setTimeout(function(){
+          var bubbles=th.querySelectorAll('.child-bubble.family.unseen');
+          var s=_samanSeenSet();
+          bubbles.forEach(function(b){ var id=b.getAttribute('data-reply-id'); if(id) s.add(id); b.classList.remove('unseen'); });
+          var pill=th.querySelector('.saman-nytt-pill'); if(pill&&pill.parentNode) pill.parentNode.removeChild(pill);
+          _samanSeenSave(s);
+          try{_samanObs.unobserve(th);}catch(e){}
+          _samanBuildBanner(list);
+        }, 1200));
+      } else {
+        var t=timers.get(th); if(t){ clearTimeout(t); timers.delete(th); }
+      }
+    });
+  }, { threshold:[0,0.4,0.8] });
+  threads.forEach(function(th){ _samanObs.observe(th); });
+}
 function renderChildJourney(){
   const list=document.getElementById('childJourneyList');
   if(!list)return;
@@ -6414,7 +6474,8 @@ function renderChildJourney(){
     else if (item.kind === 'gold') { threads[key].gold = item; threads[key].ts = Math.max(threads[key].ts, item.ts); }
     else { threads[key].replies.push(item); threads[key].ts = Math.max(threads[key].ts, item.ts); }
   });
-  const sortedThreads = Object.values(threads).sort((a,b) => b.ts - a.ts);
+  const readTs = t => (t.entry ? t.entry.ts : (t.gold ? t.gold.ts : t.ts));
+  const sortedThreads = Object.values(threads).sort((a,b) => readTs(b) - readTs(a));
   const famColors = ['fam-gold','fam-purple','fam-coral','fam-blue','fam-rose'];
   const authorColorMap = {};
   let colorIdx = 0;
@@ -6425,12 +6486,14 @@ function renderChildJourney(){
   }
   const now = Date.now();
   const freshMs = 24 * 60 * 60 * 1000;
+  const seen = _samanSeenSet();
   list.innerHTML = sortedThreads.map(thread => {
     const book = thread.book || {};
     const title = book.title || 'Bók';
     const meta = [thread.pageMeta, thread.entry ? fmtDT(thread.entry.ts) : (thread.gold ? fmtDT(thread.gold.ts) : '')].filter(Boolean).join(' · ');
     let html = '<div class="child-thread' + (thread.gold ? ' gold-open' : '') + '"' + (thread.gold ? ' data-journey-open-book="' + esc(book.id || '') + '" role="button" tabindex="0"' : '') + '>';
-    html += '<div class="child-thread-meta"><span>' + esc(thread.gold ? (thread.gold.author || 'UppHátt') : title) + '</span><span>·</span><span>' + esc(thread.gold ? 'Varðveitt upptaka' : meta) + '</span></div>';
+    const threadUnseen = thread.replies.filter(r => !seen.has(_samanReplyId(r))).length;
+    html += '<div class="child-thread-meta"><span>' + esc(thread.gold ? (thread.gold.author || 'UppHátt') : title) + '</span><span>·</span><span>' + esc(thread.gold ? 'Varðveitt upptaka' : meta) + '</span>' + (threadUnseen ? '<span class="saman-nytt-pill">Nýtt</span>' : '') + '</div>';
     if (thread.gold) {
       const fresh = (now - thread.gold.ts) < freshMs ? ' fresh' : '';
       html += '<div class="child-bubble-stack"><div class="child-bubble gold-moment' + fresh + '">' + esc(thread.gold.text || '') + '<small>' + esc(title) + (thread.gold.ts ? ' · ' + fmtDT(thread.gold.ts) : '') + '</small><span class="child-gold-cta">Skoða og hlusta</span></div></div>';
@@ -6442,11 +6505,14 @@ function renderChildJourney(){
     thread.replies.sort((a,b) => a.ts - b.ts).forEach(r => {
       const fresh = (now - r.ts) < freshMs ? ' fresh' : '';
       const fc = authorColor(r.author);
-      html += '<div class="child-bubble-stack"><div class="child-bubble family ' + fc + fresh + '">' + esc(r.text || '') + '<small>' + esc(r.author || 'Fjölskylda') + (r.ts ? ' · ' + fmtDT(r.ts) : '') + '</small></div></div>';
+      const rid = _samanReplyId(r);
+      const unseen = seen.has(rid) ? '' : ' unseen';
+      html += '<div class="child-bubble-stack"><div class="child-bubble family ' + fc + fresh + unseen + '" data-reply-id="' + esc(rid) + '" data-reply-author="' + esc(r.author || 'Fjölskylda') + '">' + esc(r.text || '') + '<small>' + esc(r.author || 'Fjölskylda') + (r.ts ? ' · ' + fmtDT(r.ts) : '') + '</small></div></div>';
     });
     html += '</div>';
     return html;
   }).join('');
+  _decorateSamanNew(list);
 }
 window._renderChildJourney=renderChildJourney;
 window._copyJourneySentences=async function(){
@@ -7434,6 +7500,512 @@ loginCode.addEventListener('keydown', e => { if (e.key === 'Enter') devChildLogi
 })();
 </script>
 
+<!-- ═══ Ferðalag (Leiðin) — 3-way view switch added; old árangur kept intact ═══ -->
+<style id="va-trail-style">
+  #screen-child-arangur #arangurTrail{
+    --bg:#0a1420;--surface:#122236;--surface-2:#16293f;--line:#20364f;--line-soft:#1a2c42;
+    --text:#eaf2f8;--text-dim:#9fb4c7;--text-mute:#6b8198;--teal:#1dcdd3;--teal-dim:#138a8f;
+    --teal-soft:rgba(29,205,211,.14);--radius:20px;--trail:#1dcdd3;--trail-soft:rgba(29,205,211,.16);
+    --sky:#16344a;--grass:#123034;--sand:#142536;--muted-foreground:#9fb4c7;--border:#284363;
+  }
+  #screen-child-arangur #metricTabs{ display:none !important; }
+  #screen-child-arangur .va-switch{ margin:16px 16px 4px; }
+  #screen-child-arangur .va-switch-label{ font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#1dcdd3;margin-bottom:7px; }
+  #screen-child-arangur .va-switch-row{ display:flex;gap:6px;flex-wrap:wrap; }
+  #screen-child-arangur .va-switch-row button{ font:inherit;font-size:12.5px;font-weight:800;border:1px solid #20364f;background:#122236;color:#9fb4c7;border-radius:999px;padding:7px 14px;cursor:pointer;transition:background .15s,color .15s; }
+  #screen-child-arangur .va-switch-row button.on{ background:#1dcdd3;color:#04222a;border-color:#1dcdd3; }
+  #screen-child-arangur #pbHero,
+  #screen-child-arangur #weekStrip{ display:none !important; }   /* falin: tölfræði-spjöld + viku-stjörnur */
+  #screen-child-arangur.va-trail #milestoneHero,
+  #screen-child-arangur.va-trail #metricCanvas,
+  #screen-child-arangur.va-trail #journeyPill,
+  #screen-child-arangur.va-trail #badgeSection{ display:none !important; }   /* merki tilheyra klifrinu — falin í Leiðin */
+  #screen-child-arangur:not(.va-trail) #arangurTrail{ display:none; }
+  #screen-child-arangur #arangurTrail .hero { padding: 6px 20px 0; }
+  #screen-child-arangur #arangurTrail .eyebrow {
+    color: var(--teal); font-size: 12px; font-weight: 800;
+    letter-spacing: 0.14em; text-transform: uppercase;
+  }
+  #screen-child-arangur #arangurTrail .hero-row {
+    display: flex; align-items: flex-end; justify-content: space-between; gap: 14px;
+    margin-top: 6px;
+  }
+  #screen-child-arangur #arangurTrail .dist-label { color: var(--text-dim); font-size: 14px; font-weight: 600; }
+  #screen-child-arangur #arangurTrail .dist {
+    font-family: 'Fraunces', Georgia, serif; font-weight: 500;
+    line-height: 0.95; letter-spacing: -0.01em; margin-top: 2px;
+    display: flex; align-items: flex-end; gap: 8px;
+  }
+  #screen-child-arangur #arangurTrail .dist .val { font-size: 58px; }
+  #screen-child-arangur #arangurTrail .dist .unit { font-size: 24px; color: var(--teal); font-weight: 600; padding-bottom: 8px; }
+  #screen-child-arangur #arangurTrail .here-chip {
+    flex-shrink: 0; text-align: right; line-height: 1.25;
+    border: 1px solid var(--line); background: var(--surface);
+    border-radius: 14px; padding: 9px 13px;
+    font-size: 12px; font-weight: 700; color: var(--text-dim);
+  }
+  #screen-child-arangur #arangurTrail .here-chip b { display: block; color: var(--text); font-size: 13.5px; }
+
+  /* ---------- Next tiny step ---------- */
+  #screen-child-arangur #arangurTrail .tiny {
+    display: flex; align-items: center; gap: 13px;
+    margin: 16px 20px 0;
+    background: var(--surface); border: 1px solid var(--line-soft);
+    border-radius: 16px; padding: 13px 15px;
+  }
+  #screen-child-arangur #arangurTrail .tiny .badge {
+    flex-shrink: 0; width: 46px; height: 46px; border-radius: 50%;
+    display: grid; place-items: center;
+    background: var(--teal-soft); border: 1.5px solid var(--teal);
+    color: var(--teal); font-weight: 800; font-size: 15px;
+  }
+  #screen-child-arangur #arangurTrail .tiny .lbl { font-size: 11px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--teal); }
+  #screen-child-arangur #arangurTrail .tiny .txt { font-size: 15.5px; font-weight: 700; color: var(--text); line-height: 1.25; margin-top: 2px; }
+  #screen-child-arangur #arangurTrail .hint { color: var(--text-mute); font-size: 12.5px; padding: 9px 22px 0; }
+
+  /* ---------- Trail card ---------- */
+  #screen-child-arangur #arangurTrail .trail-card {
+    margin: 16px 16px 0;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  #screen-child-arangur #arangurTrail .trail-card svg { display: block; width: 100%; height: auto; }
+  #screen-child-arangur #arangurTrail .trail-foot {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    border-top: 1px solid var(--line-soft);
+    padding: 12px 16px;
+    font-size: 13px; color: var(--text-dim);
+  }
+  #screen-child-arangur #arangurTrail .trail-foot b { color: var(--text); }
+  #screen-child-arangur #arangurTrail .trail-foot .pages { flex-shrink: 0; color: var(--teal); font-weight: 800; }
+
+  /* ---------- Stops along the way ---------- */
+  #screen-child-arangur #arangurTrail .stops { padding: 24px 20px 8px; }
+  #screen-child-arangur #arangurTrail .stops h2 { font-family: 'Fraunces', Georgia, serif; font-weight: 600; font-size: 21px; }
+  #screen-child-arangur #arangurTrail .stops .sub { color: var(--text-dim); font-size: 13.5px; margin-top: 2px; }
+  #screen-child-arangur #arangurTrail .ladder { margin-top: 16px; position: relative; padding-left: 30px; }
+  #screen-child-arangur #arangurTrail .ladder::before {
+    content: ""; position: absolute; left: 9px; top: 8px; bottom: 8px;
+    width: 2px; background: var(--line);
+  }
+  #screen-child-arangur #arangurTrail .stop-row {
+    position: relative; display: flex; align-items: baseline; justify-content: space-between;
+    gap: 12px; padding: 12px 0;
+  }
+  #screen-child-arangur #arangurTrail .stop-row::before {
+    content: ""; position: absolute; left: -26px; top: 16px;
+    width: 14px; height: 14px; border-radius: 50%;
+    background: var(--bg); border: 2px solid var(--line);
+  }
+  #screen-child-arangur #arangurTrail .stop-row.done::before { background: var(--teal-dim); border-color: var(--teal-dim); }
+  #screen-child-arangur #arangurTrail .stop-row.next::before { background: var(--teal); border-color: var(--teal); box-shadow: 0 0 0 4px var(--teal-soft); }
+  #screen-child-arangur #arangurTrail .stop-name { font-weight: 700; font-size: 15.5px; color: var(--text); }
+  #screen-child-arangur #arangurTrail .stop-row.ahead .stop-name { color: var(--text-dim); }
+  #screen-child-arangur #arangurTrail .stop-cmp { color: var(--text-mute); font-size: 12.5px; margin-top: 1px; }
+  #screen-child-arangur #arangurTrail .stop-tag { flex-shrink: 0; font-size: 11px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; }
+  #screen-child-arangur #arangurTrail .stop-row.done .stop-tag { color: var(--teal-dim); }
+  #screen-child-arangur #arangurTrail .stop-row.next .stop-tag { color: var(--teal); }
+
+  /* ---------- Quiet metric toggle (distance / time) ---------- */
+  #screen-child-arangur #arangurTrail .metric-flip {
+    display: inline-flex; gap: 2px; margin-top: 12px; padding: 3px;
+    background: var(--surface); border: 1px solid var(--line-soft); border-radius: 999px;
+  }
+  #screen-child-arangur #arangurTrail .metric-flip button {
+    border: none; background: transparent; color: var(--text-mute);
+    font: inherit; font-size: 12px; font-weight: 800; letter-spacing: .02em;
+    padding: 5px 14px; border-radius: 999px; cursor: pointer; transition: background .15s, color .15s;
+  }
+  #screen-child-arangur #arangurTrail .metric-flip button.on { background: var(--teal-soft); color: var(--teal); }
+  #screen-child-arangur #arangurTrail .stop-dist { flex-shrink: 0; font-size: 13px; font-weight: 700; color: var(--text-dim); }
+
+  /* ---------- Quiet footer facts (NOT competitive tiles) ---------- */
+  #screen-child-arangur #arangurTrail .facts {
+    display: flex; gap: 10px; margin: 18px 20px 0;
+    color: var(--text-dim); font-size: 13px;
+  }
+  #screen-child-arangur #arangurTrail .facts div {
+    flex: 1; background: var(--surface); border: 1px solid var(--line-soft);
+    border-radius: 14px; padding: 12px 14px;
+  }
+  #screen-child-arangur #arangurTrail .facts b { display: block; color: var(--text); font-family: 'Fraunces', serif; font-size: 22px; font-weight: 600; }
+  #screen-child-arangur #arangurTrail .note {
+    margin: 14px 20px 8px; color: var(--text-mute); font-size: 12.5px; line-height: 1.5;
+    text-align: center;
+  }
+
+  /* ---------- Empty state ---------- */
+  #screen-child-arangur #arangurTrail .empty { text-align: center; padding: 30px 30px 10px; }
+  #screen-child-arangur #arangurTrail .empty .ring {
+    width: 76px; height: 76px; border-radius: 50%; margin: 0 auto 16px;
+    display: grid; place-items: center; background: var(--teal-soft); border: 1.5px solid var(--teal); color: var(--teal);
+  }
+  #screen-child-arangur #arangurTrail .empty h2 { font-family: 'Fraunces', serif; font-weight: 600; font-size: 24px; }
+  #screen-child-arangur #arangurTrail .empty p { color: var(--text-dim); font-size: 15px; line-height: 1.55; margin: 10px auto 0; max-width: 32ch; }
+  @keyframes va-bob { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-3px);} }
+  @keyframes va-pulse { 0%{transform:scale(.8);opacity:.6;} 70%{transform:scale(1.4);opacity:0;} 100%{opacity:0;} }
+  #screen-child-arangur #arangurTrail .walker{ animation:va-bob 2.6s ease-in-out infinite;transform-box:fill-box;transform-origin:center; }
+  #screen-child-arangur #arangurTrail .pulse{ animation:va-pulse 2.8s ease-out infinite;transform-box:fill-box;transform-origin:center; }
+  @media (prefers-reduced-motion: reduce){ #screen-child-arangur #arangurTrail .walker,#screen-child-arangur #arangurTrail .pulse{ animation:none !important; } }
+</style>
+<script id="va-trail-script">
+(function(){
+  var screen = document.getElementById("screen-child-arangur");
+  if (!screen) return;
+const CM_PER_PAGE = 20;
+const CHILD_NAME = (function(){try{return localStorage.getItem("childName")||"Lesari";}catch(e){return "Lesari";}})();
+
+// Icelandic milestone ladder. `cmp` = instant child comparison.
+const STOPS = [
+  { m: 0,    pages: 0,    name: "Upphafið",            cmp: "hér byrjar leiðin",   icon: "home" },
+  { m: 1,    pages: 5,    name: "Garðshliðið",          cmp: "eitt stórt skref",    icon: "gate" },
+  { m: 5,    pages: 25,   name: "Sólríka engið",        cmp: "þvert yfir herbergi", icon: "meadow" },
+  { m: 10,   pages: 50,   name: "Hvíslandi brúin",      cmp: "þvert yfir stofu",    icon: "bridge" },
+  { m: 25,   pages: 125,  name: "Bláa lónið",           cmp: "heil sundlaug",       icon: "pool" },
+  { m: 50,   pages: 250,  name: "Steinahæðin",          cmp: "hlaupabraut",         icon: "hill" },
+  { m: 100,  pages: 500,  name: "Græni útsýnisstaður",  cmp: "fótboltavöllur",      icon: "lookout" },
+  { m: 250,  pages: 1250, name: "Háu fururnar",         cmp: "í kringum skólann",   icon: "pines" },
+  { m: 500,  pages: 2500, name: "Ljóskeravíkin",        cmp: "fimm fótboltavellir", icon: "cove" },
+  { m: 1000, pages: 5000, name: "Skýjatindurinn",       cmp: "heill kílómetri",     icon: "peak" },
+];
+
+function fmtDist(m) {
+  if (m >= 1000) return { val: (m / 1000).toFixed(m % 1000 ? 1 : 0), unit: "km" };
+  if (m >= 10)   return { val: String(Math.round(m)), unit: "m" };
+  return { val: m.toFixed(1).replace(".", ","), unit: "m" };
+}
+function fmtM(m) {
+  if (m >= 1000) return (m / 1000).toFixed(m % 1000 ? 1 : 0).replace(".", ",") + " km";
+  return (m >= 10 ? Math.round(m) : m.toFixed(1).replace(".", ",")) + " m";
+}
+
+function buildJourney(pages) {
+  const p = Math.max(0, pages || 0);
+  const meters = (p * CM_PER_PAGE) / 100;
+  let lastIndex = 0;
+  for (let i = 0; i < STOPS.length; i++) if (STOPS[i].pages <= p) lastIndex = i;
+  const lastReached = STOPS[lastIndex];
+  const nextStop = STOPS[lastIndex + 1] || null;
+
+  let segmentProgress = 1, pagesToNext = 0;
+  if (nextStop) {
+    const span = nextStop.pages - lastReached.pages;
+    segmentProgress = span > 0 ? Math.min(1, Math.max(0, (p - lastReached.pages) / span)) : 0;
+    pagesToNext = Math.max(0, nextStop.pages - p);
+  }
+  const PAGES_PER_METER = 100 / CM_PER_PAGE; // 5
+  const pagesToNextMeter = Math.max(1, Math.ceil((Math.floor(meters) + 1) * PAGES_PER_METER - p));
+
+  const win = [{ ...lastReached, status: "reached" }];
+  if (nextStop) win.push({ ...nextStop, status: "next" });
+  for (let i = lastIndex + 2; i < STOPS.length && win.length < 4; i++) win.push({ ...STOPS[i], status: "ahead" });
+
+  return { pages: p, meters, lastReached, nextStop, segmentProgress, pagesToNext, pagesToNextMeter, window: win, lastIndex };
+}
+const SLOTS = [{ x: 190, y: 372 }, { x: 95, y: 280 }, { x: 235, y: 188 }, { x: 118, y: 100 }];
+const TRAIL_D = "M 205 432 C 205 402, 190 402, 190 372 C 190 335, 95 322, 95 280 C 95 236, 235 236, 235 188 C 235 150, 118 148, 118 100 C 118 70, 175 70, 178 42";
+const REACHED_D = "M 205 432 C 205 402, 190 402, 190 372";
+
+function cubicPoint(t) {
+  const P0 = SLOTS[0], P1 = { x: 190, y: 335 }, P2 = { x: 95, y: 322 }, P3 = SLOTS[1];
+  const u = 1 - t;
+  return {
+    x: u*u*u*P0.x + 3*u*u*t*P1.x + 3*u*t*t*P2.x + t*t*t*P3.x,
+    y: u*u*u*P0.y + 3*u*u*t*P1.y + 3*u*t*t*P2.y + t*t*t*P3.y,
+  };
+}
+
+const GLYPHS = {
+  home:    '<path d="M-6 1 L0 -6 L6 1 Z" fill="currentColor"/><rect x="-4" y="1" width="8" height="6" rx="1" fill="currentColor"/>',
+  gate:    '<g stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="-5" y1="-6" x2="-5" y2="6"/><line x1="5" y1="-6" x2="5" y2="6"/><line x1="-5" y1="-2" x2="5" y2="-2"/><line x1="-5" y1="3" x2="5" y2="3"/></g>',
+  meadow:  '<g fill="currentColor"><circle cx="0" cy="-1" r="3"/><circle cx="-5" cy="2" r="2.4"/><circle cx="5" cy="2" r="2.4"/></g>',
+  bridge:  '<g stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"><path d="M-7 4 Q0 -6 7 4"/><line x1="-7" y1="4" x2="7" y2="4"/></g>',
+  pool:    '<g stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"><path d="M-6 -1 Q-3 -4 0 -1 Q3 2 6 -1"/><path d="M-6 4 Q-3 1 0 4 Q3 7 6 4"/></g>',
+  hill:    '<g fill="currentColor"><path d="M-7 5 Q-2 -5 3 5 Z"/><path d="M0 5 Q4 -2 7 5 Z"/></g>',
+  lookout: '<g stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"><circle cx="0" cy="-1" r="4"/><line x1="0" y1="3" x2="0" y2="7"/></g>',
+  pines:   '<g fill="currentColor"><path d="M0 -7 L5 5 L-5 5 Z"/></g>',
+  cove:    '<g stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"><circle cx="0" cy="-2" r="3"/><path d="M-6 6 Q0 2 6 6"/></g>',
+  peak:    '<g fill="currentColor"><path d="M-7 6 L0 -7 L7 6 Z"/><path d="M-2.5 -2 L0 -7 L2.5 -2 Z" fill="var(--bg)"/></g>',
+};
+
+function trailSvg(j) {
+  const sp = Math.min(0.92, Math.max(0.04, j.segmentProgress));
+  const child = cubicPoint(sp);
+  let steps = "";
+  for (let i = 0; i < 5; i++) {
+    const p = cubicPoint((j.segmentProgress * (i + 1)) / 6);
+    steps += `<circle cx="${p.x}" cy="${p.y}" r="2.6" fill="var(--trail)" opacity="${0.5 + i * 0.09}"/>`;
+  }
+  let stopsSvg = "";
+  j.window.forEach((stop, i) => {
+    const slot = SLOTS[i]; if (!slot) return;
+    const reached = stop.status === "reached", isNext = stop.status === "next", ahead = stop.status === "ahead";
+    const labelLeft = slot.x > 170;
+    const col = reached || isNext ? "var(--trail)" : "var(--muted-foreground)";
+    const stroke = reached || isNext ? "var(--trail)" : "var(--border)";
+    const sub = isNext ? "næsti áfangi" : reached ? "þú ert hér" : stop.cmp;
+    stopsSvg += `
+      <g transform="translate(${slot.x} ${slot.y})">
+        ${isNext ? '<circle class="pulse" r="20" fill="none" stroke="var(--trail)" stroke-width="2"/>' : ""}
+        <circle r="15" fill="var(--surface-2)" stroke="${stroke}" stroke-width="${reached || isNext ? 3 : 2}" opacity="${ahead ? 0.8 : 1}"/>
+        <g style="color:${col};opacity:${ahead ? 0.8 : 1}">${GLYPHS[stop.icon] || '<circle r="3" fill="currentColor"/>'}</g>
+        <g transform="translate(${labelLeft ? -24 : 24} 0)">
+          <text x="0" y="-1" text-anchor="${labelLeft ? "end" : "start"}" font-size="13" font-weight="700" fill="var(--text)" opacity="${ahead ? 0.8 : 1}">${stop.name}</text>
+          <text x="0" y="14" text-anchor="${labelLeft ? "end" : "start"}" font-size="10.5" fill="var(--text-mute)">${sub}</text>
+        </g>
+      </g>`;
+  });
+  return `
+  <svg viewBox="0 0 340 452" role="img" aria-label="Lestrarleið ${CHILD_NAME}, á leið að ${j.nextStop ? j.nextStop.name : "næsta áfanga"}.">
+    <defs>
+      <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="var(--sky)"/><stop offset="100%" stop-color="var(--bg)"/>
+      </linearGradient>
+      <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="var(--sunset)" stop-opacity="0.55"/><stop offset="100%" stop-color="var(--sunset)" stop-opacity="0"/>
+      </radialGradient>
+      <radialGradient id="walkerGlow" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="var(--trail)" stop-opacity="0.55"/><stop offset="100%" stop-color="var(--trail)" stop-opacity="0"/>
+      </radialGradient>
+    </defs>
+    <rect x="0" y="0" width="340" height="452" fill="url(#sky)"/>
+    <circle cx="262" cy="64" r="70" fill="url(#glow)"/>
+    <!-- a few distant stars for the dusk sky -->
+    <g fill="#cfe3f0" opacity="0.5">
+      <circle cx="60" cy="40" r="1"/><circle cx="110" cy="70" r="0.8"/><circle cx="300" cy="110" r="1"/>
+      <circle cx="40" cy="120" r="0.8"/><circle cx="200" cy="35" r="0.9"/><circle cx="320" cy="58" r="0.8"/>
+    </g>
+    <ellipse cx="170" cy="470" rx="320" ry="150" fill="var(--grass)" opacity="0.7"/>
+    <ellipse cx="60" cy="410" rx="150" ry="62" fill="var(--sand)" opacity="0.6"/>
+    <path d="${TRAIL_D}" fill="none" stroke="var(--trail-soft)" stroke-width="16" stroke-linecap="round"/>
+    <path d="${TRAIL_D}" fill="none" stroke="var(--trail)" stroke-width="3" stroke-linecap="round" stroke-dasharray="1 14" opacity="0.5"/>
+    <path d="${REACHED_D}" fill="none" stroke="var(--trail)" stroke-width="9" stroke-linecap="round"/>
+    ${steps}
+    ${stopsSvg}
+    <g transform="translate(${child.x} ${child.y})">
+      <g class="walker">
+        <circle r="22" fill="url(#walkerGlow)"/>
+        <g transform="translate(20 -8)">
+          <rect x="0" y="-11" width="78" height="22" rx="11" fill="var(--text)"/>
+          <text x="39" y="4" text-anchor="middle" font-size="11" font-weight="800" fill="var(--bg)">Þú ert hér</text>
+        </g>
+        <circle r="15" fill="var(--trail)"/>
+        <circle r="15" fill="none" stroke="var(--text)" stroke-width="2.5"/>
+        <circle cx="0" cy="-3.5" r="3.8" fill="var(--bg)"/>
+        <path d="M0 0.5 Q0 3 0 7" stroke="var(--bg)" stroke-width="3.2" stroke-linecap="round"/>
+      </g>
+    </g>
+  </svg>`;
+}
+
+/* =====================================================================
+   4. STOPS-ALONG-THE-WAY ladder (calm list, no counters/locks)
+=====================================================================*/
+function ladderHtml(j) {
+  // show a few reached + the next few — a continuing path, not a to-do list
+  const from = Math.max(0, j.lastIndex - 1);
+  const to = Math.min(STOPS.length - 1, j.lastIndex + 3);
+  let rows = "";
+  for (let i = from; i <= to; i++) {
+    const s = STOPS[i];
+    let cls = "ahead", tag = "";
+    if (i <= j.lastIndex) { cls = "done"; tag = "komið við"; }
+    else if (i === j.lastIndex + 1) { cls = "next"; tag = "næsti áfangi"; }
+    rows += `
+      <div class="stop-row ${cls}">
+        <div>
+          <div class="stop-name">${s.name}</div>
+          <div class="stop-cmp">${s.cmp}${tag ? ` · <span class="stop-tag">${tag}</span>` : ""}</div>
+        </div>
+        <div class="stop-dist">${fmtM(s.m)}</div>
+      </div>`;
+  }
+  return rows;
+}
+
+/* ---- glue: render trail from real data + 3-way view switch ---- */
+var trailMetric = "dist"; // quiet lens inside the trail view
+
+function renderTrail() {
+  var host = document.getElementById("arangurTrail");
+  if (!host) return;
+  var data = window.__arangurData || { pages: 0, mins: 0 };
+  var pages = Math.max(0, data.pages || 0);
+  var j = buildJourney(pages);
+  if (pages <= 0) {
+    host.innerHTML = '<div class="empty"><div class="ring"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 16v6"/><path d="M4 7V2"/><path d="M4 13a4 4 0 0 0 4-4 4 4 0 0 0-4-4"/><circle cx="14" cy="5" r="2"/><path d="M14 7v3a6 6 0 0 1-6 6"/><circle cx="14" cy="19" r="2"/></svg></div><h2>Lei\u00f0in \u00fe\u00edn byrjar h\u00e9r</h2><p>Hver bla\u00f0s\u00ed\u00f0a sem \u00fe\u00fa lest upph\u00e1tt ver\u00f0ur skref \u00e1 lei\u00f0inni \u00feinni. Lestu fyrstu bla\u00f0s\u00ed\u00f0una og sj\u00e1\u00f0u hvert h\u00fan tekur \u00feig.</p></div>';
+    return;
+  }
+  var d = fmtDist(j.meters);
+  var tinyPages = j.pagesToNextMeter;
+  var mins = data.mins || 0;
+  var isTime = trailMetric === "time";
+  var statLabel = isTime ? "\u00de\u00fa hefur lesi\u00f0 upph\u00e1tt" : "Hinga\u00f0 hefur\u00f0u gengi\u00f0";
+  var statVal = isTime ? String(mins) : d.val;
+  var statUnit = isTime ? "m\u00edn" : d.unit;
+  host.innerHTML =
+    '<section class="hero">' +
+      '<div class="eyebrow">Lei\u00f0in \u00fe\u00edn</div>' +
+      '<div class="metric-flip" role="tablist" aria-label="M\u00e6likvar\u00f0i">' +
+        '<button type="button" data-metric="dist" class="' + (isTime ? "" : "on") + '">Vegalengd</button>' +
+        '<button type="button" data-metric="time" class="' + (isTime ? "on" : "") + '">T\u00edmi</button>' +
+      '</div>' +
+      '<div class="hero-row"><div>' +
+        '<div class="dist-label">' + statLabel + '</div>' +
+        '<div class="dist"><span class="val">' + statVal + '</span><span class="unit">' + statUnit + '</span></div>' +
+      '</div><div class="here-chip">\u00de\u00fa ert vi\u00f0<b>' + j.lastReached.name + '</b></div></div>' +
+    '</section>' +
+    ((!isTime && j.nextStop) ?
+      '<div class="tiny"><div class="badge">+1m</div><div><div class="lbl">N\u00e6sta litla skref</div><div class="txt">Lestu ' + tinyPages + ' ' + (tinyPages === 1 ? "bla\u00f0s\u00ed\u00f0u" : "bla\u00f0s\u00ed\u00f0ur") + ' til a\u00f0 fer\u00f0ast einn metra \u00ed vi\u00f0b\u00f3t</div></div></div>' : '') +
+    '<p class="hint">' + (isTime ? "St\u00edgurinn s\u00fdnir vegalengdina sem r\u00f6ddin \u00fe\u00edn hefur borist \u2014 T\u00edmi telur stundirnar \u00fe\u00ednar me\u00f0 b\u00f3k." : "Hver bla\u00f0s\u00ed\u00f0a f\u00e6rir \u00feig 20 cm \u00e1fram. Haltu \u00e1fram hven\u00e6r sem \u00fe\u00e9r hentar.") + '</p>' +
+    '<div class="trail-card">' + trailSvg(j) + (j.nextStop ? '<div class="trail-foot"><span>\u00c1 lei\u00f0 a\u00f0 <b>' + j.nextStop.name + '</b> \u00b7 ' + j.nextStop.cmp + '</span><span class="pages">' + j.pagesToNext + ' bls.</span></div>' : '') + '</div>' +
+    '<section class="stops"><h2>\u00c1fangar \u00e1 lei\u00f0inni</h2><div class="sub">Sta\u00f0ir sem \u00fe\u00fa hefur fari\u00f0 um og \u00feeir sem b\u00ed\u00f0a</div><div class="ladder">' + ladderHtml(j) + '</div></section>' +
+    '<p class="note">Engin keppni, engin einkunn \u2014 bara lei\u00f0in \u00fe\u00edn og hversu langt r\u00f6ddin \u00fe\u00edn hefur borist.</p>';
+  var mf = host.querySelector(".metric-flip");
+  if (mf) mf.addEventListener("click", function (e) {
+    var b = e.target.closest("[data-metric]");
+    if (!b) return;
+    trailMetric = b.getAttribute("data-metric");
+    renderTrail();
+  });
+}
+
+var currentView = null, lastLoggedKey = null, settleTimer = null;
+var SETTLE_MS = 4000; // a view must hold this long (or until the child leaves) to count as the day's state
+function todayStr() { return new Date().toISOString().slice(0, 10); }
+function onArangur() { return screen.classList.contains("on"); }
+function commitSettled(v) {
+  if (v == null) return;
+  var key = v + "|" + todayStr();          // one record per child per day; last state that sticks wins
+  if (key === lastLoggedKey) return;
+  lastLoggedKey = key;
+  if (typeof window.__logJourneyPreference === "function") window.__logJourneyPreference(v);
+}
+function scheduleSettle(v) {
+  if (settleTimer) clearTimeout(settleTimer);
+  settleTimer = setTimeout(function () { settleTimer = null; if (onArangur()) commitSettled(v); }, SETTLE_MS);
+}
+function flushSettled() {
+  if (settleTimer) { clearTimeout(settleTimer); settleTimer = null; }
+  if (onArangur()) commitSettled(currentView);
+}
+
+function buildSwitch() {
+  if (document.getElementById("arangurTrail")) return;
+  var hero = document.getElementById("milestoneHero");
+  var box = document.createElement("div");
+  box.className = "va-switch";
+  box.innerHTML = '<div class="va-switch-label">\u00de\u00fa \u00e1tt vali\u00f0</div><div class="va-switch-row" role="tablist"><button type="button" data-view="trail">Lei\u00f0in</button><button type="button" data-view="climb">Klifur + graf</button><button type="button" data-view="time">T\u00edmi</button></div>';
+  var trail = document.createElement("section");
+  trail.id = "arangurTrail";
+  var anchor = hero || document.getElementById("metricTabs");
+  if (anchor && anchor.parentNode) {
+    anchor.parentNode.insertBefore(box, anchor);
+    anchor.parentNode.insertBefore(trail, anchor);
+  } else {
+    var app = screen.querySelector(".arangur-app") || screen;
+    app.appendChild(box);
+    app.appendChild(trail);
+  }
+  box.querySelector(".va-switch-row").addEventListener("click", function (e) {
+    var b = e.target.closest("[data-view]");
+    if (b) setView(b.getAttribute("data-view"), true);
+  });
+}
+
+function clickMetric(m) {
+  var t = document.getElementById("metricTabs");
+  if (t) { var b = t.querySelector('[data-metric="' + m + '"]'); if (b) b.click(); }
+}
+
+function setView(v, userInitiated) {
+  var btns = document.querySelectorAll(".va-switch-row [data-view]");
+  for (var i = 0; i < btns.length; i++) btns[i].classList.toggle("on", btns[i].getAttribute("data-view") === v);
+  if (v === "trail") { screen.classList.add("va-trail"); renderTrail(); }
+  else { screen.classList.remove("va-trail"); clickMetric(v === "time" ? "time" : "height"); }
+  try { localStorage.setItem("arangurView", v); } catch (e) {}
+  currentView = v;
+  if (userInitiated) scheduleSettle(v);
+  try { document.dispatchEvent(new CustomEvent("arangur-view", { detail: { view: v, userInitiated: !!userInitiated } })); } catch (e) {}
+}
+
+buildSwitch();
+document.addEventListener("arangur-data", function () {
+  if (screen.classList.contains("va-trail")) renderTrail();
+});
+var savedView = "trail";
+try { savedView = localStorage.getItem("arangurView") || "trail"; } catch (e) {}
+setView(savedView, false);
+
+// Record the day's settled state only while the child is actually on Ferðalag.
+// Entering schedules a settle (captures the default too); leaving flushes it.
+try {
+  var mo = new MutationObserver(function () {
+    if (onArangur()) scheduleSettle(currentView);
+    else flushSettled();
+  });
+  mo.observe(screen, { attributes: true, attributeFilter: ["class"] });
+} catch (e) {}
+if (onArangur()) scheduleSettle(savedView); // in case árangur is the screen at load
+document.addEventListener("visibilitychange", function () { if (document.hidden) flushSettled(); });
+window.addEventListener("pagehide", flushSettled);
+})();
+</script>
+
+<!-- ═══ Saman: samþykkt ritstjórnar-þráð (serif rödd barns, hlutlaus sans fjölskylda, vinstri-jafnað) ═══ -->
+<style id="saman-thread-style">
+  /* Setning barnsins = rödd: serif-skáletruð tilvitnun með teal-rönd, vinstri-jafnað */
+  #childJourneyList .child-bubble.mine{
+    margin:0 22px 0 0;            /* ekki lengur ýtt til hægri sem blaðra */
+    margin-right:0;
+    background:transparent;
+    border:none;
+    border-left:3px solid #1dcdd3;
+    border-radius:0 10px 10px 0;
+    padding:5px 13px 6px 14px;
+    font-family:Georgia,'Times New Roman',serif;
+    font-style:italic; font-weight:400;
+    font-size:16px; line-height:1.42; color:#eaf6f7;
+  }
+  #childJourneyList .child-bubble.mine::before{ content:'\201C'; }
+  #childJourneyList .child-bubble.mine::after{ content:'\201D'; }
+
+  /* Fjölskylda = hlutlaus sans, hreiðruð UNDIR setningunni (vinstra megin, ekki gagnstæð hlið) */
+  #childJourneyList .child-bubble.family{
+    margin:0 0 0 16px;
+    margin-left:16px;
+    background:rgba(255,255,255,.03);
+    border:1px solid rgba(122,187,218,.12);
+    border-radius:12px;
+    padding:9px 11px;
+    font-family:'DM Sans',-apple-system,sans-serif;
+    font-style:normal; font-weight:600;
+    font-size:13.5px; line-height:1.35; color:#cdd9e6;
+  }
+  /* Liturinn tilheyrir barninu (teal) — fjölskyldan er hlutlaus, ekki regnbogi */
+  #childJourneyList .child-bubble.family.fam-gold,
+  #childJourneyList .child-bubble.family.fam-purple,
+  #childJourneyList .child-bubble.family.fam-coral,
+  #childJourneyList .child-bubble.family.fam-blue,
+  #childJourneyList .child-bubble.family.fam-rose{
+    background:rgba(255,255,255,.03);
+    border-color:rgba(122,187,218,.12);
+    color:#cdd9e6;
+  }
+  #childJourneyList .child-bubble.family small{ color:rgba(217,229,239,.58); font-weight:800; }
+
+  /* "Nýtt" — óséð fjölskyldu-svör */
+  #childJourneyList .child-bubble.family.unseen{ box-shadow:0 0 0 1.5px rgba(29,205,211,.45); }
+  .saman-nytt-pill{ display:inline-flex; align-items:center; padding:1px 7px; border-radius:99px; font-size:9px; font-weight:900; letter-spacing:.04em; text-transform:uppercase; background:rgba(29,205,211,.18); color:#7fe9ee; border:1px solid rgba(29,205,211,.4); margin-left:2px; }
+  .saman-new-banner{ display:flex; align-items:center; gap:10px; width:100%; margin:0 0 12px; padding:11px 13px; border-radius:14px; background:rgba(29,205,211,.10); border:1px solid rgba(29,205,211,.32); color:#bfeef0; font:800 13px 'DM Sans',-apple-system,sans-serif; text-align:left; cursor:pointer; -webkit-tap-highlight-color:transparent; }
+  .saman-new-banner .dot{ width:8px; height:8px; border-radius:50%; background:#1dcdd3; box-shadow:0 0 8px #1dcdd3; flex:0 0 auto; }
+  .saman-new-banner .txt{ flex:1; }
+  .saman-new-banner .chev{ font-size:18px; opacity:.7; }
+  .child-thread.saman-highlight{ animation:samanHi 1.6s ease-out; }
+  @keyframes samanHi{ 0%{ background:rgba(29,205,211,.14); border-radius:12px; } 100%{ background:transparent; } }
+</style>
 </body>
 </html>
 

@@ -1192,6 +1192,13 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
           </div>
         </div>
 
+        <div id="st-leidangur-sec">
+          <div class="st-sec">Leiðangur</div>
+          <div class="st-group" id="st-leidangur-group">
+            <div class="st-row"><span class="st-sub">Hleð…</span></div>
+          </div>
+        </div>
+
         <div>
           <div class="st-sec">Samþykki</div>
           <div class="st-group">
@@ -4486,6 +4493,100 @@ console.log('🚀 parent.html engine started');
   else{build();g2RenderSnap();g2RenderToday();}
 })();
 
+</script>
+<script src="js/adventures.js"></script>
+<script type="module">
+/* ═══ Leiðangur — foreldra-kveikja. Skrifar challenges/{familyId}. ═══
+   Birtist í Stillingar › barnasvæði. Aðeins virk með 2+ börn. */
+(function () {
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+  function dStr(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+  function todayStr(){ return dStr(new Date()); }
+  function daysLeft(endStr){ if(!endStr) return 0; var e=new Date(endStr+'T23:59:59'); return Math.max(0, Math.ceil((e-new Date())/86400000)); }
+  function toast(m){ if(window.toast) try{ window.toast(m); }catch(e){} }
+
+  if(!document.getElementById('lx-style')){
+    var st=document.createElement('style'); st.id='lx-style';
+    st.textContent='.lx-sel{font:inherit;font-size:13px;font-weight:700;background:var(--surface,#122236);color:var(--text,#eaf2f8);border:1px solid var(--border,#284363);border-radius:9px;padding:6px 8px}';
+    document.head.appendChild(st);
+  }
+
+  async function getActive(famId){
+    try{
+      var snap = await window.getDoc(window.doc(window.db,'challenges',famId));
+      if(snap.exists()){ var d=snap.data(); if(d.enabled && (!d.endDate || d.endDate >= todayStr())) return d; }
+    }catch(e){}
+    return null;
+  }
+
+  async function render(){
+    var group = document.getElementById('st-leidangur-group');
+    if(!group || !window.S) return;
+    var kids = window.S.parentChildren || [];
+    var famId = window.S.familyId;
+
+    if(kids.length < 2){
+      group.innerHTML = '<div class="st-row"><div><div class="st-lbl">Samvinnu-leiðangur</div>'+
+        '<div class="st-sub">Þarf 2 eða fleiri börn á reikningnum til að setja af stað.</div></div></div>';
+      return;
+    }
+    if(!famId){ group.innerHTML = '<div class="st-row"><span class="st-sub">Innskráningu vantar.</span></div>'; return; }
+
+    var active = await getActive(famId);
+    if(active){
+      var adv = (window.getAdventure ? window.getAdventure(active.adventureId) : {title:active.adventureId});
+      var left = daysLeft(active.endDate);
+      group.innerHTML = '<div class="st-row"><div><div class="st-lbl">Virkur leiðangur</div>'+
+        '<div class="st-sub">'+esc(adv.title)+' · '+(left>0?(left+' dagar eftir'):'lýkur í dag')+'</div></div>'+
+        '<button class="st-code-btn" type="button" id="lx-end">Ljúka</button></div>';
+      document.getElementById('lx-end').onclick = end;
+      return;
+    }
+
+    var advs = (window.UPPHATT_ADVENTURES || []);
+    var opts = advs.map(function(a){ return '<option value="'+esc(a.id)+'">'+esc(a.title)+'</option>'; }).join('');
+    group.innerHTML =
+      '<div class="st-row"><div><div class="st-lbl">Samvinnu-leiðangur</div>'+
+      '<div class="st-sub">Tímabundið átak — börnin ganga saman að marki. Birtist hjá börnunum á Ferðalagi á meðan.</div></div></div>'+
+      '<div class="st-row"><span class="st-lbl">Ævintýri</span><select id="lx-adv" class="lx-sel">'+opts+'</select></div>'+
+      '<div class="st-row"><span class="st-lbl">Lengd</span><select id="lx-days" class="lx-sel"><option value="7">7 dagar</option><option value="10">10 dagar</option></select></div>'+
+      '<div class="st-row tap" id="lx-start"><span class="st-lbl" style="color:var(--accent)">Setja af stað leiðangur ›</span></div>';
+    document.getElementById('lx-start').onclick = start;
+  }
+
+  async function start(){
+    var famId = window.S && window.S.familyId;
+    var kids = (window.S && window.S.parentChildren) || [];
+    if(!famId || kids.length < 2) return;
+    var advId = (document.getElementById('lx-adv')||{}).value || 'drekatindur';
+    var days = parseInt((document.getElementById('lx-days')||{}).value || '7', 10);
+    var s = new Date(), e = new Date(); e.setDate(e.getDate()+days);
+    var participants = kids.map(function(c){
+      return { key:c.key, name:c.name||'Barn', initial:(String(c.name||'B').trim().charAt(0)||'B').toUpperCase() };
+    });
+    try{
+      await window.setDoc(window.doc(window.db,'challenges',famId), {
+        enabled:true, familyId:famId, adventureId:advId,
+        startDate:dStr(s), endDate:dStr(e), weekId:dStr(s),
+        participants:participants, createdAtMs:Date.now()
+      });
+      toast('Leiðangur settur af stað!');
+      render();
+    }catch(err){ toast('Villa: '+(err&&err.message||err)); }
+  }
+
+  async function end(){
+    var famId = window.S && window.S.familyId; if(!famId) return;
+    try{ await window.setDoc(window.doc(window.db,'challenges',famId), {enabled:false}, {merge:true}); toast('Leiðangri lokið.'); render(); }
+    catch(err){ toast('Villa: '+(err&&err.message||err)); }
+  }
+
+  // endurteikna þegar barnalisti uppfærist + við opnun
+  var orig = window.renderSettingsChildren;
+  window.renderSettingsChildren = function(){ var r; try{ r = orig && orig.apply(this, arguments); }catch(e){} try{ render(); }catch(e){} return r; };
+  window.renderLeidangurSettings = render;
+  setTimeout(function(){ try{ render(); }catch(e){} }, 1000);
+})();
 </script>
 </body>
 </html>

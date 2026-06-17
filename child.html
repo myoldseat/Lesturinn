@@ -8006,6 +8006,134 @@ window.addEventListener("pagehide", flushSettled);
   .child-thread.saman-highlight{ animation:samanHi 1.6s ease-out; }
   @keyframes samanHi{ 0%{ background:rgba(29,205,211,.14); border-radius:12px; } 100%{ background:transparent; } }
 </style>
+<style id="exp-host-style">
+  #screen-child-arangur #exp-container{ margin:8px 16px 24px; }
+  #screen-child-arangur:not(.va-exp) #exp-container{ display:none; }
+  #screen-child-arangur.va-exp #arangurTrail,
+  #screen-child-arangur.va-exp #milestoneHero,
+  #screen-child-arangur.va-exp #metricCanvas,
+  #screen-child-arangur.va-exp #metricTabs,
+  #screen-child-arangur.va-exp #badgeSection,
+  #screen-child-arangur.va-exp #journeyPill,
+  #screen-child-arangur.va-exp #pbHero,
+  #screen-child-arangur.va-exp #weekStrip{ display:none !important; }
+</style>
+<script src="js/adventures.js"></script>
+<script src="js/expedition.js"></script>
+<script type="module">
+/* ═══ Leiðangur — child tenging. 4. valkostur í "Þú átt valið" þegar foreldri
+   hefur kveikt (challenges/{familyId}). Vélin + efnið eru í sér skrám. ═══ */
+import { collection, query, where, getDocs, doc, getDoc, addDoc, onSnapshot, serverTimestamp }
+  from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js';
+
+(function () {
+  var _child = window._child || {};
+  var db = _child.db;
+  if (!db) return;                                   // ekki child-innskráning
+  var screen = document.getElementById('screen-child-arangur');
+  if (!screen) return;
+
+  function ident() {
+    var cs = _child.CS || (_child.getChildSession && _child.getChildSession()) || {};
+    return { familyId: cs.familyId, childKey: cs.childKey, childName: cs.childName };
+  }
+  function ymd(d) { return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+  function sessionDate(data) { var r = data.timestamp || data.createdAt || data.date; if (!r) return null; if (typeof r.toDate === 'function') return r.toDate(); var d = new Date(r); return isNaN(d.getTime()) ? null : d; }
+  function sessionPages(data) {
+    var p = Number(data.pagesRead || data.pages || 0);
+    if (!p && Number(data.pageTo || 0) && Number(data.pageFrom || 0)) p = Math.max(0, Number(data.pageTo) - Number(data.pageFrom) + 1);
+    if (!p && Number(data.pageEnd || 0) && Number(data.pageStart || 0)) p = Math.max(0, Number(data.pageEnd) - Number(data.pageStart) + 1);
+    return p;
+  }
+  function daysLeft(endStr) { if (!endStr) return 0; var e = new Date(endStr + 'T23:59:59'); return Math.max(0, Math.ceil((e - new Date()) / 86400000)); }
+
+  async function weeklyPagesFor(fid, key, startStr, endStr) {
+    var snap = await getDocs(query(collection(db, 'sessions'), where('familyId', '==', fid), where('childKey', '==', key)));
+    var sum = 0;
+    snap.forEach(function (d) { var data = d.data() || {}; var dt = sessionDate(data); if (!dt) return; var day = ymd(dt); if (day >= startStr && day <= endStr) sum += sessionPages(data); });
+    return sum;
+  }
+  async function fetchAid(fid, weekId) {
+    var donated = {}, received = {};
+    try {
+      var snap = await getDocs(query(collection(db, 'expeditionAid'), where('familyId', '==', fid), where('week', '==', weekId)));
+      snap.forEach(function (d) { var a = d.data() || {}; var n = Number(a.pages || 0); if (a.from) donated[a.from] = (donated[a.from] || 0) + n; if (a.to) received[a.to] = (received[a.to] || 0) + n; });
+    } catch (e) {}
+    return { donated: donated, received: received };
+  }
+
+  var container = null;
+  function ensureContainer() {
+    container = document.getElementById('exp-container');
+    if (container) return container;
+    container = document.createElement('div'); container.id = 'exp-container';
+    var box = screen.querySelector('.va-switch');
+    if (box && box.parentNode) box.parentNode.insertBefore(container, box.nextSibling); else screen.appendChild(container);
+    return container;
+  }
+
+  async function mountExpedition(ch) {
+    var id = ident(), fid = id.familyId;
+    if (!fid || !ch || !Array.isArray(ch.participants)) return;
+    var meP = ch.participants.filter(function (p) { return p.key === id.childKey; })[0] || { key: id.childKey, name: id.childName || 'Ég', initial: (id.childName || 'É').charAt(0) };
+    var paP = ch.participants.filter(function (p) { return p.key !== id.childKey; })[0] || null;
+
+    var weekly = {};
+    weekly[meP.key] = await weeklyPagesFor(fid, meP.key, ch.startDate, ch.endDate);
+    if (paP) weekly[paP.key] = await weeklyPagesFor(fid, paP.key, ch.startDate, ch.endDate);
+    var aid = await fetchAid(fid, ch.weekId);
+
+    var ctx = {
+      me: { key: meP.key, name: meP.name || 'Ég', initial: meP.initial || (meP.name || 'É').charAt(0) },
+      partner: paP ? { key: paP.key, name: paP.name || 'Systkini', initial: paP.initial || (paP.name || 'S').charAt(0) } : null,
+      adventure: (window.getAdventure ? window.getAdventure(ch.adventureId) : null),
+      daysLeft: daysLeft(ch.endDate),
+      weeklyPages: function (k) { return weekly[k] || 0; },
+      donated: function (k) { return aid.donated[k] || 0; },
+      received: function (k) { return aid.received[k] || 0; },
+      sendAid: async function (toKey, n) {
+        try {
+          await addDoc(collection(db, 'expeditionAid'), { from: id.childKey, to: toKey, pages: n, week: ch.weekId, familyId: fid, ts: serverTimestamp() });
+          var fresh = await fetchAid(fid, ch.weekId); aid.donated = fresh.donated; aid.received = fresh.received;
+        } catch (e) {}
+      }
+    };
+    var host = ensureContainer();
+    if (!ctx.adventure || !window.Expedition) { host.innerHTML = '<p style="color:#9fb4c7;padding:16px">Leiðangur hleðst…</p>'; return; }
+    window.Expedition.mount(host, ctx);
+  }
+
+  /* ---- 4. pillan + view-skipti ---- */
+  var activeCh = null;
+  function pill() { return screen.querySelector('.va-switch-row [data-view="leidangur"]'); }
+  function addPill() {
+    var row = screen.querySelector('.va-switch-row'); if (!row || pill()) return;
+    var b = document.createElement('button'); b.type = 'button'; b.setAttribute('data-view', 'leidangur'); b.textContent = 'Leiðangur';
+    row.appendChild(b);
+  }
+  function removePill() { var p = pill(); if (p) p.remove(); screen.classList.remove('va-exp'); }
+
+  document.addEventListener('arangur-view', function (e) {
+    var v = e && e.detail && e.detail.view;
+    if (v === 'leidangur') { screen.classList.add('va-exp'); if (activeCh) mountExpedition(activeCh); }
+    else { screen.classList.remove('va-exp'); }
+  });
+
+  function applyChallenge(ch) {
+    var now = ymd(new Date());
+    var live = !!(ch && ch.enabled && (!ch.endDate || ch.endDate >= now));
+    activeCh = live ? ch : null;
+    if (live) { var n = 0; (function add() { if (screen.querySelector('.va-switch-row')) addPill(); else if (n++ < 40) setTimeout(add, 150); })(); }
+    else removePill();
+  }
+
+  function subscribe() {
+    var id = ident(); if (!id.familyId) { setTimeout(subscribe, 600); return; }
+    try { onSnapshot(doc(db, 'challenges', id.familyId), function (snap) { applyChallenge(snap.exists() ? snap.data() : null); }, function () {}); } catch (e) {}
+  }
+  if (document.readyState !== 'loading') subscribe(); else document.addEventListener('DOMContentLoaded', subscribe);
+})();
+</script>
 </body>
 </html>
 

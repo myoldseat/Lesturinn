@@ -4119,6 +4119,8 @@ import { collection, query, where, onSnapshot, doc, getDocs }
       var audioContext = null;
       var analyser = null;
       var mediaRecorder = null;
+      var fullSessionChunks = [];
+      var fullSessionMime = "";
       var recordingStartedAt = 0;
       var snippetCaptureTimers = [];
       var activeSnippetRecorders = [];
@@ -4460,6 +4462,14 @@ import { collection, query, where, onSnapshot, doc, getDocs }
           source.connect(analyser);
 
           mediaRecorder = new MediaRecorder(stream);
+          fullSessionChunks = [];
+          fullSessionMime = mediaRecorder.mimeType || "";
+          mediaRecorder.ondataavailable = function (e) {
+            if (e.data && e.data.size) {
+              fullSessionChunks.push(e.data);
+              if (!fullSessionMime && e.data.type) fullSessionMime = e.data.type;
+            }
+          };
           mediaRecorder.start(1000);
           if (window.track) track('recording_start');
           scheduleSnippetCaptures();
@@ -4487,6 +4497,8 @@ import { collection, query, where, onSnapshot, doc, getDocs }
 
         pendingSavePayload = {
           snippetClips: snippetClips,
+          fullAudioChunks: fullSessionChunks,
+          fullAudioMime: fullSessionMime,
           elapsedSeconds: elapsedSeconds,
           startedAt: recordingStartedAt || Date.now(),
           childName: childName
@@ -5415,6 +5427,7 @@ import { collection, query, where, onSnapshot, doc, getDocs }
 
 <script type="module">
     import { analyzeSnippetBlob } from './js/audio-analysis.js';
+    import { analyzeFullSessionSyllables } from './js/reading-syllables.js';
     import { doc, getDoc, collection, addDoc, serverTimestamp, onSnapshot, query, where } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js';
     import { ref, uploadBytes } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-storage.js';
     import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js';
@@ -5511,6 +5524,18 @@ import { collection, query, where, onSnapshot, doc, getDocs }
         }
       };
 
+      // ── Full-lotu client-greining: EIN samtekt yfir allan lesturinn ──
+      // Greint í minni úr samfelldu upptökunni. Hljóðinu er EKKI hlaðið upp —
+      // bara þessi litla samantekt fer í Firestore. Virkar fyrir 5/10/15/20 mín.
+      let clientAnalysis = null;
+      try {
+        const fc = payload?.fullAudioChunks || [];
+        if (fc.length) {
+          const fullBlob = new Blob(fc, { type: payload.fullAudioMime || 'audio/webm' });
+          clientAnalysis = await analyzeFullSessionSyllables(fullBlob);
+        }
+      } catch (e) { console.warn('Full-session client analysis failed:', e); }
+
       const sessionRef = await addDoc(collection(db, 'sessions'), {
         familyId: childData.familyId, childKey: childData.childKey,
         childName: payload?.childName || childData.childName || 'Barn',
@@ -5522,7 +5547,7 @@ import { collection, query, where, onSnapshot, doc, getDocs }
         audioPath_min5: audioPaths.min5, audioPath_min8: audioPaths.min8,
         audioPath_min10: audioPaths.min10,
         audioPath: audioPaths.min1 || audioPaths.min2 || audioPaths.min5 || audioPaths.min8 || audioPaths.min10,
-        analysis, timestamp: ts, date: makeDateKey(new Date(ts)), createdAt: serverTimestamp()
+        analysis, clientAnalysis, timestamp: ts, date: makeDateKey(new Date(ts)), createdAt: serverTimestamp()
       });
 
       return { saved: true, sessionId: sessionRef.id, uploadCount: uploadCount };

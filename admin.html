@@ -752,6 +752,39 @@ function getMetrics(s) {
 
 }
 
+// Full-lotu client-greining (clientAnalysis) — birt sem eigin reitur í kortinu.
+// Gögnin liggja þegar á session-objectinu (s.clientAnalysis) því admin les heilu skjölin.
+function renderClientBlock(s) {
+  const ca = s.clientAnalysis;
+  if (!ca) return '';
+  const num = v => (v == null ? '\u2014' : v);
+  return `
+          <div class="admin-metric-section-title">Full lota (client) &middot; &ouml;ll lotan</div>
+          <div class="admin-metric">
+            <div class="admin-metric-label">Leshra&eth;i &mdash; full lota</div>
+            <div class="admin-metric-value">${num(ca.wpmFull)}</div>
+            <div class="admin-tooltip">Or&eth; &aacute; m&iacute;n&uacute;tu yfir ALLA lotuna (&thorn;agnir taldar me&eth;). &Uacute;r client-greiningu, ekki b&uacute;t.</div>
+          </div>
+          <div class="admin-metric">
+            <div class="admin-metric-label">Leshra&eth;i &mdash; virkur</div>
+            <div class="admin-metric-value">${num(ca.wpmActive)}</div>
+            <div class="admin-tooltip">Or&eth; &aacute; m&iacute;n&uacute;tu me&eth;an lesi&eth; er (talt&iacute;mi einn). Samb&aelig;rilegt vi&eth; hlj&oacute;&eth;-WPM b&uacute;tsins.</div>
+          </div>
+          <div class="admin-metric">
+            <div class="admin-metric-label">Atkv&aelig;&eth;i (heild)</div>
+            <div class="admin-metric-value">${num(ca.syllables)}</div>
+            <div class="admin-tooltip">Heildarfj&ouml;ldi atkv&aelig;&eth;a yfir alla lotuna &mdash; ekki me&eth;altal &aacute; b&uacute;t.</div>
+          </div>
+          <div class="admin-metric">
+            <div class="admin-metric-label">Hreinn lestur &mdash; full lota</div>
+            <div class="admin-metric-value">${ca.cleanReadingPct != null ? ca.cleanReadingPct + '%' : '\u2014'}</div>
+          </div>
+          <div class="admin-metric">
+            <div class="admin-metric-label">Truflanir &mdash; full lota</div>
+            <div class="admin-metric-value">${num(ca.disruptionCount)}</div>
+          </div>`;
+}
+
 const ADMIN_SNIPPET_ORDER = ['min1', 'min2', 'min5', 'min8', 'min10'];
 
 function snippetVal(sn, key, ...legacyKeys) {
@@ -3505,6 +3538,7 @@ function renderSessionCards(sessions) {
             <div class="admin-metric-value">${m.disruptionCount != null ? m.disruptionCount : '—'}</div>
             <div class="admin-tooltip">Fjöldi bila lengri en 0.7 sekúndur milli atkvæða. Getur verið hik, afkóðunarhlé eða togað hljóð.</div>
           </div>
+          ${renderClientBlock(s)}
         </div>
       </article>`;
   }).join('');

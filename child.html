@@ -3298,6 +3298,153 @@ window._child = { auth, db, storage, functions, CS, ensureAuth, getChildSession,
 </script>
 
 
+<!-- ═══════════════════════════════════════════
+     SCRIPT: CHILD STORE (gagnalag)
+     Ein heimild fyrir öll child-gögn. Les Firestore EINU SINNI
+     per safn og veitir skjáunum úr minni. Skjáir lesa ALDREI
+     beint úr Firestore — þeir áskrifa sig hér.
+     ═══════════════════════════════════════════ -->
+<script type="module">
+import { collection, query, where, onSnapshot, doc, getDocs }
+  from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js';
+
+(function () {
+  const shell = window._child || {};
+  const db = shell.db;
+
+  // ── Auðkenni: sama upplausn og eyjarnar nota ──
+  function getViewerSession() {
+    try {
+      const p = new URLSearchParams(location.search);
+      const fid = p.get('family'), ck = p.get('child');
+      return (fid && ck) ? { familyId: fid, childKey: ck } : null;
+    } catch (e) { return null; }
+  }
+  function getChildSession() {
+    try {
+      const r = localStorage.getItem('upphatt_child'); if (!r) return null;
+      const d = JSON.parse(r);
+      return (d && d.familyId && d.childKey) ? { familyId: d.familyId, childKey: d.childKey } : null;
+    } catch (e) { return null; }
+  }
+
+  const CS = getViewerSession() || getChildSession();
+  const previewMode = !CS || !db;
+  const FID = CS ? CS.familyId : null;
+  const CK = CS ? CS.childKey : null;
+
+  // ── Gögn í minni ──
+  const state = { books: [], sessions: [], goals: null, listenEvents: [], challenge: null };
+  const KEYS = ['books', 'sessions', 'goals', 'listenEvents', 'challenge'];
+  const loaded = { books: false, sessions: false, goals: false, listenEvents: false, challenge: false };
+
+  // ── Áskrift / tilkynningar ──
+  const subs = { books: [], sessions: [], goals: [], listenEvents: [], challenge: [] };
+  function notify(key) {
+    const data = state[key];
+    for (const cb of subs[key].slice()) {
+      try { cb(data); } catch (e) { console.warn('ChildStore sub error [' + key + ']:', e); }
+    }
+  }
+  function subscribe(key, cb) {
+    if (!subs[key]) { console.warn('ChildStore: óþekktur lykill:', key); return function () {}; }
+    subs[key].push(cb);
+    if (loaded[key]) { try { cb(state[key]); } catch (e) {} }
+    return function () { const i = subs[key].indexOf(cb); if (i >= 0) subs[key].splice(i, 1); };
+  }
+
+  const _unsubs = [];
+  function mapDocs(snap) {
+    return snap.docs.map(function (d) { return Object.assign({ id: d.id, _docId: d.id }, d.data()); });
+  }
+
+  // ── ready: leysist þegar hver hlustari hefur skilað fyrsta snapshot ──
+  let _resolveReady;
+  const ready = new Promise(function (res) { _resolveReady = res; });
+  const _firstSeen = { books: false, sessions: false, goals: false, listenEvents: false, challenge: false };
+  function markFirst(key) {
+    if (_firstSeen[key]) return;
+    _firstSeen[key] = true; loaded[key] = true;
+    if (KEYS.every(function (k) { return _firstSeen[k]; })) _resolveReady();
+  }
+
+  function startListeners() {
+    _unsubs.push(onSnapshot(
+      query(collection(db, 'books'), where('familyId', '==', FID), where('childKey', '==', CK)),
+      function (snap) { state.books = mapDocs(snap); markFirst('books'); notify('books'); },
+      function (e) { console.warn('ChildStore books:', e); markFirst('books'); notify('books'); }
+    ));
+    _unsubs.push(onSnapshot(
+      query(collection(db, 'sessions'), where('familyId', '==', FID), where('childKey', '==', CK)),
+      function (snap) { state.sessions = mapDocs(snap); markFirst('sessions'); notify('sessions'); },
+      function (e) { console.warn('ChildStore sessions:', e); markFirst('sessions'); notify('sessions'); }
+    ));
+    _unsubs.push(onSnapshot(
+      doc(db, 'goals', FID + '_' + CK),
+      function (snap) { state.goals = snap.exists() ? snap.data() : null; markFirst('goals'); notify('goals'); },
+      function (e) { console.warn('ChildStore goals:', e); markFirst('goals'); notify('goals'); }
+    ));
+    _unsubs.push(onSnapshot(
+      query(collection(db, 'listenEvents'), where('familyId', '==', FID), where('childKey', '==', CK)),
+      function (snap) { state.listenEvents = mapDocs(snap); markFirst('listenEvents'); notify('listenEvents'); },
+      function (e) { console.warn('ChildStore listenEvents:', e); markFirst('listenEvents'); notify('listenEvents'); }
+    ));
+    _unsubs.push(onSnapshot(
+      doc(db, 'challenges', FID),
+      function (snap) { state.challenge = snap.exists() ? snap.data() : null; markFirst('challenge'); notify('challenge'); },
+      function (e) { console.warn('ChildStore challenge:', e); markFirst('challenge'); notify('challenge'); }
+    ));
+  }
+
+  // ── expeditionAid — on-demand, cache per viku ──
+  const _aidCache = {};
+  async function getAid(weekId, force) {
+    if (!previewMode && db && weekId) {
+      if (!force && _aidCache[weekId]) return _aidCache[weekId];
+      try {
+        const snap = await getDocs(query(
+          collection(db, 'expeditionAid'),
+          where('familyId', '==', FID), where('week', '==', weekId)
+        ));
+        _aidCache[weekId] = mapDocs(snap); return _aidCache[weekId];
+      } catch (e) { console.warn('ChildStore aid:', e); return _aidCache[weekId] || []; }
+    }
+    return [];
+  }
+  function invalidateAid(weekId) {
+    if (weekId) delete _aidCache[weekId]; else for (const k in _aidCache) delete _aidCache[k];
+  }
+
+  // ── Ræsing ──
+  if (previewMode) {
+    KEYS.forEach(function (k) { markFirst(k); });
+  } else {
+    const ea = shell.ensureAuth;
+    Promise.resolve(typeof ea === 'function' ? ea() : null)
+      .then(startListeners)
+      .catch(function (e) { console.warn('ChildStore auth failed:', e); KEYS.forEach(function (k) { markFirst(k); }); });
+  }
+
+  // ── Opinbert API ──
+  window._childStore = {
+    ready: ready,
+    previewMode: previewMode,
+    identity: CS ? { familyId: FID, childKey: CK } : null,
+    getBooks: function () { return state.books; },
+    getSessions: function () { return state.sessions; },
+    getGoals: function () { return state.goals; },
+    getListenEvents: function () { return state.listenEvents; },
+    getChallenge: function () { return state.challenge; },
+    subscribe: subscribe,
+    getAid: getAid,
+    invalidateAid: invalidateAid,
+    destroy: function () { _unsubs.forEach(function (u) { try { u(); } catch (e) {} }); _unsubs.length = 0; },
+    _state: state
+  };
+})();
+</script>
+
+
 
 <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
      SCRIPT: ARANGUR (integrated)
@@ -3435,15 +3582,13 @@ window._child = { auth, db, storage, functions, CS, ensureAuth, getChildSession,
   }
   async function loadGoals() {
     loadCache();
-    if (!fs || !db || !fid || !ck) return;
+    if (!fid || !ck) return;
     try {
-      var snap = await fs.getDoc(fs.doc(db, "goals", fid + "_" + ck));
-      if (snap.exists()) {
-        var data = snap.data() || {};
-        setAwarded(data.badges);
-        if (data.dayCorrections) dayCorrections = data.dayCorrections;
-        if (data.baseline) baseline = data.baseline;
-      }
+      await window._childStore.ready;
+      var data = window._childStore.getGoals() || {};
+      setAwarded(data.badges);
+      if (data.dayCorrections) dayCorrections = data.dayCorrections;
+      if (data.baseline) baseline = data.baseline;
     } catch (e) { console.warn("Could not load goals", e); }
   }
   async function persistGoals() {
@@ -3499,13 +3644,12 @@ window._child = { auth, db, storage, functions, CS, ensureAuth, getChildSession,
       db = shell.db;
       if (typeof shell.ensureAuth === "function") await shell.ensureAuth();
       fs = await import("https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js");
+      await window._childStore.ready;
       await loadGoals();
 
-      var booksSnap = await fs.getDocs(fs.query(fs.collection(db, "books"),
-        fs.where("familyId", "==", fid), fs.where("childKey", "==", ck)));
       var pages = 0, finished = 0;
-      booksSnap.forEach(function (d) {
-        var data = d.data() || {};
+      window._childStore.getBooks().forEach(function (d) {
+        var data = d || {};
         var totalPages = Number(data.totalPages || data.pages || 0);
         var readPages = 0;
         if (typeof data.totalPagesRead === "number") readPages = data.totalPagesRead;
@@ -3525,11 +3669,9 @@ window._child = { auth, db, storage, functions, CS, ensureAuth, getChildSession,
       journeyPages = Math.max(0, totalPagesRead - (baseline.pages || 0));
 
       try {
-        var sessSnap = await fs.getDocs(fs.query(fs.collection(db, "sessions"),
-          fs.where("familyId", "==", fid), fs.where("childKey", "==", ck)));
         var seconds = 0, count = 0;
-        sessSnap.forEach(function (d) {
-          var data = d.data() || {};
+        window._childStore.getSessions().forEach(function (d) {
+          var data = d || {};
           var rawDate = data.timestamp || data.createdAt || data.date;
           var dt = rawDate && typeof rawDate.toDate === "function" ? rawDate.toDate() : (rawDate ? new Date(rawDate) : null);
           var sec = Number(data.seconds || data.durationSeconds || 0);
@@ -5285,27 +5427,13 @@ window._child = { auth, db, storage, functions, CS, ensureAuth, getChildSession,
     // ── Auth ready + books subscription ──
     const _authReady = window._child.ensureAuth();
 
-    _authReady.then(() => {
-      const childRaw = localStorage.getItem('upphatt_child');
-      if (childRaw) {
-        try {
-          const ch = JSON.parse(childRaw);
-          if (ch.familyId && ch.childKey) {
-            const booksQ = query(collection(db, 'books'), where('familyId', '==', ch.familyId), where('childKey', '==', ch.childKey));
-            onSnapshot(booksQ, snap => {
-              window._firestoreBooks = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-              if (window.cacheChildBooks) window.cacheChildBooks(window._firestoreBooks);
-              window._firestoreBooksLoaded = true;
-              if (window._onFirestoreBooksReady) window._onFirestoreBooksReady();
-            }, e => {
-              console.warn('Books listener failed:', e);
-              window._firestoreBooksLoaded = true;
-              if (window._onFirestoreBooksReady) window._onFirestoreBooksReady();
-            });
-          }
-        } catch(e) { console.warn('Books listener failed:', e); }
-      }
-    }).catch(() => {});
+    // Books koma nú úr ChildStore (einn hlustari fyrir alla skjái)
+    window._childStore.subscribe('books', list => {
+      window._firestoreBooks = list;
+      if (window.cacheChildBooks) window.cacheChildBooks(window._firestoreBooks);
+      window._firestoreBooksLoaded = true;
+      if (window._onFirestoreBooksReady) window._onFirestoreBooksReady();
+    });
 
     function makeDateKey(d) {
       const yyyy = d.getFullYear();
@@ -5425,74 +5553,25 @@ window._child = { auth, db, storage, functions, CS, ensureAuth, getChildSession,
       if (typeof window.markListenEvent === 'function') window.markListenEvent(listenerName, ts);
     }
 
-    async function checkListenEventOnce() {
-      try {
-        var raw = localStorage.getItem('upphatt_child'); if (!raw) return;
-        var cd = JSON.parse(raw); if (!cd || !cd.familyId || !cd.childKey) return;
-        var snap = await getDoc(doc(db, 'listens', cd.familyId + '_' + cd.childKey));
-        if (!snap.exists()) return;
-        handleListenEventData(snap.data(), cd.childKey, 'legacy-doc-once');
-      } catch (e) { console.warn('Listen check failed:', e); }
+    // Hlustun-greining: EIN heimild (listenEvents úr ChildStore)
+    // í stað þriggja samhliða hlustara (legacy-doc + sessions-fallback + stream).
+    function startListenEventsFromStore() {
+      var id = window._childStore.identity;
+      if (!id) return;
+      window._childStore.subscribe('listenEvents', function (rows) {
+        var events = [];
+        (rows || []).forEach(function (row) {
+          var ts = normalizeListenTimestamp(row.timestamp);
+          if (!ts) return;
+          events.push({ timestamp: ts, listenerName: row.listenerName || 'Einhver' });
+        });
+        events.sort(function (a, b) { return a.timestamp - b.timestamp; }).forEach(function (evt) {
+          handleListenEventData(evt, id.childKey, 'store-listenEvents');
+        });
+      });
     }
 
-    function startListenEventSubscription() {
-      try {
-        var raw = localStorage.getItem('upphatt_child'); if (!raw) return;
-        var cd = JSON.parse(raw); if (!cd || !cd.familyId || !cd.childKey) return;
-        onSnapshot(doc(db, 'listens', cd.familyId + '_' + cd.childKey), function (snap) {
-          if (!snap.exists()) return;
-          handleListenEventData(snap.data(), cd.childKey, 'legacy-doc-sub');
-        }, function (e) { console.warn('Listen subscription failed:', e); });
-      } catch (e) { console.warn('Listen subscription setup failed:', e); }
-    }
-
-    function startSessionListenFallbackSubscription() {
-      try {
-        var raw = localStorage.getItem('upphatt_child'); if (!raw) return;
-        var cd = JSON.parse(raw); if (!cd || !cd.familyId || !cd.childKey) return;
-        var q = query(collection(db, 'sessions'), where('familyId', '==', cd.familyId), where('childKey', '==', cd.childKey));
-        onSnapshot(q, function (snap) {
-          var latestTs = 0; var latestName = 'Einhver';
-          snap.forEach(function (d) {
-            var row = d.data(); var ts = row ? normalizeListenTimestamp(row.lastListenedAt) : 0;
-            if (ts > latestTs) { latestTs = ts; latestName = row.lastListenerName || 'Einhver'; }
-          });
-          if (latestTs > 0) handleListenEventData({ listenerName: latestName, timestamp: latestTs }, cd.childKey, 'sessions-fallback');
-        }, function (e) { console.warn('Session listen fallback failed:', e); });
-      } catch (e) { console.warn('Session listen fallback setup failed:', e); }
-    }
-
-    function startListenEventsSubscription() {
-      if (!useListenEventsStream) return;
-      try {
-        var raw = localStorage.getItem('upphatt_child'); if (!raw) return;
-        var cd = JSON.parse(raw); if (!cd || !cd.familyId || !cd.childKey) return;
-        var q = query(collection(db, 'listenEvents'), where('familyId', '==', cd.familyId), where('childKey', '==', cd.childKey));
-        onSnapshot(q, function (snap) {
-          var events = [];
-          snap.forEach(function (d) {
-            var row = d.data() || {}; var ts = normalizeListenTimestamp(row.timestamp);
-            if (!ts) return;
-            events.push({ timestamp: ts, listenerName: row.listenerName || 'Einhver' });
-          });
-          events.sort(function (a, b) { return a.timestamp - b.timestamp; }).forEach(function (evt) {
-            handleListenEventData(evt, cd.childKey, 'listenEvents-stream');
-          });
-        }, function (e) { console.warn('Listen events subscription failed:', e); });
-      } catch (e) { console.warn('Listen events subscription setup failed:', e); }
-    }
-
-    function startAllListenSubscriptions() {
-      checkListenEventOnce();
-      startListenEventSubscription();
-      startSessionListenFallbackSubscription();
-      if (useListenEventsStream) startListenEventsSubscription();
-    }
-
-    _authReady.then(() => {
-      if (document.readyState === 'complete') startAllListenSubscriptions();
-      else window.addEventListener('load', startAllListenSubscriptions);
-    }).catch(() => {});
+    startListenEventsFromStore();
 
 </script>
 
@@ -5731,19 +5810,16 @@ function loadGoal(){
 }
 
 function startGoalsListener(){
-  if(!FID||!CK||previewMode)return;
+  if(previewMode)return;
   if(goalsUnsub)goalsUnsub();
   try{
-    goalsUnsub=onSnapshot(goalDocRef(),snap=>{
-      if(snap.exists()){
-        const d=snap.data();
+    goalsUnsub=window._childStore.subscribe('goals',d=>{
+      if(d){
         currentGoals=normalizeGoalsFromDoc(d);
         achievements=Array.isArray(d.achievements)?d.achievements:[];
       }
       saveGoalsLocal();
       render();
-    },e=>{
-      console.warn('Goals listener error:',e);
     });
   }catch(e){console.warn('Goals listener failed:',e)}
 }
@@ -5771,14 +5847,13 @@ async function deleteGoal(index=null){
 }
 
 function startSessionsListener(){
-  if(!FID||!CK||previewMode)return Promise.resolve();
+  if(previewMode)return Promise.resolve();
   return new Promise(resolve=>{
     let done=false;
     const ready=()=>{if(!done){done=true;resolve();}};
     try{
-      const q2=query(collection(db,'sessions'),where('familyId','==',FID),where('childKey','==',CK));
-      sessionsUnsub=onSnapshot(q2,snap=>{sessions=snap.docs.map(d=>({id:d.id,...d.data()}));render();ready()},e=>{console.warn('Sessions listener:',e);ready()});
-    }catch(e){console.warn('Sessions query failed:',e);ready()}
+      sessionsUnsub=window._childStore.subscribe('sessions',list=>{sessions=list;render();ready()});
+    }catch(e){console.warn('Sessions subscribe failed:',e);ready()}
   });
 }
 
@@ -5941,20 +6016,18 @@ function dismissDemo(){try{localStorage.setItem(DEMO_KEY,'1')}catch(e){}demoDism
 function ts(b,f){const v=b[f];if(!v)return 0;if(typeof v==='number')return v;if(v.toMillis)return v.toMillis();if(v.seconds)return v.seconds*1000;return 0}
 
 function startListener(){
-  if(!FID||!CK)return Promise.resolve();if(unsub)unsub();
-  demoDismissed=isDemoDismissed();
-  let q;
-  try{
-    q=query(collection(db,'books'),where('familyId','==',FID),where('childKey','==',CK));
-  }catch(e){
-    console.warn('Query build failed, showing demo:',e);
-    books=[...demoBooks];render();return Promise.resolve();
+  if(previewMode){
+    demoDismissed=isDemoDismissed();
+    books=demoDismissed?[]:[...demoBooks];
+    _booksLoaded=true;render();return Promise.resolve();
   }
+  if(!window._childStore.identity)return Promise.resolve();
+  if(unsub)unsub();
+  demoDismissed=isDemoDismissed();
   return new Promise(resolve=>{
     let done=false;
     const ready=()=>{if(!done){done=true;resolve();}};
-    unsub=onSnapshot(q,async snap=>{
-      const real=snap.docs.map(d=>({id:d.id,...d.data()}));
+    unsub=window._childStore.subscribe('books',async real=>{
       if(real.length>0){
         if(!demoDismissed)dismissDemo();
         books=real;
@@ -5966,11 +6039,6 @@ function startListener(){
       for(const b of books){await ensureLocalCover(b)}
       _booksLoaded=true;
       render();
-      ready();
-    },e=>{
-      console.error('Books listener error:',e);
-      // On permission/index error, show demo books as fallback
-      if(!books.length&&!demoDismissed){books=[...demoBooks];render()}
       ready();
     });
   });
@@ -8048,16 +8116,23 @@ import { collection, query, where, getDocs, doc, getDoc, addDoc, onSnapshot, ser
   function daysLeft(endStr) { if (!endStr) return 0; var e = new Date(endStr + 'T23:59:59'); return Math.max(0, Math.ceil((e - new Date()) / 86400000)); }
 
   async function weeklyPagesFor(fid, key, startStr, endStr) {
-    var snap = await getDocs(query(collection(db, 'sessions'), where('familyId', '==', fid), where('childKey', '==', key)));
+    var rows;
+    var sid = window._childStore.identity;
+    if (sid && key === sid.childKey) {
+      rows = window._childStore.getSessions();          // úr minni — engin sókn
+    } else {
+      var snap = await getDocs(query(collection(db, 'sessions'), where('familyId', '==', fid), where('childKey', '==', key)));
+      rows = snap.docs.map(function (d) { return d.data() || {}; });   // systkini: raunveruleg viðbótar-gögn
+    }
     var sum = 0;
-    snap.forEach(function (d) { var data = d.data() || {}; var dt = sessionDate(data); if (!dt) return; var day = ymd(dt); if (day >= startStr && day <= endStr) sum += sessionPages(data); });
+    rows.forEach(function (data) { data = data || {}; var dt = sessionDate(data); if (!dt) return; var day = ymd(dt); if (day >= startStr && day <= endStr) sum += sessionPages(data); });
     return sum;
   }
   async function fetchAid(fid, weekId) {
     var donated = {}, received = {};
     try {
-      var snap = await getDocs(query(collection(db, 'expeditionAid'), where('familyId', '==', fid), where('week', '==', weekId)));
-      snap.forEach(function (d) { var a = d.data() || {}; var n = Number(a.pages || 0); if (a.from) donated[a.from] = (donated[a.from] || 0) + n; if (a.to) received[a.to] = (received[a.to] || 0) + n; });
+      var rows = await window._childStore.getAid(weekId);
+      rows.forEach(function (a) { a = a || {}; var n = Number(a.pages || 0); if (a.from) donated[a.from] = (donated[a.from] || 0) + n; if (a.to) received[a.to] = (received[a.to] || 0) + n; });
     } catch (e) {}
     return { donated: donated, received: received };
   }
@@ -8094,6 +8169,7 @@ import { collection, query, where, getDocs, doc, getDoc, addDoc, onSnapshot, ser
       sendAid: async function (toKey, n) {
         try {
           await addDoc(collection(db, 'expeditionAid'), { from: id.childKey, to: toKey, pages: n, week: ch.weekId, familyId: fid, ts: serverTimestamp() });
+          window._childStore.invalidateAid(ch.weekId);
           var fresh = await fetchAid(fid, ch.weekId); aid.donated = fresh.donated; aid.received = fresh.received;
         } catch (e) {}
       }
@@ -8128,8 +8204,8 @@ import { collection, query, where, getDocs, doc, getDoc, addDoc, onSnapshot, ser
   }
 
   function subscribe() {
-    var id = ident(); if (!id.familyId) { setTimeout(subscribe, 600); return; }
-    try { onSnapshot(doc(db, 'challenges', id.familyId), function (snap) { applyChallenge(snap.exists() ? snap.data() : null); }, function () {}); } catch (e) {}
+    if (!window._childStore.identity) return;
+    window._childStore.subscribe('challenge', function (data) { applyChallenge(data); });
   }
   if (document.readyState !== 'loading') subscribe(); else document.addEventListener('DOMContentLoaded', subscribe);
 })();

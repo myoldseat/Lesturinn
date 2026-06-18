@@ -1173,7 +1173,6 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
           <div class="st-group">
             <div class="st-row"><span class="st-lbl">Netfang</span><span class="st-val" id="settings-email">—</span></div>
             <div class="st-row"><span class="st-lbl">Fjölskyldulykill</span><span class="st-val ac" id="settings-family-code">—</span></div>
-            <div class="st-row tap" onclick="confirmAction('reset-key')"><span class="st-lbl">Endurnýja fjölskyldulykil</span><span class="st-act">›</span></div>
           </div>
         </div>
 
@@ -1211,14 +1210,6 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
         </div>
 
         <div>
-          <div class="st-sec">Gögn aðgangs</div>
-          <div class="st-group">
-            <div class="st-row tap" onclick="downloadAccountData()"><span class="st-lbl">Sækja öll gögn (afrit)</span><span class="st-act">›</span></div>
-            <div class="st-row tap" onclick="confirmAction('clear-all-data')"><span class="st-lbl">Hreinsa öll lestrargögn</span><span class="st-act">›</span></div>
-          </div>
-        </div>
-
-        <div>
           <div class="st-sec">Persónuvernd</div>
           <div class="st-group">
             <div class="st-row"><span class="st-lbl">Hafa samband</span><a class="st-link" href="mailto:[netfang]">[netfang]</a></div>
@@ -1237,6 +1228,21 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
           <div class="st-sec">Hætta</div>
           <div class="st-group">
             <div class="st-row tap" onclick="if(typeof window.logout==='function')window.logout();else toast('Villa við útskráningu')"><span class="st-lbl">Útskrá</span></div>
+          </div>
+        </div>
+
+        <div>
+          <div class="st-sec">Tæknilegt og gagnaaðgerðir</div>
+          <div class="st-group">
+            <div class="st-row tap" id="dz-toggle" onclick="toggleDangerZone()" aria-expanded="false" aria-controls="dz-actions">
+              <div><div class="st-lbl">Sýna gagna- og eyðingaraðgerðir</div><div class="st-sub">Endurnýjun lykils, afrit, hreinsun og eyðing. Falið til að forðast óvart.</div></div>
+              <span class="st-act" id="dz-caret">›</span>
+            </div>
+          </div>
+          <div class="st-group" id="dz-actions" hidden>
+            <div class="st-row tap" onclick="confirmAction('reset-key')"><span class="st-lbl">Endurnýja fjölskyldulykil</span><span class="st-act">›</span></div>
+            <div class="st-row tap" onclick="downloadAccountData()"><span class="st-lbl">Sækja öll gögn (afrit)</span><span class="st-act">›</span></div>
+            <div class="st-row tap" onclick="confirmAction('clear-all-data')"><span class="st-lbl">Hreinsa öll lestrargögn</span><span class="st-act">›</span></div>
             <div class="st-row tap danger" onclick="confirmAction('delete-account')"><span class="st-lbl">Eyða aðgangi og öllum gögnum</span></div>
           </div>
         </div>
@@ -1555,6 +1561,26 @@ function toggleTheme() {
   const light = s.classList.toggle('ph-light');
   const lbl = document.getElementById('theme-label');
   if (lbl) lbl.textContent = light ? 'Ljóst' : 'Dökkt';
+}
+
+/* Hættusvæði — falið sjálfgefið, þarf meðvitað val til að birta */
+function toggleDangerZone() {
+  const box = document.getElementById('dz-actions');
+  const tog = document.getElementById('dz-toggle');
+  const car = document.getElementById('dz-caret');
+  if (!box) return;
+  const open = box.hasAttribute('hidden');
+  if (open) { box.removeAttribute('hidden'); } else { box.setAttribute('hidden',''); }
+  if (tog) tog.setAttribute('aria-expanded', open ? 'true' : 'false');
+  if (car) car.textContent = open ? '⌄' : '›';
+}
+function collapseDangerZone() {
+  const box = document.getElementById('dz-actions');
+  const tog = document.getElementById('dz-toggle');
+  const car = document.getElementById('dz-caret');
+  if (box) box.setAttribute('hidden','');
+  if (tog) tog.setAttribute('aria-expanded','false');
+  if (car) car.textContent = '›';
 }
 
 /* ═══════════════════════════════════
@@ -3991,6 +4017,7 @@ function renderSettingsChildren(children) {
 }
 function setSettingsTab(tab) {
   const next = tab === 'family' ? 'family' : 'access';
+  collapseDangerZone();
   document.getElementById('settings-tab-access')?.classList.toggle('on', next === 'access');
   document.getElementById('settings-tab-family')?.classList.toggle('on', next === 'family');
   document.querySelectorAll('[data-settings-panel]').forEach(panel => {
@@ -4511,11 +4538,14 @@ console.log('🚀 parent.html engine started');
     document.head.appendChild(st);
   }
 
+  var _chCache = { hit:false, val:null };
   async function getActive(famId){
+    if(_chCache.hit) return _chCache.val;
     try{
       var snap = await window.getDoc(window.doc(window.db,'challenges',famId));
-      if(snap.exists()){ var d=snap.data(); if(d.enabled && (!d.endDate || d.endDate >= todayStr())) return d; }
+      if(snap.exists()){ var d=snap.data(); if(d.enabled && (!d.endDate || d.endDate >= todayStr())){ _chCache={hit:true,val:d}; return d; } }
     }catch(e){}
+    _chCache={hit:true,val:null};
     return null;
   }
 
@@ -4571,13 +4601,14 @@ console.log('🚀 parent.html engine started');
         participants:participants, createdAtMs:Date.now()
       });
       toast('Leiðangur settur af stað!');
+      _chCache.hit=false;
       render();
     }catch(err){ toast('Villa: '+(err&&err.message||err)); }
   }
 
   async function end(){
     var famId = window.S && window.S.familyId; if(!famId) return;
-    try{ await window.setDoc(window.doc(window.db,'challenges',famId), {enabled:false}, {merge:true}); toast('Leiðangri lokið.'); render(); }
+    try{ await window.setDoc(window.doc(window.db,'challenges',famId), {enabled:false}, {merge:true}); toast('Leiðangri lokið.'); _chCache.hit=false; render(); }
     catch(err){ toast('Villa: '+(err&&err.message||err)); }
   }
 

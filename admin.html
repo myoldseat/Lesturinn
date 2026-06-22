@@ -581,6 +581,55 @@ html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sa
 .pl.lens-grant .pl-grantcard,.pl.lens-investor .pl-invcard{box-shadow:0 0 0 1px rgba(29,205,211,.34),0 0 26px rgba(29,205,211,.08)}
 @media(max-width:920px){.pl-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.pl-row,.pl-frame{grid-template-columns:1fr}.pl-head{align-items:flex-start}.pl-setup{align-items:stretch}.pl-setup label,.pl-setup button,.pl-setup .mode{width:100%}}
 @media(max-width:560px){.pl-kpis{grid-template-columns:1fr}.pl-famlist{grid-template-columns:1fr}.pl-wk{grid-template-columns:1fr;gap:6px}.pl-table{font-size:11px}.pl-table th,.pl-table td{padding:9px 7px}.pl-mini{width:34px}}
+
+/* ── Stjórnenda pilot — clean scorecard ── */
+.pa{max-width:100%;overflow-x:hidden}
+.pa-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:16px}
+.pa-head h2{margin:0;font-size:24px;font-weight:900;color:#d9e5ef;letter-spacing:-.03em}
+.pa-head p{margin:5px 0 0;color:#7a8fa0;font-size:13px;line-height:1.45}
+.pa-decision{font-size:22px;font-weight:950;letter-spacing:.08em;border-radius:16px;padding:14px 18px;border:1px solid rgba(255,255,255,.08)}
+.pa-decision.go,.pa-verdict.go{color:#4ade80;border-color:rgba(74,222,128,.24);background:rgba(74,222,128,.07)}
+.pa-decision.fix,.pa-verdict.fix{color:#fbbf24;border-color:rgba(251,191,36,.24);background:rgba(251,191,36,.07)}
+.pa-decision.pause,.pa-verdict.pause{color:#f87171;border-color:rgba(248,113,113,.24);background:rgba(248,113,113,.07)}
+.pa-decision.watch,.pa-verdict.watch{color:#38bdf8;border-color:rgba(56,189,248,.24);background:rgba(56,189,248,.07)}
+.pa-toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 14px;padding:12px 14px;border-radius:16px;background:rgba(255,255,255,.025);border:1px solid rgba(29,205,211,.10)}
+.pa-toolbar label{display:flex;align-items:center;gap:8px;color:#7a8fa0;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.05em}
+.pa-toolbar input,.pa-reason{background:#091426;color:#d9e5ef;border:1px solid rgba(29,205,211,.18);border-radius:10px;padding:8px 10px;font-size:13px;outline:none}
+.pa-toolbar button,.pa-actions button,.pa-mini-btn{border:1px solid rgba(29,205,211,.32);background:rgba(29,205,211,.10);color:#1dcdd3;border-radius:11px;padding:9px 13px;font-weight:850;cursor:pointer}
+.pa-toolbar button.ghost,.pa-actions button.ghost{background:transparent;border-color:rgba(122,143,160,.30);color:#7a8fa0}
+.pa-actions button.danger{border-color:rgba(248,113,113,.32);background:rgba(248,113,113,.08);color:#f87171}
+.pa-verdict{border-radius:18px;padding:18px;margin-bottom:14px}
+.pa-verdict h3{margin:0 0 8px;color:#d9e5ef;font-size:18px}
+.pa-verdict p{margin:0 0 10px;color:#d9e5ef;line-height:1.45}
+.pa-verdict strong{display:block;color:#d9e5ef;margin-bottom:4px}
+.pa-verdict span{color:#d9e5ef}
+.pa-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:16px}
+.pa-kpi{background:rgba(9,20,36,.78);border:1px solid rgba(29,205,211,.12);border-radius:18px;padding:16px;min-height:126px;display:grid;align-content:center;gap:10px;box-shadow:0 18px 42px rgba(0,0,0,.24);position:relative;overflow:hidden}
+.pa-kpi::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:#1dcdd3}
+.pa-kpi.good::before{background:#4ade80}.pa-kpi.warn::before{background:#fbbf24}.pa-kpi.bad::before{background:#f87171}.pa-kpi.neutral::before{background:#1dcdd3}
+.pa-label{font-size:10.5px;text-transform:uppercase;letter-spacing:.09em;font-weight:900;color:#7a8fa0}
+.pa-value{font-family:Georgia,serif;font-size:32px;font-weight:900;color:#d9e5ef;line-height:1}
+.pa-sub{font-size:12px;color:#7a8fa0;line-height:1.35}
+.pa-card{background:rgba(7,16,30,.54);border:1px solid rgba(29,205,211,.10);border-radius:18px;padding:18px;margin-bottom:16px}
+.pa-card-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-end;flex-wrap:wrap;margin-bottom:14px}
+.pa-card h3{margin:0 0 4px;color:#d9e5ef;font-size:16px;font-weight:900}
+.pa-card p{margin:0;color:#7a8fa0;font-size:12.5px;line-height:1.45}
+.pa-picker{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:8px;max-height:320px;overflow:auto;padding-right:4px}
+.pa-family-pick{display:flex;gap:10px;align-items:flex-start;padding:10px;border:1px solid rgba(122,162,200,.10);border-radius:12px;background:rgba(255,255,255,.02);cursor:pointer}
+.pa-family-pick b{display:block;color:#d9e5ef;font-size:13px}.pa-family-pick small{display:block;color:#7a8fa0;font-size:11px;line-height:1.35;margin-top:2px}
+.pa-actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:14px}
+.pa-table-wrap{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.pa-table{width:100%;border-collapse:collapse;font-size:12.5px;min-width:980px}
+.pa-table th{text-align:left;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:#5d7088;font-weight:900;padding:0 8px 10px;border-bottom:1px solid rgba(29,205,211,.12)}
+.pa-table td{padding:10px 8px;border-bottom:1px solid rgba(122,162,200,.07);color:#d9e5ef;vertical-align:middle}
+.pa-table td.num{font-family:monospace;color:#7a8fa0}
+.pa-table td small{display:block;color:#7a8fa0;font-size:10px;margin-top:2px}
+.pa-pill{font-size:10px;font-weight:900;padding:4px 9px;border-radius:999px;white-space:nowrap}
+.pa-pill.ok{color:#4ade80;background:rgba(74,222,128,.12)}.pa-pill.risk{color:#fbbf24;background:rgba(251,191,36,.12)}.pa-pill.churn{color:#f87171;background:rgba(248,113,113,.12)}
+.pa-mini-btn{padding:6px 9px;font-size:11px;border-radius:9px}
+@media(max-width:1100px){.pa-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:620px){.pa-grid,.pa-picker{grid-template-columns:1fr}.pa-head{align-items:flex-start}.pa-toolbar label{width:100%;align-items:flex-start;flex-direction:column}.pa-toolbar input{width:100%}}
+
 </style>
 </head>
 <body>
@@ -1011,6 +1060,7 @@ const TABS = [
   { id:'sessions',  icon:'🗂️', label:'Lotur' },
   { id:'families',  icon:'👥', label:'Fjölskyldur' },
   { id:'insights',  icon:'📈', label:'Innsýn' },
+  { id:'pilotAdmin', icon:'🧭', label:'Pilot' },
   { id:'pilot',     icon:'🎧', label:'Vitni' }
 ];
 
@@ -2542,6 +2592,7 @@ function renderContent() {
   if (_activeTab === 'sessions')  el.innerHTML = renderSessions();
   if (_activeTab === 'families')  el.innerHTML = renderFamilies();
   if (_activeTab === 'insights')  el.innerHTML = renderInsights();
+  if (_activeTab === 'pilotAdmin') renderPilotAdminTab();
   if (_activeTab === 'pilot')     renderPilotTab();
 }
 
@@ -3371,6 +3422,411 @@ function adminHmLegend() {
     <span>Meira</span>
   </div>`;
 }
+
+
+// ══════════════════════════════════════════
+// STJÓRNENDA PILOT — clean executive scorecard
+// Hreinn pilot-dómur: GO / FIX / PAUSE. Endurnýtir gögn, en blandar ekki lesgreiningu inn.
+// ══════════════════════════════════════════
+let _pilotAdminGroup = localStorage.getItem('upphatt_pilot_admin_group') || 'summer2026';
+
+// ── Pilot-reglur á einum stað: dómur (GO/FIX/PAUSE/WATCH) og fjölskyldustaða ──
+// Allir þröskuldar sem stýra dómnum og stöðu fjölskyldna eru hér. Engin „töfratala"
+// á að vera inni í rökfræðinni að neðan — breyttu viðmiðum hér.
+const PILOT_RULES = {
+  // Lágmarksúrtak: undir þessu er dómurinn bráðabirgða (WATCH), ekki afgerandi.
+  minConfidentSample: 10,
+  // „Endurkoma barns" = fjölskylda með a.m.k. svona margar lotur (fæðir returnedPct).
+  returnedSessions: 3,
+  // GO — ÖLL skilyrði þurfa að standast (prósentur af úrtaki).
+  go:  { startedPct:70, active7Pct:50, listenPct:60, returnedPct:50 },
+  // FIX — EITT skilyrði nægir (prósentur). Annars PAUSE.
+  fix: { startedPct:40, active7Pct:25, listenPct:30 },
+  // Veikleikamörk: ákvarða hvaða hlekk á að nefna í FIX-greiningu (prósentur).
+  weakLink: { startedPct:70, returnedPct:50, active7Pct:50, listenPct:60 },
+  // Fjölskyldustaða: dagar frá síðustu lotu og virknikröfur.
+  status: {
+    dormantDays:14,
+    redDays:7,
+    strong: { sessions:5, listens:1, replies:1 },
+    green:  { sessions:3, listens:1 }
+  }
+};
+
+function pilotAdminGroupInputHtml(){
+  return `<div class="pa-toolbar">
+    <label>Pilot hópur <input id="paGroupInput" value="${esc(_pilotAdminGroup)}" placeholder="summer2026"></label>
+    <button onclick="setPilotAdminGroup()">Nota hóp</button>
+    <button class="ghost" onclick="loadData(true)">Sækja gögn aftur</button>
+  </div>`;
+}
+
+window.setPilotAdminGroup = function(){
+  const v = (document.getElementById('paGroupInput')?.value || '').trim() || 'summer2026';
+  _pilotAdminGroup = v;
+  localStorage.setItem('upphatt_pilot_admin_group', v);
+  renderPilotAdminTab();
+};
+
+function pilotAdminTimestamp(v){ return _plMs(v) || toMillis(v) || 0; }
+function pilotAdminSessionTs(s){ return pilotAdminTimestamp(s.timestamp) || pilotAdminTimestamp(s.createdAt) || pilotAdminTimestamp(s.startedAt) || 0; }
+function pilotAdminDateKey(ms){
+  if(!ms) return '';
+  const d = new Date(ms); d.setHours(12,0,0,0);
+  return adminLocalDateISO(d);
+}
+function pilotAdminDaysSince(ms){
+  if(!ms) return 999;
+  return Math.max(0, Math.floor((Date.now() - ms) / 86400000));
+}
+function pilotAdminFormatDays(days){
+  if(days >= 999) return 'aldrei';
+  if(days === 0) return 'í dag';
+  if(days === 1) return 'í gær';
+  return days + 'd';
+}
+function pilotAdminPct(n,d){ return d ? Math.round((n/d)*100) : 0; }
+function pilotAdminStatusLabel(status){
+  return ({ strong:'Sterk', green:'Græn', yellow:'Gul', red:'Rauð', dormant:'Dottin út', not_started:'Óbyrjuð' })[status] || status || '—';
+}
+function pilotAdminStatusClass(status){
+  if(status === 'strong' || status === 'green') return 'ok';
+  if(status === 'yellow') return 'risk';
+  return 'churn';
+}
+function pilotAdminDecisionClass(decision){ return decision === 'GO' ? 'go' : decision === 'FIX' ? 'fix' : decision === 'WATCH' ? 'watch' : 'pause'; }
+
+function getPilotDocMap(){
+  const map = new Map();
+  (_pilots || []).forEach(p => {
+    const fid = p.familyId || p._docId;
+    if(fid) map.set(fid, p);
+  });
+  return map;
+}
+
+function getPilotAdminKnownFamilies(){
+  const sessionStats = {};
+  ((_heatmapSessions && _heatmapSessions.length) ? _heatmapSessions : _sessions).forEach(s => {
+    if(!s.familyId) return;
+    const row = sessionStats[s.familyId] || (sessionStats[s.familyId] = { sessions:0, last:0, children:new Set() });
+    row.sessions++;
+    row.last = Math.max(row.last, pilotAdminSessionTs(s));
+    const ck = s.childKey || s.childId || s.childName;
+    if(ck) row.children.add(String(ck));
+  });
+
+  const map = {};
+  const ensure = fid => fid ? (map[fid] || (map[fid] = { familyId:fid, createdAt:0, children:new Set(), sessions:0, last:0, email:'', pilot:null })) : null;
+
+  (_users || []).forEach(u => {
+    const fid = u.familyId || u.familyCode || '';
+    const row = ensure(fid);
+    if(!row) return;
+    row.email = row.email || u.email || '';
+    const created = pilotAdminTimestamp(u.createdAt || u.consentTimestamp || u.joinedAt);
+    if(created && (!row.createdAt || created < row.createdAt)) row.createdAt = created;
+    (Array.isArray(u.children) ? u.children : []).forEach(ch => {
+      const key = ch && (ch.key || ch.childKey || ch.code || ch.name);
+      if(key) row.children.add(String(key));
+    });
+  });
+
+  (_pilots || []).forEach(p => {
+    const fid = p.familyId || p._docId || '';
+    const row = ensure(fid);
+    if(!row) return;
+    row.pilot = p;
+    const created = pilotAdminTimestamp(p.startedAt || p.createdAt || p.joinedAt);
+    if(created && (!row.createdAt || created < row.createdAt)) row.createdAt = created;
+  });
+
+  Object.entries(sessionStats).forEach(([fid, st]) => {
+    const row = ensure(fid);
+    if(!row) return;
+    row.sessions = st.sessions;
+    row.last = st.last;
+    st.children.forEach(c => row.children.add(c));
+  });
+
+  return Object.values(map).map((f, idx) => ({
+    ...f,
+    code: shortAnonFamilyId(f.familyId, idx),
+    childrenCount: f.children.size,
+    daysSinceLast: pilotAdminDaysSince(f.last)
+  })).sort((a,b) => {
+    const ap = !!(a.pilot && a.pilot.active !== false), bp = !!(b.pilot && b.pilot.active !== false);
+    if(ap !== bp) return ap ? -1 : 1;
+    if(a.daysSinceLast !== b.daysSinceLast) return a.daysSinceLast - b.daysSinceLast;
+    return (b.sessions || 0) - (a.sessions || 0);
+  });
+}
+
+function getPilotReplyEventsFromBooks(){
+  const out = [];
+  (_pilotBooks || []).forEach(b => {
+    const fid = b.familyId;
+    if(!fid) return;
+    (b.journeyEntries || []).forEach(en => {
+      (en.reactions || []).forEach(r => out.push({ familyId:fid, childKey:b.childKey, ts:pilotAdminTimestamp(r.createdAt), type:'reaction' }));
+      if(en.type === 'gold_moment') out.push({ familyId:fid, childKey:b.childKey, ts:pilotAdminTimestamp(en.createdAt || en.savedAt), type:'saved' });
+    });
+  });
+  return out;
+}
+
+function computePilotAdminScorecard(){
+  const group = _pilotAdminGroup || 'summer2026';
+  const pilotDocs = (_pilots || []).filter(p => (p.familyId || p._docId) && p.active !== false && (p.pilotGroup || 'summer2026') === group);
+  const pilotIds = new Set(pilotDocs.map(p => p.familyId || p._docId));
+  const pilotMap = getPilotDocMap();
+  const allFamilies = getPilotAdminKnownFamilies();
+  const unmarked = allFamilies.filter(f => !pilotIds.has(f.familyId));
+  const sessions = ((_heatmapSessions && _heatmapSessions.length) ? _heatmapSessions : _sessions)
+    .filter(s => s.familyId && pilotIds.has(s.familyId));
+  const listens = (_listenEvents || []).filter(e => e.familyId && pilotIds.has(e.familyId));
+  const replies = getPilotReplyEventsFromBooks().filter(e => e.familyId && pilotIds.has(e.familyId));
+
+  const today = adminDateFromISO(adminTodayISO());
+  const tomorrow = today + 86400000;
+  const last7Start = adminDateFromISO(adminShiftDaysISO(-6));
+
+  const byFamily = {};
+  pilotIds.forEach(fid => {
+    const known = allFamilies.find(f => f.familyId === fid) || { familyId:fid, children:new Set(), childrenCount:0, code:shortAnonFamilyId(fid) };
+    const doc = pilotMap.get(fid) || {};
+    byFamily[fid] = {
+      familyId:fid,
+      code: known.code || shortAnonFamilyId(fid),
+      childrenCount: known.childrenCount || 0,
+      pilot: doc,
+      createdAt: pilotAdminTimestamp(doc.startedAt || doc.createdAt || known.createdAt),
+      sessions:[], listens:[], replies:[], readDays:new Set(),
+      firstSessionAt:0, lastSessionAt:0,
+      sessionCount:0, listenCount:0, replyCount:0,
+      readYesterday:false, readLast7Days:false, activeAfter30Days:false
+    };
+  });
+
+  sessions.forEach(s => {
+    const row = byFamily[s.familyId]; if(!row) return;
+    const ts = pilotAdminSessionTs(s); if(!ts) return;
+    row.sessions.push(s);
+    row.sessionCount++;
+    row.firstSessionAt = row.firstSessionAt ? Math.min(row.firstSessionAt, ts) : ts;
+    row.lastSessionAt = Math.max(row.lastSessionAt, ts);
+    const day = pilotAdminDateKey(ts); if(day) row.readDays.add(day);
+    if(ts >= last7Start && ts < tomorrow) row.readLast7Days = true;
+  });
+
+  const yesterdayStart = today - 86400000;
+  Object.values(byFamily).forEach(row => {
+    row.readYesterday = row.sessions.some(s => { const ts = pilotAdminSessionTs(s); return ts >= yesterdayStart && ts < today; });
+  });
+
+  listens.forEach(e => { const row = byFamily[e.familyId]; if(row){ row.listens.push(e); row.listenCount++; } });
+  replies.forEach(e => { const row = byFamily[e.familyId]; if(row){ row.replies.push(e); row.replyCount++; } });
+
+  Object.values(byFamily).forEach(row => {
+    const ST = PILOT_RULES.status;
+    const daysSince = pilotAdminDaysSince(row.lastSessionAt);
+    row.daysSinceLast = daysSince;
+    const ageDays = row.createdAt ? pilotAdminDaysSince(row.createdAt) : null;
+    row.activeAfter30Days = !!(row.createdAt && ageDays >= 30 && row.lastSessionAt && row.lastSessionAt >= row.createdAt + 30*86400000);
+    if(!row.sessionCount) row.status = 'not_started';
+    else if(daysSince >= ST.dormantDays) row.status = 'dormant';
+    else if(daysSince >= ST.redDays) row.status = 'red';
+    else if(row.sessionCount >= ST.strong.sessions && row.listenCount >= ST.strong.listens && row.replyCount >= ST.strong.replies) row.status = 'strong';
+    else if(row.sessionCount >= ST.green.sessions && row.listenCount >= ST.green.listens) row.status = 'green';
+    else row.status = 'yellow';
+  });
+
+  const rows = Object.values(byFamily).sort((a,b) => {
+    const order = { strong:0, green:1, yellow:2, red:3, dormant:4, not_started:5 };
+    return (order[a.status] ?? 9) - (order[b.status] ?? 9) || a.daysSinceLast - b.daysSinceLast;
+  });
+
+  const total = rows.length;
+  const k = {
+    totalPilotFamilies: total,
+    familiesStartedReading: rows.filter(r => r.sessionCount > 0).length,
+    familiesReadYesterday: rows.filter(r => r.readYesterday).length,
+    familiesReadLast7Days: rows.filter(r => r.readLast7Days).length,
+    familiesWith3PlusSessions: rows.filter(r => r.sessionCount >= PILOT_RULES.returnedSessions).length,
+    familiesWithAnyListen: rows.filter(r => r.listenCount > 0).length,
+    familiesWithAnyReply: rows.filter(r => r.replyCount > 0).length,
+    familiesActiveAfter30Days: rows.filter(r => r.activeAfter30Days).length
+  };
+
+  let decision, diagnosis, recommendation;
+  if(total === 0){
+    decision = 'WATCH';
+    diagnosis = 'Engar pilot-fjölskyldur valdar enn.';
+    recommendation = 'Veldu 10–20 fjölskyldur í pilot áður en þú metur vöruna.';
+  } else {
+    const startedPct = pilotAdminPct(k.familiesStartedReading,total);
+    const active7Pct = pilotAdminPct(k.familiesReadLast7Days,total);
+    const listenPct = pilotAdminPct(k.familiesWithAnyListen,total);
+    const returnedPct = pilotAdminPct(k.familiesWith3PlusSessions,total);
+    const GO = PILOT_RULES.go, FIX = PILOT_RULES.fix, WL = PILOT_RULES.weakLink;
+
+    if(startedPct >= GO.startedPct && active7Pct >= GO.active7Pct && listenPct >= GO.listenPct && returnedPct >= GO.returnedPct){
+      decision = 'GO';
+      diagnosis = 'Kjarnanotkun er að myndast: börn byrja, koma aftur og fjölskyldan hlustar.';
+      recommendation = 'Undirbúa 50 fjölskyldna greiðslupróf í haust. Ekki bæta við skóla- eða AI-flækju.';
+    } else if(startedPct >= FIX.startedPct || active7Pct >= FIX.active7Pct || listenPct >= FIX.listenPct){
+      decision = 'FIX';
+      const weak = [];
+      if(startedPct < WL.startedPct) weak.push('onboarding / fyrsta lota');
+      if(returnedPct < WL.returnedPct) weak.push('endurkoma barns');
+      if(active7Pct < WL.active7Pct) weak.push('7-daga virkni');
+      if(listenPct < WL.listenPct) weak.push('fjölskyldulykkjan');
+      diagnosis = weak.length
+        ? 'Eitthvað virkar, en veikur hlekkur er: ' + weak.slice(0,2).join(' og ') + '.'
+        : 'Eitthvað virkar, en heildarmyndin er enn ekki nógu sterk fyrir GO.';
+      recommendation = 'Tala við gular/rauðar fjölskyldur áður en þú byggir nýjan fídus. Laga veikasta hlekkinn og mæla aftur.';
+    } else {
+      decision = 'PAUSE';
+      diagnosis = 'Pilot sýnir ekki nógu sterka hegðun enn: skráning breytist ekki í endurtekinn lestur.';
+      recommendation = 'Ekki fara í greiðslupróf. Hreinsa onboarding og barnaupplifun fyrst.';
+    }
+
+    // Lágmarksúrtak: of fáar fjölskyldur til að treysta afgerandi dómi.
+    if(total < PILOT_RULES.minConfidentSample){
+      diagnosis = 'Bráðabirgðamerki (' + total + ' af ' + PILOT_RULES.minConfidentSample + ' lágmarki) — vísbending hingað til: ' + diagnosis;
+      recommendation = 'Of lítið úrtak fyrir afgerandi dóm — fjölgaðu í a.m.k. ' + PILOT_RULES.minConfidentSample + ' fjölskyldur. ' + recommendation;
+      decision = 'WATCH';
+    }
+  }
+
+  return { group, rows, unmarked, allFamilies, ...k, decision, diagnosis, recommendation };
+}
+
+async function renderPilotAdminTab(){
+  const el = document.getElementById('admin-content');
+  el.innerHTML = '<div class="admin-loading">Hleð stjórnenda pilot…</div>';
+  await ensurePilotBooks();
+  const M = computePilotAdminScorecard();
+  el.innerHTML = renderPilotAdminHtml(M);
+}
+
+function paKpi(label, value, sub, good, warn){
+  let cls = 'neutral';
+  if(typeof good === 'boolean') cls = good ? 'good' : (warn ? 'warn' : 'bad');
+  return `<article class="pa-kpi ${cls}"><div class="pa-label">${esc(label)}</div><div class="pa-value">${esc(value)}</div><div class="pa-sub">${esc(sub)}</div></article>`;
+}
+function paRate(n,d){ return `${n} / ${d} · ${pilotAdminPct(n,d)}%`; }
+
+function renderPilotAdminHtml(M){
+  const total = M.totalPilotFamilies;
+  const decisionCls = pilotAdminDecisionClass(M.decision);
+  const unmarkedRows = M.unmarked.slice(0,80).map(f => `<label class="pa-family-pick"><input type="checkbox" value="${esc(f.familyId)}"><span><b>${esc(f.code)}</b><small>${esc(f.childrenCount || '?')} börn · ${esc(f.sessions || 0)} lotur · síðast ${esc(pilotAdminFormatDays(f.daysSinceLast))}</small></span></label>`).join('');
+  const pilotRows = M.rows.map(r => {
+    const doc = r.pilot || {};
+    const reason = doc.dropoutReason || '';
+    return `<tr>
+      <td><input type="checkbox" class="pa-pilot-check" value="${esc(r.familyId)}"></td>
+      <td><span class="pa-pill ${pilotAdminStatusClass(r.status)}">${esc(pilotAdminStatusLabel(r.status))}</span></td>
+      <td><strong>${esc(r.code)}</strong><small>${esc(r.childrenCount || '?')} börn</small></td>
+      <td class="num">${esc(r.createdAt ? pilotAdminFormatDays(pilotAdminDaysSince(r.createdAt)) : '—')}</td>
+      <td class="num">${esc(r.firstSessionAt ? 'já' : 'nei')}</td>
+      <td class="num">${esc(pilotAdminFormatDays(r.daysSinceLast))}</td>
+      <td class="num">${esc(r.sessionCount)}</td>
+      <td class="num">${r.readLast7Days ? 'já' : 'nei'}</td>
+      <td class="num">${esc(r.listenCount)}</td>
+      <td class="num">${esc(r.replyCount)}</td>
+      <td><select class="pa-reason" data-fid="${esc(r.familyId)}">
+        ${['','barnið nennti ekki','foreldri gleymdi','of flókið','tæknivandamál','enginn hlustaði','skildi ekki tilgang','of persónulegt','annað'].map(x => `<option value="${esc(x)}" ${x===reason?'selected':''}>${x ? esc(x) : '—'}</option>`).join('')}
+      </select></td>
+      <td><button class="pa-mini-btn" onclick="markPilotDropout('${esc(r.familyId)}')">Vista</button></td>
+    </tr>`;
+  }).join('');
+
+  return `<div class="pa">
+    <div class="pa-head"><div><h2>Stjórnenda pilot</h2><p>Hreint ákvörðunartæki: sanna notkun, endurkomu, fjölskyldulykkju og næsta skref.</p></div><div class="pa-decision ${decisionCls}">${esc(M.decision)}</div></div>
+    ${pilotAdminGroupInputHtml()}
+    <section class="pa-verdict ${decisionCls}"><h3>Pilot staða: ${esc(M.decision)}</h3><p>${esc(M.diagnosis)}</p><strong>Næsta aðgerð:</strong><span>${esc(M.recommendation)}</span></section>
+    <section class="pa-grid">
+      ${paKpi('Pilot fjölskyldur', total, 'formlegt úrtak', null)}
+      ${paKpi('Byrjuðu að lesa', M.familiesStartedReading, paRate(M.familiesStartedReading,total), total && pilotAdminPct(M.familiesStartedReading,total)>=70, total && pilotAdminPct(M.familiesStartedReading,total)>=40)}
+      ${paKpi('Lásu í gær', M.familiesReadYesterday, 'mikilvægasta daglega talan', null)}
+      ${paKpi('Lásu síðustu 7 daga', M.familiesReadLast7Days, paRate(M.familiesReadLast7Days,total), total && pilotAdminPct(M.familiesReadLast7Days,total)>=50, total && pilotAdminPct(M.familiesReadLast7Days,total)>=25)}
+      ${paKpi(PILOT_RULES.returnedSessions + '+ lotur', M.familiesWith3PlusSessions, 'barnið kom aftur', total && pilotAdminPct(M.familiesWith3PlusSessions,total)>=50, total && pilotAdminPct(M.familiesWith3PlusSessions,total)>=25)}
+      ${paKpi('Fengu hlustun', M.familiesWithAnyListen, paRate(M.familiesWithAnyListen,total), total && pilotAdminPct(M.familiesWithAnyListen,total)>=60, total && pilotAdminPct(M.familiesWithAnyListen,total)>=30)}
+      ${paKpi('Fengu svar', M.familiesWithAnyReply, paRate(M.familiesWithAnyReply,total), total && pilotAdminPct(M.familiesWithAnyReply,total)>=30, total && pilotAdminPct(M.familiesWithAnyReply,total)>=10)}
+      ${paKpi('30 daga virkni', M.familiesActiveAfter30Days, 'verður gagnlegt eftir mánuð', null)}
+    </section>
+
+    <section class="pa-card"><div class="pa-card-head"><h3>Setja fjölskyldur í pilot</h3><p>Manual start: fjölskylda telst ekki formlega í pilot fyrr en þú merkir hana hér.</p></div>
+      <div class="pa-picker">${unmarkedRows || '<p class="admin-empty">Engar ómerktar fjölskyldur fundust.</p>'}</div>
+      <div class="pa-actions"><button onclick="addSelectedFamiliesToPilot()">Setja valdar í pilot</button><button class="ghost" onclick="selectAllPilotAdminCandidates(true)">Velja allar sýndar</button><button class="ghost" onclick="selectAllPilotAdminCandidates(false)">Hreinsa val</button></div>
+    </section>
+
+    <section class="pa-card"><div class="pa-card-head"><h3>Pilot fjölskyldur</h3><p>Þetta er hreina scorecard-úrtakið. Taktu prufur og rangar skráningar úr pilot frekar en að eyða sögu.</p></div>
+      <div class="pa-table-wrap"><table class="pa-table"><thead><tr><th></th><th>Staða</th><th>Fjölskylda</th><th>Skráð</th><th>Fyrsta</th><th>Síðast</th><th>Lotur</th><th>7d</th><th>Hlust.</th><th>Svör</th><th>Brottfall</th><th></th></tr></thead><tbody>${pilotRows || '<tr><td colspan="12">Engar fjölskyldur í þessum pilot hópi.</td></tr>'}</tbody></table></div>
+      <div class="pa-actions"><button class="danger" onclick="deactivateSelectedPilotFamilies()">Taka valdar úr pilot</button></div>
+    </section>
+  </div>`;
+}
+
+window.selectAllPilotAdminCandidates = function(on){
+  document.querySelectorAll('.pa-family-pick input[type=checkbox]').forEach(cb => cb.checked = !!on);
+};
+
+// Sameiginlegur umbúnaður um Firestore-skrif í pilot: villumeðferð + endurhleðsla + re-render.
+async function runPilotMutation(label, mutate){
+  try {
+    await mutate();
+    await loadData(true);
+  } catch(err){
+    console.error('Pilot mutation failed (' + label + '):', err);
+    alert('Aðgerð mistókst (' + label + '): ' + ((err && err.message) ? err.message : 'óþekkt villa') + '. Reyndu aftur.');
+  } finally {
+    _activeTab = 'pilotAdmin'; renderNav(); renderPilotAdminTab();
+  }
+}
+
+window.addSelectedFamiliesToPilot = function(){
+  const ids = [...document.querySelectorAll('.pa-family-pick input[type=checkbox]:checked')].map(cb => cb.value).filter(Boolean);
+  if(!ids.length) return;
+  return runPilotMutation('setja í pilot', async () => {
+    const fs = initFirebase();
+    const batch = fs.batch();
+    const now = firebase.firestore.FieldValue.serverTimestamp();
+    ids.forEach(fid => {
+      const ref = fs.collection('pilots').doc(fid);
+      const existing = (_pilots || []).find(p => (p.familyId || p._docId) === fid) || {};
+      const payload = { familyId:fid, pilotGroup:_pilotAdminGroup, active:true, source:'manual', status:'active', updatedAt:now };
+      if(!existing.startedAt && !existing.createdAt) payload.startedAt = now;
+      batch.set(ref, payload, { merge:true });
+    });
+    await batch.commit();
+  });
+};
+
+window.deactivateSelectedPilotFamilies = function(){
+  const ids = [...document.querySelectorAll('.pa-pilot-check:checked')].map(cb => cb.value).filter(Boolean);
+  if(!ids.length) return;
+  return runPilotMutation('taka úr pilot', async () => {
+    const fs = initFirebase();
+    const batch = fs.batch();
+    const now = firebase.firestore.FieldValue.serverTimestamp();
+    ids.forEach(fid => batch.set(fs.collection('pilots').doc(fid), { active:false, status:'inactive', updatedAt:now }, { merge:true }));
+    await batch.commit();
+  });
+};
+
+window.markPilotDropout = function(fid){
+  if(!fid) return;
+  const sel = document.querySelector(`.pa-reason[data-fid="${CSS.escape(fid)}"]`);
+  const reason = sel ? sel.value : '';
+  return runPilotMutation('vista brottfall', async () => {
+    const fs = initFirebase();
+    const payload = { dropoutReason: reason || null, updatedAt: firebase.firestore.FieldValue.serverTimestamp() };
+    if(reason){ payload.status = 'dropped'; payload.droppedAt = firebase.firestore.FieldValue.serverTimestamp(); }
+    await fs.collection('pilots').doc(fid).set(payload, { merge:true });
+  });
+};
 
 // ══════════════════════════════════════════
 // RENDER HELPERS

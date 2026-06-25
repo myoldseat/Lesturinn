@@ -1874,7 +1874,25 @@ async function finishParentBoot(readyPromise){
 }
 function hideParentBoot(){ document.getElementById('parent-boot')?.classList.add('hide'); }
 function showParentBoot(){ document.getElementById('parent-boot')?.classList.remove('hide'); }
-function showParentLogin(){ finishParentBoot(Promise.resolve()).then(() => document.getElementById('p-login-overlay')?.classList.add('show')); }
+function showParentLogin(){
+  /* Innskráning fer fram á app.upphatt.is — sér-innskráning á parent.html er aflögð.
+     Sýnum ekki gamla dev-popp-ið. Bíðum andartak ef Firebase er enn að endurheimta
+     setuna; ef notandi er þá enn útskráður vísum við á app.upphatt.is (svo enginn
+     lendi á tómum skjá). Logged-in notandi sér hvorki popp né redirect. */
+  if (window.__lxLoginHandled) return;
+  window.__lxLoginHandled = true;
+  setTimeout(function(){
+    try {
+      if (auth && auth.currentUser) {   /* seta endurheimt á meðan við biðum → halda áfram */
+        window.__lxLoginHandled = false;
+        hideParentLogin();
+        return;
+      }
+    } catch(e){}
+    try { location.replace('https://app.upphatt.is/'); }
+    catch(e){ location.href = 'https://app.upphatt.is/'; }
+  }, 1200);
+}
 function hideParentLogin(){ document.getElementById('p-login-overlay')?.classList.remove('show'); }
 
 /* ── goTo bridge: auth.js kallar þetta eftir login ── */
@@ -4673,37 +4691,33 @@ console.log('🚀 parent.html engine started');
 
   window.renderLeidangurSettings = render;
 
-  /* Endurtengja renderSettingsChildren-hook-inn — sjálf-læknandi.
-     Vélin keyrir Object.assign(window,{renderSettingsChildren}) EFTIR þennan kóða
-     og skrifaði áður yfir pökkunina. Við merkjum okkar útgáfu (__lxHooked) og
-     setjum hana aftur á ef vélin hefur skipt henni út. */
-  function _installHook(){
+  /* ── Lifandi vörður (ekki hook) ──
+     Aðal-render vélarinnar kallar á SÍNA EIGIN (module-scope) renderSettingsChildren,
+     ekki window-útgáfuna — svo pökkun á window nær aldrei aðal-lúppunni og Leiðangur
+     uppfærðist ekki þegar 2. barn hlóðst seint ("Þarf 2 börn" sat fast).
+     Í staðinn lesum við S beint og endurteiknum þegar barnafjöldi / familyId breytist.
+     Ódýrt: bara lengdar-/id-samanburður á 800ms fresti. */
+  var _lxSig = null;
+  function _lxTick(){
+    /* Halda window-pökkun lifandi fyrir beinar global-kallanir (eyða/hreinsa barn). */
     var cur = window.renderSettingsChildren;
-    if (cur && cur.__lxHooked) return;                 /* þegar okkar — sleppa */
-    var orig = (typeof cur === 'function') ? cur : null;
-    var wrapped = function(){
-      var r; try{ r = orig && orig.apply(this, arguments); }catch(e){}
-      try{ render(); }catch(e){}
-      return r;
-    };
-    wrapped.__lxHooked = true;
-    window.renderSettingsChildren = wrapped;
+    if (!(cur && cur.__lxHooked)) {
+      var orig = (typeof cur === 'function') ? cur : null;
+      var wrapped = function(){
+        var r; try{ r = orig && orig.apply(this, arguments); }catch(e){}
+        try{ render(); }catch(e){}
+        return r;
+      };
+      wrapped.__lxHooked = true;
+      window.renderSettingsChildren = wrapped;
+    }
+    /* Endurteikna þegar undirskrift (familyId + fjöldi barna) breytist. */
+    var s = window.S || {};
+    var sig = (s.familyId || '') + '|' + ((s.parentChildren || []).length);
+    if (sig !== _lxSig){ _lxSig = sig; try{ render(); }catch(e){} }
   }
-
-  /* Eitt skot strax — og svo poll þar til S er tilbúið og hópurinn er málaður.
-     Leysir kapphlaupið þegar innskráning/Firebase er hægari en gamla 1s skotið. */
-  function _painted(){
-    var g = document.getElementById('st-leidangur-group');
-    return !!(g && g.querySelector('.st-row') && !/Hle\u00f0/.test(g.textContent));
-  }
-  try{ render(); }catch(e){}
-  var _lxTries = 0;
-  var _lxIv = setInterval(function(){
-    _lxTries++;
-    _installHook();                 /* endurtengja ef vélin yfirskrifaði */
-    try{ render(); }catch(e){}
-    if (_painted() || _lxTries > 40) clearInterval(_lxIv);   /* hætta ~16s eða þegar málað */
-  }, 400);
+  setInterval(_lxTick, 800);
+  _lxTick();
 })();
 </script>
 </body>

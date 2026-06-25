@@ -1173,6 +1173,12 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
           <div class="st-group">
             <div class="st-row"><span class="st-lbl">Netfang</span><span class="st-val" id="settings-email">—</span></div>
             <div class="st-row"><span class="st-lbl">Fjölskyldulykill</span><span class="st-val ac" id="settings-family-code">—</span></div>
+            <div class="st-row">
+              <span class="st-lbl">Hvað kallar barnið þig?</span>
+              <input id="settings-child-calls-me" type="text" maxlength="40" placeholder="t.d. Pabbi"
+                style="text-align:right;background:transparent;border:none;color:var(--text-bright);font:inherit;font-size:14px;outline:none;max-width:55%"
+                onchange="saveChildCallsMe(this.value)">
+            </div>
           </div>
         </div>
 
@@ -1685,7 +1691,7 @@ async function deleteAccountFull(){
 
 /* ═══ Samþykki (greining) ═══ */
 async function loadConsent(){
-  try{ const uid=auth.currentUser&&auth.currentUser.uid; if(uid){ const snap=await getDoc(doc(db,'users',uid)); if(snap.exists()){ const d=snap.data(); if(typeof d.audioConsent==='boolean') S.audioConsent=d.audioConsent; } } }catch(e){}
+  try{ const uid=auth.currentUser&&auth.currentUser.uid; if(uid){ const snap=await getDoc(doc(db,'users',uid)); if(snap.exists()){ const d=snap.data(); if(typeof d.audioConsent==='boolean') S.audioConsent=d.audioConsent; if(typeof d.childCallsMe==='string'&&d.childCallsMe) S.childCallsMe=d.childCallsMe; const _cm=document.getElementById('settings-child-calls-me'); if(_cm) _cm.value=S.childCallsMe||''; } } }catch(e){}
   renderConsent();
 }
 async function setAnalysisConsent(on){
@@ -1981,7 +1987,7 @@ window.sendEntryReply = async function(btn) {
     const entries = book.journeyEntries.map(e => ({
       ...e, reactions: Array.isArray(e.reactions) ? [...e.reactions] : []
     }));
-    const name = S.parentName || (S.parentEmail ? S.parentEmail.split('@')[0] : 'Foreldri');
+    const name = _listenerName();
     entries[entryIndex] = {
       ...entries[entryIndex],
       reactions: [...(entries[entryIndex].reactions || []), { name, text, createdAt: Date.now() }]
@@ -2781,6 +2787,22 @@ function _buildEntriesHtml(indexedEntries, bookId, childName, childInitials, sho
       lastDay = dayKey;
     }
 
+    /* Geymdur lestur (gold_moment) er fjölskyldu-aðgerð, ekki barns-færsla.
+       Teikna sem fjölskyldu-bólu (eins og barn sér hann), ekki "frá barni". */
+    if (e.type === 'gold_moment') {
+      const gName = e.savedBy || 'Fjölskylda';
+      const gIni  = gName.split(' ').filter(Boolean).map(w=>w[0]).join('').slice(0,2).toUpperCase() || '★';
+      const gTs   = _fmtTs(e.createdAt||e.savedAt||e.timestamp) || esc(e.date||'');
+      html += `<div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:14px">
+        <div class="jn-av jn-av-fam">${gIni}</div>
+        <div class="jn-bubble jn-bubble-fam" style="flex:1">
+          <div class="jn-bubble-name jn-bubble-name-fam">${esc(gName)} <span class="jn-bubble-ts">${gTs}</span></div>
+          <div class="jn-bubble-text">★ ${esc(e.text || 'geymdi lesturinn')}</div>
+        </div>
+      </div>`;
+      return; /* næsta entry — sleppa barns-bólu og svar-reit */
+    }
+
     /* Child bubble */
     html += `<div style="display:flex;gap:8px;align-items:flex-start">
       <div class="jn-av jn-av-child">${childInitials}</div>
@@ -3280,6 +3302,7 @@ let _heroPlaying   = false;
 let _heroTotalSecs = 0;      /* heildarlengd allra clips */
 let _heroElapsed   = 0;      /* sekúndur sem liðnar eru */
 let _heroRaf       = null;   /* requestAnimationFrame id */
+let _heroListenLogged = false; /* tryggir EINA hlustun á lotu þó bútar séu margir */
 
 /* Kallaður úr render() þegar sessions eru tilbúnar */
 let _lastHeroHash = '';
@@ -3331,6 +3354,7 @@ function renderAudioHero(sessions) {
 
 function _heroReset() {
   _heroPlaying = false;
+  _heroListenLogged = false;
   _heroIndex   = 0;
   _heroElapsed = 0;
   if (_heroAudio) { _heroAudio.pause(); _heroAudio = null; }
@@ -3448,6 +3472,17 @@ async function _heroPlayClip(index) {
     audio.onerror = () => { toast('Villa í hljóðbroti ' + (index+1)); _heroPlayClip(index + 1); };
     await audio.play();
     if (index === 0) toast('');
+    /* Skrá hlustun EINU SINNI á lotu (ekki einu sinni á hvern bút).
+       Flaggið núllast í _heroReset() þegar lotu lýkur eða ný session hleðst. */
+    if (!_heroListenLogged && _heroSession) {
+      _heroListenLogged = true;
+      writeListenEvent({
+        familyId: S.familyId,
+        childKey: _heroSession.childKey,
+        listenerName: _listenerName(),
+        sessionDocId: _heroSession._docId,
+      }).catch(e => console.warn('hero listen-event:', e));
+    }
     if (!_heroRaf) _heroRaf = requestAnimationFrame(_heroTick);
   } catch(e) {
     console.warn('Hero play villa:', e);
@@ -3534,7 +3569,12 @@ function _listenerName() {
     const nm = S.guestName || 'Gestur';
     return (label ? label + ' ' : '') + nm;
   }
-  return S.parentName || S.parentDisplayName || (S.parentEmail ? S.parentEmail.split('@')[0] : 'Foreldri');
+  /* Foreldri: falleg/persónuleg nöfn fyrir barnið.
+     Forgangur: stillinga-nafn ("Hvað kallar barnið þig?") → onboarding-hlutverk
+     → fyrsta nafn (ekki fullt lögnafn) → netfang → 'Foreldri'. */
+  const _first = (S.parentName || '').trim().split(/\s+/)[0] || '';
+  return S.childCallsMe || S.roleName || _first ||
+         (S.parentEmail ? S.parentEmail.split('@')[0] : null) || 'Foreldri';
 }
 
 window.playSessionClip = async function(docId, clipIndex) {
@@ -4117,6 +4157,19 @@ function updateSettings() {
   if (typeof loadConsent === 'function') loadConsent();
 }
 
+/* Vistar "Hvað kallar barnið þig?" — notað af _listenerName() fyrir foreldri */
+window.saveChildCallsMe = async function(v) {
+  const name = (v || '').trim().slice(0, 40);
+  S.childCallsMe = name || null;
+  const uid = auth.currentUser && auth.currentUser.uid;
+  if (uid) {
+    try { await updateDoc(doc(db, 'users', uid), { childCallsMe: name }); }
+    catch(e) { try { await setDoc(doc(db, 'users', uid), { childCallsMe: name }, { merge: true }); } catch(_) {} }
+  }
+  if (typeof render === 'function') render();
+  toast(name ? ('Vistað: ' + name) : 'Hreinsað');
+};
+
 /* ── Helpers ── */
 function dk(d) { return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`; }
 function nd(d) { if (!d) return ''; const p = d.split('-'); if (p.length!==3) return d; return `${p[0]}-${parseInt(p[1])}-${parseInt(p[2])}`; }
@@ -4244,6 +4297,12 @@ async function bootParentGate() {
     S.guestRole   = id.guestRole || null;
     S.parentName  = id.name || S.parentName || null;
     S.roleName    = id.roleName || S.roleName || null;
+    /* Sækja "Hvað kallar barnið þig?" snemma svo _listenerName() hafi það strax */
+    if (id.role === 'parent' && user && user.uid) {
+      getDoc(doc(db, 'users', user.uid))
+        .then(s => { if (s.exists() && s.data().childCallsMe) S.childCallsMe = s.data().childCallsMe; })
+        .catch(() => {});
+    }
     S.parentEmail = user.email || S.parentEmail || null;
     S.familyCode  = id.familyCode || id.code || S.familyCode || null;
     if (!S.familyCode) {
@@ -4612,11 +4671,39 @@ console.log('🚀 parent.html engine started');
     catch(err){ toast('Villa: '+(err&&err.message||err)); }
   }
 
-  // endurteikna þegar barnalisti uppfærist + við opnun
-  var orig = window.renderSettingsChildren;
-  window.renderSettingsChildren = function(){ var r; try{ r = orig && orig.apply(this, arguments); }catch(e){} try{ render(); }catch(e){} return r; };
   window.renderLeidangurSettings = render;
-  setTimeout(function(){ try{ render(); }catch(e){} }, 1000);
+
+  /* Endurtengja renderSettingsChildren-hook-inn — sjálf-læknandi.
+     Vélin keyrir Object.assign(window,{renderSettingsChildren}) EFTIR þennan kóða
+     og skrifaði áður yfir pökkunina. Við merkjum okkar útgáfu (__lxHooked) og
+     setjum hana aftur á ef vélin hefur skipt henni út. */
+  function _installHook(){
+    var cur = window.renderSettingsChildren;
+    if (cur && cur.__lxHooked) return;                 /* þegar okkar — sleppa */
+    var orig = (typeof cur === 'function') ? cur : null;
+    var wrapped = function(){
+      var r; try{ r = orig && orig.apply(this, arguments); }catch(e){}
+      try{ render(); }catch(e){}
+      return r;
+    };
+    wrapped.__lxHooked = true;
+    window.renderSettingsChildren = wrapped;
+  }
+
+  /* Eitt skot strax — og svo poll þar til S er tilbúið og hópurinn er málaður.
+     Leysir kapphlaupið þegar innskráning/Firebase er hægari en gamla 1s skotið. */
+  function _painted(){
+    var g = document.getElementById('st-leidangur-group');
+    return !!(g && g.querySelector('.st-row') && !/Hle\u00f0/.test(g.textContent));
+  }
+  try{ render(); }catch(e){}
+  var _lxTries = 0;
+  var _lxIv = setInterval(function(){
+    _lxTries++;
+    _installHook();                 /* endurtengja ef vélin yfirskrifaði */
+    try{ render(); }catch(e){}
+    if (_painted() || _lxTries > 40) clearInterval(_lxIv);   /* hætta ~16s eða þegar málað */
+  }, 400);
 })();
 </script>
 </body>

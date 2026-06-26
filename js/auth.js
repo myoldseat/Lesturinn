@@ -226,15 +226,12 @@ export async function googleSignIn() {
     // Nýr notandi → Google gefur ekkert users-skjal, svo við búum það til (eins og venjuleg nýskráning)
     const snap = await getDoc(doc(db, 'users', user.uid));
     if (!snap.exists()) {
-      const familyId   = 'FAM-' + Math.random().toString(36).substr(2,5).toUpperCase();
-      const familyCode = makeFamilyCode();
+      const { familyId, familyCode } =
+        (await httpsCallable(functions, 'createFamily')({ name: user.displayName || 'Foreldri' })).data;
       await setDoc(doc(db, 'users', user.uid), {
         name: user.displayName || 'Foreldri', email: user.email || '', role: 'parent',
         familyId, familyCode, children: [], createdAt: serverTimestamp(),
         consentCompleted: true, consentVersion: 'TERMS-2026-06', consentTimestamp: serverTimestamp()
-      });
-      await setDoc(doc(db, 'familycodes', familyCode), {
-        familyId, parentUid: user.uid, parentName: user.displayName || 'Foreldri', createdAt: serverTimestamp()
       });
       // Pilot-merking ef komið frá Sumarspretti
       const pilotGroup = localStorage.getItem('upphattPilotGroup');
@@ -432,21 +429,16 @@ export async function firebaseSignupPopup() {
     if (btn) { btn.textContent = 'Stofna...'; btn.disabled = true; }
     const cred       = await createUserWithEmailAndPassword(auth, email, pw);
     const user       = cred.user;
-    const familyId   = 'FAM-' + Math.random().toString(36).substr(2,5).toUpperCase();
-    const familyCode = makeFamilyCode();
 
-    // Vista notanda
+    // familyId + familyCode búin til SERVER-megin (einstök, árekstrar-frí).
+    // createFamily skrifar líka familycodes/{code} + families/{familyId}.
+    const { familyId, familyCode } =
+      (await httpsCallable(functions, 'createFamily')({ name })).data;
+
+    // Vista notanda (eigið prófíl-skjal)
     await setDoc(doc(db, 'users', user.uid), {
       name, email, role: 'parent', familyId, familyCode, children: [], createdAt: serverTimestamp(),
       consentCompleted: true, consentVersion: 'TERMS-2026-06', consentTimestamp: serverTimestamp()
-    });
-
-    // Vista í familycodes collection — document ID er kóðinn
-    await setDoc(doc(db, 'familycodes', familyCode), {
-      familyId,
-      parentUid:  user.uid,
-      parentName: name,
-      createdAt:  serverTimestamp()
     });
 
     // Pilot-merking ef komið frá Sumarspretti (notandi er enn innskráður hér)
@@ -828,13 +820,15 @@ export async function firebaseSignup() {
     _signupInProgress = true;
     const userCred   = await createUserWithEmailAndPassword(auth, email, pw);
     const uid        = userCred.user.uid;
-    const familyId   = 'FAM-' + Math.random().toString(36).substr(2, 5).toUpperCase();
-    const familyCode = makeFamilyCode();
+    // familyId + familyCode SERVER-megin (createFamily skrifar líka familycodes + families).
+    const { familyId, familyCode } =
+      (await httpsCallable(functions, 'createFamily')({ name })).data;
     const childrenArray = [];
     // User doc must exist BEFORE code docs (codes/create rule reads users/{uid}.familyId)
     await setDoc(doc(db, 'users', uid), {
       name, email, role: 'parent', familyId, familyCode, children: [], createdAt: serverTimestamp()
     });
+    // LEGACY (óvirkt í núverandi UI): barna-stofnun hér ætti að nota createChild.
     for (const cName of childNames) {
       const loginCode = makeChildCode(cName);
       const childKey  = Math.random().toString(36).substr(2, 10);
@@ -843,9 +837,6 @@ export async function firebaseSignup() {
     }
     // Update user doc with children list now that all codes are written
     await setDoc(doc(db, 'users', uid), { children: childrenArray }, { merge: true });
-    await setDoc(doc(db, 'familycodes', familyCode), {
-      familyId, parentUid: uid, parentName: name, createdAt: serverTimestamp()
-    });
     await signOut(auth);
     localStorage.removeItem('upphatt_child');
     _signupInProgress = false;

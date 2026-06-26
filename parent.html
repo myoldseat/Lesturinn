@@ -1844,7 +1844,7 @@ const libMod   = await import('./js/lib.js').catch(e => { console.error('lib.js:
 const { initAuth, openAddChildPopup, closeAddChildPopup, logout } = authMod;
 const writeListenEvent = libMod.writeListenEvent || (async () => false);
 const S = stateMod.S || {};
-const { db, collection, onSnapshot, query, where, doc, getDoc, setDoc, updateDoc, deleteDoc, serverTimestamp, auth, storage, ref, getDownloadURL, signInWithEmailAndPassword, onAuthStateChanged } = fbMod;
+const { db, collection, onSnapshot, query, where, doc, getDoc, setDoc, updateDoc, deleteDoc, serverTimestamp, auth, storage, ref, getDownloadURL, signInWithEmailAndPassword, onAuthStateChanged, functions, httpsCallable } = fbMod;
 let firestoreDeleteDoc = deleteDoc;
 if (typeof firestoreDeleteDoc !== 'function') {
   const firestoreMod = await import('https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js').catch(() => ({}));
@@ -1957,10 +1957,12 @@ window.submitAddChild = async function(){
   if(!auth?.currentUser||!S.familyId){ if(err)err.textContent='Innskráningu vantar.'; return; }
   if(btn){btn.disabled=true;btn.textContent='Vista...';}
   try{
-    let code=_parentChildCode(name);
-    const childKey=Math.random().toString(36).slice(2,12);
+    /* Server býr til EINSTAKAN barnakóða (ABC1234), childKey, og skrifar codes/{code}.
+       Sjá createChild í functions/index.js. Client býr ekki lengur til kóða né skrifar codes. */
+    const res = await httpsCallable(functions, 'createChild')({ name, birthYear });
+    const { code, childKey } = res?.data || {};
+    if(!code || !childKey) throw new Error('createChild skilaði ófullnægjandi svari');
     const newChild={name,key:childKey,code,birthYear,totalPagesRead:0,totalWordsRead:0};
-    await setDoc(doc(db,'codes',code),{familyId:S.familyId,childKey,childName:name,birthYear});
     const updated=[...(S.parentChildren||[]),newChild];
     await setDoc(doc(db,'users',auth.currentUser.uid),{children:updated},{merge:true});
     S.parentChildren=updated;

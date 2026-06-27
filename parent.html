@@ -1258,6 +1258,7 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
         <div>
           <div class="st-sec">Fjölskylda</div>
           <div class="family-list" id="settings-family-list"></div>
+          <button type="button" class="lx-invite-btn" onclick="openParentInvite()">+ Bæta við foreldri / forsjáraðila</button>
         </div>
       </div>
     </div>
@@ -1323,6 +1324,35 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
     </div>
     <div class="child-code-value" id="child-code-value">----</div>
     <button class="child-code-copy" type="button" onclick="copyChildCode()">Afrita kóða</button>
+  </div>
+</div>
+
+<!-- ═══ Parent invite modal (co-parent) ═══ -->
+<style>
+  .lx-invite-btn{margin-top:12px;width:100%;background:transparent;border:1px dashed rgba(29,205,211,.5);color:#1dcdd3;font-weight:600;font-size:14px;padding:11px;border-radius:10px;cursor:pointer}
+  .lx-invite-btn:hover{background:rgba(29,205,211,.08)}
+  #parent-invite-modal .lx-inv-card{background:#071221;border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:20px;max-width:380px;width:100%}
+  .lx-inv-row{display:flex;gap:6px;margin-bottom:14px}
+  .lx-inv-row input{flex:1;min-width:0;background:#0a1828;border:1px solid rgba(255,255,255,.12);border-radius:8px;color:#f0f4f8;font-size:12px;padding:9px}
+  .lx-inv-copy{background:#1dcdd3;color:#050b14;border:none;font-weight:700;font-size:12px;padding:0 12px;border-radius:8px;cursor:pointer;white-space:nowrap}
+  .lx-inv-label{color:var(--muted);font-size:13px;margin-bottom:6px}
+  .lx-inv-close{width:100%;background:#1dcdd3;color:#050b14;border:none;font-weight:700;font-size:14px;padding:12px;border-radius:10px;cursor:pointer;margin-top:4px}
+</style>
+<div class="confirm-overlay" id="parent-invite-modal">
+  <div class="lx-inv-card">
+    <div style="font-weight:700;font-size:17px;margin-bottom:14px">Bjóða foreldri / forsjáraðila</div>
+    <div class="lx-inv-label">Sendu þennan hlekk til viðkomandi:</div>
+    <div class="lx-inv-row">
+      <input id="parent-invite-link" readonly value="Bý til boð...">
+      <button type="button" class="lx-inv-copy" onclick="copyInviteLink()">Afrita</button>
+    </div>
+    <div class="lx-inv-label">Eða boðs-kóði (afrita–líma):</div>
+    <div class="lx-inv-row">
+      <input id="parent-invite-code" readonly value="">
+      <button type="button" class="lx-inv-copy" onclick="copyInviteCode()">Afrita</button>
+    </div>
+    <div style="color:var(--muted);font-size:12px;margin-bottom:14px">Boðið gildir í 7 daga og má aðeins nota einu sinni.</div>
+    <button type="button" class="lx-inv-close" onclick="closeParentInvite()">Loka</button>
   </div>
 </div>
 
@@ -4083,7 +4113,7 @@ function setSettingsTab(tab) {
   document.querySelectorAll('[data-settings-panel]').forEach(panel => {
     panel.classList.toggle('on', panel.dataset.settingsPanel === next);
   });
-  if (next === 'family') renderFamilyAccess();
+  if (next === 'family') { renderFamilyAccess(); loadFamilyParents(); }
 }
 window.setSettingsTab = setSettingsTab;
 
@@ -4168,6 +4198,66 @@ async function copyChildCode() {
   }
 }
 window.copyChildCode = copyChildCode;
+
+/* ── Co-parent boð ── */
+async function openParentInvite() {
+  const linkEl = document.getElementById('parent-invite-link');
+  const codeEl = document.getElementById('parent-invite-code');
+  if (linkEl) linkEl.value = 'Bý til boð...';
+  if (codeEl) codeEl.value = '';
+  document.getElementById('parent-invite-modal')?.classList.add('show');
+  try {
+    const res = await httpsCallable(functions, 'createParentInvite')();
+    const d = res.data || {};
+    if (linkEl) linkEl.value = d.inviteUrl || '';
+    if (codeEl) codeEl.value = d.token || '';
+    if (window.track) track('parent_invite_created');
+  } catch (e) {
+    console.warn('createParentInvite villa:', e);
+    if (linkEl) linkEl.value = 'Villa — reyndu aftur.';
+    toast('Gat ekki búið til boð');
+  }
+}
+window.openParentInvite = openParentInvite;
+
+function closeParentInvite() {
+  document.getElementById('parent-invite-modal')?.classList.remove('show');
+}
+window.closeParentInvite = closeParentInvite;
+
+async function copyInviteLink() {
+  const v = document.getElementById('parent-invite-link')?.value?.trim() || '';
+  if (!v || v.startsWith('Bý til') || v.startsWith('Villa')) return;
+  try { await navigator.clipboard?.writeText(v); toast('Hlekkur afritaður'); } catch(e) { toast(v); }
+}
+window.copyInviteLink = copyInviteLink;
+
+async function copyInviteCode() {
+  const v = document.getElementById('parent-invite-code')?.value?.trim() || '';
+  if (!v) return;
+  try { await navigator.clipboard?.writeText(v); toast('Kóði afritaður'); } catch(e) { toast(v); }
+}
+window.copyInviteCode = copyInviteCode;
+
+/* Sækir foreldra-/forsjáraðila-lista úr server (listFamilyParents) og birtir hann.
+   Additivt: ef ekkert kemur til baka (t.d. gömul fjölskylda án registry) helst
+   núverandi birting óbreytt. */
+async function loadFamilyParents() {
+  try {
+    const res = await httpsCallable(functions, 'listFamilyParents')();
+    const parents = (res.data && res.data.parents) || [];
+    if (parents.length) {
+      S.familyMembers = parents.map(p => ({
+        name: p.name || 'Foreldri',
+        role: 'parent',
+        accessLevel: 'full',
+      }));
+      renderFamilyAccess();
+    }
+  } catch (e) { console.warn('listFamilyParents villa:', e); }
+}
+window.loadFamilyParents = loadFamilyParents;
+
 /* ── Settings info ── */
 function updateSettings() {
   const set = (id, v) => { const e = document.getElementById(id); if (e) e.textContent = v || '—'; };
@@ -4244,11 +4334,12 @@ window._getNavParams = function() {
    Parent á sínar eigin hlustanir og auðkenni úr auth-gate,
    óháð initAuth/parent-view. Sjálfgefið helst gamla leiðin.
    ══════════════════════════════════════ */
-let _famUnsub2 = null, _booksUnsub2 = null;
+let _famUnsub2 = null, _booksUnsub2 = null, _childrenUnsub2 = null;
 
 function startParentListeners(familyId) {
   if (_famUnsub2) { _famUnsub2(); _famUnsub2 = null; }
   if (_booksUnsub2) { _booksUnsub2(); _booksUnsub2 = null; }
+  if (_childrenUnsub2) { _childrenUnsub2(); _childrenUnsub2 = null; }
 
   let sessionsReady = false, booksReady = false;
   let resolveReady;
@@ -4282,12 +4373,40 @@ function startParentListeners(familyId) {
     markReady();
   });
 
+  /* börn — VIÐBÓT (Áfangi 2): les börn úr codes eftir familyId og BÆTIR VIÐ
+     þeim sem eru EKKI þegar í listanum (úr users.children). Snertir hvorki né
+     fjarlægir núverandi börn → engin breyting fyrir núverandi notendur; gefur
+     framtíðar co-parent börnin sem þeirra eigið users-skjal hefur ekki.
+     Tölfræði reiknast áfram úr sessions (familyId-lyklaðar). */
+  const cq = query(collection(db, 'codes'), where('familyId', '==', familyId));
+  _childrenUnsub2 = onSnapshot(cq, snap => {
+    const have = new Set((S.parentChildren || []).map(c => c.key));
+    let added = false;
+    snap.docs.forEach(d => {
+      const data = d.data() || {};
+      if (data.deleted || !data.childKey) return;
+      if (have.has(data.childKey)) return;            // þegar til → ekki snerta
+      (S.parentChildren = S.parentChildren || []).push({
+        name: data.childName || '',
+        key:  data.childKey,
+        code: d.id,
+        birthYear: (data.birthYear ?? null),
+        totalPagesRead: 0,
+        totalWordsRead: 0,
+      });
+      have.add(data.childKey);
+      added = true;
+    });
+    if (added) { try { render(); updateSettings(); } catch(e){} }
+  }, e => console.warn('Children (codes) listener villa:', e));
+
   return ready;
 }
 
 function _teardownParentListeners() {
   if (_famUnsub2) { _famUnsub2(); _famUnsub2 = null; }
   if (_booksUnsub2) { _booksUnsub2(); _booksUnsub2 = null; }
+  if (_childrenUnsub2) { _childrenUnsub2(); _childrenUnsub2 = null; }
 }
 window.addEventListener('beforeunload', _teardownParentListeners);
 

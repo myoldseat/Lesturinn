@@ -80,7 +80,37 @@ async function restoreMissingCodeDocsFromProfile(familyId, children) {
 // PROCESS AUTHENTICATED PARENT
 // ══════════════════════════════════════════
 
+function _showInviteError(msg) {
+  const ids = ['popup-login-error', 'login-error', 'signup-error', 'reg-error'];
+  for (const id of ids) {
+    const el = document.getElementById(id);
+    if (el) { el.textContent = msg; return; }
+  }
+  try { alert(msg); } catch (_) {}
+}
+
 async function processAuthUser(user) {
+  // ── Co-parent boð: ganga í fjölskylduna ÁÐUR en claims/familyId leysast ──
+  const inviteToken = localStorage.getItem('upphattParentInvite');
+  const wasInvite = !!inviteToken;
+  if (inviteToken) {
+    try {
+      await httpsCallable(functions, 'acceptParentInvite')({
+        token: inviteToken, name: user.displayName || undefined
+      });
+      await user.getIdToken(true);                  // force-refresh: role+familyId claims STRAX
+      localStorage.removeItem('upphattParentInvite');
+    } catch (e) {
+      console.warn('acceptParentInvite villa:', e);
+      localStorage.removeItem('upphattParentInvite');
+      // Boð mistókst (útrunnið / notað / annað familyId) → STÖÐVA flæðið.
+      // EKKI redirecta í parent.html með ranga/uid-fjölskyldu. Skrá út + sýna villu.
+      try { await signOut(auth); } catch (_) {}
+      _showInviteError((e && e.message) || 'Boðið er ógilt eða útrunnið.');
+      return;
+    }
+  }
+
   // Ensure parent has custom claims before making any Firestore reads
   const tokenResult = await user.getIdTokenResult();
   if (tokenResult.claims.role !== 'parent') {
@@ -93,6 +123,13 @@ async function processAuthUser(user) {
   const snap    = await getDoc(doc(db, 'users', user.uid));
   const profile = snap.exists() ? snap.data() : null;
 
+  // Invite-user sem tókst EKKI að tengja við familyId → ekki falla á uid (phantom-fjölskylda).
+  if (wasInvite && !profile?.familyId) {
+    try { await signOut(auth); } catch (_) {}
+    _showInviteError('Tókst ekki að tengja við fjölskyldu. Reyndu boðið aftur.');
+    return;
+  }
+
   S.role            = 'parent';
   S.familyId        = profile?.familyId || user.uid;
   S.parentName      = (profile?.name || 'Foreldri').split(' ')[0];
@@ -100,8 +137,9 @@ async function processAuthUser(user) {
   S.parentChildren  = profile?.children || [];
   S.expandedChildren = {};
 
-  // Auto-migration: ef familyCode vantar, búum við til og vistum
-  if (!profile?.familyCode) {
+  // Auto-migration: ef familyCode vantar, búum við til og vistum.
+  // Sleppt fyrir co-parent — hann erfir familyCode fjölskyldunnar (acceptParentInvite afritar hann).
+  if (!profile?.familyCode && profile?.access !== 'coParent') {
     const newCode = makeFamilyCode();
     try {
       await setDoc(doc(db, 'users', user.uid), { familyCode: newCode }, { merge: true });
@@ -226,21 +264,31 @@ export async function googleSignIn() {
     // Nýr notandi → Google gefur ekkert users-skjal, svo við búum það til (eins og venjuleg nýskráning)
     const snap = await getDoc(doc(db, 'users', user.uid));
     if (!snap.exists()) {
-      const { familyId, familyCode } =
-        (await httpsCallable(functions, 'createFamily')({ name: user.displayName || 'Foreldri' })).data;
-      await setDoc(doc(db, 'users', user.uid), {
-        name: user.displayName || 'Foreldri', email: user.email || '', role: 'parent',
-        familyId, familyCode, children: [], createdAt: serverTimestamp(),
-        consentCompleted: true, consentVersion: 'TERMS-2026-06', consentTimestamp: serverTimestamp()
-      });
-      // Pilot-merking ef komið frá Sumarspretti
-      const pilotGroup = localStorage.getItem('upphattPilotGroup');
-      if (pilotGroup) {
-        await setDoc(doc(db, 'pilots', familyId), {
-          familyId, pilotGroup, uid: user.uid, email: user.email || null, status: 'active', joinedAt: serverTimestamp()
+      const inviteToken = localStorage.getItem('upphattParentInvite');
+      if (inviteToken) {
+        // Boðinn co-parent via Google: ENGIN createFamily — acceptParentInvite (í processAuthUser) linkar.
+        await setDoc(doc(db, 'users', user.uid), {
+          name: user.displayName || 'Foreldri', email: user.email || '', role: 'parent',
+          children: [], createdAt: serverTimestamp(),
+          consentCompleted: true, consentVersion: 'TERMS-2026-06', consentTimestamp: serverTimestamp()
         });
-        await setDoc(doc(db, 'users', user.uid), { pilotGroup }, { merge: true });
-        localStorage.removeItem('upphattPilotGroup');
+      } else {
+        const { familyId, familyCode } =
+          (await httpsCallable(functions, 'createFamily')({ name: user.displayName || 'Foreldri' })).data;
+        await setDoc(doc(db, 'users', user.uid), {
+          name: user.displayName || 'Foreldri', email: user.email || '', role: 'parent',
+          familyId, familyCode, children: [], createdAt: serverTimestamp(),
+          consentCompleted: true, consentVersion: 'TERMS-2026-06', consentTimestamp: serverTimestamp()
+        });
+        // Pilot-merking ef komið frá Sumarspretti
+        const pilotGroup = localStorage.getItem('upphattPilotGroup');
+        if (pilotGroup) {
+          await setDoc(doc(db, 'pilots', familyId), {
+            familyId, pilotGroup, uid: user.uid, email: user.email || null, status: 'active', joinedAt: serverTimestamp()
+          });
+          await setDoc(doc(db, 'users', user.uid), { pilotGroup }, { merge: true });
+          localStorage.removeItem('upphattPilotGroup');
+        }
       }
     }
 
@@ -252,6 +300,8 @@ export async function googleSignIn() {
     console.warn('googleSignIn villa:', e);
   }
 }
+// Tengja raunverulegu Google-innskráninguna á window (yfirskrifar placeholder í index.html)
+window.googleSignIn = googleSignIn;
 
 export function showForgotPassword() {
   document.getElementById('reset-error').textContent = '';
@@ -430,25 +480,35 @@ export async function firebaseSignupPopup() {
     const cred       = await createUserWithEmailAndPassword(auth, email, pw);
     const user       = cred.user;
 
-    // familyId + familyCode búin til SERVER-megin (einstök, árekstrar-frí).
-    // createFamily skrifar líka familycodes/{code} + families/{familyId}.
-    const { familyId, familyCode } =
-      (await httpsCallable(functions, 'createFamily')({ name })).data;
-
-    // Vista notanda (eigið prófíl-skjal)
-    await setDoc(doc(db, 'users', user.uid), {
-      name, email, role: 'parent', familyId, familyCode, children: [], createdAt: serverTimestamp(),
-      consentCompleted: true, consentVersion: 'TERMS-2026-06', consentTimestamp: serverTimestamp()
-    });
-
-    // Pilot-merking ef komið frá Sumarspretti (notandi er enn innskráður hér)
-    const pilotGroup = localStorage.getItem('upphattPilotGroup');
-    if (pilotGroup) {
-      await setDoc(doc(db, 'pilots', familyId), {
-        familyId, pilotGroup, uid: user.uid, email, status: 'active', joinedAt: serverTimestamp()
+    const inviteToken = localStorage.getItem('upphattParentInvite');
+    if (inviteToken) {
+      // Boðinn co-parent: ENGIN createFamily. familyId/familyCode/role-tenging
+      // kemur frá acceptParentInvite við innskráningu (eftir email-staðfestingu).
+      await setDoc(doc(db, 'users', user.uid), {
+        name, email, role: 'parent', children: [], createdAt: serverTimestamp(),
+        consentCompleted: true, consentVersion: 'TERMS-2026-06', consentTimestamp: serverTimestamp()
       });
-      await setDoc(doc(db, 'users', user.uid), { pilotGroup }, { merge: true });
-      localStorage.removeItem('upphattPilotGroup');
+      // (token helst í localStorage — neytt í processAuthUser)
+    } else {
+      // Venjuleg ný fjölskylda — familyId + familyCode SERVER-megin (einstök, árekstrar-frí).
+      // createFamily skrifar líka familycodes/{code} + families/{familyId}.
+      const { familyId, familyCode } =
+        (await httpsCallable(functions, 'createFamily')({ name })).data;
+
+      await setDoc(doc(db, 'users', user.uid), {
+        name, email, role: 'parent', familyId, familyCode, children: [], createdAt: serverTimestamp(),
+        consentCompleted: true, consentVersion: 'TERMS-2026-06', consentTimestamp: serverTimestamp()
+      });
+
+      // Pilot-merking (aðeins ný fjölskylda; co-parent erfir fjölskyldu-pilot)
+      const pilotGroup = localStorage.getItem('upphattPilotGroup');
+      if (pilotGroup) {
+        await setDoc(doc(db, 'pilots', familyId), {
+          familyId, pilotGroup, uid: user.uid, email, status: 'active', joinedAt: serverTimestamp()
+        });
+        await setDoc(doc(db, 'users', user.uid), { pilotGroup }, { merge: true });
+        localStorage.removeItem('upphattPilotGroup');
+      }
     }
 
     await sendEmailVerification(user);

@@ -608,6 +608,8 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
 .rec-meta{font-size:11px;color:var(--muted);margin-top:2px;display:flex;align-items:center;gap:4px}
 .rec-star{font-size:18px;color:rgba(29,205,211,.2);cursor:pointer;transition:color .15s;padding:4px;flex:0 0 auto}
 .rec-star.on{color:#f0c94d}
+.rec-trash{background:none;border:0;color:rgba(255,255,255,.26);cursor:pointer;padding:4px;flex:0 0 auto;display:flex;align-items:center;transition:color .15s;-webkit-tap-highlight-color:transparent}
+.rec-trash:hover{color:#ff6b6b}
 .rec-clips{margin-top:10px;display:flex;flex-direction:column;gap:4px}
 .rec-clip-row{display:flex;align-items:center;gap:8px;padding:3px 0}
 .rec-clip-btn{width:24px;height:24px;border-radius:50%;border:1px solid rgba(29,205,211,.2);background:rgba(29,205,211,.04);display:flex;align-items:center;justify-content:center;cursor:pointer;flex:0 0 24px;padding:0}
@@ -1248,6 +1250,7 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
           <div class="st-group" id="dz-actions" hidden>
             <div class="st-row tap" onclick="confirmAction('reset-key')"><span class="st-lbl">Endurnýja fjölskyldulykil</span><span class="st-act">›</span></div>
             <div class="st-row tap" onclick="downloadAccountData()"><span class="st-lbl">Sækja öll gögn (afrit)</span><span class="st-act">›</span></div>
+            <div class="st-row tap" onclick="confirmAction('delete-family-recordings')"><span class="st-lbl">Eyða öllum hljóðupptökum fjölskyldunnar</span><span class="st-act">›</span></div>
             <div class="st-row tap" onclick="confirmAction('clear-all-data')"><span class="st-lbl">Hreinsa öll lestrargögn</span><span class="st-act">›</span></div>
             <div class="st-row tap danger" onclick="confirmAction('delete-account')"><span class="st-lbl">Eyða aðgangi og öllum gögnum</span></div>
           </div>
@@ -1353,6 +1356,35 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
     </div>
     <div style="color:var(--muted);font-size:12px;margin-bottom:14px">Boðið gildir í 7 daga og má aðeins nota einu sinni.</div>
     <button type="button" class="lx-inv-close" onclick="closeParentInvite()">Loka</button>
+  </div>
+</div>
+
+<!-- ═══ Reader management sheet ═══ -->
+<style>
+  .st-reader-row{display:flex;align-items:center;gap:12px}
+  .st-reader-av{width:36px;height:36px;border-radius:50%;background:linear-gradient(145deg,#1dcdd3,#0a2341);display:flex;align-items:center;justify-content:center;color:#06121f;font-weight:800;font-size:15px;flex:0 0 auto}
+  .st-reader-chev{color:#5d7a90;font-size:20px;margin-left:auto;flex:0 0 auto}
+  #reader-sheet .rs-card{background:#071221;border:1px solid rgba(29,205,211,.18);border-radius:18px;padding:20px;max-width:400px;width:100%}
+  .rs-act{display:flex;justify-content:space-between;align-items:center;padding:14px 2px;border-top:1px solid rgba(255,255,255,.06);cursor:pointer}
+  .rs-act .rs-l{color:#e6edf4;font-size:14.5px}
+  .rs-act .rs-d{color:#7a8fa6;font-size:11.5px;margin-top:2px}
+  .rs-act .rs-chev{color:#5d7a90;flex:0 0 auto}
+  .rs-act.danger{border-top-color:rgba(232,115,107,.2);margin-top:6px}
+  .rs-act.danger .rs-l,.rs-act.danger .rs-chev{color:#e8736b}
+</style>
+<div class="confirm-overlay" id="reader-sheet">
+  <div class="rs-card">
+    <div style="font-weight:700;font-size:18px;color:#f0f4f8" id="rs-name">Lesari</div>
+    <div style="display:flex;align-items:center;gap:8px;margin:4px 0 16px">
+      <span style="color:#7a8fa6;font-size:13px">Innskráningarkóði</span>
+      <span id="rs-code" style="color:#1dcdd3;font-weight:700;font-size:14px;letter-spacing:.05em"></span>
+      <button type="button" class="lx-inv-copy" onclick="readerCopyCode()" style="margin-left:auto">Afrita</button>
+    </div>
+    <div class="rs-act" onclick="readerDownload()"><div class="rs-l">Sækja gögn lesarans</div><span class="rs-chev">›</span></div>
+    <div class="rs-act" onclick="readerDeleteAudio()"><div><div class="rs-l">Eyða hljóðupptökum</div><div class="rs-d">Heldur framvindu — eyðir aðeins hljóðinu</div></div><span class="rs-chev">›</span></div>
+    <div class="rs-act" onclick="readerClearReading()"><div><div class="rs-l">Hreinsa lestrarsögu</div><div class="rs-d">Eyðir lotum, bókum og framvindu</div></div><span class="rs-chev">›</span></div>
+    <div class="rs-act danger" onclick="readerRemove()"><div><div class="rs-l">Fjarlægja lesara úr UppHátt</div><div class="rs-d">Prófíll og kóði fjarlægð — óafturkræft</div></div><span class="rs-chev">›</span></div>
+    <button type="button" class="lx-inv-close" onclick="closeReaderSheet()" style="margin-top:14px">Loka</button>
   </div>
 </div>
 
@@ -1639,10 +1671,10 @@ function confirmAction(type, arg) {
       ok.textContent = 'Eyða bók';
       break;
     case 'delete-child': {
-      const nm = (S.parentChildren||[]).find(c=>c.key===arg)?.name || 'barn';
-      t.textContent = 'Eyða ' + nm + '?';
-      d.textContent = 'Barnið og öll gögn þess (lestur, hljóðupptökur, ferðalag, bækur) verða eytt varanlega. Óafturkræft.';
-      ok.textContent = 'Eyða barni';
+      const nm = (S.parentChildren||[]).find(c=>c.key===arg)?.name || 'lesarann';
+      t.textContent = 'Fjarlægja ' + nm + '?';
+      d.textContent = 'Lesarinn og öll gögn (lestur, hljóð, ferðalag, bækur) verða fjarlægð varanlega. Óafturkræft.';
+      ok.textContent = 'Fjarlægja lesara';
       break;
     }
     case 'clear-child-data': {
@@ -1656,6 +1688,23 @@ function confirmAction(type, arg) {
       t.textContent = 'Hreinsa öll lestrargögn?';
       d.textContent = 'Lestrargögn, hljóðupptökur og ferðalag ALLRA barna verða eytt. Barnaprófílar og aðgangur haldast.';
       ok.textContent = 'Hreinsa allt';
+      break;
+    case 'delete-child-recordings': {
+      const nm = (S.parentChildren||[]).find(c=>c.key===arg)?.name || 'lesarans';
+      t.textContent = 'Eyða hljóðupptökum ' + nm + '?';
+      d.textContent = 'Eyðir aðeins hljóðinu sjálfu. Lestrarsaga, bækur, mínútur og framvinda haldast.';
+      ok.textContent = 'Eyða hljóðupptökum';
+      break;
+    }
+    case 'delete-family-recordings':
+      t.textContent = 'Eyða öllum hljóðupptökum fjölskyldunnar?';
+      d.textContent = 'Eyðir öllum vistuðum hljóðupptökum úr geymslu. Lestrarsagan helst áfram sýnileg.';
+      ok.textContent = 'Eyða hljóðupptökum';
+      break;
+    case 'delete-recording':
+      t.textContent = 'Eyða upptöku varanlega?';
+      d.textContent = 'Upptakan verður eytt varanlega úr UppHátt. Ekki er hægt að afturkalla.';
+      ok.textContent = 'Eyða upptöku';
       break;
     case 'reset-key':
       t.textContent = 'Endurnýja fjölskyldulykil?';
@@ -1682,15 +1731,19 @@ function _childBooks(child){ return (S.books||[]).filter(b => b.childKey===child
 
 async function _deleteClips(sessions){
   if(!_deleteObject) return;
+  const FIELDS=['audioPath_min1','audioPath_min2','audioPath_min5','audioPath_min8','audioPath_min9','audioPath_min10','audioPath_min13','audioPath'];
   for(const s of sessions){
-    const paths = Array.isArray(s.clipPaths) ? s.clipPaths : [];
+    const paths=[];
+    FIELDS.forEach(f=>{ if(s[f]) paths.push(s[f]); });           // raunverulegu hljóð-slóðirnar
+    if(Array.isArray(s.clipPaths)) s.clipPaths.forEach(p=>{ if(p) paths.push(p); });
     for(const p of paths){ try{ await _deleteObject(ref(storage, p)); }catch(e){ /* skrá horfin/leyfi — höldum áfram */ } }
   }
 }
 async function clearChildData(child){
   if(!child) return;
   const sessions=_childSessions(child), books=_childBooks(child);
-  await _deleteClips(sessions);
+  try{ await httpsCallable(functions,'deleteChildRecordings')({ childKey: child }); }
+  catch(e){ console.warn('clearChild audio (server) — fellur á client',e); await _deleteClips(sessions); }
   for(const s of sessions){ try{ await deleteDoc(doc(db,'sessions',s._docId)); }catch(e){ console.warn('session',e); } }
   for(const b of books){ try{ await deleteDoc(doc(db,'books',b.id)); }catch(e){ console.warn('book',e); } }
 }
@@ -1704,7 +1757,8 @@ async function deleteChildFull(child){
 }
 async function clearAllData(){
   const sessions=(S.sessions||[]).slice(), books=(S.books||[]).slice();
-  await _deleteClips(sessions);
+  try{ await httpsCallable(functions,'deleteFamilyRecordings')(); }
+  catch(e){ console.warn('clearAll audio (server) — fellur á client',e); await _deleteClips(sessions); }
   for(const s of sessions){ try{ await deleteDoc(doc(db,'sessions',s._docId)); }catch(e){} }
   for(const b of books){ try{ await deleteDoc(doc(db,'books',b.id)); }catch(e){} }
 }
@@ -1772,6 +1826,35 @@ async function doConfirm() {
   const type=_confirmType, arg=_confirmArg;
   closeConfirm();
   try{
+    if(type==='delete-recording'){
+      try {
+        await httpsCallable(functions,'deleteRecording')({ sessionId: arg });
+        // Hreinsa hljóð-reiti úr minni svo dauður play-takki birtist ekki aftur
+        const sess = (S.sessions||[]).find(x => (x._docId||'')===arg);
+        if (sess) { CLIP_KEYS.forEach(k => { delete sess[k]; }); delete sess.audioPath; sess.hasAudio=false; }
+        if (typeof render==='function') render();
+        toast('Upptöku eytt');
+      } catch(e){ console.error('delete-recording', e); toast('Villa við eyðingu — reyndu aftur'); }
+      return;
+    }
+    if(type==='delete-child-recordings'){
+      try {
+        await httpsCallable(functions,'deleteChildRecordings')({ childKey: arg });
+        (S.sessions||[]).forEach(s=>{ if((s.childKey||'')===arg){ CLIP_KEYS.forEach(k=>delete s[k]); delete s.audioPath; s.hasAudio=false; } });
+        if (typeof render==='function') render();
+        toast('Hljóðupptökum eytt');
+      } catch(e){ console.error('delete-child-recordings', e); toast('Villa við eyðingu — reyndu aftur'); }
+      return;
+    }
+    if(type==='delete-family-recordings'){
+      try {
+        await httpsCallable(functions,'deleteFamilyRecordings')();
+        (S.sessions||[]).forEach(s=>{ CLIP_KEYS.forEach(k=>delete s[k]); delete s.audioPath; s.hasAudio=false; });
+        if (typeof render==='function') render();
+        toast('Öllum hljóðupptökum eytt');
+      } catch(e){ console.error('delete-family-recordings', e); toast('Villa við eyðingu — reyndu aftur'); }
+      return;
+    }
     if(type==='delete-book' && typeof window.deleteParentBook==='function'){ await window.deleteParentBook(arg); return; }
     if(type==='clear-child-data'){ await clearChildData(_findChild(arg)); renderSettingsChildren(S.parentChildren||[]); toast('Lestrargögn hreinsuð'); return; }
     if(type==='delete-child'){ await deleteChildFull(_findChild(arg)); renderSettingsChildren(S.parentChildren||[]); toast('Barni eytt'); return; }
@@ -3288,6 +3371,7 @@ function _recCardHTML(s, isHero) {
         + inlineProg
       + `</div>`
       + `<div class="rec-star ${fav}" onclick="toggleFav('${docId}',this)">★</div>`
+      + `<button class="rec-trash" type="button" onclick="confirmAction('delete-recording','${docId}')" aria-label="Eyða upptöku" title="Eyða upptöku"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button>`
     + `</div>`
     + clips
   + `</div>`;
@@ -4089,20 +4173,17 @@ function renderSettingsChildren(children) {
   const el = document.getElementById('st-kids-list');
   if (!el) return;
   let html = children.map(c => {
-    const name = c.name || 'Barn';
+    const name = c.name || 'Lesari';
     const code = c.code || c.childCode || c.key || '';
     const key = c.key || code || name;
-    return `<div class="st-row st-child-row">
-      <div class="st-child-main"><div class="st-lbl">${esc(name)}</div><div class="st-sub">${esc(code)}</div></div>
-      <button class="st-code-btn" type="button" onclick="openChildCode('${esc(key)}','${esc(name)}','${esc(code)}')">Kóði</button>
-    </div>
-    <div class="st-child-actions">
-      <button type="button" class="st-mini" onclick="downloadChildData('${esc(key)}')">Sækja gögn</button>
-      <button type="button" class="st-mini" onclick="confirmAction('clear-child-data','${esc(key)}')">Hreinsa lestur</button>
-      <button type="button" class="st-mini danger" onclick="confirmAction('delete-child','${esc(key)}')">Eyða barni</button>
+    const ini = (String(name).trim()[0] || 'L').toUpperCase();
+    return `<div class="st-row st-reader-row tap" onclick="openReaderSheet('${esc(key)}','${esc(name)}','${esc(code)}')">
+      <div class="st-reader-av">${esc(ini)}</div>
+      <div class="st-child-main"><div class="st-lbl">${esc(name)}</div><div class="st-sub">Kóði ${esc(code)}</div></div>
+      <span class="st-reader-chev">›</span>
     </div>`;
   }).join('');
-  html += `<div class="st-row tap" onclick="if(typeof openAddChildPopup==='function')openAddChildPopup();else toast('Tengist seinna')"><span class="st-lbl st-add-child">+ Bæta við barni</span></div>`;
+  html += `<div class="st-row tap" onclick="if(typeof openAddChildPopup==='function')openAddChildPopup();else toast('Tengist seinna')"><span class="st-lbl st-add-child">+ Bæta við lesara</span></div>`;
   el.innerHTML = html;
 }
 function setSettingsTab(tab) {
@@ -4238,6 +4319,28 @@ async function copyInviteCode() {
   try { await navigator.clipboard?.writeText(v); toast('Kóði afritaður'); } catch(e) { toast(v); }
 }
 window.copyInviteCode = copyInviteCode;
+
+/* ── Umsjón lesara ── */
+let _rdKey='', _rdName='', _rdCode='';
+function openReaderSheet(key, name, code){
+  _rdKey=key||''; _rdName=name||'Lesari'; _rdCode=code||'';
+  const n=document.getElementById('rs-name'); if(n) n.textContent=_rdName;
+  const c=document.getElementById('rs-code'); if(c) c.textContent=_rdCode;
+  document.getElementById('reader-sheet')?.classList.add('show');
+}
+window.openReaderSheet=openReaderSheet;
+function closeReaderSheet(){ document.getElementById('reader-sheet')?.classList.remove('show'); }
+window.closeReaderSheet=closeReaderSheet;
+async function readerCopyCode(){ if(!_rdCode) return; try{ await navigator.clipboard?.writeText(_rdCode); toast('Kóði afritaður'); }catch(e){ toast(_rdCode); } }
+window.readerCopyCode=readerCopyCode;
+function readerDownload(){ const k=_rdKey; closeReaderSheet(); if(typeof downloadChildData==='function') downloadChildData(k); }
+window.readerDownload=readerDownload;
+function readerDeleteAudio(){ const k=_rdKey; closeReaderSheet(); confirmAction('delete-child-recordings', k); }
+window.readerDeleteAudio=readerDeleteAudio;
+function readerClearReading(){ const k=_rdKey; closeReaderSheet(); confirmAction('clear-child-data', k); }
+window.readerClearReading=readerClearReading;
+function readerRemove(){ const k=_rdKey; closeReaderSheet(); confirmAction('delete-child', k); }
+window.readerRemove=readerRemove;
 
 /* Sækir foreldra-/forsjáraðila-lista úr server (listFamilyParents) og birtir hann.
    Additivt: ef ekkert kemur til baka (t.d. gömul fjölskylda án registry) helst

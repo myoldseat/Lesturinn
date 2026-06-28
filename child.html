@@ -8160,18 +8160,29 @@ import { collection, query, where, getDocs, doc, getDoc, addDoc, onSnapshot, ser
   }
   function daysLeft(endStr) { if (!endStr) return 0; var e = new Date(endStr + 'T23:59:59'); return Math.max(0, Math.ceil((e - new Date()) / 86400000)); }
 
+  // Eigin vikuframvinda — AÐEINS úr eigin minni. Les ALDREI sessions annars barns
+  // (reglur banna það réttilega). Skilar 0 fyrir aðra lykla.
   async function weeklyPagesFor(fid, key, startStr, endStr) {
-    var rows;
     var sid = window._childStore.identity;
-    if (sid && key === sid.childKey) {
-      rows = window._childStore.getSessions();          // úr minni — engin sókn
-    } else {
-      var snap = await getDocs(query(collection(db, 'sessions'), where('familyId', '==', fid), where('childKey', '==', key)));
-      rows = snap.docs.map(function (d) { return d.data() || {}; });   // systkini: raunveruleg viðbótar-gögn
-    }
+    if (!sid || key !== sid.childKey) return 0;        // aldrei systkina-sessions
+    var rows = window._childStore.getSessions();        // úr minni — engin sókn
     var sum = 0;
     rows.forEach(function (data) { data = data || {}; var dt = sessionDate(data); if (!dt) return; var day = ymd(dt); if (day >= startStr && day <= endStr) sum += sessionPages(data); });
     return sum;
+  }
+
+  // Vikuframvinda SYSTKINIS — úr sameiginlegu summary-skjali (server-skrifað),
+  // ALDREI úr hráum sessions. Vantar skjalið → 0 ("bíður eftir lestri"), engin villa.
+  async function partnerWeeklyPages(fid, weekId, key) {
+    if (!fid || !weekId || !key) return 0;
+    try {
+      var snap = await getDoc(doc(db, 'challengeProgress', fid + '_' + weekId));
+      if (snap.exists()) {
+        var totals = (snap.data() || {}).totals || {};
+        return Number((totals[key] || {}).pages || 0);
+      }
+    } catch (e) { /* engin permission-villa — fallback í 0 */ }
+    return 0;
   }
   async function fetchAid(fid, weekId) {
     var donated = {}, received = {};
@@ -8200,7 +8211,7 @@ import { collection, query, where, getDocs, doc, getDoc, addDoc, onSnapshot, ser
 
     var weekly = {};
     weekly[meP.key] = await weeklyPagesFor(fid, meP.key, ch.startDate, ch.endDate);
-    if (paP) weekly[paP.key] = await weeklyPagesFor(fid, paP.key, ch.startDate, ch.endDate);
+    if (paP) weekly[paP.key] = await partnerWeeklyPages(fid, ch.weekId, paP.key);   // systkini: summary-skjal, ekki sessions
     var aid = await fetchAid(fid, ch.weekId);
 
     var ctx = {

@@ -4622,6 +4622,9 @@ import { collection, query, where, onSnapshot, doc, getDocs }
         var realResumePage = activeBook.currentPageTo ? Number(activeBook.currentPageTo) + 1 : Number(activeBook.currentPageFrom || 1);
         var setupIsFresh = setup && setup.bookId === activeBook.id && setup.pageFrom && setup.savedAt && (Date.now() - Number(setup.savedAt) < 5 * 60 * 1000);
         var currentPage = setupIsFresh ? Number(setup.pageFrom) : realResumePage;
+        // Fanga NÁKVÆMLEGA byrjunarsíðuna sem barninu er sýnd → vistun notar þetta
+        // (ekki stale setup.pageFrom). Tryggir að lotan telji bara það sem lesið var núna.
+        try { window.__lxSessionStart = { bookId: activeBook.id, page: currentPage }; } catch (e) {}
         var totalPages = Number(activeBook.totalPages || 0);
 
         if (totalPages > 0) {
@@ -4863,7 +4866,24 @@ import { collection, query, where, onSnapshot, doc, getDocs }
           var book = allBooks.find(function (item) { return item && String(item.id) === String(setup.bookId); });
           if (!book) return false;
 
-          var startPage = Number(setup.pageFrom || 0);
+          // Byrjunarsíða lotunnar = NÁKVÆMLEGA sú sem UI sýndi (fönguð við upphaf),
+          // ekki stale setup.pageFrom. Þannig telur lotan aðeins bilið sem lesið var NÚNA.
+          var startPage;
+          var _cap = window.__lxSessionStart;
+          var _capValid = _cap &&
+            String(_cap.bookId) === String(setup.bookId) &&   // strangt: sama bók
+            String(_cap.bookId) === String(book.id) &&         // og sama bók og við vistum
+            Number(_cap.page) > 0;
+          if (_capValid) {
+            startPage = Number(_cap.page);
+          } else {
+            // Fallback: sami útreikningur og birtingin (currentPageTo + 1, eða ferskt setup)
+            var realResumePage = book.currentPageTo ? Number(book.currentPageTo) + 1 : Number(book.currentPageFrom || 1);
+            var setupIsFresh = setup && setup.bookId === book.id && setup.pageFrom && setup.savedAt && (Date.now() - Number(setup.savedAt) < 5 * 60 * 1000);
+            startPage = setupIsFresh ? Number(setup.pageFrom) : realResumePage;
+          }
+          // Hreinsa ALLTAF eftir notkun → næsta lota / bókaskipti / refresh notar aldrei gamalt gildi
+          try { window.__lxSessionStart = null; } catch (e) {}
           var finalPage = Number(endPage || 0);
           var totalPages = Number(book.totalPages || 0);
           var pagesRead = (startPage && finalPage && finalPage >= startPage) ? (finalPage - startPage + 1) : null;

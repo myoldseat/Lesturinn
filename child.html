@@ -4495,13 +4495,26 @@ import { collection, query, where, onSnapshot, doc, getDocs }
         cleanupAudio();
         startSettleLoop();
 
+        // Hvaða bók var lesin NÚNA — fangað við upptöku-upphaf (nákvæmast),
+        // annars úr lestrar-setup. Geymt í lotunni svo upptakan tengist RÉTTRI bók.
+        var _rsetup = (typeof getChildReadingSetup === 'function') ? (getChildReadingSetup() || {}) : {};
+        var _recBookId = (window.__lxSessionStart && window.__lxSessionStart.bookId) || _rsetup.bookId || '';
+        var _recBookTitle = '';
+        try {
+          var _bk = (window._childStore && window._childStore.getBooks ? window._childStore.getBooks() : [])
+            .find(function (b) { return b && String(b.id) === String(_recBookId); });
+          if (_bk) _recBookTitle = _bk.title || '';
+        } catch (e) {}
+
         pendingSavePayload = {
           snippetClips: snippetClips,
           fullAudioChunks: fullSessionChunks,
           fullAudioMime: fullSessionMime,
           elapsedSeconds: elapsedSeconds,
           startedAt: recordingStartedAt || Date.now(),
-          childName: childName
+          childName: childName,
+          bookId: _recBookId,
+          bookTitle: _recBookTitle
         };
 
         buttonState = "saving";
@@ -5559,6 +5572,7 @@ import { collection, query, where, onSnapshot, doc, getDocs }
       const sessionRef = await addDoc(collection(db, 'sessions'), {
         familyId: childData.familyId, childKey: childData.childKey,
         childName: payload?.childName || childData.childName || 'Barn',
+        bookId: payload?.bookId || '', bookTitle: payload?.bookTitle || '',
         title: 'Lestur', pageStart: null, pageEnd: null, pagesRead: null,
         totalPages: null, imagePath: null,
         seconds: payload?.elapsedSeconds || 0, timerMode: 'up',

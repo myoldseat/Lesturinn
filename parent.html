@@ -1079,7 +1079,7 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
           </div>
         </div>
         <div class="progress-week-view" id="progress-week-view">
-          <div class="progress-week-summary"><span id="progress-week-total">0 mín · 0/7 dagar</span><span id="progress-week-best">best: 0 mín</span></div>
+          <div class="progress-week-summary"><span id="progress-week-total">0 mín · 0/7 dagar</span><span id="progress-week-best">mest: 0 mín</span></div>
           <div class="progress-week-days" id="progress-week-days"></div>
         </div>
         <div class="progress-month-view" id="progress-month-view">
@@ -1127,9 +1127,9 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
       </div>
     </div>
 
-    <div class="progress-detail-ov" id="progress-trend-detail" onclick="closeTrendDetail(event)"><div class="progress-detail-sheet" onclick="event.stopPropagation()"><div class="progress-detail-grab"></div><div class="progress-detail-top"><div><div class="crd-lbl">Lestrarþróun</div><div class="progress-detail-title">Skoða nánar</div><div class="progress-note">Zoomaðu inn í vikur eða út í mánuði.</div></div><div class="progress-detail-tabs"><button class="on" type="button" id="trend-detail-weeks" onclick="setTrendDetail('weeks')">Vikur</button><button type="button" id="trend-detail-months" onclick="setTrendDetail('months')">Mánuðir</button></div></div><div id="trend-detail-body"></div></div></div>
+    <div class="progress-detail-ov" id="progress-trend-detail" onclick="closeTrendDetail(event)"><div class="progress-detail-sheet" onclick="event.stopPropagation()"><div class="progress-detail-grab"></div><div class="progress-detail-top"><div><div class="crd-lbl">Lestrarþróun</div><div class="progress-detail-title">Skoða nánar</div><div class="progress-note">Skoðaðu vikur eða mánuði nánar.</div></div><div class="progress-detail-tabs"><button class="on" type="button" id="trend-detail-weeks" onclick="setTrendDetail('weeks')">Vikur</button><button type="button" id="trend-detail-months" onclick="setTrendDetail('months')">Mánuðir</button></div></div><div id="trend-detail-body"></div></div></div>
     <div class="progress-detail-ov" id="progress-info-detail" onclick="closeInfoDetail(event)"><div class="progress-detail-sheet" onclick="event.stopPropagation()"><div class="progress-detail-grab"></div><div class="progress-detail-top"><div><div class="crd-lbl" id="info-label">Nánar</div><div class="progress-detail-title" id="info-title">Upplýsingar</div></div></div><div id="info-detail-body"></div></div></div>
-    <div class="progress-sheet-ov" id="progress-disclaimer" onclick="closeProgressDisclaimer(event)"><div class="progress-sheet" onclick="event.stopPropagation()"><div class="progress-grab"></div><div class="progress-sheet-title">Um tölurnar</div><div class="progress-sheet-copy"><p>Allar tölur eru <strong>áætlanir</strong>. Framvindan ber barnið eingöngu saman við sjálft sig.</p><div class="progress-sheet-item"><strong>Mínútur</strong> Reiknað úr lestrarlotum barnsins.</div><div class="progress-sheet-item"><strong>Blaðsíður</strong> Reiknað úr skráðum blaðsíðum eða blaðsíðubili lotunnar.</div><div class="progress-sheet-item"><strong>Orð</strong> Notar <code>wordsPerPage</code> úr bókahillu þegar það er til, annars varlegt fallback.</div><div class="progress-sheet-item"><strong>Lesefni</strong> Kemur úr bókagögnum: <code>readingLoadLabel</code>, <code>confidenceLevel</code> og <code>wordCountSource</code>.</div></div><button class="progress-sheet-close" type="button" onclick="closeProgressDisclaimer()">Loka</button></div></div>
+    <div class="progress-sheet-ov" id="progress-disclaimer" onclick="closeProgressDisclaimer(event)"><div class="progress-sheet" onclick="event.stopPropagation()"><div class="progress-grab"></div><div class="progress-sheet-title">Um tölurnar</div><div class="progress-sheet-copy"><p>Allar tölur eru <strong>áætlanir</strong>. Framvindan ber barnið eingöngu saman við sjálft sig.</p><div class="progress-sheet-item"><strong>Mínútur</strong> Reiknaðar út frá lestrarlotum barnsins.</div><div class="progress-sheet-item"><strong>Blaðsíður</strong> Reiknaðar út frá skráðum blaðsíðum eða blaðsíðubili hverrar lotu.</div><div class="progress-sheet-item"><strong>Orð</strong> Áætluð út frá orðafjölda á síðu í bókinni. Liggi hann ekki fyrir er stuðst við varlega viðmiðun.</div><div class="progress-sheet-item"><strong>Lesefni</strong> Byggt á þyngd bókarinnar, hversu áreiðanlegt matið er og hvaðan orðatalningin kemur.</div></div><button class="progress-sheet-close" type="button" onclick="closeProgressDisclaimer()">Loka</button></div></div>
   </section>
 
 
@@ -2646,7 +2646,7 @@ function renderProgressWeek(sessions) {
     cells.push(`<div class="progress-week-day"><div class="progress-week-dot ${cls} ${isToday ? 'today' : ''}" data-tip="${mins} mín" onclick="showProgressTip(this)">${mins > 0 ? '✓' : ''}</div><div class="progress-week-lbl ${isToday ? 'now' : ''}">${dayLabels[d.getDay()]}</div></div>`);
   }
   setText('progress-week-total', `${total} mín · ${days}/7 dagar`);
-  setText('progress-week-best', `best: ${best} mín`);
+  setText('progress-week-best', `mest: ${best} mín`);
   setHtml('progress-week-days', cells.join(''));
 }
 
@@ -4776,7 +4776,7 @@ console.log('🚀 parent.html engine started');
       <div class="g2-body">
         <div class="g2-seg metric" id="g2-metric">${mbtns()}</div>
         <div class="g2-seg sub" id="g2-range"><button data-r="day">Dagur</button><button data-r="week" aria-pressed="true">Vika</button><button data-r="month">Mánuður</button><button data-r="year">Ár</button></div>
-        <div class="g2-ctx"><button class="g2-nav" id="g2-zoomout" aria-label="Súmma út">▲</button><button class="g2-nav" id="g2-prev" aria-label="Fyrra">‹</button><div class="g2-crumb"><small id="g2-cscale"></small><span id="g2-clabel"></span></div><button class="g2-nav" id="g2-next" aria-label="Næsta">›</button><div class="g2-tot"><div class="n" id="g2-totN"></div><div class="u" id="g2-totU"></div></div></div>
+        <div class="g2-ctx"><button class="g2-nav" id="g2-zoomout" aria-label="Þysja út">▲</button><button class="g2-nav" id="g2-prev" aria-label="Fyrra">‹</button><div class="g2-crumb"><small id="g2-cscale"></small><span id="g2-clabel"></span></div><button class="g2-nav" id="g2-next" aria-label="Næsta">›</button><div class="g2-tot"><div class="n" id="g2-totN"></div><div class="u" id="g2-totU"></div></div></div>
         <svg id="g2-chart" viewBox="0 0 360 190" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Lestrargraf"></svg>
         <p class="g2-estnote" id="g2-estnote">Orð og blaðsíður eru áætluð.</p>
         <div class="g2-minis" id="g2-minis"></div>

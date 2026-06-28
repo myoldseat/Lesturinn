@@ -1108,7 +1108,7 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
       <section class="progress-secondary">
         <div class="crd level-card progress-click" onclick="openInfoDetail('lesefni')">
           <div class="level-top">
-            <div><div class="level-name">Lesefni</div><div class="progress-note" id="p-lesefni-note">Núverandi lestrarstig</div></div>
+            <div><div class="level-name">Lesefni</div><div class="progress-note" id="p-lesefni-note">Núverandi áskorun lesefnis</div></div>
             <div class="level-value" id="p-lesefni-value">-</div>
           </div>
           <div class="level-track" id="p-lesefni-track"></div>
@@ -2567,7 +2567,7 @@ window.openInfoDetail = function(type) {
   if (!body) return;
   if (type === 'lesefni') {
     if (label) label.textContent = 'Lesefni';
-    if (title) title.textContent = 'Lestrarstig bóka';
+    if (title) title.textContent = 'Áskorun lesefnis';
     body.innerHTML = renderLoadDetails();
   } else {
     if (label) label.textContent = 'Kláraðar bækur';
@@ -2755,7 +2755,7 @@ function renderLesefni(books) {
   const label = bookReadingLoadLabel(book);
   const estimate = book?.confidenceLevel && book.confidenceLevel !== 'high' ? ' · áætlað' : '';
   setText('p-lesefni-value', label);
-  setText('p-lesefni-note', book ? `Núverandi lestrarstig${estimate}` : 'Bættu bók við bókahillu');
+  setText('p-lesefni-note', book ? `Núverandi áskorun lesefnis${estimate}` : 'Bættu bók við bókahillu');
   setHtml('p-lesefni-track', levels.map((l,i) => `<div class="level-step ${i <= idx ? 'on' : ''}" data-l="${l.label}"></div>`).join(''));
 }
 function renderBooksDone(books, currentBucket) {
@@ -2770,7 +2770,7 @@ function renderBooksDone(books, currentBucket) {
 }
 function renderLoadDetails() {
   const current = document.getElementById('p-lesefni-value')?.textContent || '';
-  return `<div>${loadLevels().map(l => `<div class="progress-level-row"><div class="progress-level-pill">${l.label}</div><div><div class="progress-list-title">${l.range}</div><div class="progress-range">${l.desc}</div></div><div class="progress-current-tag">${l.label === current ? 'Núna' : ''}</div></div>`).join('')}</div>`;
+  return `<div>${loadLevels().map(l => `<div class="progress-level-row"><div class="progress-level-pill">${l.label}</div><div><div class="progress-list-title">${l.desc}</div><div class="progress-range">${l.range}</div></div><div class="progress-current-tag">${l.label === current ? 'Núna' : ''}</div></div>`).join('')}</div>`;
 }
 function renderFinishedBookDetails(books) {
   const done = books.filter(b => b.status === 'finished').sort((a,b) => bTs(b,'celebratedAt') - bTs(a,'celebratedAt') || bTs(b,'lastReadAt') - bTs(a,'lastReadAt'));
@@ -3296,8 +3296,12 @@ function renderRecordings(sessions, force) {
 
 /* Næsta bók í tíma fyrir upptöku (eða null) */
 function _recBook(s) {
-  const books = (S.books||[]).filter(b => b.childKey === _selectedChild
-    && (b.status === 'reading' || b.status === 'finished'));
+  const all = (S.books||[]).filter(b => b.childKey === _selectedChild);
+  // 1) RÉTT tenging: bein úr lotunni sjálfri (bookId/bookTitle) — sannleiksgildið.
+  const exact = all.find(b => (s.bookId && b.id === s.bookId) || (s.bookTitle && b.title === s.bookTitle));
+  if (exact) return exact;
+  // 2) Fallback (aðeins fyrir gamlar lotur án tengingar): næsta bók í tíma.
+  const books = all.filter(b => b.status === 'reading' || b.status === 'finished');
   if (!books.length) return null;
   const sTime = s.timestamp || 0;
   return books.sort((a,b) => Math.abs(bTs(a,'lastReadAt')-sTime) - Math.abs(bTs(b,'lastReadAt')-sTime))[0] || null;

@@ -1969,7 +1969,7 @@ const _authExtra = await import('https://www.gstatic.com/firebasejs/12.11.0/fire
 const _deleteObject = _stExtra.deleteObject || null;
 const _deleteUser   = _authExtra.deleteUser || null;
 /* deila firebase-handföngum + S + render með klassíska scriptinu (settings/eyðing/samþykki) */
-Object.assign(window, { db, doc, deleteDoc, setDoc, updateDoc, getDoc, ref, storage, auth, S, _deleteObject, _deleteUser, renderSettingsChildren });
+Object.assign(window, { db, doc, deleteDoc, setDoc, updateDoc, getDoc, ref, storage, auth, functions, httpsCallable, S, _deleteObject, _deleteUser, renderSettingsChildren });
 
 console.log('📦 Loaded:', { auth: !!initAuth, S: !!S, db: !!db });
 const PARENT_BOOT_STARTED_AT = Date.now();

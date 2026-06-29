@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="is">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>UppHátt</title>
+<style>
+  :root{
+    --bg:#07101e; --bg2:#0a1828; --card:#0d1a2e;
+    --teal:#1dcdd3; --teal-deep:#0a2341;
+    --text:#f0f4f8; --muted:#7a8fa6; --line:rgba(255,255,255,.08);
+    --danger:#e8736b; --ok:#46d39a;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{
+    background:radial-gradient(1200px 600px at 50% -10%, #102338 0%, var(--bg) 60%);
+    color:var(--text);
+    font-family:'DM Sans',-apple-system,BlinkMacSystemFont,system-ui,sans-serif;
+    display:flex;align-items:center;justify-content:center;
+    padding:24px;min-height:100dvh;-webkit-font-smoothing:antialiased;
+  }
+  .wrap{width:100%;max-width:420px}
+  .brand{text-align:center;font-size:26px;font-weight:600;letter-spacing:-.5px;color:#f0f4f8;margin-bottom:24px}
+  .brand b{color:var(--teal);font-weight:600}
+  .card{
+    background:var(--card);border:1px solid var(--line);border-radius:20px;
+    padding:30px 26px;text-align:center;
+    box-shadow:0 18px 50px rgba(0,0,0,.35);
+  }
+  .ico{width:64px;height:64px;border-radius:50%;margin:0 auto 18px;display:grid;place-items:center}
+  .ico.teal{background:rgba(29,205,211,.12);border:1px solid rgba(29,205,211,.3)}
+  .ico.ok{background:rgba(70,211,154,.12);border:1px solid rgba(70,211,154,.32)}
+  .ico.danger{background:rgba(232,115,107,.1);border:1px solid rgba(232,115,107,.28)}
+  h1{font-size:20px;font-weight:700;margin:0 0 8px}
+  p{font-size:14.5px;line-height:1.5;color:var(--muted);margin:0 0 6px}
+  p .em{color:var(--text);font-weight:600}
+  .btn{
+    display:block;width:100%;margin-top:20px;padding:14px;border:0;border-radius:13px;
+    background:var(--teal);color:#06121f;font:inherit;font-size:15px;font-weight:700;
+    cursor:pointer;text-decoration:none;text-align:center;transition:filter .15s,opacity .15s;
+  }
+  .btn:hover{filter:brightness(1.06)}
+  .btn:disabled{opacity:.55;cursor:default}
+  .btn.ghost{background:transparent;border:1px solid var(--line);color:var(--text)}
+  .field{text-align:left;margin-top:16px}
+  .field label{display:block;font-size:12.5px;color:var(--muted);margin-bottom:6px;font-weight:600}
+  .pwrap{position:relative}
+  .field input{
+    width:100%;padding:13px 44px 13px 14px;border-radius:12px;border:1px solid var(--line);
+    background:#0a1525;color:var(--text);font:inherit;font-size:15px;outline:none;transition:border-color .15s;
+  }
+  .field input:focus{border-color:rgba(29,205,211,.5)}
+  .peek{position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:0;color:var(--muted);cursor:pointer;padding:6px;display:flex}
+  .hint{font-size:11.5px;color:var(--muted);margin-top:7px}
+  .err{color:var(--danger);font-size:13px;margin-top:12px;min-height:18px}
+  .spin{width:30px;height:30px;border-radius:50%;border:3px solid rgba(255,255,255,.12);border-top-color:var(--teal);animation:s .8s linear infinite;margin:6px auto}
+  @keyframes s{to{transform:rotate(360deg)}}
+  .foot{text-align:center;color:var(--muted);font-size:11.5px;margin-top:18px}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="brand"><b>Upp</b>Hátt</div>
+    <div class="card" id="card">
+      <div class="spin" id="spin"></div>
+      <h1 id="title">Augnablik…</h1>
+      <p id="msg">Vinnur úr beiðninni þinni.</p>
+      <div id="slot"></div>
+    </div>
+    <div class="foot">UppHátt</div>
+  </div>
+
+<script>
+  // Failsafe: ef module-ið kemst ekki í gang (t.d. config hleðst ekki) frýs
+  // síðan ekki þögul — sýnir villu eftir 8 sek. Hreinsað um leið og alvöru staða birtist.
+  window.__lxFail = setTimeout(function () {
+    var card = document.getElementById('card');
+    if (!card) return;
+    card.innerHTML =
+      '<div class="ico danger"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="#e8736b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg></div>' +
+      '<h1>Eitthvað fór úrskeiðis</h1>' +
+      '<p>Tókst ekki að opna síðuna. Athugaðu nettenginguna og opnaðu hlekkinn úr tölvupóstinum aftur.</p>';
+  }, 8000);
+</script>
+
+<script type="module">
+import { auth } from './firebase-config.js';
+import {
+  applyActionCode, checkActionCode,
+  verifyPasswordResetCode, confirmPasswordReset
+} from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js';
+
+const $ = id => document.getElementById(id);
+const params = new URLSearchParams(location.search);
+const mode = params.get('mode');
+const oobCode = params.get('oobCode');
+const continueUrl = params.get('continueUrl') || '/';
+
+const ICONS = {
+  ok:    '<svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="#46d39a" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>',
+  lock:  '<svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="#1dcdd3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>',
+  mail:  '<svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="#1dcdd3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>',
+  warn:  '<svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="#e8736b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>'
+};
+
+function show({icon, iconType, title, msg, slot}) {
+  try { clearTimeout(window.__lxFail); } catch (e) {}
+  $('spin').style.display = 'none';
+  $('card').innerHTML =
+    `<div class="ico ${iconType||'teal'}">${ICONS[icon]||''}</div>` +
+    `<h1>${title}</h1>` +
+    (msg ? `<p>${msg}</p>` : '') +
+    (slot || '');
+}
+
+function safeContinue() {
+  // Verja gegn opnum redirect: leyfa AÐEINS sömu upprunaslóð eða *.upphatt.is.
+  // Annars (eða ef ekkert) → forsíða appsins.
+  const fallback = '/';
+  if (!continueUrl) return fallback;
+  try {
+    const u = new URL(continueUrl, location.origin);
+    const sameOrigin = u.origin === location.origin;
+    const isUpphatt = /(^|\.)upphatt\.is$/i.test(u.hostname);
+    if ((u.protocol === 'https:' || u.protocol === 'http:') && (sameOrigin || isUpphatt)) {
+      return u.href;
+    }
+  } catch (e) { /* ógild slóð → fallback */ }
+  return fallback;
+}
+
+function openBtn(label) {
+  return `<a class="btn" href="${safeContinue()}">${label || 'Opna UppHátt'}</a>`;
+}
+
+const ERR_GENERIC = 'Hlekkurinn er útrunninn eða hefur þegar verið notaður. Biddu um nýjan í appinu.';
+
+async function run() {
+  if (!mode || !oobCode) {
+    show({ icon:'warn', iconType:'danger', title:'Ógildur hlekkur',
+      msg:'Þennan hlekk vantar upplýsingar. Opnaðu hlekkinn úr tölvupóstinum aftur.' });
+    return;
+  }
+
+  if (mode === 'verifyEmail' || mode === 'verifyAndChangeEmail') {
+    try {
+      await applyActionCode(auth, oobCode);
+      show({ icon:'ok', iconType:'ok', title:'Netfangið þitt er staðfest',
+        msg:'Allt klárt — þú getur nú skráð þig inn í UppHátt.',
+        slot: openBtn('Opna UppHátt') });
+    } catch (e) {
+      show({ icon:'warn', iconType:'danger', title:'Tókst ekki að staðfesta', msg: ERR_GENERIC });
+    }
+    return;
+  }
+
+  if (mode === 'resetPassword') {
+    let email = '';
+    try {
+      email = await verifyPasswordResetCode(auth, oobCode);
+    } catch (e) {
+      show({ icon:'warn', iconType:'danger', title:'Hlekkurinn er útrunninn', msg: ERR_GENERIC });
+      return;
+    }
+    show({
+      icon:'lock', iconType:'teal', title:'Veldu nýtt lykilorð',
+      msg: email ? `Fyrir <span class="em">${email.replace(/</g,'&lt;')}</span>` : '',
+      slot:
+        `<div class="field"><label for="pw1">Nýtt lykilorð</label>` +
+          `<div class="pwrap"><input id="pw1" type="password" autocomplete="new-password" placeholder="Að minnsta kosti 12 stafir">` +
+          `<button class="peek" type="button" id="peek" aria-label="Sýna lykilorð"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></button></div>` +
+          `<div class="hint">Veldu eitthvað sem aðeins þú þekkir.</div></div>` +
+        `<div class="field"><label for="pw2">Staðfestu lykilorð</label>` +
+          `<div class="pwrap"><input id="pw2" type="password" autocomplete="new-password" placeholder="Sláðu sama lykilorð aftur"></div></div>` +
+        `<div class="err" id="err"></div>` +
+        `<button class="btn" id="save">Vista nýtt lykilorð</button>`
+    });
+
+    const pw1 = $('pw1'), pw2 = $('pw2'), err = $('err'), save = $('save'), peek = $('peek');
+    peek.addEventListener('click', () => {
+      const t = pw1.type === 'password' ? 'text' : 'password';
+      pw1.type = t; pw2.type = t;
+    });
+    save.addEventListener('click', async () => {
+      err.textContent = '';
+      const a = pw1.value, b = pw2.value;
+      if (a.length < 12) { err.textContent = 'Lykilorð þarf að vera að minnsta kosti 12 stafir.'; return; }
+      if (a !== b) { err.textContent = 'Lykilorðin tvö stemma ekki.'; return; }
+      save.disabled = true; save.textContent = 'Vista…';
+      try {
+        await confirmPasswordReset(auth, oobCode, a);
+        show({ icon:'ok', iconType:'ok', title:'Lykilorðið þitt er uppfært',
+          msg:'Þú getur nú skráð þig inn með nýja lykilorðinu.',
+          slot: openBtn('Opna UppHátt') });
+      } catch (e) {
+        save.disabled = false; save.textContent = 'Vista nýtt lykilorð';
+        const code = (e && e.code) || '';
+        err.textContent = code.includes('weak-password')
+          ? 'Lykilorðið er of veikt. Veldu lengra eða flóknara.'
+          : 'Tókst ekki að uppfæra lykilorðið. Hlekkurinn gæti verið útrunninn — biddu um nýjan.';
+      }
+    });
+    pw2.addEventListener('keydown', e => { if (e.key === 'Enter') save.click(); });
+    return;
+  }
+
+  if (mode === 'recoverEmail') {
+    try {
+      await checkActionCode(auth, oobCode);
+      await applyActionCode(auth, oobCode);
+      show({ icon:'ok', iconType:'ok', title:'Breytingin var afturkölluð',
+        msg:'Netfangið þitt hefur verið fært í fyrra horf. Við mælum með að þú endurstillir lykilorðið til öryggis.',
+        slot: openBtn('Opna UppHátt') });
+    } catch (e) {
+      show({ icon:'warn', iconType:'danger', title:'Tókst ekki', msg: ERR_GENERIC });
+    }
+    return;
+  }
+
+  // Óþekkt mode
+  show({ icon:'warn', iconType:'danger', title:'Óþekkt beiðni',
+    msg:'Við könnumst ekki við þessa aðgerð. Opnaðu hlekkinn úr tölvupóstinum aftur.' });
+}
+
+run();
+</script>
+</body>
+</html>

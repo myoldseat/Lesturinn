@@ -3159,7 +3159,7 @@ const app = initializeApp({
   apiKey: 'AIzaSyAgTY3Uxd9_ZxixjqLj-sH8V3OhFAzg6DU',
   authDomain: 'lesum-22e85.firebaseapp.com',
   projectId: 'lesum-22e85',
-  storageBucket: 'lesum-22e85.firebasestorage.app',
+  storageBucket: 'upphatt-eu-storage',
   messagingSenderId: '204392598388',
   appId: '1:204392598388:web:2dbbe3f476cd78d2ffba21'
 });
@@ -4914,7 +4914,7 @@ import { collection, query, where, onSnapshot, doc, getDocs }
           updateScript.textContent = [
             "import{getFirestore,doc,updateDoc,serverTimestamp}from'https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js';",
             "import{initializeApp,getApps,getApp}from'https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js';",
-            "const app=getApps().length?getApp():initializeApp({apiKey:'AIzaSyAgTY3Uxd9_ZxixjqLj-sH8V3OhFAzg6DU',authDomain:'lesum-22e85.firebaseapp.com',projectId:'lesum-22e85',storageBucket:'lesum-22e85.firebasestorage.app',messagingSenderId:'204392598388',appId:'1:204392598388:web:2dbbe3f476cd78d2ffba21'});",
+            "const app=getApps().length?getApp():initializeApp({apiKey:'AIzaSyAgTY3Uxd9_ZxixjqLj-sH8V3OhFAzg6DU',authDomain:'lesum-22e85.firebaseapp.com',projectId:'lesum-22e85',storageBucket:'upphatt-eu-storage',messagingSenderId:'204392598388',appId:'1:204392598388:web:2dbbe3f476cd78d2ffba21'});",
             "const db=getFirestore(app);",
             "const bookRef=doc(db,'books','" + setup.bookId + "');",
             "const entries=" + JSON.stringify(book.journeyEntries || []) + ";",
@@ -6866,7 +6866,7 @@ async function handleCoverFile(file){
         const sRef=storageRef(bsStorage,path);
         await uploadBytes(sRef,blob,{contentType:'image/jpeg'});
         pendingCoverUrl=await getDownloadURL(sRef);
-        pendingCoverGsPath='gs://lesum-22e85.firebasestorage.app/'+path;
+        pendingCoverGsPath='gs://upphatt-eu-storage/'+path;
         console.log('Cover uploaded:',pendingCoverGsPath);
         identifyBookCover(pendingCoverGsPath);
       }

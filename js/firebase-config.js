@@ -31,7 +31,7 @@ const firebaseConfig = {
   apiKey:            'AIzaSyAgTY3Uxd9_ZxixjqLj-sH8V3OhFAzg6DU',
   authDomain:        'lesum-22e85.firebaseapp.com',
   projectId:         'lesum-22e85',
-  storageBucket:     'lesum-22e85.firebasestorage.app',
+  storageBucket:     'upphatt-eu-storage',
   messagingSenderId: '204392598388',
   appId:             '1:204392598388:web:2dbbe3f476cd78d2ffba21'
 };

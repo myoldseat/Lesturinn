@@ -4724,23 +4724,37 @@ import { collection, query, where, onSnapshot, doc, getDocs }
           var existingImg = resumeCoverEl.querySelector(".resume-cover-img");
           if (existingImg) existingImg.remove();
 
-          var coverUrl = book.coverUrl || book.coverImage || book.imagePath || book.imageUrl || null;
-          if (coverUrl) {
+          // Kápu-setning (varist tvöfalda mynd)
+          var _resumeSetCover = function (src) {
+            if (!src) return;
+            var ex = resumeCoverEl.querySelector(".resume-cover-img");
+            if (ex) { if (ex.getAttribute("src") !== src) ex.src = src; return; }
             var img = document.createElement("img");
             img.className = "resume-cover-img";
-            img.src = coverUrl;
+            img.src = src;
             img.alt = "";
             img.loading = "lazy";
             img.onload = refreshListenGeometry;
             img.onerror = function () { img.remove(); refreshListenGeometry(); };
             resumeCoverEl.insertBefore(img, resumeCoverEl.firstChild);
             if (resumeCoverFallbackEl) resumeCoverFallbackEl.style.opacity = "0";
+          };
+
+          var coverUrl = book.coverUrl || book.coverBase64 || book.coverImage || book.imagePath || book.imageUrl || null;
+          if (coverUrl) {
+            _resumeSetCover(coverUrl);
           } else if (resumeCoverFallbackEl) {
             resumeCoverFallbackEl.style.opacity = "1";
             // \n in textContent renders as line break thanks to white-space: pre-line if needed
             // We use innerHTML with <br> for simplicity
             var label = makeCoverFallback(book.title);
             resumeCoverFallbackEl.innerHTML = label.replace(/\n/g, "<br>");
+          }
+
+          // Sama kápu-heimild og bókahilla/veljari (minnis-cache → IndexedDB → base64 → URL).
+          // Nær kápum sem eru aðeins í staðbundna cache-inu, ekki á skjalinu.
+          if (window._ensureLocalCover) {
+            window._ensureLocalCover(book).then(function (src) { if (src) _resumeSetCover(src); }).catch(function () {});
           }
         }
 
@@ -5807,6 +5821,8 @@ async function uploadCover(bookId,b64){
 }
 
 let books=[],cc={},curCov=null,curCovHQ=null,selBookId=null,editMode=false,selIds=new Set(),saving=false,unsub=null;
+/* Opna kápu-loaderinn fyrir resume-kortið í hinum script-blokkinum (sama kápu-heimild alls staðar). */
+try { window._ensureLocalCover = ensureLocalCover; } catch (e) {}
 let pendingCoverUrl=null,pendingCoverGsPath=null;
 let _booksLoaded=false;
 let demoDismissed=false;

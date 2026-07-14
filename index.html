@@ -463,6 +463,7 @@
       <div id="popup-login-error" class="rg-popup-error"></div>
       <button class="rg-popup-btn" onclick="parentLoginFromPopup()">Skrá inn</button>
       <p class="rg-popup-signup">Ertu ekki með reikning? <span onclick="openSignupPopup()" class="rg-popup-signup-link">Nýskrá hér</span></p>
+      <p class="rg-popup-signup">Ertu með foreldrisboð? <span onclick="showInviteKey()" class="rg-popup-signup-link">Nota boðslykil</span></p>
       <p class="rg-popup-signup">Ert þú fjölskylda? <span onclick="showFamJoin()" class="rg-popup-signup-link">Tengjast hér</span></p>
       <button class="pl-legal-link" onclick="openLegal('privacy')" style="display:block;margin:10px auto 0">Friðhelgi og skilmálar</button>
     </div>
@@ -518,6 +519,21 @@
       <button id="fam-code-btn" class="rg-popup-btn" onclick="famCodeLogin()">Tengjast fjölskyldu</button>
       <p class="rg-popup-signup"><span onclick="backToLogin()" class="rg-popup-signup-link">← Til baka</span></p>
     </div>
+
+    <!-- View E: Foreldri með boðslykil (co-parent) -->
+    <div id="login-view-e" class="rg-popup-body" style="display:none">
+      <div class="rg-popup-welcome">Foreldrisboð</div>
+      <div class="rg-popup-desc">Límdu inn boðslykilinn sem hitt foreldrið sendi þér. Svo stofnarðu aðgang og tengist sömu fjölskyldu.</div>
+      <div class="rg-field">
+        <label class="rg-label" for="invite-key-input">Boðslykill</label>
+        <input id="invite-key-input" class="rg-input" type="text"
+          placeholder="t.d. f3Cc1apd2USH9iRmoQ5l" autocomplete="off" spellcheck="false">
+      </div>
+      <div id="invite-key-error" class="rg-popup-error"></div>
+      <button class="rg-popup-btn" onclick="submitInviteKey()">Áfram í nýskráningu</button>
+      <p class="rg-popup-signup">Ertu þegar með aðgang? <span onclick="inviteKeyToLogin()" class="rg-popup-signup-link">Innskrá hér</span></p>
+      <p class="rg-popup-signup"><span onclick="inviteKeyBack()" class="rg-popup-signup-link">← Til baka</span></p>
+    </div>
   </div>
 </div>
 
@@ -535,6 +551,10 @@
     <div id="signup-view-form" class="rg-popup-body">
       <div class="rg-popup-welcome">Byrjaðu hér</div>
       <div class="rg-popup-desc">Stofnaðu aðgang til að fylgjast með lestri barns þíns</div>
+      <div id="signup-invite-banner" style="display:none;background:rgba(29,205,211,.12);border:1px solid rgba(29,205,211,.35);border-radius:12px;padding:12px 14px;margin-bottom:16px;">
+        <div style="font-weight:600;color:#1dcdd3;font-size:14px;">✓ Þú ert að tengjast fjölskyldu</div>
+        <div style="font-size:13px;color:#b8c6d4;margin-top:3px;line-height:1.45;">Stofnaðu þín eigin innskráningargögn hér að neðan — þú tengist sömu börnum og hitt foreldrið.</div>
+      </div>
       <button class="rg-google-btn" onclick="googleSignIn()">
         <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path fill="#4285F4" d="M17.6 9.2c0-.6-.1-1.2-.2-1.7H9v3.4h4.8a4.1 4.1 0 0 1-1.8 2.7v2.2h2.9c1.7-1.6 2.7-3.9 2.7-6.6z"/><path fill="#34A853" d="M9 18c2.4 0 4.5-.8 6-2.2l-2.9-2.2c-.8.5-1.8.9-3.1.9-2.4 0-4.4-1.6-5.1-3.8H.8v2.3A9 9 0 0 0 9 18z"/><path fill="#FBBC05" d="M3.9 10.7a5.4 5.4 0 0 1 0-3.4V5H.8a9 9 0 0 0 0 8z"/><path fill="#EA4335" d="M9 3.6c1.3 0 2.5.5 3.4 1.3l2.6-2.6A9 9 0 0 0 .8 5l3.1 2.3C4.6 5.2 6.6 3.6 9 3.6z"/></svg>
         Halda áfram með Google
@@ -1010,6 +1030,61 @@
   if (!window.googleSignIn) {
     window.googleSignIn = function () { alert('Google innskráning er ekki tengd enn.'); };
   }
+
+  /* ── Foreldri 2: boðslykill (co-parent) ──────────────────────────────
+     Sama flæði og boðs-HLEKKURINN: geymir token í localStorage['upphattParentInvite'],
+     sem auth.js neytir við (ný)skráningu (acceptParentInvite). Engin ný bakenda-rökfræði. */
+  function q(id) { return document.getElementById(id); }
+  function setLoginView(showId) {
+    ['login-view-a','login-view-b','login-view-c','login-view-d','login-view-e'].forEach(function (v) {
+      var el = q(v); if (el) el.style.display = (v === showId ? 'block' : 'none');
+    });
+  }
+  window.showInviteKey = function () {
+    setLoginView('login-view-e');
+    var i = q('invite-key-input'); if (i) { i.value = ''; i.focus(); }
+    var e = q('invite-key-error'); if (e) e.textContent = '';
+  };
+  window.inviteKeyBack = function () { setLoginView('login-view-a'); };
+  window.submitInviteKey = function () {
+    var i = q('invite-key-input');
+    var err = q('invite-key-error');
+    var key = i ? i.value.trim() : '';
+    if (err) err.textContent = '';
+    if (key.length < 6) { if (err) err.textContent = 'Sláðu inn boðslykilinn úr boðinu.'; return; }
+    try { localStorage.setItem('upphattParentInvite', key); } catch (e) {}
+    setLoginView('login-view-a');                                  // núllstilla fyrir næsta skipti
+    var lp = q('parent-login-popup'); if (lp) lp.style.display = 'none';
+    if (typeof window.openSignupPopup === 'function') window.openSignupPopup();
+    else alert('Nýskráning opnast í appinu.');
+  };
+  window.inviteKeyToLogin = function () {
+    // Foreldri 2 er þegar með aðgang → geymum token, förum í venjulega innskráningu.
+    var i = q('invite-key-input');
+    var key = i ? i.value.trim() : '';
+    if (key.length >= 6) { try { localStorage.setItem('upphattParentInvite', key); } catch (e) {} }
+    setLoginView('login-view-a');
+  };
+
+  // Staðfestingar-borði: sýnist í nýskráningu þegar boðs-token er til (hlekkur EÐA lykill).
+  function refreshInviteBanner() {
+    var b = q('signup-invite-banner');
+    if (!b) return;
+    var has = false;
+    try { has = !!localStorage.getItem('upphattParentInvite'); } catch (e) {}
+    b.style.display = has ? 'block' : 'none';
+  }
+  window.refreshInviteBanner = refreshInviteBanner;
+  // app.js skilgreinir openSignupPopup; við vefjum það svo borðinn endurspegli stöðuna í hvert sinn.
+  function wrapOpenSignup() {
+    if (typeof window.openSignupPopup === 'function' && !window.__inviteBannerWrapped) {
+      var orig = window.openSignupPopup;
+      window.openSignupPopup = function () { var r = orig.apply(this, arguments); refreshInviteBanner(); return r; };
+      window.__inviteBannerWrapped = true;
+    }
+  }
+  document.addEventListener('DOMContentLoaded', wrapOpenSignup);
+  setTimeout(wrapOpenSignup, 1500);
 })();
 </script>
 

@@ -4420,6 +4420,31 @@ function wlOpts(opts, curId, curSense){
     </div>`).join('');
 }
 
+// Beygingin er í ÖÐRU falli og annarri skrá. Fyrsta leit hleður hana ekki.
+window.wlParadigm = async function(){
+  const el = document.getElementById('wl-para');
+  const id = (_wlResult||{}).id;
+  if (!id) { el.innerHTML = '<div class="wl-src wl-bad">Ekkert ino_id — engin fletta.</div>'; return; }
+  el.innerHTML = '<div style="color:#7a8fa0;font-size:12px">Hleð beygingu…</div>';
+  try {
+    const fn = firebase.app().functions('europe-west1').httpsCallable('lookupWordParadigm');
+    const r = (await fn({ id })).data;
+    if (!r.found) {
+      el.innerHTML = `<div class="wl-src wl-bad">${esc(r.note||'Engin beyging.')}</div>`; return;
+    }
+    el.innerHTML = `
+      <div class="wl-eyebrow">Beyging — BÍN Stórasnið · ${r.forms.length} myndir</div>
+      <div class="wl-forms">${r.forms.map(f=>
+        `<span class="wl-form"><b>${esc(f.form)}</b> ${esc(f.mark)}</span>`).join('')}</div>
+      <div style="font-size:10.5px;color:#5d7088;margin-top:6px">
+        Hrátt BÍN-mark, óskert. Svarlykillinn fyrir „settu orðið í þágufall eintölu" síðar.</div>`;
+  } catch(e) {
+    el.innerHTML = `<div class="wl-src wl-bad">Beygingin sóttist ekki: ${esc(e.message||e)}
+      <br><button class="wl-btn-ghost" style="margin-top:7px" onclick="wlParadigm()">Reyna aftur</button></div>`;
+    console.error('lookupWordParadigm failed', e);
+  }
+};
+
 window.wlToggle = id => { const e=document.getElementById(id); e.style.display = e.style.display==='none'?'block':'none'; };
 
 // ── Dómur -> Firestore ──────────────────────────────────────────────────
@@ -4533,7 +4558,10 @@ window.wlRunPlants = async function(){
       const j = r.data;
       const verdict = (j.entailed && !j.widened && !j.narrowed && !j.circular && !j.is_label) ? 'PASS' : 'FAIL';
       out.push({ ...p, got:verdict, ok:verdict===p.expect, reason:j.reason, masked:j.masked });
-    } catch(e){ out.push({ ...p, got:'ERR', ok:false, reason:e.message }); }
+    } catch(e){
+      out.push({ ...p, got:'ERR', ok:false, err:true,
+                 reason: e.message || e.code || String(e) });
+    }
   }
   _wlPlants = out; _wlBusy = false; _wlPlantsSaved = 'pending'; wlBody();
   // T1-niðurstaðan er kvörðun mælitækisins. Hún má hvorki hverfa við refresh
@@ -4561,7 +4589,8 @@ window.wlRunPlants = async function(){
 
 function wlPlantResults(){
   const hits = _wlPlants.filter(p=>p.ok).length, n = _wlPlants.length;
-  const pass = hits >= n-1;
+  const errs = _wlPlants.filter(p=>p.err).length;
+  const pass = errs === 0 && hits >= n-1;
   return `
   <div style="margin-top:14px">
     ${_wlPlants.map(p=>`
@@ -4572,7 +4601,8 @@ function wlPlantResults(){
           <div style="color:#7a8fa0;font-size:10.5px;margin-top:4px;font-family:monospace">
             ÍNO ${esc(p.id_ino)}: ${esc(p.def)}</div>
           <div style="color:#5d7088;font-size:11px;margin-top:4px">${esc(p.why)}</div>
-          ${!p.ok?`<div class="wl-bad" style="font-size:11px;margin-top:3px">dómari sagði: ${esc(p.reason||'—')}</div>`:''}
+          ${!p.ok?`<div class="wl-bad" style="font-size:11px;margin-top:3px;${p.err?'font-family:monospace;line-height:1.45':''}">
+            ${p.err?'FALL: ':'dómari sagði: '}${esc(p.reason||'—')}</div>`:''}
         </div>
         <div style="font-family:monospace;font-size:11px;color:#5d7088;white-space:nowrap">
           ${p.got} / ${p.expect}</div>
@@ -4581,10 +4611,11 @@ function wlPlantResults(){
       background:${pass?'rgba(29,205,211,.07)':'rgba(255,107,107,.09)'};
       border:1px solid ${pass?'rgba(29,205,211,.3)':'rgba(255,107,107,.4)'}">
       <div style="font-size:15px;font-weight:900;color:${pass?'#1dcdd3':'#ff6b6b'}">
-        Dómari: ${hits}/${n}</div>
+        ${errs ? `${errs}/${n} KÖLL FÉLLU` : `Dómari: ${hits}/${n}`}</div>
       <div style="font-size:12px;color:#7a8fa0;margin-top:5px;line-height:1.55">
-        ${pass ? 'Dómarinn er nothæfur. T2-tölur eru marktækar.'
-               : 'STOPP. Dómarinn grípur ekki plantaðar villur. T2 væri hávaði — og lota á 50.000 færslur er ekki sjálfvirkt hliðanleg. Þetta er dýrmætasta niðurstaðan sem labbið getur gefið þér.'}
+        ${errs ? 'Þetta er EKKI dómur um dómarann — fallið svaraði ekki. Villuboðin eru við hverja plöntu hér að ofan. Lagaðu þau fyrst; T1 hefur ekki keyrt.'
+          : pass ? 'Dómarinn er nothæfur. T2-tölur eru marktækar.'
+          : 'STOPP. Dómarinn grípur ekki plantaðar villur. T2 væri hávaði — og lota á 50.000 færslur er ekki sjálfvirkt hliðanleg. Þetta er dýrmætasta niðurstaðan sem labbið getur gefið þér.'}
       </div>
       <div class="wl-vstatus ${_wlPlantsSaved==='saved'?'saved':_wlPlantsSaved==='pending'?'pending':'error'}" style="margin-top:9px">
         ${_wlPlantsSaved==='saved' ? '✓ Kvörðun vistuð (' + _wlPlants.length + ' plöntur)'

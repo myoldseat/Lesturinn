@@ -709,6 +709,7 @@ html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sa
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-functions-compat.js"></script>
 <script>
 console.log('ADMIN SCRIPT STARTED');
 
@@ -1061,7 +1062,8 @@ const TABS = [
   { id:'families',  icon:'👥', label:'Fjölskyldur' },
   { id:'insights',  icon:'📈', label:'Innsýn' },
   { id:'pilotAdmin', icon:'🧭', label:'Pilot' },
-  { id:'pilot',     icon:'🎧', label:'Vitni' }
+  { id:'pilot',     icon:'🎧', label:'Vitni' },
+  { id:'wordLab',   icon:'🔬', label:'Orðahjálp' }
 ];
 
 function renderNav() {
@@ -2594,6 +2596,7 @@ function renderContent() {
   if (_activeTab === 'insights')  el.innerHTML = renderInsights();
   if (_activeTab === 'pilotAdmin') renderPilotAdminTab();
   if (_activeTab === 'pilot')     renderPilotTab();
+  if (_activeTab === 'wordLab')   renderWordLabTab();
 }
 
 // ══════════════════════════════════════════
@@ -4025,6 +4028,631 @@ function renderFamilyCards(entries) {
       </article>`;
   }).join('');
 }
+</script>
+<script>
+/* Orðahjálp Lab — innfellt */
+/* ═══════════════════════════════════════════════════════════════════════
+   UppHátt — Orðahjálp Lab
+   Innfellt í admin.html. Ekkert að bæta við, engin sérstök skrá.
+
+   HÖNNUNARFORSENDA: Í labbi er DÓMURINN hetjan, ekki svarið. Skýringin er
+   inntak í mat. Þess vegna eru dómstakkarnir jafn áberandi og hún.
+
+   TVEIR DÓMAR, ekki einn — því bilanirnar eru tvær og eiga sér ólíkar orsakir:
+     1. Rétt orð?        -> bilar í BÍN-laginu   (annast -> anna)
+     2. Rétt merking?    -> bilar í AI-laginu    (ómagi -> "barn eða gamalmenni")
+   ═══════════════════════════════════════════════════════════════════════ */
+
+// ── Prófunarorð. Merkt eftir því hvað þau eiga að brjóta.
+//    Skilgreiningarnar hér eru RAUNVERULEGAR úr ÍNO — ekki ágiskun.
+const WL_WORDS = [
+  { w:'ferðalöngum', note:'ÍNO segir "ferðamaður". EITT ORÐ. Ekkert að einfalda — verður að útvíkka.' },
+  { w:'ómögunum',    note:'ÍNO segir "barn eða gamalmenni sem þarf að sjá fyrir". Gemini hafði RÉTT fyrir sér.' },
+  { w:'ólögráða',    note:'ÍNO segir "sem ekki er lögráða". HRINGRÖK Í HEIMILDINNI.' },
+  { w:'hjúin',       note:'ÍNO hefur "einkum í fleirtölu" sem <text>. Það er MERKIMIÐI, ekki skilgreining.' },
+  { w:'drunga',      note:'TVÆR aðskildar merkingar. Að steypa þeim saman er villa.' },
+  { w:'annast',      note:'Þrír kandídatar: anna / annast / annt. Aðgreining, ekki fjarvera.' },
+  { w:'nauðsynjar',  note:'Sex "skilgreiningar" — sumar eru orðasambönd og merkimiðar.' },
+  { w:'búpeningur',  note:'"búfé, t.d. kindur, kýr, hestar" — dæmi inni í skilgreiningunni.' },
+  { w:'ráðskonan',   note:'"kona sem sér um heimilisrekstur fyrir aðra" — 7 orð, nothæf.' },
+  { w:'framfærslu',  note:'"það að sjá fyrir sér og/eða öðrum" — óhlutbundið.' },
+  { w:'húsaskjól',   note:'9 orð. Ein af 23,5% sem eru raunveruleg skilgreining.' },
+  { w:'kvíða',       note:'so/no tvíræðni + freistar AI til að gefa ráð.' }
+];
+
+// ── T1-plöntur: ALLAR byggðar á raunverulegum ÍNO-færslum.
+//
+//    ⚠ FYRRI ÚTGÁFA ÞESSA LISTA VAR RÖNG. Ég merkti "ómagi = barn eða
+//    gamalmenni" sem FAIL/þrenging. Það er ORÐRÉTT skilgreining ÍNO
+//    (isord_31304). Sú planta hefði kvarðað dómarann til að hafna réttum
+//    svörum. Mælitækið var brenglað af sömu villugreiningu og það átti að grípa.
+//    Þess vegna koma plöntur núna úr heimildinni, ekki úr höfðinu á mér.
+//
+//    VERKIÐ ER ÚTVÍKKUN, EKKI EINFÖLDUN. Miðgildi ÍNO = 5 orð.
+//    Hliðið er því ekki "bætti það við?" — það VERÐUR að gera það.
+//    Hliðið er: "leiðir girðingin (skýring + dæmi + samsetning) þetta af sér?"
+const WL_PLANTS = [
+  { id:'p01', id_ino:'31304', lemma:'ómagi',
+    def:'barn eða gamalmenni sem þarf að sjá fyrir',
+    fence:'dæmi: ómagarnir voru á framfærslu hreppsins · samsetning: ó-magi',
+    simple:'Ómagi er barn eða gamall maður sem getur ekki séð fyrir sér sjálfur, svo aðrir þurfa að hjálpa honum.',
+    expect:'PASS', why:'Trú útvíkkun. Heldur aldursskilyrðinu sem ÍNO setur.' },
+
+  { id:'p02', id_ino:'31304', lemma:'ómagi',
+    def:'barn eða gamalmenni sem þarf að sjá fyrir',
+    fence:'dæmi: ómagarnir voru á framfærslu hreppsins · samsetning: ó-magi',
+    simple:'Ómagi er manneskja sem getur ekki séð sjálf fyrir sér og þarf hjálp annarra.',
+    expect:'FAIL',
+    why:'VÍKKAR — og þetta er skýringin sem VIÐ töldum rétta. ÍNO segir "barn eða gamalmenni". "Manneskja" fjarlægir aldursskilyrðið. Villan var okkar, ekki Gemini.' },
+
+  { id:'p03', id_ino:'10957', lemma:'ferðalangur',
+    def:'ferðamaður',
+    fence:'dæmi: þau tóku vel á móti þreyttum ferðalöngum · samsetning: ferða-langur',
+    simple:'Ferðalangur er manneskja sem er á ferðalagi.',
+    expect:'PASS', why:'Útvíkkun úr EINU orði — en hún leiðir af "ferðamaður" + "ferða-".' },
+
+  { id:'p04', id_ino:'10957', lemma:'ferðalangur',
+    def:'ferðamaður',
+    fence:'dæmi: þau tóku vel á móti þreyttum ferðalöngum · samsetning: ferða-langur',
+    simple:'Ferðalangur er manneskja sem ferðast langar leiðir, oftast gangandi.',
+    expect:'FAIL',
+    why:'ÚTFYRIR GIRÐINGU. "-langur" í ferða-langur er ekki "langur". Alþýðuskýring sem líkanið bjó til.' },
+
+  { id:'p05', id_ino:'19771', lemma:'hjú',
+    def:'einkum í fleirtölu',
+    fence:'(önnur merking sömu flettu: vinnumaður eða vinnukona)',
+    simple:'Hjú þýðir að orðið er oftast notað í fleirtölu.',
+    expect:'FAIL',
+    why:'MERKIMIÐI SEM SKÝRING. "einkum í fleirtölu" er málfræðimiði í ÍNO, ekki merking. Þetta MUN gerast í lotu — sama <text>-tagg ber hvort tveggja.' },
+
+  { id:'p06', id_ino:'31299', lemma:'ólögráða',
+    def:'sem ekki er lögráða',
+    fence:'dæmi: ólögráða börn og ungmenni · samsetning: ó-lögráða',
+    simple:'Ólögráða er einhver sem er ekki lögráða.',
+    expect:'FAIL',
+    why:'HRINGRÖK — sem KOMU ÚR HEIMILDINNI. ÍNO er hringrök hér. Rétt hegðun er að fletta "lögráða" upp líka, eða falla.' },
+
+  { id:'p07', id_ino:'8692', lemma:'drungi',
+    def:'1) þungbúið loft eða andrúmsloft  2) dapurleiki, deyfð í sinni',
+    fence:'dæmi: eftir atburðinn var leiðinlegur drungi yfir heimilinu',
+    simple:'Drungi er þegar loftið er þungbúið og manni líður illa út af því.',
+    expect:'FAIL',
+    why:'STEYPIR MERKINGUM SAMAN. ÍNO hefur tvær aðskildar merkingar. Orsakatengingin ("út af því") er hvergi til.' },
+
+  { id:'p08', id_ino:'7448', lemma:'búpeningur',
+    def:'búfé, t.d. kindur, kýr, hestar',
+    fence:'dæmi: hey handa búpeningnum · samsetning: bú-peningur',
+    simple:'Búpeningur eru dýrin sem bóndi heldur á bænum, eins og kindur, kýr og hestar.',
+    expect:'PASS', why:'Útvíkkun sem "bú-" og "búfé" leiða af sér.' }
+];
+
+let _wlMode = 'easy';
+let _wlBusy = false;
+let _wlResult = null;
+let _wlAB = null;
+let _wlPlants = null;
+let _wlPlantsSaved = null;
+let _wlLog = [];
+
+// ── Function-tengill ────────────────────────────────────────────────────
+function wlFn(){
+  if (!window.firebase || !firebase.functions)
+    throw new Error('firebase-functions-compat.js vantar. Sjá PATCH.md skref 1.');
+  if (!firebase.apps.length) initFirebase();
+  return firebase.app().functions('europe-west1').httpsCallable('lookupWordHelp');
+}
+
+// ── CSS ─────────────────────────────────────────────────────────────────
+(function wlStyle(){
+  if (document.getElementById('wl-style')) return;
+  const s = document.createElement('style');
+  s.id = 'wl-style';
+  s.textContent = `
+.wl-card{border:1px solid rgba(29,205,211,.12);background:rgba(255,255,255,.02);border-radius:18px;padding:16px;margin-bottom:14px}
+.wl-modes{display:flex;gap:8px;margin-bottom:16px}
+.wl-mode{flex:1;border:1px solid rgba(29,205,211,.10);background:rgba(255,255,255,.02);border-radius:14px;padding:11px 14px;color:#7a8fa0;font-size:12.5px;font-weight:800;cursor:pointer;text-align:center}
+.wl-mode.active{background:rgba(29,205,211,.10);color:#1dcdd3;border-color:rgba(29,205,211,.26)}
+.wl-row{display:grid;grid-template-columns:1fr 2fr auto;gap:8px;align-items:stretch}
+@media(max-width:640px){.wl-row{grid-template-columns:1fr}}
+.wl-input{background:rgba(3,9,16,.6);border:1px solid rgba(29,205,211,.16);border-radius:12px;padding:11px 13px;color:#d9e5ef;font-size:14px;font-family:inherit;width:100%}
+.wl-input:focus{outline:2px solid rgba(29,205,211,.5);outline-offset:1px;border-color:transparent}
+.wl-btn{background:linear-gradient(135deg,#1dcdd3,#12a3ab);border:none;border-radius:12px;padding:11px 20px;color:#03202a;font-size:13px;font-weight:900;cursor:pointer;white-space:nowrap}
+.wl-btn:disabled{opacity:.45;cursor:wait}
+.wl-btn-ghost{background:rgba(255,255,255,.03);border:1px solid rgba(29,205,211,.16);color:#7a8fa0;border-radius:10px;padding:7px 12px;font-size:11.5px;font-weight:800;cursor:pointer}
+.wl-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.wl-chip{border:1px solid rgba(29,205,211,.14);background:rgba(255,255,255,.02);border-radius:999px;padding:5px 11px;font-size:11.5px;color:#7a8fa0;cursor:pointer;font-family:monospace}
+.wl-chip:hover{color:#1dcdd3;border-color:rgba(29,205,211,.34)}
+.wl-chip.danger{border-color:rgba(255,107,107,.34);color:#ff8f8f}
+.wl-eyebrow{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#5d7088;font-weight:900;margin-bottom:8px}
+.wl-lemma{font-size:26px;font-weight:900;color:#d9e5ef;letter-spacing:-.02em;line-height:1.1}
+.wl-pos{font-size:12px;color:#7a8fa0;font-weight:700;margin-top:2px}
+.wl-simple{font-size:16px;line-height:1.55;color:#d9e5ef;margin:10px 0}
+.wl-sense{border-left:2px solid rgba(29,205,211,.18);padding-left:12px;margin:14px 0}
+.wl-sense-n{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#1dcdd3;font-weight:900;margin-bottom:6px}
+.wl-src{font-size:12.5px;line-height:1.5;color:#7a8fa0;border-left:2px solid rgba(29,205,211,.24);padding-left:11px;margin:10px 0}
+.wl-cands{border:1px solid rgba(255,180,84,.3);background:rgba(255,180,84,.05);border-radius:12px;padding:12px;margin:12px 0}
+.wl-cand{display:flex;align-items:baseline;gap:9px;padding:8px 10px;border-radius:9px;cursor:pointer;border:1px solid transparent}
+.wl-cand:hover{background:rgba(255,255,255,.04);border-color:rgba(29,205,211,.24)}
+.wl-cand.on{background:rgba(29,205,211,.10);border-color:rgba(29,205,211,.4)}
+.wl-cand b{color:#d9e5ef;font-size:14px;white-space:nowrap}
+.wl-cand i{color:#1dcdd3;font-size:9.5px;font-style:normal;font-weight:900;letter-spacing:.05em;white-space:nowrap}
+.wl-ex{border-left:2px solid rgba(255,180,84,.3);padding-left:11px;margin:12px 0}
+.wl-ex-l{font-size:14px;line-height:1.5;color:#d9e5ef;margin:2px 0}
+.wl-cand span{color:#7a8fa0;font-size:12px;line-height:1.4}
+.wl-cand em{color:#1dcdd3;font-size:10px;font-style:normal;font-weight:800;margin-left:auto;white-space:nowrap}
+.wl-forms{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+.wl-form{font-family:monospace;font-size:11px;color:#7a8fa0;background:rgba(3,9,16,.5);border-radius:6px;padding:3px 7px}
+.wl-form b{color:#d9e5ef;font-weight:700}
+/* ── Dómur: hetjan. Jafn áberandi og svarið. ── */
+.wl-verdict{border:1px solid rgba(29,205,211,.26);background:rgba(29,205,211,.05);border-radius:14px;padding:14px;margin-top:14px}
+.wl-vq{font-size:13px;font-weight:800;color:#d9e5ef;margin-bottom:9px}
+.wl-vq small{display:block;font-weight:600;color:#5d7088;font-size:11px;margin-top:3px}
+.wl-vbtns{display:flex;gap:7px;flex-wrap:wrap}
+.wl-vbtn{flex:1;min-width:88px;border:1px solid rgba(29,205,211,.16);background:rgba(255,255,255,.02);border-radius:10px;padding:9px;color:#7a8fa0;font-size:12px;font-weight:800;cursor:pointer}
+.wl-vbtn:hover{border-color:rgba(29,205,211,.4)}
+.wl-vbtn.on-yes{background:rgba(29,205,211,.16);color:#1dcdd3;border-color:#1dcdd3}
+.wl-vbtn.on-no{background:rgba(255,107,107,.14);color:#ff8f8f;border-color:#ff6b6b}
+.wl-vbtn.on-idk{background:rgba(255,255,255,.06);color:#d9e5ef;border-color:#7a8fa0}
+.wl-vbtn.pending{opacity:.55;cursor:wait;border-style:dashed}
+.wl-vbtn:disabled{cursor:wait}
+.wl-vstatus{margin-top:9px;font-size:12px;font-weight:800;min-height:17px}
+.wl-vstatus.pending{color:#7a8fa0;font-weight:600}
+.wl-vstatus.saved{color:#1dcdd3}
+.wl-vstatus.error{color:#ff6b6b;line-height:1.5}
+.wl-vstatus.error span{display:block;font-weight:500;font-size:11px;color:#ff8f8f;margin-top:3px;font-family:monospace}
+.wl-vstatus.error button{margin-top:7px}
+/* ── Debug ── */
+.wl-dbg{font-family:monospace;font-size:11.5px;line-height:1.65}
+.wl-dbg-row{display:grid;grid-template-columns:104px 1fr;gap:10px;padding:6px 0;border-bottom:1px solid rgba(122,162,200,.06)}
+.wl-dbg-k{color:#5d7088;font-weight:700}
+.wl-dbg-v{color:#d9e5ef;word-break:break-word;white-space:pre-wrap}
+.wl-warn{color:#ffb454;font-weight:700}
+.wl-bad{color:#ff6b6b;font-weight:700}
+.wl-ok{color:#1dcdd3;font-weight:700}
+.wl-pre{background:rgba(3,9,16,.7);border-radius:8px;padding:10px;max-height:210px;overflow:auto;font-size:10.5px;color:#7a8fa0;white-space:pre-wrap;word-break:break-word}
+.wl-ab{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:760px){.wl-ab{grid-template-columns:1fr}}
+.wl-arm{border:1px solid rgba(29,205,211,.12);border-radius:14px;padding:13px;background:rgba(3,9,16,.34)}
+.wl-arm h5{margin:0 0 3px;font-size:12px;color:#1dcdd3;font-weight:900}
+.wl-arm .sub{font-size:10.5px;color:#5d7088;margin-bottom:10px}
+.wl-plant{display:grid;grid-template-columns:22px 1fr auto;gap:9px;padding:9px 0;border-bottom:1px solid rgba(122,162,200,.06);font-size:12px;align-items:start}
+.wl-note{font-size:11.5px;color:#5d7088;line-height:1.5;margin-top:8px}
+.wl-empty{color:#5d7088;font-size:13px;text-align:center;padding:30px 16px;line-height:1.6}
+`;
+  document.head.appendChild(s);
+})();
+
+// ── Render ──────────────────────────────────────────────────────────────
+function renderWordLabTab(){
+  const el = document.getElementById('admin-content');
+  el.innerHTML = `
+    <div class="admin-hero">
+      <div>
+        <div class="admin-eyebrow">Lab</div>
+        <h2 style="margin:4px 0 0;font-size:22px;letter-spacing:-.03em">Orðahjálp</h2>
+        <div style="color:#5d7088;font-size:12.5px;margin-top:5px">
+          Ósannað. Ekki tengt barnaviðmótinu.
+        </div>
+      </div>
+    </div>
+    <div class="wl-modes">
+      <div class="wl-mode ${_wlMode==='easy'?'active':''}" onclick="wlSetMode('easy')">
+        Einfalt — fletta upp
+      </div>
+      <div class="wl-mode ${_wlMode==='adv'?'active':''}" onclick="wlSetMode('adv')">
+        Ítarlegt — blint próf
+      </div>
+    </div>
+    <div id="wl-body"></div>`;
+  wlBody();
+}
+
+window.wlSetMode = m => { _wlMode = m; renderWordLabTab(); };
+
+function wlBody(){
+  document.getElementById('wl-body').innerHTML =
+    _wlMode === 'easy' ? wlEasy() : wlAdv();
+}
+
+// ── EINFALT ─────────────────────────────────────────────────────────────
+function wlEasy(){
+  return `
+  <div class="wl-card">
+    <div class="wl-eyebrow">Fletta upp</div>
+    <div class="wl-row">
+      <input class="wl-input" id="wl-word" placeholder="orð, eins og það stendur í bókinni"
+             onkeydown="if(event.key==='Enter')wlSearch()">
+      <input class="wl-input" id="wl-sent" placeholder="setningin — velur merkingu sjálfkrafa ef hún sker úr">
+      <button class="wl-btn" onclick="wlSearch()" ${_wlBusy?'disabled':''}>
+        ${_wlBusy?'Leita…':'Leita'}
+      </button>
+    </div>
+    <div class="wl-chips">
+      ${WL_WORDS.map(x=>`<span class="wl-chip ${/VILLA|BÍN-lemma/.test(x.note)?'danger':''}"
+        title="${x.note}" onclick="wlPick('${x.w}')">${x.w}</span>`).join('')}
+    </div>
+    <div class="wl-note">
+      Setning velur merkingu: líkanið skilar <b>númeri</b> úr listanum, ekki merkingu.
+      Engin setning + fleiri en ein merking = <b>ekkert AI-kall</b>, þú velur.<br>
+      Sveifðu yfir orð til að sjá hvað ÍNO segir raunverulega um það.
+      <b>ferðalöngum</b> er ekki grunnlína lengur — ÍNO segir bara „ferðamaður“,
+      eitt orð. Það er erfiðasta prófið, ekki það auðveldasta.
+    </div>
+  </div>
+  <div id="wl-out">${_wlResult ? wlResult(_wlResult) : `
+    <div class="wl-card"><div class="wl-empty">
+      Flettu upp orði.<br>Hvert svar er gagnapunktur, ekki demó — dæmdu það.
+    </div></div>`}</div>`;
+}
+
+window.wlPick = w => { document.getElementById('wl-word').value = w; wlSearch(); };
+
+// Val úr kandídatalista -> fletta upp aftur, þvinguð á þá flettu.
+window.wlPick = (id, sense) => wlSearch(id, sense);
+
+window.wlSearch = async function(forceId, forceSense){
+  const word = (document.getElementById('wl-word').value||'').trim();
+  if (!word || _wlBusy) return;
+  const sentence = (document.getElementById('wl-sent').value||'').trim();
+  _wlBusy = true; wlBody();
+  const t0 = performance.now();
+  try {
+    const r = await wlFn()({ mode:'easy', word, sentence,
+      ...(forceId != null ? { id: forceId, sense: forceSense } : {}) });
+    _wlResult = { ...r.data, word, sentence, ms: Math.round(performance.now()-t0) };
+  } catch(e) {
+    _wlResult = { error: e.message || String(e), word, ms: Math.round(performance.now()-t0) };
+  }
+  _wlBusy = false; wlBody();
+};
+
+function wlResult(r){
+  if (r.error) return `<div class="wl-card">
+    <div class="wl-eyebrow wl-bad">Fallið svaraði ekki</div>
+    <div class="wl-dbg-v wl-bad">${esc(r.error)}</div></div>`;
+
+  if (r.found === false) return `<div class="wl-card">
+    <div class="wl-eyebrow wl-bad">Fannst ekki</div>
+    <div class="wl-dbg-v">${esc(r.note||'')}</div></div>`;
+
+  // Fleirræðni og ekkert val -> ENGIN AI-köll voru gerð. Notandinn velur.
+  if (r.needsChoice) return `<div class="wl-card">
+    <div class="wl-eyebrow">${r.options.length} merkingar — hvaða orð meinarðu?</div>
+    <div style="font-size:11.5px;color:#5d7088;margin-bottom:10px">
+      ${esc(r.note||'')} Ekkert AI-kall var gert. Veldu og þá útskýrir það.
+    </div>
+    ${wlOpts(r.options, null, null)}
+  </div>`;
+
+  const src = r.source || {};
+  return `
+  <div class="wl-card">
+    <div class="wl-lemma">${esc(r.lemma||'—')}</div>
+    <div class="wl-pos">${esc(r.posLabel||'')} <span style="opacity:.6">(${esc(r.abbr||'')})</span></div>
+
+    ${r.options ? `
+      <div class="wl-cands">
+        <div class="wl-eyebrow" style="margin-bottom:7px">
+          ${r.options.length} merkingar${r.pickedBy==='sentence'
+            ? ' — <span style="color:#ffb454">setningin valdi þessa</span>' : ''}
+        </div>
+        ${r.pickWhy?`<div style="font-size:11px;color:#5d7088;margin-bottom:8px">${esc(r.pickWhy)}</div>`:''}
+        ${wlOpts(r.options, r.id, r.sense)}
+      </div>` : ''}
+
+    <div class="wl-src"><b>ÍNO:</b> ${esc(src.text||'—')}
+      <span style="color:#5d7088"> · ${src.wordCount||0} orð${
+        src.compounds?' · '+esc(src.compounds):''}</span></div>
+
+    <div class="wl-simple">${r.simple ? esc(r.simple)
+      : '<span class="wl-bad" style="font-size:14px">null — líkanið neitaði. Rétt hegðun ef þetta er málfræðimiði eða hringrök.</span>'}</div>
+
+    ${(r.example1||r.example2) ? `
+      <div class="wl-ex">
+        <div class="wl-eyebrow" style="margin-bottom:6px">Dæmi</div>
+        ${r.example1?`<div class="wl-ex-l">${esc(r.example1)}</div>`:''}
+        ${r.example2?`<div class="wl-ex-l" style="color:#7a8fa0">${esc(r.example2)}</div>`:''}
+        ${!r.example2?'<div style="font-size:10.5px;color:#5d7088;margin-top:4px">Ekkert öruggt samheiti — sleppt.</div>':''}
+      </div>` : '<div style="font-size:11.5px;color:#5d7088;margin:8px 0">Engin dæmi — líkanið sleppti þeim.</div>'}
+
+    ${src.inoExamples && src.inoExamples.length ? `
+      <div style="font-size:11px;color:#5d7088;margin-top:8px">
+        ÍNO-dæmi (raunveruleg): ${src.inoExamples.map(x=>esc(x)).join(' · ')}</div>`:''}
+
+    <div id="wl-para" style="margin-top:14px">
+      <button class="wl-btn-ghost" onclick="wlParadigm()">Skoða beygingu</button>
+      <span style="font-size:10.5px;color:#5d7088;margin-left:8px">sérstakt kall</span>
+    </div>
+
+    <div class="wl-verdict">
+      <div class="wl-vq">Er þetta rétta merkingin fyrir „${esc(r.word||'')}“?
+        <small>${r.pickedBy==='sentence'?'Setningin valdi hana. Var það rétt?'
+          :r.pickedBy==='user'?'Þú valdir hana.':'Ótvírætt — aðeins ein merking til.'}</small></div>
+      <div class="wl-vbtns">
+        <button class="wl-vbtn" id="wl-v1-yes" onclick="wlVerdict('lemma','yes')">✅ Rétt</button>
+        <button class="wl-vbtn" id="wl-v1-no"  onclick="wlVerdict('lemma','no')">❌ Röng merking</button>
+        <button class="wl-vbtn" id="wl-v1-idk" onclick="wlVerdict('lemma','idk')">🤔 Óviss</button>
+      </div>
+      <div class="wl-vstatus" id="wl-v1-status"></div>
+    </div>
+
+    <div class="wl-verdict">
+      <div class="wl-vq">Leiðist skýringin — og dæmin — af ÍNO?
+        <small>ÍNO er stutt; skýringin VERÐUR að bæta við. Dæmi mega hafa persónur og
+        aðstæður. Spurningin er hvort merkingin hafi breyst.</small></div>
+      <div class="wl-vbtns">
+        <button class="wl-vbtn" id="wl-v2-yes" onclick="wlVerdict('meaning','yes')">✅ Sama merking</button>
+        <button class="wl-vbtn" id="wl-v2-no"  onclick="wlVerdict('meaning','no')">❌ Breytti merkingu</button>
+        <button class="wl-vbtn" id="wl-v2-idk" onclick="wlVerdict('meaning','idk')">🤔 Óviss</button>
+      </div>
+      <div class="wl-vstatus" id="wl-v2-status"></div>
+    </div>
+  </div>
+
+  <div class="wl-card">
+    <div class="wl-eyebrow">Hvað gerðist</div>
+    <div class="wl-dbg">
+      ${dbg('Leitað að', r.word)}
+      ${dbg('Valkostir', (r.options?r.options.length:1) + ' · valið af: ' +
+            ({unambiguous:'ótvírætt',user:'þér',sentence:'setningunni (AI valdi NÚMER, ekki merkingu)'}[r.pickedBy]||'—'))}
+      ${dbg('ÍNO', `${r.lemma} (${r.abbr}) · merking ${(r.sense||0)+1} · ${src.wordCount||0} orð`)}
+      ${dbg('Dæmi', `AI: ${r.example1?'1':'0'}${r.example2?'+samheiti':''} · ÍNO: ${(src.inoExamples||[]).length}`)}
+      ${dbg('Cache', r.cache==='HIT'?'<span class="wl-ok">HIT — ekkert AI-kall</span>'
+                                    :'<span class="wl-warn">MISS — AI keyrði</span>')}
+      ${dbg('Tími', r.ms + ' ms <span style="color:#5d7088">— mælir ekkert um hvort svarið sé rétt</span>')}
+    </div>
+    <div style="margin-top:12px">
+      <button class="wl-btn-ghost" onclick="wlToggle('wl-prompt')">Prompt</button>
+      <button class="wl-btn-ghost" onclick="wlToggle('wl-raw')">Hrátt svar</button>
+    </div>
+    <div id="wl-prompt" style="display:none;margin-top:10px"><div class="wl-pre">${esc(r.debug?.prompt||'(cache-hit — ekkert prompt)')}</div></div>
+    <div id="wl-raw"    style="display:none;margin-top:10px"><div class="wl-pre">${esc(JSON.stringify(r.debug?.raw||{},null,2))}</div></div>
+  </div>`;
+}
+
+function wlOpts(opts, curId, curSense){
+  return opts.map(o=>`
+    <div class="wl-cand ${o.id===curId&&o.sense===curSense?'on':''}"
+         onclick="wlPick('${o.id}',${o.sense})">
+      <b>${esc(o.w)}</b><i>${esc(o.abbr)}</i>
+      <span>${esc(o.def||'(engin skýring)')}</span>
+      ${o.id===curId&&o.sense===curSense?'<em>sýnt</em>':''}
+    </div>`).join('');
+}
+
+window.wlToggle = id => { const e=document.getElementById(id); e.style.display = e.style.display==='none'?'block':'none'; };
+
+// ── Dómur -> Firestore ──────────────────────────────────────────────────
+const WL_ON = { yes:'on-yes', no:'on-no', idk:'on-idk',
+                A:'on-yes', B:'on-yes', tie:'on-idk', both_bad:'on-no',
+                correct:'on-yes', wrong:'on-no' };
+
+// Ekkert er merkt valið fyrr en Firestore hefur staðfest.
+// Bjartsýnt UI hér væri versta mögulega bilunin: viðmótið segir að þú hafir
+// mælt, gagnið er farið, og þú heldur áfram í trausti þess að hafa mælt.
+async function wlCommit(ids, chosen, statusId, payload, retry){
+  const btns = ids.map(i => document.getElementById(i)).filter(Boolean);
+  const me = document.getElementById(chosen);
+  const st = document.getElementById(statusId);
+  btns.forEach(b => { b.className = 'wl-vbtn'; b.disabled = true; });
+  if (me) me.classList.add('pending');
+  if (st) { st.className = 'wl-vstatus pending'; st.textContent = 'Vista…'; }
+  try {
+    await initFirebase().collection('labWordHelp').add({
+      ...payload, by: wlUid(),
+      at: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    btns.forEach(b => { b.disabled = false; b.className = 'wl-vbtn'; });
+    if (me) me.className = 'wl-vbtn ' + (WL_ON[payload.verdict] || 'on-idk');
+    if (st) { st.className = 'wl-vstatus saved'; st.textContent = '✓ Dómur vistaður'; }
+    return true;
+  } catch(e) {
+    // EKKERT merkt valið. Dómurinn er ekki til.
+    btns.forEach(b => { b.disabled = false; b.className = 'wl-vbtn'; });
+    if (st) {
+      st.className = 'wl-vstatus error';
+      st.innerHTML = '⚠ Dómurinn vistaðist ekki — <b>reyndu aftur</b>'
+        + '<span>' + esc(e.message || String(e)) + '</span>';
+      if (retry) {
+        const b = document.createElement('button');
+        b.className = 'wl-btn-ghost'; b.textContent = 'Reyna aftur';
+        b.onclick = retry; st.appendChild(b);
+      }
+    }
+    console.error('labWordHelp write failed', e);
+    return false;
+  }
+}
+
+function wlUid(){
+  if (!auth || !auth.currentUser)
+    throw new Error('Ekki innskráður — dómurinn hefði horfið án þess að nokkur sæi.');
+  return auth.currentUser.uid;
+}
+
+window.wlVerdict = function(kind, v){
+  const n = kind === 'lemma' ? 'v1' : 'v2';
+  const r = _wlResult || {};
+  return wlCommit(
+    ['yes','no','idk'].map(k => `wl-${n}-${k}`), `wl-${n}-${v}`, `wl-${n}-status`,
+    { kind, verdict: v, mode: _wlMode, inoId: r.id || '',
+      word: r.word || '', sentence: r.sentence || '', lemma: r.lemma || '',
+      pos: r.pos || '', simple: r.simple || '',
+      sourceName: r.source?.name || '', sourceText: r.source?.text || '',
+      cache: r.cache || '', ms: r.ms || 0 },
+    () => wlVerdict(kind, v));
+};
+
+// ── ÍTARLEGT ────────────────────────────────────────────────────────────
+function wlAdv(){
+  return `
+  <div class="wl-card">
+    <div class="wl-eyebrow">T1 — Kvörðun dómarans</div>
+    <div class="wl-note" style="margin:0 0 12px">
+      Átta plantaðar útvíkkanir úr <b>raunverulegum ÍNO-færslum</b>. Ekkert AI býr þær til.
+      Mælir aðeins: grípur dómarinn það sem hann á að grípa?<br>
+      <b>Nær hann ekki 7/8 er T2 hávaði.</b> Þá er sjálfvirkt hlið ekki mögulegt —
+      og það er líka niðurstaða.
+    </div>
+    <button class="wl-btn" onclick="wlRunPlants()" ${_wlBusy?'disabled':''}>
+      ${_wlBusy?'Keyri…':'Keyra T1'}
+    </button>
+    ${_wlPlants ? wlPlantResults() : ''}
+  </div>
+
+  <div class="wl-card">
+    <div class="wl-eyebrow">T2 — Blint vs. sjáandi</div>
+    <div class="wl-note" style="margin:0 0 12px">
+      <b>Blinda tilgátan er dauð.</b> Hún hvíldi á því að Gemini hefði skáldað
+      „barn eða gamalmenni“. Það gerði það ekki — það er skilgreining ÍNO.<br><br>
+      Nýja tilgátan: <b>girðingin</b>. Arm A fær aðeins skilgreininguna (miðgildi 5 orð).
+      Arm B fær skilgreiningu <i>+ notkunardæmi + samsetningarniðurbrot</i>.
+      Þú átt 35.311 dæmi og 41.627 samsetningar. Ef Arm B helst frekar innan
+      girðingarinnar er svarið að nota þau. Ef ekki, þá eru þau þyngd.
+    </div>
+    <div class="wl-row" style="grid-template-columns:1fr auto">
+      <input class="wl-input" id="wl-abword" placeholder="orð — prófaðu ferðalöngum"
+             onkeydown="if(event.key==='Enter')wlRunAB()">
+      <button class="wl-btn" onclick="wlRunAB()" ${_wlBusy?'disabled':''}>Keyra A/B</button>
+    </div>
+    <div class="wl-chips">
+      ${WL_WORDS.slice(0,6).map(x=>`<span class="wl-chip" onclick="document.getElementById('wl-abword').value='${x.w}';wlRunAB()">${x.w}</span>`).join('')}
+    </div>
+    ${_wlAB ? wlABResults() : ''}
+  </div>`;
+}
+
+window.wlRunPlants = async function(){
+  if (_wlBusy) return;
+  _wlBusy = true; _wlPlants = null; wlBody();
+  const out = [];
+  for (const p of WL_PLANTS){
+    try {
+      // Dómarinn er BLINDUR: flettan er hulin áður en hún fer inn.
+      const r = await wlFn()({ mode:'judge', definition:p.def, simple:p.simple, id:p.id_ino });
+      const j = r.data;
+      const verdict = (j.entailed && !j.widened && !j.narrowed && !j.circular && !j.is_label) ? 'PASS' : 'FAIL';
+      out.push({ ...p, got:verdict, ok:verdict===p.expect, reason:j.reason, masked:j.masked });
+    } catch(e){ out.push({ ...p, got:'ERR', ok:false, reason:e.message }); }
+  }
+  _wlPlants = out; _wlBusy = false; _wlPlantsSaved = 'pending'; wlBody();
+  // T1-niðurstaðan er kvörðun mælitækisins. Hún má hvorki hverfa við refresh
+  // né þykjast hafa vistast. Staðan birtist í spjaldinu.
+  try {
+    const db = initFirebase(); const uid = wlUid();
+    const batch = db.batch();
+    for (const p of out) {
+      batch.set(db.collection('labWordHelp').doc(), {
+        kind:'plant', verdict: p.ok ? 'correct' : 'wrong',
+        plantId: p.id, inoId: p.id_ino, lemma: p.lemma,
+        sourceText: p.def, simple: p.simple,
+        expected: p.expect, judged: p.got, judgeReason: p.reason || '',
+        by: uid, at: firebase.firestore.FieldValue.serverTimestamp()
+      });
+    }
+    await batch.commit();
+    _wlPlantsSaved = 'saved';
+  } catch(err) {
+    _wlPlantsSaved = 'error:' + (err.message || String(err));
+    console.error('T1 log failed', err);
+  }
+  wlBody();
+};
+
+function wlPlantResults(){
+  const hits = _wlPlants.filter(p=>p.ok).length, n = _wlPlants.length;
+  const pass = hits >= n-1;
+  return `
+  <div style="margin-top:14px">
+    ${_wlPlants.map(p=>`
+      <div class="wl-plant">
+        <div class="${p.ok?'wl-ok':'wl-bad'}">${p.ok?'\u2713':'\u2717'}</div>
+        <div>
+          <div style="color:#d9e5ef">${esc(p.simple)}</div>
+          <div style="color:#7a8fa0;font-size:10.5px;margin-top:4px;font-family:monospace">
+            ÍNO ${esc(p.id_ino)}: ${esc(p.def)}</div>
+          <div style="color:#5d7088;font-size:11px;margin-top:4px">${esc(p.why)}</div>
+          ${!p.ok?`<div class="wl-bad" style="font-size:11px;margin-top:3px">dómari sagði: ${esc(p.reason||'—')}</div>`:''}
+        </div>
+        <div style="font-family:monospace;font-size:11px;color:#5d7088;white-space:nowrap">
+          ${p.got} / ${p.expect}</div>
+      </div>`).join('')}
+    <div style="margin-top:14px;padding:12px;border-radius:12px;
+      background:${pass?'rgba(29,205,211,.07)':'rgba(255,107,107,.09)'};
+      border:1px solid ${pass?'rgba(29,205,211,.3)':'rgba(255,107,107,.4)'}">
+      <div style="font-size:15px;font-weight:900;color:${pass?'#1dcdd3':'#ff6b6b'}">
+        Dómari: ${hits}/${n}</div>
+      <div style="font-size:12px;color:#7a8fa0;margin-top:5px;line-height:1.55">
+        ${pass ? 'Dómarinn er nothæfur. T2-tölur eru marktækar.'
+               : 'STOPP. Dómarinn grípur ekki plantaðar villur. T2 væri hávaði — og lota á 50.000 færslur er ekki sjálfvirkt hliðanleg. Þetta er dýrmætasta niðurstaðan sem labbið getur gefið þér.'}
+      </div>
+      <div class="wl-vstatus ${_wlPlantsSaved==='saved'?'saved':_wlPlantsSaved==='pending'?'pending':'error'}" style="margin-top:9px">
+        ${_wlPlantsSaved==='saved' ? '✓ Kvörðun vistuð (' + _wlPlants.length + ' plöntur)'
+          : _wlPlantsSaved==='pending' ? 'Vista kvörðun…'
+          : '⚠ Kvörðunin vistaðist EKKI — talan að ofan er á skjánum einum og hverfur við refresh.'
+            + '<span>' + esc((_wlPlantsSaved||'').replace('error:','')) + '</span>'}
+      </div>
+    </div>
+  </div>`;
+}
+
+window.wlRunAB = async function(){
+  const word = (document.getElementById('wl-abword').value||'').trim();
+  if (!word || _wlBusy) return;
+  _wlBusy = true; _wlAB = null; wlBody();
+  try {
+    const r = await wlFn()({ mode:'ab', word });
+    _wlAB = { ...r.data, word };
+  } catch(e){ _wlAB = { error: e.message, word }; }
+  _wlBusy = false; wlBody();
+};
+
+function wlABResults(){
+  if (_wlAB.error) return `<div class="wl-src wl-bad" style="margin-top:12px">${esc(_wlAB.error)}</div>`;
+  const arm = (t,sub,a) => `
+    <div class="wl-arm">
+      <h5>${t}</h5><div class="sub">${sub}</div>
+      <div style="color:#d9e5ef;font-size:14px;line-height:1.5">${esc(a?.simple||'—')}</div>
+      <div style="margin-top:9px;font-size:11px;font-family:monospace"
+           class="${a?.verdict==='PASS'?'wl-ok':'wl-bad'}">
+        dómari: ${esc(a?.verdict||'—')}</div>
+      <div style="font-size:10.5px;color:#5d7088;margin-top:3px">${esc(a?.reason||'')}</div>
+    </div>`;
+  return `
+  <div style="margin-top:14px">
+    <div class="wl-src"><b>Heimild:</b> ${esc(_wlAB.source?.text||'—')}</div>
+    <div class="wl-ab" style="margin-top:10px">
+      ${arm('Arm A','aðeins skilgreining', _wlAB.armA)}
+      ${arm('Arm B','skilgreining + dæmi + samsetning', _wlAB.armB)}
+    </div>
+    <div class="wl-verdict">
+      <div class="wl-vq">Hvor er réttari?
+        <small>Þinn dómur, ekki dómarans. Þetta er gagnapunkturinn.</small></div>
+      <div class="wl-vbtns">
+        <button class="wl-vbtn" id="wl-ab-A" onclick="wlABVerdict('A')">A betri</button>
+        <button class="wl-vbtn" id="wl-ab-B" onclick="wlABVerdict('B')">B betri</button>
+        <button class="wl-vbtn" id="wl-ab-tie" onclick="wlABVerdict('tie')">Jafnt</button>
+        <button class="wl-vbtn" id="wl-ab-both_bad" onclick="wlABVerdict('both_bad')">Bæði röng</button>
+      </div>
+      <div class="wl-vstatus" id="wl-ab-status"></div>
+    </div>
+  </div>`;
+}
+
+window.wlABVerdict = function(v){
+  return wlCommit(
+    ['A','B','tie','both_bad'].map(k => `wl-ab-${k}`), `wl-ab-${v}`, 'wl-ab-status',
+    { kind:'ab', verdict:v, word:_wlAB.word||'', lemma:_wlAB.lemma||'',
+      inoId:_wlAB.id||'', armA:_wlAB.armA?.simple||'', armB:_wlAB.armB?.simple||'',
+      judgeA:_wlAB.armA?.verdict||'', judgeB:_wlAB.armB?.verdict||'',
+      sourceText:_wlAB.source?.text||'' },
+    () => wlABVerdict(v));
+};
+
+// ── util ────────────────────────────────────────────────────────────────
+function dbg(k,v){ return `<div class="wl-dbg-row"><div class="wl-dbg-k">${k}</div><div class="wl-dbg-v">${v||'—'}</div></div>`; }
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
 </script>
 </body>
 </html>

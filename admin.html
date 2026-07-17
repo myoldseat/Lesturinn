@@ -4129,6 +4129,8 @@ const WL_PLANTS = [
 let _wlMode = 'easy';
 let _wlBusy = false;
 let _wlResult = null;
+let _wlWord = '';
+let _wlSent = '';
 let _wlAB = null;
 let _wlPlants = null;
 let _wlPlantsSaved = null;
@@ -4260,22 +4262,26 @@ function wlEasy(){
   <div class="wl-card">
     <div class="wl-eyebrow">Fletta upp</div>
     <div class="wl-row">
-      <input class="wl-input" id="wl-word" placeholder="orð, eins og það stendur í bókinni"
-             onkeydown="if(event.key==='Enter')wlSearch()">
-      <input class="wl-input" id="wl-sent" placeholder="setningin — velur merkingu sjálfkrafa ef hún sker úr">
+      <input class="wl-input" id="wl-word" value="${esc(_wlWord)}"
+             placeholder="orð, eins og það stendur í bókinni"
+             oninput="_wlWord=this.value" onkeydown="if(event.key==='Enter')wlSearch()">
+      <input class="wl-input" id="wl-sent" value="${esc(_wlSent)}"
+             placeholder="setningin — velur merkingu sjálfkrafa ef hún sker úr"
+             oninput="_wlSent=this.value">
       <button class="wl-btn" onclick="wlSearch()" ${_wlBusy?'disabled':''}>
         ${_wlBusy?'Leita…':'Leita'}
       </button>
     </div>
     <div class="wl-chips">
       ${WL_WORDS.map(x=>`<span class="wl-chip ${/VILLA|BÍN-lemma/.test(x.note)?'danger':''}"
-        title="${x.note}" onclick="wlPick('${x.w}')">${x.w}</span>`).join('')}
+        title="${esc(x.note)}" onclick="wlChip('${x.w}')">${esc(x.w)}</span>`).join('')}
     </div>
     <div class="wl-note">
       Setning velur merkingu: líkanið skilar <b>númeri</b> úr listanum, ekki merkingu.
       Engin setning + fleiri en ein merking = <b>ekkert AI-kall</b>, þú velur.<br>
       Sveifðu yfir orð til að sjá hvað ÍNO segir raunverulega um það.
-      <b>ferðalöngum</b> 
+      <b>ferðalöngum</b> er ekki grunnlína lengur — ÍNO segir bara „ferðamaður“,
+      eitt orð. Það er erfiðasta prófið, ekki það auðveldasta.
     </div>
   </div>
   <div id="wl-out">${_wlResult ? wlResult(_wlResult) : `
@@ -4284,19 +4290,24 @@ function wlEasy(){
     </div></div>`}</div>`;
 }
 
-window.wlPickWord = function(word){
-  document.getElementById('wl-word').value = word;
-  wlSearch();
-};
+// Kubbur -> setur orðið og leitar. AÐSKILIÐ frá wlPick (merkingarvali).
+// Þau hétu bæði wlPick og seinni skilgreiningin drap kubbana.
+window.wlChip = w => { _wlWord = w; _wlSent = ''; wlSearch(); };
 
-window.wlPickMeaning = function(id, sense){
-  wlSearch(id, sense);
-};
+// Val úr kandídatalista -> fletta upp aftur, þvinguð á þá flettu.
+window.wlPick = (id, sense) => wlSearch(id, sense);
 
 window.wlSearch = async function(forceId, forceSense){
-  const word = (document.getElementById('wl-word').value||'').trim();
-  if (!word || _wlBusy) return;
-  const sentence = (document.getElementById('wl-sent').value||'').trim();
+  const el = document.getElementById('wl-word');
+  const word = ((el ? el.value : _wlWord) || '').trim();
+  // Þögult return var ástæðan fyrir að smellur á merkingu gerði EKKERT:
+  // wlBody() endurteiknar reitinn, hann tæmdist, og þetta skilaði án orðs.
+  if (!word) { _wlResult = { error: 'Ekkert orð í reitnum.' }; wlBody(); return; }
+  if (_wlBusy) return;
+  _wlWord = word;
+  const se = document.getElementById('wl-sent');
+  const sentence = ((se ? se.value : _wlSent) || '').trim();
+  _wlSent = sentence;
   _wlBusy = true; wlBody();
   const t0 = performance.now();
   try {
@@ -4416,7 +4427,8 @@ function wlResult(r){
 function wlOpts(opts, curId, curSense){
   return opts.map(o=>`
     <div class="wl-cand ${o.id===curId&&o.sense===curSense?'on':''}"
-onclick="wlPickMeaning('${o.id}', ${o.sense})"      <b>${esc(o.w)}</b><i>${esc(o.abbr)}</i>
+         onclick="wlPick('${o.id}',${o.sense})">
+      <b>${esc(o.w)}</b><i>${esc(o.abbr)}</i>
       <span>${esc(o.def||'(engin skýring)')}</span>
       ${o.id===curId&&o.sense===curSense?'<em>sýnt</em>':''}
     </div>`).join('');

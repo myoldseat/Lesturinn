@@ -4275,8 +4275,7 @@ function wlEasy(){
       Setning velur merkingu: líkanið skilar <b>númeri</b> úr listanum, ekki merkingu.
       Engin setning + fleiri en ein merking = <b>ekkert AI-kall</b>, þú velur.<br>
       Sveifðu yfir orð til að sjá hvað ÍNO segir raunverulega um það.
-      <b>ferðalöngum</b> er ekki grunnlína lengur — ÍNO segir bara „ferðamaður“,
-      eitt orð. Það er erfiðasta prófið, ekki það auðveldasta.
+      <b>ferðalöngum</b> 
     </div>
   </div>
   <div id="wl-out">${_wlResult ? wlResult(_wlResult) : `
@@ -4285,10 +4284,14 @@ function wlEasy(){
     </div></div>`}</div>`;
 }
 
-window.wlPick = w => { document.getElementById('wl-word').value = w; wlSearch(); };
+window.wlPickWord = function(word){
+  document.getElementById('wl-word').value = word;
+  wlSearch();
+};
 
-// Val úr kandídatalista -> fletta upp aftur, þvinguð á þá flettu.
-window.wlPick = (id, sense) => wlSearch(id, sense);
+window.wlPickMeaning = function(id, sense){
+  wlSearch(id, sense);
+};
 
 window.wlSearch = async function(forceId, forceSense){
   const word = (document.getElementById('wl-word').value||'').trim();
@@ -4413,8 +4416,7 @@ function wlResult(r){
 function wlOpts(opts, curId, curSense){
   return opts.map(o=>`
     <div class="wl-cand ${o.id===curId&&o.sense===curSense?'on':''}"
-         onclick="wlPick('${o.id}',${o.sense})">
-      <b>${esc(o.w)}</b><i>${esc(o.abbr)}</i>
+onclick="wlPickMeaning('${o.id}', ${o.sense})"      <b>${esc(o.w)}</b><i>${esc(o.abbr)}</i>
       <span>${esc(o.def||'(engin skýring)')}</span>
       ${o.id===curId&&o.sense===curSense?'<em>sýnt</em>':''}
     </div>`).join('');

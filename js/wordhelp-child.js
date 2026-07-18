@@ -232,6 +232,32 @@ async function save() {
   const ref = doc(db, 'childWords', key);
   try {
     const prev = await getDoc(ref);
+
+    // ── GREINING v2 (tímabundið) — sannreynir að RÉTT skrá sé í loftinu ──
+    console.group('%c★ childWords DEBUG v2 ★', 'color:#0a0;font-weight:bold');
+    console.log('1. branch     :', prev.exists() ? 'UPDATE' : 'CREATE');
+    console.log('2. ref.path   :', ref.path);
+    console.log('5. snap.exists:', prev.exists());
+    if (prev.exists()) {
+      console.log('6. EXISTING doc keys:', Object.keys(prev.data()));
+      console.log('6. EXISTING doc     :', prev.data());
+    }
+    const _pv = prev.exists()
+      ? { searchedForm: _word, simpleSnapshot: _last.simple || null, bookId,
+          count: '<increment(1)>', lastAt: '<serverTimestamp>' }
+      : { familyId: cs.familyId, childKey: cs.childKey, wordHelpId: _last.wordHelpId,
+          lemma: _last.lemma || '', searchedForm: _word,
+          simpleSnapshot: _last.simple || null, bookId, count: 1,
+          firstAt: '<serverTimestamp>', lastAt: '<serverTimestamp>' };
+    console.log('3. payload keys:', Object.keys(_pv));
+    console.log('4. payload     :', _pv);
+    console.log('   familyId    :', typeof cs.familyId, JSON.stringify(cs.familyId));
+    console.log('   childKey     :', typeof cs.childKey, JSON.stringify(cs.childKey));
+    console.log('   wordHelpId   :', typeof _last.wordHelpId, JSON.stringify(_last.wordHelpId));
+    console.log('   bookId       :', typeof bookId, JSON.stringify(bookId));
+    console.groupEnd();
+    // ── /GREINING ─────────────────────────────────────────────────────
+
     if (prev.exists()) {
       // Enduruppfletting: nýjasta uppfletting + nýjasta bók. firstAt óbreytt.
       await setDoc(ref, {
@@ -262,7 +288,10 @@ async function save() {
     // Vistun sem mistekst í hljóði er verri en engin vistun: barnið heldur
     // að orðið sé geymt og það er farið. Mjúkt á skjá, nákvæmt í console.
     if (note) note.innerHTML = '<div class="wh-saved err">Orðið geymdist ekki. Prófaðu aftur.</div>';
-    console.error('childWords write failed', e);
+    console.error('★ childWords write failed ★');
+    console.error('  code   :', e && e.code);
+    console.error('  message:', e && e.message);
+    console.error('  raw    :', e);
   }
 }
 

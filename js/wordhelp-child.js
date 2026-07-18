@@ -29,7 +29,7 @@
 
 import { getApp } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js';
 import { getFunctions, httpsCallable } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-functions.js';
-import { getFirestore, doc, getDoc, setDoc, increment, serverTimestamp }
+import { getFirestore, doc, setDoc, updateDoc, increment, serverTimestamp }
   from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js';
 
 const app = getApp();
@@ -230,68 +230,63 @@ async function save() {
   const bookId = setup.bookId || null;
   const key = `${cs.familyId}_${cs.childKey}_${_last.id}_${_last.sense || 0}`;
   const ref = doc(db, 'childWords', key);
+
+  // ── UPDATE-FYRST, CREATE Á FALLI — ENGINN getDoc-LESTUR ─────────────
+  // save() las áður getDoc(ref) til að velja grein. En fyrir skjal sem er
+  // EKKI TIL er `resource` == null, svo read-reglan (resource.data-bundin,
+  // réttilega) hafnaði lestrinum — barnið mátti ekki einu sinni spyrja hvort
+  // skjalið væri til. Það var rótin: save() féll á getDoc, ekki á setDoc.
+  //
+  // Lausn án þess að veikja regluna: UPDATE fyrst. updateDoc krefst þess að
+  // skjalið SÉ til — svo það heppnast á enduruppflettingu (algengasta leiðin)
+  // og fellur með 'not-found' á fyrstu uppflettingu. Þá — og aðeins þá —
+  // gerum við CREATE. Kóðinn gerir aldrei hættulega yfirskrift; hann treystir
+  // ekki á regluna til að stöðva sig. Read-reglan er aldrei metin gegn
+  // `resource` == null því við lesum aldrei skjal sem er ekki til.
+  //
+  // firstAt er write-once: AÐEINS í create-payloadinu. update snertir það
+  // aldrei, svo "fyrsta uppfletting" helst rétt. count hækkar með increment
+  // (update) eða byrjar í 1 (create).
+  const updatePayload = {
+    searchedForm: _word,
+    simpleSnapshot: _last.simple || null,
+    bookId: bookId,
+    count: increment(1),
+    lastAt: serverTimestamp()
+  };
+  const createPayload = {
+    familyId: cs.familyId,
+    childKey: cs.childKey,
+    wordHelpId: _last.wordHelpId,
+    lemma: _last.lemma || '',
+    searchedForm: _word,
+    simpleSnapshot: _last.simple || null,
+    bookId: bookId,
+    count: 1,
+    firstAt: serverTimestamp(),
+    lastAt: serverTimestamp()
+  };
+
   try {
-    const prev = await getDoc(ref);
-
-    // ── GREINING v2 (tímabundið) — sannreynir að RÉTT skrá sé í loftinu ──
-    console.group('%c★ childWords DEBUG v2 ★', 'color:#0a0;font-weight:bold');
-    console.log('1. branch     :', prev.exists() ? 'UPDATE' : 'CREATE');
-    console.log('2. ref.path   :', ref.path);
-    console.log('5. snap.exists:', prev.exists());
-    if (prev.exists()) {
-      console.log('6. EXISTING doc keys:', Object.keys(prev.data()));
-      console.log('6. EXISTING doc     :', prev.data());
-    }
-    const _pv = prev.exists()
-      ? { searchedForm: _word, simpleSnapshot: _last.simple || null, bookId,
-          count: '<increment(1)>', lastAt: '<serverTimestamp>' }
-      : { familyId: cs.familyId, childKey: cs.childKey, wordHelpId: _last.wordHelpId,
-          lemma: _last.lemma || '', searchedForm: _word,
-          simpleSnapshot: _last.simple || null, bookId, count: 1,
-          firstAt: '<serverTimestamp>', lastAt: '<serverTimestamp>' };
-    console.log('3. payload keys:', Object.keys(_pv));
-    console.log('4. payload     :', _pv);
-    console.log('   familyId    :', typeof cs.familyId, JSON.stringify(cs.familyId));
-    console.log('   childKey     :', typeof cs.childKey, JSON.stringify(cs.childKey));
-    console.log('   wordHelpId   :', typeof _last.wordHelpId, JSON.stringify(_last.wordHelpId));
-    console.log('   bookId       :', typeof bookId, JSON.stringify(bookId));
-    console.groupEnd();
-    // ── /GREINING ─────────────────────────────────────────────────────
-
-    if (prev.exists()) {
-      // Enduruppfletting: nýjasta uppfletting + nýjasta bók. firstAt óbreytt.
-      await setDoc(ref, {
-        searchedForm: _word,
-        simpleSnapshot: _last.simple || null,
-        bookId: bookId,
-        count: increment(1),
-        lastAt: serverTimestamp()
-      }, { merge: true });
-    } else {
-      // Fyrsta uppfletting: allt skjalið, firstAt sett í eina skiptið.
-      await setDoc(ref, {
-        familyId: cs.familyId,
-        childKey: cs.childKey,
-        wordHelpId: _last.wordHelpId,
-        lemma: _last.lemma || '',
-        searchedForm: _word,
-        simpleSnapshot: _last.simple || null,
-        bookId: bookId,
-        count: 1,
-        firstAt: serverTimestamp(),
-        lastAt: serverTimestamp()
-      });
-    }
+    // UPDATE: heppnast á enduruppflettingu. Fellur með 'not-found' ef skjalið
+    // er ekki til enn (fyrsta uppfletting orðsins).
+    await updateDoc(ref, updatePayload);
     if (!_looked.includes(_last.lemma)) _looked.push(_last.lemma);
     if (note) note.innerHTML = '<div class="wh-saved">✓ Vistað í Orðin mín</div>';
-  } catch (e) {
-    // Vistun sem mistekst í hljóði er verri en engin vistun: barnið heldur
-    // að orðið sé geymt og það er farið. Mjúkt á skjá, nákvæmt í console.
-    if (note) note.innerHTML = '<div class="wh-saved err">Orðið geymdist ekki. Prófaðu aftur.</div>';
-    console.error('★ childWords write failed ★');
-    console.error('  code   :', e && e.code);
-    console.error('  message:', e && e.message);
-    console.error('  raw    :', e);
+  } catch (eUpdate) {
+    // Skjalið er ekki til → CREATE. setDoc með create-payload stenst
+    // create-regluna (count==1, firstAt==request.time, tíu reitir).
+    try {
+      await setDoc(ref, createPayload);
+      if (!_looked.includes(_last.lemma)) _looked.push(_last.lemma);
+      if (note) note.innerHTML = '<div class="wh-saved">✓ Vistað í Orðin mín</div>';
+    } catch (eCreate) {
+      // Bæði féllu → raunveruleg villa (regla, net), ekki update/create
+      // ruglingur. Mjúkt á skjá, nákvæmt í console.
+      if (note) note.innerHTML = '<div class="wh-saved err">Orðið geymdist ekki. Prófaðu aftur.</div>';
+      console.error('childWords update failed:', eUpdate && eUpdate.code, eUpdate && eUpdate.message);
+      console.error('childWords create failed:', eCreate && eCreate.code, eCreate && eCreate.message);
+    }
   }
 }
 

@@ -171,8 +171,8 @@ function render() {
 
     ${r.options && r.options.length > 1 ? `
       <button class="wh-btn-ghost" id="wh-other" type="button">Annað orð átti ég við</button>` : ''}
-    <button class="wh-btn-ghost" id="wh-para" type="button" style="margin-left:6px">Skoða beygingu</button>
-    <div id="wh-para-out"></div>
+    ${beygingSupported(r.pos) ? `
+      <button class="wh-btn-ghost" id="wh-para" type="button" style="margin-left:6px">Skoða beygingu</button>` : ''}
 
     <div class="wh-ino">${esc(src.text || '')}
       ${src.url ? `<br><a href="${esc(src.url)}" target="_blank" rel="noopener">Íslensk nútímamálsorðabók</a> · Árnastofnun · CC BY-SA 4.0` : ''}
@@ -183,25 +183,209 @@ function render() {
   if (other) other.addEventListener('click', () => {
     _last = { ...r, needsChoice: true }; render();
   });
-  $('wh-para').addEventListener('click', paradigm);
+  const para = $('wh-para');
+  if (para) para.addEventListener('click', paradigm);
 
   save();   // sjálfvirkt — barnið á ekki að þurfa að muna að vista
 }
 
-// ── Beyging: sérstakt kall, sérstök skrá, aðeins þegar beðið er um ──
+// ════════════════════════════════════════════════════════════════════
+//  BEYGING — stór sér-modal ofan á merkingar-modalnum.
+//  Þrír flokkar (nafnorð, lýsingarorð, sögn) fá læsilega töflu;
+//  aðrir flokkar fá engan hnapp. Hráu BÍN-mörkin (NFET, FSB-KK-NFET,
+//  GM-FH-NT-3P-ET…) eru þáttuð HÉR í læsilegan íslenskan texta.
+//  Engin ný gögn, sama lookupWordParadigm-kall. Modalinn opnast yfir
+//  merkingunni; "← til baka" / "✕" skila í hana óraskaða.
+// ════════════════════════════════════════════════════════════════════
+
+const CASE_LBL = { NF: 'Nefnifall', ÞF: 'Þolfall', ÞGF: 'Þágufall', EF: 'Eignarfall' };
+const CASE_ORDER = ['NF', 'ÞF', 'ÞGF', 'EF'];
+const HATTUR_LBL = {
+  FH: 'Framsöguháttur', VH: 'Viðtengingarháttur', BH: 'Boðháttur',
+  NH: 'Nafnháttur', LHNT: 'Lýsingarháttur nútíðar', LHÞT: 'Lýsingarháttur þátíðar',
+  SAGNB: 'Sagnbót', SP: 'Spurnarmyndir'
+};
+
+// ── Þáttun: forms = [{form, mark}] úr lookupWordParadigm ──────────────
+function findForm(forms, mark) {
+  const h = forms.find((f) => f.mark === mark);
+  return h ? h.form : null;
+}
+
+function parseNoun(forms) {
+  const table = (tala) => CASE_ORDER.map((fall) => ({
+    fall, label: CASE_LBL[fall],
+    plain: findForm(forms, fall + tala),
+    def: findForm(forms, fall + tala + 'gr')
+  }));
+  const ft = table('FT');
+  return { et: table('ET'), ft: ft.some((r) => r.plain || r.def) ? ft : null };
+}
+
+function parseAdj(forms) {
+  const genderTable = (kyn) => CASE_ORDER.map((fall) => ({
+    fall, label: CASE_LBL[fall], form: findForm(forms, `FSB-${kyn}-${fall}ET`)
+  }));
+  return {
+    stig: {
+      frum: findForm(forms, 'FSB-KK-NFET'),
+      mid: findForm(forms, 'MST-KK-NFET'),
+      efsta: findForm(forms, 'ESB-KK-NFET')
+    },
+    kk: genderTable('KK'), kvk: genderTable('KVK'), hk: genderTable('HK')
+  };
+}
+
+function parseVerb(forms) {
+  const pers = [['ég', '1'], ['þú', '2'], ['hann/hún/það', '3']];
+  return {
+    nafnhattur: findForm(forms, 'GM-NH'),
+    nutid: pers.map(([p, n]) => ({ p, form: findForm(forms, `GM-FH-NT-${n}P-ET`) })),
+    thatid: pers.map(([p, n]) => ({ p, form: findForm(forms, `GM-FH-ÞT-${n}P-ET`) })),
+    forms // geymt fyrir "Meira" (myndir + hættir)
+  };
+}
+
+// ── Render: byggir HTML fyrir modalinn ───────────────────────────────
+function renderNoun(n, lemma) {
+  const rows = (tbl) => tbl.map((r) => `
+    <tr><th>${esc(r.label)} <span class="bg-ab">(${r.fall})</span></th>
+        <td>${esc(r.plain || '—')}</td><td>${esc(r.def || '—')}</td></tr>`).join('');
+  return `
+    <table class="bg-table">
+      <thead><tr><th>Eintala</th><th>án greinis</th><th>með greini</th></tr></thead>
+      <tbody>${rows(n.et)}</tbody>
+    </table>
+    ${n.ft ? `
+      <button class="bg-more" data-more="noun-ft">Sýna fleirtölu</button>
+      <div class="bg-hidden" data-panel="noun-ft">
+        <table class="bg-table">
+          <thead><tr><th>Fleirtala</th><th>án greinis</th><th>með greini</th></tr></thead>
+          <tbody>${rows(n.ft)}</tbody>
+        </table>
+      </div>` : ''}`;
+}
+
+function renderAdj(a, lemma) {
+  const s = a.stig;
+  const genderTbl = (tbl, heading) => `
+    <table class="bg-table">
+      <thead><tr><th colspan="2">${esc(heading)}</th></tr></thead>
+      <tbody>${tbl.map((r) => `
+        <tr><th>${esc(r.label)} <span class="bg-ab">(${r.fall})</span></th>
+            <td>${esc(r.form || '—')}</td></tr>`).join('')}</tbody>
+    </table>`;
+  return `
+    ${(s.frum || s.mid || s.efsta) ? `
+      <div class="bg-stig">
+        <span class="bg-stig-lbl">Stigbreyting</span>
+        <span class="bg-stig-forms">${esc(s.frum || '—')} · ${esc(s.mid || '—')} · ${esc(s.efsta || '—')}</span>
+      </div>` : ''}
+    ${genderTbl(a.kk, 'Eintala — karlkyn')}
+    <button class="bg-more" data-more="adj-gender">Sýna önnur kyn</button>
+    <div class="bg-hidden" data-panel="adj-gender">
+      ${genderTbl(a.kvk, 'Eintala — kvenkyn')}
+      ${genderTbl(a.hk, 'Eintala — hvorugkyn')}
+    </div>`;
+}
+
+function renderVerb(v, lemma) {
+  const persTbl = (title, rows) => `
+    <table class="bg-table bg-verb">
+      <thead><tr><th colspan="2">${esc(title)}</th></tr></thead>
+      <tbody>${rows.map((r) => `
+        <tr><th>${esc(r.p)}</th><td>${esc(r.form || '—')}</td></tr>`).join('')}</tbody>
+    </table>`;
+  // "Meira": myndir (GM/MM) og hættir — flokka allar myndir
+  const byMynd = { GM: [], MM: [] };
+  for (const { form, mark } of v.forms) {
+    const parts = mark.split('-');
+    const mynd = parts.includes('GM') ? 'GM' : (parts.includes('MM') ? 'MM' : null);
+    if (!mynd || !form) continue;
+    const hp = parts.find((p) => HATTUR_LBL[p]);
+    byMynd[mynd].push({ form, hattur: hp ? HATTUR_LBL[hp] : mark });
+  }
+  // Dregur saman einstakar myndir í eina línu per hátt (fyrst fáein afbrigði).
+  const groupByHattur = (arr) => {
+    const groups = {};
+    for (const x of arr) {
+      if (!groups[x.hattur]) groups[x.hattur] = new Set();
+      groups[x.hattur].add(x.form);
+    }
+    return Object.entries(groups).map(([h, set]) => `
+      <div class="bg-more-row"><span class="bg-more-h">${esc(h)}</span>
+        <span class="bg-more-f">${[...set].map(esc).join(' · ')}</span></div>`).join('');
+  };
+  return `
+    <div class="bg-nh">Nafnháttur: <b>að ${esc(v.nafnhattur || lemma)}</b></div>
+    <div class="bg-verb-grid">
+      ${persTbl('Nútíð (eintala)', v.nutid)}
+      ${persTbl('Þátíð (eintala)', v.thatid)}
+    </div>
+    <div class="bg-more-head">Meira</div>
+    <button class="bg-more" data-more="verb-all">Sýna allar myndir og hætti</button>
+    <div class="bg-hidden" data-panel="verb-all">
+      <div class="bg-more-sub">Germynd</div>${groupByHattur(byMynd.GM)}
+      ${byMynd.MM.length ? `<div class="bg-more-sub">Miðmynd</div>${groupByHattur(byMynd.MM)}` : ''}
+    </div>`;
+}
+
+// pos úr fallinu: 'n' nafnorð, 'adj' lýsingarorð, 'v' sögn
+function beygingSupported(pos) {
+  return pos === 'n' || pos === 'adj' || pos === 'v';
+}
+const POS_HEITI = { n: 'nafnorð', adj: 'lýsingarorð', v: 'sögn' };
+
+// ── Opna beygingar-modal ─────────────────────────────────────────────
 async function paradigm() {
-  const out = $('wh-para-out');
-  out.innerHTML = '<div class="wh-msg">Hleð beygingu…</div>';
+  const modal = $('bg-modal');
+  const body = $('bg-body');
+  const title = $('bg-title');
+  if (!modal || !body) return;
+  const lemma = _last.lemma || '';
+  const pos = _last.pos || '';
+  title.textContent = `Beyging — ${lemma}`;
+  $('bg-sub').textContent = POS_HEITI[pos] || '';
+  body.innerHTML = '<div class="wh-msg">Hleð beygingu…</div>';
+  modal.classList.add('open');
+  modal.setAttribute('aria-hidden', 'false');
+
   try {
     const r = (await lookupPara({ id: _last.id })).data;
-    out.innerHTML = r.found
-      ? `<div class="wh-forms">${r.forms.map((f) =>
-          `<span class="wh-form"><b>${esc(f.form)}</b> ${esc(f.mark)}</span>`).join('')}</div>`
-      : `<div class="wh-msg">Engin beyging til fyrir þetta orð.</div>`;
+    if (!r.found || !r.forms || !r.forms.length) {
+      body.innerHTML = '<div class="wh-msg">Engin beyging til fyrir þetta orð.</div>';
+      return;
+    }
+    let html;
+    if (pos === 'n') html = renderNoun(parseNoun(r.forms), lemma);
+    else if (pos === 'adj') html = renderAdj(parseAdj(r.forms), lemma);
+    else if (pos === 'v') html = renderVerb(parseVerb(r.forms), lemma);
+    else {
+      // óstuddur flokkur — læsileg röð frekar en hrár kóði (öryggisnet)
+      html = `<div class="bg-fallback">${r.forms.map((f) =>
+        `<span class="bg-chip"><b>${esc(f.form)}</b></span>`).join('')}</div>`;
+    }
+    body.innerHTML = html;
+    // Tengja expand-hnappa
+    body.querySelectorAll('.bg-more').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const panel = body.querySelector(`[data-panel="${btn.dataset.more}"]`);
+        if (panel) {
+          const open = panel.classList.toggle('show');
+          btn.classList.toggle('open', open);
+          btn.textContent = btn.textContent.replace(/^Sýna |^Fela /, open ? 'Fela ' : 'Sýna ');
+        }
+      });
+    });
   } catch (e) {
-    out.innerHTML = `<div class="wh-msg">Beygingin sóttist ekki.</div>`;
-    console.error('lookupWordParadigm', e);
+    body.innerHTML = '<div class="wh-msg">Beygingin sóttist ekki núna. Prófaðu aftur.</div>';
+    console.error('lookupWordParadigm', e && e.code, e && e.message);
   }
+}
+
+function closeBeyging() {
+  const modal = $('bg-modal');
+  if (modal) { modal.classList.remove('open'); modal.setAttribute('aria-hidden', 'true'); }
 }
 
 // ── Vistun ──────────────────────────────────────────────────────────
@@ -290,9 +474,107 @@ async function save() {
   }
 }
 
+// ── Beygingar-modal: markup + stíll, sprautað einu sinni ─────────────
+// Notar CSS-breytur appsins (--card, --accent, --soft, --serif, --radius…)
+// svo modalinn líti út eins og hluti af child.html, ekki aðskotahlutur.
+function injectBeygingModal() {
+  if ($('bg-modal')) return;
+  const css = `
+    #bg-modal { position: fixed; inset: 0; z-index: 200; display: none;
+      align-items: flex-end; justify-content: center;
+      background: rgba(5,11,20,.72); backdrop-filter: blur(3px); }
+    #bg-modal.open { display: flex; }
+    .bg-sheet { width: 100%; max-width: 480px; max-height: 88vh; overflow-y: auto;
+      background: var(--card, rgba(12,22,38,.98)); border-top-left-radius: 22px;
+      border-top-right-radius: 22px; border: 1px solid var(--border-hl, rgba(29,205,211,.25));
+      border-bottom: none; padding: 0 20px calc(24px + var(--safe, 0px));
+      animation: bg-up .26s cubic-bezier(.22,1,.36,1); }
+    @keyframes bg-up { from { transform: translateY(100%); } to { transform: translateY(0); } }
+    @media (prefers-reduced-motion: reduce) { .bg-sheet { animation: none; } }
+    .bg-head { position: sticky; top: 0; background: var(--card, rgba(12,22,38,.98));
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 0 12px; border-bottom: 1px solid var(--line, rgba(29,205,211,.14)); z-index: 1; }
+    .bg-back { background: none; border: none; color: var(--accent, #1dcdd3);
+      font-size: 14px; font-weight: 600; cursor: pointer; padding: 6px 4px; }
+    .bg-x { background: none; border: none; color: var(--soft, #7a8fa0);
+      font-size: 22px; line-height: 1; cursor: pointer; padding: 4px 8px; }
+    .bg-titles { text-align: center; flex: 1; }
+    #bg-title { font-family: var(--serif); font-size: 19px; color: var(--text, #e8eef4);
+      font-weight: 400; }
+    #bg-sub { font-size: 10px; font-weight: 800; color: var(--soft, #7a8fa0);
+      text-transform: uppercase; letter-spacing: .6px; margin-top: 2px; }
+    #bg-body { padding-top: 16px; }
+    .bg-table { width: 100%; border-collapse: collapse; margin: 6px 0 14px; }
+    .bg-table thead th { font-size: 10px; font-weight: 800; color: var(--soft, #7a8fa0);
+      text-transform: uppercase; letter-spacing: .5px; text-align: left;
+      padding: 6px 8px; border-bottom: 1px solid var(--line, rgba(29,205,211,.14)); }
+    .bg-table tbody th { font-size: 13px; font-weight: 600; color: var(--soft, #7a8fa0);
+      text-align: left; padding: 9px 8px; white-space: nowrap; }
+    .bg-table tbody td { font-size: 15px; color: var(--text, #e8eef4); padding: 9px 8px;
+      font-family: var(--serif); }
+    .bg-table tbody tr + tr th, .bg-table tbody tr + tr td {
+      border-top: 1px solid var(--accent-dim, rgba(29,205,211,.08)); }
+    .bg-ab { font-size: 10px; font-weight: 700; color: var(--accent, #1dcdd3); opacity: .8; }
+    .bg-stig { display: flex; flex-direction: column; gap: 3px; padding: 12px;
+      background: var(--accent-dim, rgba(29,205,211,.08)); border-radius: 12px; margin: 4px 0 16px; }
+    .bg-stig-lbl { font-size: 10px; font-weight: 800; color: var(--soft, #7a8fa0);
+      text-transform: uppercase; letter-spacing: .5px; }
+    .bg-stig-forms { font-family: var(--serif); font-size: 17px; color: var(--text, #e8eef4); }
+    .bg-nh { font-size: 15px; color: var(--soft, #7a8fa0); margin: 4px 0 14px; }
+    .bg-nh b { font-family: var(--serif); color: var(--text, #e8eef4); font-weight: 400; }
+    .bg-verb-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    @media (max-width: 380px) { .bg-verb-grid { grid-template-columns: 1fr; } }
+    .bg-more-head { font-size: 10px; font-weight: 800; color: var(--soft, #7a8fa0);
+      text-transform: uppercase; letter-spacing: .6px; margin: 18px 0 8px;
+      padding-top: 14px; border-top: 1px solid var(--line, rgba(29,205,211,.14)); }
+    .bg-more { width: 100%; text-align: left; background: none;
+      border: 1px solid var(--line, rgba(29,205,211,.14)); border-radius: 10px;
+      color: var(--accent, #1dcdd3); font-size: 13px; font-weight: 600;
+      padding: 11px 14px; margin: 6px 0; cursor: pointer; display: flex;
+      justify-content: space-between; align-items: center; }
+    .bg-more::after { content: '▸'; transition: transform .2s; opacity: .7; }
+    .bg-more.open::after { transform: rotate(90deg); }
+    .bg-hidden { display: none; padding-top: 4px; }
+    .bg-hidden.show { display: block; }
+    .bg-more-sub { font-size: 11px; font-weight: 800; color: var(--accent, #1dcdd3);
+      text-transform: uppercase; letter-spacing: .5px; margin: 12px 0 6px; }
+    .bg-more-row { display: flex; justify-content: space-between; gap: 12px;
+      padding: 7px 8px; border-top: 1px solid var(--accent-dim, rgba(29,205,211,.08)); }
+    .bg-more-h { font-size: 12px; color: var(--soft, #7a8fa0); flex-shrink: 0; }
+    .bg-more-f { font-size: 13px; color: var(--text, #e8eef4); font-family: var(--serif);
+      text-align: right; }
+    .bg-fallback { display: flex; flex-wrap: wrap; gap: 6px; }
+    .bg-chip { font-size: 13px; color: var(--text, #e8eef4);
+      background: var(--accent-dim, rgba(29,205,211,.08)); border-radius: 7px; padding: 4px 9px;
+      font-family: var(--serif); }`;
+  const style = document.createElement('style');
+  style.textContent = css;
+  document.head.appendChild(style);
+
+  const modal = document.createElement('div');
+  modal.id = 'bg-modal';
+  modal.setAttribute('aria-hidden', 'true');
+  modal.setAttribute('role', 'dialog');
+  modal.innerHTML = `
+    <div class="bg-sheet">
+      <div class="bg-head">
+        <button class="bg-back" id="bg-back" type="button">← til baka</button>
+        <div class="bg-titles"><div id="bg-title"></div><div id="bg-sub"></div></div>
+        <button class="bg-x" id="bg-x" type="button" aria-label="Loka">✕</button>
+      </div>
+      <div id="bg-body"></div>
+    </div>`;
+  document.body.appendChild(modal);
+
+  $('bg-back').addEventListener('click', closeBeyging);
+  $('bg-x').addEventListener('click', closeBeyging);
+  modal.addEventListener('click', (e) => { if (e.target === modal) closeBeyging(); });
+}
+
 // ── Tengja ──────────────────────────────────────────────────────────
 function wire() {
   if (!$('wh-overlay')) return;          // eldri child.html — gerum ekkert
+  injectBeygingModal();
   const yes = $('post-save-word-yes');
   if (yes) yes.addEventListener('click', open);
   $('wh-go').addEventListener('click', () => search());

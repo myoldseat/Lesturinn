@@ -910,6 +910,11 @@ body{font-family:'DM Sans','Manrope',-apple-system,BlinkMacSystemFont,sans-serif
     }
 
     /* ── Post-save popup ── */
+    /* ── POST-SAVE ──────────────────────────────────────────
+       Fylgir .dialog / .child-action-modal: sama karta, sama hárlína,
+       h2 í weight 400, micro-labels 10px/800/UPPERCASE.
+       Áður: bold h2 með -0.55px tracking og labels án hástafa — það
+       lét þetta líta út eins og annað app. */
     .post-save-overlay {
       position: fixed; inset: 0; z-index: 11000;
       display: none; place-items: center;
@@ -919,32 +924,42 @@ body{font-family:'DM Sans','Manrope',-apple-system,BlinkMacSystemFont,sans-serif
     }
     .post-save-overlay.open { display: grid; }
     .post-save-card {
-      width: min(92vw, 390px);
-      position: relative; border-radius: 22px;
-      border: 1px solid rgba(29,205,211,0.22);
+      width: min(94vw, 400px); max-height: 92dvh; overflow: auto;
+      position: relative; border-radius: 20px;
+      border: 1px solid rgba(29,205,211,0.18);
       background: rgba(6,14,26,0.985);
-      color: #d9e5ef;
-      padding: 24px 22px 22px;
-      box-shadow: 0 32px 80px rgba(0,0,0,0.62), 0 0 60px rgba(29,205,211,0.09);
+      color: var(--text);
+      padding: 22px 20px 20px;
+      box-shadow: 0 32px 80px rgba(0,0,0,0.6);
       text-align: center;
     }
     .post-save-card::before {
-      content: ""; position: absolute; top: 0; left: 12%; right: 12%; height: 1px;
-      background: linear-gradient(90deg, rgba(29,205,211,0), rgba(29,205,211,0.60), rgba(29,205,211,0));
+      content: ""; position: absolute; top: 0; left: 10%; right: 10%; height: 1px;
+      background: linear-gradient(90deg, rgba(29,205,211,0), rgba(29,205,211,0.45), rgba(29,205,211,0));
     }
+    /* Kúlan var 58px með tvöföldum glow. Hún og hástafalínan og titillinn
+       kepptu öll um athyglina. Hún má vera, en hljóðlát. */
     .post-save-icon {
-      width: 58px; height: 58px; margin: 0 auto 13px;
+      width: 38px; height: 38px; margin: 2px auto 11px;
       border-radius: 50%; display: grid; place-items: center;
-      border: 1px solid rgba(29,205,211,0.42);
-      background: radial-gradient(circle at 50% 36%, rgba(29,205,211,0.25), rgba(8,19,31,0.96) 68%);
-      color: var(--teal); font-size: 25px;
-      box-shadow: 0 0 22px rgba(29,205,211,0.30), 0 0 44px rgba(29,205,211,0.16);
+      border: 1px solid rgba(29,205,211,0.30);
+      background: rgba(29,205,211,0.07);
+      color: var(--accent); font-size: 17px;
     }
-    .post-save-card h2 { margin: 0 0 7px; font-size: 24px; line-height: 1.1; letter-spacing: -0.55px; }
-    .post-save-card p { margin: 0 0 18px; color: rgba(148,164,180,0.84); font-size: 14px; line-height: 1.42; }
-    .post-save-actions { display: grid; gap: 10px; }
+    .post-save-card h2 {
+      margin: 2px 0 4px; text-align: center;
+      font-family: var(--serif); font-size: 22px; font-weight: 400;
+      letter-spacing: 0; line-height: 1.15;
+    }
+    .post-save-sub {
+      text-align: center; margin: 0 0 16px;
+      color: var(--soft); font-size: 12px; line-height: 1.5;
+    }
+    .post-save-step[hidden] { display: none; }
+    .post-save-choice { display: grid; gap: 9px; }
+    .post-save-actions { display: grid; gap: 9px; margin-top: 4px; }
     .post-save-btn {
-      width: 100%; min-height: 44px; border-radius: 11px;
+      width: 100%; min-height: 44px; border-radius: var(--r-sm);
       border: 1px solid rgba(29,205,211,0.34);
       background: rgba(29,205,211,0.10);
       color: #dffbff; font-size: 15px; font-weight: 800;
@@ -957,39 +972,100 @@ body{font-family:'DM Sans','Manrope',-apple-system,BlinkMacSystemFont,sans-serif
       border-color: rgba(122,187,218,0.18);
       color: rgba(217,229,239,0.82); box-shadow: none;
     }
-    .post-save-tagline {
-      margin: 0 0 9px; color: var(--teal); font-size: 12px; font-weight: 800;
-      letter-spacing: 0.45px; text-transform: uppercase;
-    }
-    .post-save-intro { margin-bottom: 16px; }
-    .post-save-field { text-align: left; margin-bottom: 13px; }
+    .post-save-field { text-align: left; margin-bottom: 12px; }
     .post-save-field label {
-      display: block; margin-bottom: 6px;
-      color: #d9e5ef; font-size: 11px; font-weight: 800; letter-spacing: 0.2px;
+      display: block; margin-bottom: 5px;
+      font-size: 10px; font-weight: 800; color: var(--text);
+      text-transform: uppercase; letter-spacing: 0.5px;
     }
     .post-save-field input,
     .post-save-field textarea {
-      width: 100%; border-radius: 11px;
-      border: 1px solid rgba(122,187,218,0.18);
+      width: 100%; border-radius: var(--r-sm);
+      border: 1px solid var(--line);
       background: rgba(7,18,33,0.96);
-      color: #d9e5ef; padding: 11px 12px;
-      font: inherit; font-size: 15px; outline: none; resize: vertical;
-      transition: border-color 180ms ease, box-shadow 180ms ease;
+      color: var(--text); padding: 10px 12px;
+      font: inherit; font-size: 14px; outline: none; resize: vertical;
+      transition: border-color .18s, box-shadow .18s;
     }
     .post-save-field input:focus,
     .post-save-field textarea:focus {
-      border-color: rgba(29,205,211,0.70);
-      box-shadow: 0 0 0 3px rgba(29,205,211,0.14), 0 0 18px rgba(29,205,211,0.32);
+      border-color: rgba(29,205,211,0.6);
+      box-shadow: 0 0 0 3px rgba(29,205,211,0.1);
     }
     .post-save-field textarea::placeholder,
-    .post-save-field input::placeholder { color: rgba(148,164,180,0.48); }
+    .post-save-field input::placeholder { color: rgba(148,164,180,0.4); }
     .post-save-note {
       display: none; margin-top: 10px; padding: 10px 12px;
-      border-radius: 12px; background: rgba(29,205,211,0.08);
+      border-radius: var(--r-md); background: rgba(29,205,211,0.08);
       border: 1px solid rgba(29,205,211,0.22);
-      color: var(--teal); font-size: 13px; font-weight: 700;
+      color: var(--accent); font-size: 13px; font-weight: 700;
     }
     .post-save-note.show { display: block; }
+    /* Orð sem barnið fletti upp — birtast sem kubbar á skrefi 2 */
+    .post-save-words { margin: 0 0 12px; text-align: left; }
+    .post-save-words-label {
+      font-size: 10px; font-weight: 800; color: var(--soft);
+      text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;
+    }
+    /* ── ORÐAHJÁLP ── */
+    .wh-card { text-align: left; padding-top: 20px; }
+    .wh-card h2 { text-align: center; }
+    .wh-back {
+      position: absolute; top: 12px; left: 12px; width: 30px; height: 30px;
+      border-radius: 50%; background: var(--surface); border: 1px solid var(--line);
+      color: var(--soft); font-size: 15px; display: grid; place-items: center;
+      cursor: pointer; font-family: inherit;
+    }
+    .wh-search { display: grid; grid-template-columns: 1fr auto; gap: 8px; margin-bottom: 4px; }
+    .wh-input {
+      width: 100%; border-radius: var(--r-sm); border: 1px solid var(--line);
+      background: rgba(7,18,33,0.96); color: var(--text);
+      padding: 11px 12px; font: inherit; font-size: 16px; outline: none;
+      transition: border-color .18s, box-shadow .18s;
+    }
+    .wh-input:focus { border-color: rgba(29,205,211,0.6); box-shadow: 0 0 0 3px rgba(29,205,211,0.1); }
+    .wh-go { width: auto; padding: 0 18px; }
+    .wh-out { margin-top: 14px; }
+    .wh-msg { color: var(--soft); font-size: 13px; line-height: 1.5; text-align: center; padding: 14px 4px; }
+    .wh-msg b { color: var(--text); }
+    .wh-lemma { font-family: var(--serif); font-size: 24px; font-weight: 400; color: var(--text); line-height: 1.1; }
+    .wh-pos { font-size: 11px; font-weight: 800; color: var(--soft); text-transform: uppercase; letter-spacing: .5px; margin-top: 3px; }
+    .wh-simple { font-size: 16px; line-height: 1.55; color: var(--text); margin: 13px 0; }
+    .wh-ex { border-left: 2px solid rgba(29,205,211,.22); padding-left: 11px; margin: 12px 0; }
+    .wh-ex-l { font-size: 14px; line-height: 1.5; color: var(--text); margin: 3px 0; }
+    .wh-ex-l + .wh-ex-l { color: var(--soft); }
+    .wh-ino { font-size: 11px; color: var(--soft); line-height: 1.5; margin-top: 10px; }
+    .wh-ino a { color: var(--soft); }
+    /* Merkingaval — sama mynstur og labbið, en barnvænt: merking, ekki orðflokkur */
+    .wh-pick-label { font-size: 10px; font-weight: 800; color: var(--soft); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 8px; }
+    .wh-opt {
+      display: block; width: 100%; text-align: left; margin-bottom: 7px;
+      padding: 11px 12px; border-radius: var(--r-sm);
+      border: 1px solid var(--line); background: rgba(7,18,33,.96);
+      color: var(--text); font: inherit; cursor: pointer;
+      transition: border-color .18s;
+    }
+    .wh-opt:active { border-color: rgba(29,205,211,.6); }
+    .wh-opt b { display: block; font-size: 15px; margin-bottom: 2px; }
+    .wh-opt span { font-size: 12.5px; color: var(--soft); line-height: 1.4; }
+    .wh-btn-ghost {
+      background: rgba(255,255,255,.03); border: 1px solid var(--line);
+      color: var(--soft); border-radius: var(--r-sm); padding: 8px 13px;
+      font-size: 12px; font-weight: 800; cursor: pointer; font-family: inherit;
+    }
+    .wh-forms { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 9px; }
+    .wh-form { font-size: 11px; color: var(--soft); background: rgba(7,18,33,.9); border-radius: 6px; padding: 3px 7px; }
+    .wh-form b { color: var(--text); font-weight: 700; }
+    .wh-saved { margin-top: 12px; padding: 9px 12px; border-radius: var(--r-md);
+      background: rgba(29,205,211,.08); border: 1px solid rgba(29,205,211,.22);
+      color: var(--accent); font-size: 12.5px; font-weight: 700; text-align: center; }
+    .wh-saved.err { background: rgba(255,107,107,.09); border-color: rgba(255,107,107,.3); color: var(--danger); }
+    .post-save-word-chip {
+      display: inline-block; margin: 0 5px 5px 0; padding: 4px 10px;
+      border-radius: 999px; border: 1px solid rgba(29,205,211,0.24);
+      background: rgba(29,205,211,0.07); color: var(--accent);
+      font-size: 12px; font-weight: 700;
+    }
 
     .dependency-node {
       position: absolute; opacity: 0; pointer-events: none; user-select: none; color: var(--bg);
@@ -2488,25 +2564,65 @@ body{font-family:'DM Sans','Manrope',-apple-system,BlinkMacSystemFont,sans-serif
     <div id="post-save-overlay" class="post-save-overlay" aria-hidden="true">
       <section class="post-save-card" role="dialog" aria-modal="true" aria-labelledby="post-save-title">
         <div class="post-save-icon" aria-hidden="true">&#10003;</div>
-        <p id="post-save-tagline" class="post-save-tagline">Smá lestrarspor verða að stærri ferð.</p>
         <h2 id="post-save-title">Lestur vistaður</h2>
-        <p class="post-save-intro">Bættu einu atriði við lestrarferðalagið.</p>
 
-        <div class="post-save-field">
-          <label for="post-save-note-input">Ein setning um það sem gerðist í bókinni í dag</label>
-          <textarea id="post-save-note-input" rows="3" placeholder="T.d. Þau fundu hellinn."></textarea>
+        <!-- SKREF 1 — orðaspurningin. Valfrjáls, en hún leiðir. -->
+        <div id="post-save-step-word" class="post-save-step">
+          <p class="post-save-sub">Sástu nýtt orð í lestrinum sem þú vilt skoða betur?</p>
+          <div class="post-save-choice">
+            <button id="post-save-word-yes" class="post-save-btn" type="button">Já, skoða orð</button>
+            <button id="post-save-word-no" class="post-save-btn secondary" type="button">Nei, halda áfram</button>
+          </div>
         </div>
 
-        <div class="post-save-field">
-          <label for="post-save-end-page">Ég endaði á bls.</label>
-          <input id="post-save-end-page" inputmode="numeric" placeholder="29">
+        <!-- SKREF 2 — ferðalagið -->
+        <div id="post-save-step-journey" class="post-save-step" hidden>
+          <p id="post-save-intro" class="post-save-sub">Bættu einu atriði við lestrarferðalagið.</p>
+
+          <div id="post-save-words" class="post-save-words" hidden>
+            <div class="post-save-words-label">Orðin sem þú skoðaðir</div>
+            <div id="post-save-words-list"></div>
+          </div>
+
+          <div class="post-save-field">
+            <label for="post-save-note-input">Ein setning úr lestrinum</label>
+            <textarea id="post-save-note-input" rows="3" placeholder="T.d. Þau fundu hellinn."></textarea>
+          </div>
+
+          <div class="post-save-field">
+            <label for="post-save-end-page">Ég endaði á bls.</label>
+            <input id="post-save-end-page" inputmode="numeric" placeholder="29">
+          </div>
+
+          <div class="post-save-actions">
+            <button id="post-save-save-journey" class="post-save-btn" type="button">Vista lestrarferðalag</button>
+            <button id="post-save-close" class="post-save-btn secondary" type="button">Loka</button>
+          </div>
         </div>
 
-        <div class="post-save-actions">
-          <button id="post-save-save-journey" class="post-save-btn" type="button">Vista lestrarferðalag</button>
-          <button id="post-save-close" class="post-save-btn secondary" type="button">Loka</button>
-        </div>
         <div id="post-save-note" class="post-save-note">Vistað í lestrarferðalaginu.</div>
+      </section>
+    </div>
+
+    <!-- Orðahjálp — sér-overlay ofan á post-save. Post-save heldur sínu
+         ástandi (það er bara DOM), svo barnið missir ekkert við að skoða orð. -->
+    <div id="wh-overlay" class="post-save-overlay" aria-hidden="true">
+      <section class="post-save-card wh-card" role="dialog" aria-modal="true" aria-labelledby="wh-title">
+        <button id="wh-back" class="wh-back" type="button" aria-label="Til baka">&larr;</button>
+        <h2 id="wh-title">Skoða orð</h2>
+        <p class="post-save-sub">Sláðu inn orðið eins og það stendur í bókinni.</p>
+
+        <div class="wh-search">
+          <input id="wh-word" class="wh-input" type="text" autocomplete="off"
+                 autocapitalize="none" spellcheck="false" placeholder="t.d. ferðalöngum">
+          <button id="wh-go" class="post-save-btn wh-go" type="button">Leita</button>
+        </div>
+
+        <div id="wh-out" class="wh-out"></div>
+
+        <div class="post-save-actions" style="margin-top:14px">
+          <button id="wh-done" class="post-save-btn secondary" type="button">Búinn að skoða orð</button>
+        </div>
       </section>
     </div>
 
@@ -4838,27 +4954,15 @@ import { collection, query, where, onSnapshot, doc, getDocs }
       var postSaveCloseBtn = document.getElementById("post-save-close");
       var postSaveJourneyBtn = document.getElementById("post-save-save-journey");
       var postSaveNote = document.getElementById("post-save-note");
-      var postSaveTagline = document.getElementById("post-save-tagline");
       var postSaveNoteInput = document.getElementById("post-save-note-input");
       var postSaveEndPageInput = document.getElementById("post-save-end-page");
 
-      var postSaveTaglines = [
-        "Smá lestrarspor verða að stærri ferð.",
-        "Ein setning í dag verður minning á morgun.",
-        "Bókin heldur áfram — og þú líka.",
-        "Það sem þú last í dag fer á hilluna þína.",
-        "Lestrarferðalagið stækkar með hverri lotu."
-      ];
-
       function openPostSavePopup() {
         if (!postSaveOverlay) return;
-        var tagline = postSaveTaglines[Math.floor(Math.random() * postSaveTaglines.length)];
-        if (postSaveTagline) postSaveTagline.textContent = tagline;
-
         var setup = getChildReadingSetup();
         postSaveMandatory = !!(setup && setup.bookId);
         if (postSaveCloseBtn) postSaveCloseBtn.style.display = postSaveMandatory ? "none" : "";
-        var introEl = postSaveOverlay.querySelector(".post-save-intro");
+        var introEl = document.getElementById("post-save-intro");
         if (introEl) introEl.textContent = postSaveMandatory
           ? "Skráðu blaðsíðu og eina setningu til að ljúka lestrinum."
           : "Bættu einu atriði við lestrarferðalagið.";
@@ -4870,9 +4974,19 @@ import { collection, query, where, onSnapshot, doc, getDocs }
         if (postSaveNote) postSaveNote.classList.remove("show");
         if (postSaveJourneyBtn) { postSaveJourneyBtn.textContent = "Vista lestrarferðalag"; postSaveJourneyBtn.disabled = false; }
 
+        // Skref 1 leiðir. Orðaspurningin er valfrjáls en hún kemur fyrst —
+        // ef hún væri neðst innan um skyldureitina myndi enginn sjá hana.
+        var stepWord = document.getElementById("post-save-step-word");
+        var stepJourney = document.getElementById("post-save-step-journey");
+        if (stepWord) stepWord.hidden = false;
+        if (stepJourney) stepJourney.hidden = true;
+        var wordsBox = document.getElementById("post-save-words");
+        var wordsList = document.getElementById("post-save-words-list");
+        if (wordsBox) wordsBox.hidden = true;
+        if (wordsList) wordsList.innerHTML = "";
+
         postSaveOverlay.classList.add("open");
         postSaveOverlay.setAttribute("aria-hidden", "false");
-        setTimeout(function () { if (postSaveNoteInput) postSaveNoteInput.focus(); }, 80);
       }
 
       function closePostSavePopup(force) {
@@ -4881,6 +4995,18 @@ import { collection, query, where, onSnapshot, doc, getDocs }
         postSaveOverlay.classList.remove("open");
         postSaveOverlay.setAttribute("aria-hidden", "true");
       }
+
+      // Skref 1 -> skref 2. wordhelp-child.js hengir sig á "Já"-hnappinn;
+      // ef sú skrá er ekki hlaðin fellur hann hljóðlega í sama og "Nei".
+      window.__postSaveShowJourney = function () {
+        var sw = document.getElementById("post-save-step-word");
+        var sj = document.getElementById("post-save-step-journey");
+        if (sw) sw.hidden = true;
+        if (sj) sj.hidden = false;
+        setTimeout(function () { if (postSaveNoteInput) postSaveNoteInput.focus(); }, 60);
+      };
+      var wordNoBtn = document.getElementById("post-save-word-no");
+      if (wordNoBtn) wordNoBtn.addEventListener("click", function () { window.__postSaveShowJourney(); });
 
       if (postSaveCloseBtn) postSaveCloseBtn.addEventListener("click", closePostSavePopup);
       if (postSaveOverlay) postSaveOverlay.addEventListener("click", function (e) { if (e.target === postSaveOverlay) closePostSavePopup(); });
@@ -8296,6 +8422,7 @@ import { collection, query, where, getDocs, doc, getDoc, addDoc, onSnapshot, ser
   if (document.readyState !== 'loading') subscribe(); else document.addEventListener('DOMContentLoaded', subscribe);
 })();
 </script>
+<script type="module" src="wordhelp-child.js"></script>
 </body>
 </html>
 

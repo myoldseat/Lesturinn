@@ -4671,6 +4671,33 @@ import { collection, query, where, onSnapshot, doc, getDocs }
               if (result && result.saved) {
                 if (window.track) track('recording_saved');
                 lastSavedSessionId = result.sessionId || null;
+
+                // ── BÓKAR-CONTEXT fyrir post-save flæðið ──────────────────
+                // pendingSavePayload HEFUR réttu bókina (_recBookId) — en það er
+                // hreinsað í næstu línu. getChildReadingSetup() (localStorage) er
+                // tómt/úrelt í þessu flæði, svo bæði journey-save OG WordHelp fengu
+                // bookId:null. Föngum sannleikann HÉR, meðan hann er enn til, í einn
+                // sameiginlegan context sem bæði nota — í stað þess að hvort grafi
+                // sjálft í localStorage.
+                try {
+                  var _cs = (typeof getChildSession === 'function') ? getChildSession() : null;
+                  var _setup = (typeof getChildReadingSetup === 'function') ? getChildReadingSetup() : null;
+                  window.__postSaveContext = {
+                    familyId: _cs && _cs.familyId ? _cs.familyId : null,
+                    childKey: _cs && _cs.childKey ? _cs.childKey : null,
+                    bookId: pendingSavePayload && pendingSavePayload.bookId ? pendingSavePayload.bookId : (_setup && _setup.bookId) || null,
+                    bookTitle: pendingSavePayload && pendingSavePayload.bookTitle ? pendingSavePayload.bookTitle : (_setup && _setup.bookTitle) || null,
+                    sessionId: result.sessionId || null,
+                    pageFrom: (window.__lxSessionStart && window.__lxSessionStart.page) || (_setup && _setup.pageFrom) || null,
+                    pageTo: null,
+                    createdAt: Date.now()
+                  };
+                  if (!window.__postSaveContext.bookId) {
+                    console.warn('post-save: bookId vantar í __postSaveContext — journey/WordHelp fá ekki bók.');
+                  }
+                } catch (e) { console.warn('post-save context build failed', e); }
+                // ── /CONTEXT ──────────────────────────────────────────────
+
                 pendingSavePayload = null;
                 openPostSavePopup();
               } else {
@@ -4994,6 +5021,9 @@ import { collection, query, where, onSnapshot, doc, getDocs }
         if (postSaveMandatory && !force) return;
         postSaveOverlay.classList.remove("open");
         postSaveOverlay.setAttribute("aria-hidden", "true");
+        // Hreinsa context: næsta orðauppfletting utan lestrarflæðis á ekki að
+        // erfa gamla bók. WordHelp fellur þá í localStorage eða null (rétt).
+        try { window.__postSaveContext = null; } catch (e) {}
       }
 
       // Skref 1 -> skref 2. wordhelp-child.js hengir sig á "Já"-hnappinn;
@@ -5013,7 +5043,10 @@ import { collection, query, where, onSnapshot, doc, getDocs }
 
       function updateBookshelfBookAfterReading(note, endPage) {
         try {
-          var setup = getChildReadingSetup();
+          // Nýr sannleikur: __postSaveContext (byggt við vistun úr réttum gögnum).
+          // Fallback í localStorage-setup aðeins ef context vantar (t.d. eldra flæði).
+          var ctx = window.__postSaveContext || null;
+          var setup = (ctx && ctx.bookId) ? { bookId: ctx.bookId, bookTitle: ctx.bookTitle, pageFrom: ctx.pageFrom } : getChildReadingSetup();
           if (!setup || !setup.bookId) return false;
           var allBooks = window._firestoreBooks || [];
           var book = allBooks.find(function (item) { return item && String(item.id) === String(setup.bookId); });
@@ -5090,6 +5123,13 @@ import { collection, query, where, onSnapshot, doc, getDocs }
             "}"
           ].join("\n");
           document.head.appendChild(updateScript);
+          // Skrifa lokasíðu aftur í context — ef barn flettir upp orði EFTIR
+          // journey-save fær WordHelp þá réttа pageTo.
+          try {
+            if (window.__postSaveContext) {
+              window.__postSaveContext.pageTo = finalPage || null;
+            }
+          } catch (e) {}
           return true;
         } catch (e) { return false; }
       }

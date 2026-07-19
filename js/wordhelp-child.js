@@ -49,6 +49,16 @@ function session() {
 function readingSetup() {
   const cs = session();
   if (!cs) return null;
+  // NÝR SANNLEIKUR: __postSaveContext er byggt í child.html við lestrarvistun úr
+  // réttum gögnum (pendingSavePayload.bookId). Það leysir bookId:null vandann —
+  // localStorage-setup er tómt/úrelt í post-save flæðinu. Notum context ef hann
+  // er til og ber bók; annars föllum við í localStorage (t.d. WordHelp opnað
+  // utan post-save flæðis).
+  const ctx = window.__postSaveContext;
+  if (ctx && ctx.bookId) {
+    return { bookId: ctx.bookId, bookTitle: ctx.bookTitle || '',
+             pageFrom: ctx.pageFrom || null, pageTo: ctx.pageTo || null };
+  }
   // Sami lykill og child.html notar. Ef hann breytist þar brotnar þetta —
   // en hljóðlega, svo bookId verður bara null og orðið vistast án bókar.
   for (const k of Object.keys(localStorage)) {
@@ -176,6 +186,7 @@ function render() {
 
     <div class="wh-ino">${esc(src.text || '')}
       ${src.url ? `<br><a href="${esc(src.url)}" target="_blank" rel="noopener">Íslensk nútímamálsorðabók</a> · Árnastofnun · CC BY-SA 4.0` : ''}
+      <br><span class="wh-changes">Skýringin er einfölduð fyrir börn. <a href="https://upphatt.is/heimildir.html" target="_blank" rel="noopener">Sjá hvernig</a></span>
     </div>
     <div id="wh-save-note"></div>`;
 
@@ -433,6 +444,11 @@ async function save() {
   if (!cs || !_last || !_last.wordHelpId) return;
   const setup = readingSetup() || {};
   const bookId = setup.bookId || null;
+  // Ef WordHelp er opnað úr post-save lestrarflæði á bookId ALDREI að vera null.
+  // Ef context er til staðar en bók vantar er eitthvað að — gerum það sýnilegt.
+  if (!bookId && window.__postSaveContext) {
+    console.warn('WordHelp: orð vistað án bókar þótt post-save context sé virkur — bookId vantar.');
+  }
   const key = `${cs.familyId}_${cs.childKey}_${_last.id}_${_last.sense || 0}`;
   const ref = doc(db, 'childWords', key);
 

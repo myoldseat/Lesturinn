@@ -330,9 +330,30 @@ function renderVerb(v, lemma) {
     </div>`;
 }
 
-// pos úr fallinu: 'n' nafnorð, 'adj' lýsingarorð, 'v' sögn
+// ── FASTUR SAMNINGUR við lookupWordHelp ──────────────────────────────
+// Fallið skilar `pos` BEINT úr lexicon.json (ÍNO partOfSpeech). Beygingar-
+// modalinn styður NÁKVÆMLEGA þrjú gildi:
+//     n   = nafnorð
+//     adj = lýsingarorð
+//     v   = sögn
+// Ef fallið breytist einhvern tíma og skilar öðru merki (kk/lo/so, noun/verb,
+// íslenskum heitum…) þá fær orðið ENGAN beygingarhnapp — ÞÖGULT. Til að það
+// verði ekki ósýnilegt (§ "eitthvað mistókst og enginn sá það") skrifum við
+// viðvörun í console þegar pos er til staðar en óþekkt. Barnið sér ekkert;
+// þið sjáið viðvörunina. Lágstöfun ver gegn N/ADJ/V ef hástafir læðast inn.
+const BEYGING_POS = new Set(['n', 'adj', 'v']);
 function beygingSupported(pos) {
-  return pos === 'n' || pos === 'adj' || pos === 'v';
+  const p = String(pos || '').trim().toLowerCase();
+  if (BEYGING_POS.has(p)) return true;
+  // Óþekkt EN ekki tómt/samsett (prae/adv o.þ.h. eru þekkt-óstudd, þögð).
+  // Aðeins vara við ef þetta lítur út eins og brotinn samningur: einfalt
+  // merki sem er hvorki n/adj/v né þekkt samsett gildi.
+  if (p && !p.includes('/') && !p.includes(' ') &&
+      !['adv', 'prae', 'conj', 'pron', 'num', 'int', 'gr', 'forl', 'inf', 'skst'].includes(p)) {
+    console.warn(`wordhelp: óþekkt pos '${pos}' — enginn beygingarhnappur. ` +
+      `Samningur við lookupWordHelp er n/adj/v; athugaðu hvort fallið hafi breyst.`);
+  }
+  return false;
 }
 const POS_HEITI = { n: 'nafnorð', adj: 'lýsingarorð', v: 'sögn' };
 
@@ -343,7 +364,7 @@ async function paradigm() {
   const title = $('bg-title');
   if (!modal || !body) return;
   const lemma = _last.lemma || '';
-  const pos = _last.pos || '';
+  const pos = String(_last.pos || '').trim().toLowerCase();
   title.textContent = `Beyging — ${lemma}`;
   $('bg-sub').textContent = POS_HEITI[pos] || '';
   body.innerHTML = '<div class="wh-msg">Hleð beygingu…</div>';

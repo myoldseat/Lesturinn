@@ -211,6 +211,9 @@ function render() {
 
 const CASE_LBL = { NF: 'Nefnifall', ÞF: 'Þolfall', ÞGF: 'Þágufall', EF: 'Eignarfall' };
 const CASE_ORDER = ['NF', 'ÞF', 'ÞGF', 'EF'];
+// Hjálparorð sem kalla fram fallið — brú milli málfræðiheitisins og máls sem
+// barn talar. Virka á öll nafnorð og lýsingarorð (forsetningin er utan orðsins).
+const CASE_PREP = { NF: 'hér er', ÞF: 'um', ÞGF: 'frá', EF: 'til' };
 const HATTUR_LBL = {
   FH: 'Framsöguháttur', VH: 'Viðtengingarháttur', BH: 'Boðháttur',
   NH: 'Nafnháttur', LHNT: 'Lýsingarháttur nútíðar', LHÞT: 'Lýsingarháttur þátíðar',
@@ -261,17 +264,19 @@ function parseVerb(forms) {
 function renderNoun(n, lemma) {
   const rows = (tbl) => tbl.map((r) => `
     <tr><th>${esc(r.label)} <span class="bg-ab">(${r.fall})</span></th>
+        <td class="bg-prep">${esc(CASE_PREP[r.fall])}</td>
         <td>${esc(r.plain || '—')}</td><td>${esc(r.def || '—')}</td></tr>`).join('');
   return `
+    <div class="bg-help-key">Fall · hjálparorð · orð</div>
     <table class="bg-table">
-      <thead><tr><th>Eintala</th><th>án greinis</th><th>með greini</th></tr></thead>
+      <thead><tr><th>Eintala</th><th></th><th>án greinis</th><th>með greini</th></tr></thead>
       <tbody>${rows(n.et)}</tbody>
     </table>
     ${n.ft ? `
       <button class="bg-more" data-more="noun-ft">Sýna fleirtölu</button>
       <div class="bg-hidden" data-panel="noun-ft">
         <table class="bg-table">
-          <thead><tr><th>Fleirtala</th><th>án greinis</th><th>með greini</th></tr></thead>
+          <thead><tr><th>Fleirtala</th><th></th><th>án greinis</th><th>með greini</th></tr></thead>
           <tbody>${rows(n.ft)}</tbody>
         </table>
       </div>` : ''}`;
@@ -281,9 +286,10 @@ function renderAdj(a, lemma) {
   const s = a.stig;
   const genderTbl = (tbl, heading) => `
     <table class="bg-table">
-      <thead><tr><th colspan="2">${esc(heading)}</th></tr></thead>
+      <thead><tr><th colspan="3">${esc(heading)}</th></tr></thead>
       <tbody>${tbl.map((r) => `
         <tr><th>${esc(r.label)} <span class="bg-ab">(${r.fall})</span></th>
+            <td class="bg-prep">${esc(CASE_PREP[r.fall])}</td>
             <td>${esc(r.form || '—')}</td></tr>`).join('')}</tbody>
     </table>`;
   return `
@@ -292,6 +298,7 @@ function renderAdj(a, lemma) {
         <span class="bg-stig-lbl">Stigbreyting</span>
         <span class="bg-stig-forms">${esc(s.frum || '—')} · ${esc(s.mid || '—')} · ${esc(s.efsta || '—')}</span>
       </div>` : ''}
+    <div class="bg-help-key">Fall · hjálparorð · orð</div>
     ${genderTbl(a.kk, 'Eintala — karlkyn')}
     <button class="bg-more" data-more="adj-gender">Sýna önnur kyn</button>
     <div class="bg-hidden" data-panel="adj-gender">
@@ -552,6 +559,11 @@ function injectBeygingModal() {
     .bg-table tbody tr + tr th, .bg-table tbody tr + tr td {
       border-top: 1px solid var(--accent-dim, rgba(29,205,211,.08)); }
     .bg-ab { font-size: 10px; font-weight: 700; color: var(--accent, #1dcdd3); opacity: .8; }
+    .bg-prep { font-size: 13px; color: var(--accent, #1dcdd3); font-style: italic;
+      white-space: nowrap; opacity: .85; }
+    .bg-help-key { font-size: 10px; font-weight: 700; letter-spacing: .5px;
+      text-transform: uppercase; color: var(--soft, #7a8fa0); margin: 4px 0 8px;
+      text-align: center; opacity: .7; }
     .bg-stig { display: flex; flex-direction: column; gap: 3px; padding: 12px;
       background: var(--accent-dim, rgba(29,205,211,.08)); border-radius: 12px; margin: 4px 0 16px; }
     .bg-stig-lbl { font-size: 10px; font-weight: 800; color: var(--soft, #7a8fa0);

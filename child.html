@@ -1010,12 +1010,71 @@ body{font-family:'DM Sans','Manrope',-apple-system,BlinkMacSystemFont,sans-serif
     /* ── ORÐAHJÁLP ── */
     .wh-card { text-align: left; padding-top: 20px; }
     .wh-card h2 { text-align: center; }
-    .wh-back {
-      position: absolute; top: 12px; left: 12px; width: 30px; height: 30px;
-      border-radius: 50%; background: var(--surface); border: 1px solid var(--line);
-      color: var(--soft); font-size: 15px; display: grid; place-items: center;
-      cursor: pointer; font-family: inherit;
+    /* ── Fastur haus (shell): bók + samhengi + framvinda ── */
+    .ps-shell { text-align: left; margin: 0 0 16px; }
+    .ps-eyebrow {
+      font-size: 9px; font-weight: 800; letter-spacing: 1.3px;
+      text-transform: uppercase; color: var(--soft);
     }
+    .ps-book {
+      font-family: var(--serif); font-size: 15px; font-weight: 400;
+      color: var(--text); margin: 3px 0 11px; line-height: 1.2;
+    }
+    .ps-rail { display: flex; align-items: center; gap: 6px; }
+    .ps-seg { display: flex; align-items: center; gap: 6px; }
+    .ps-dot { width: 7px; height: 7px; border-radius: 50%; background: rgba(122,143,160,0.4); transition: background .2s, box-shadow .2s; }
+    .ps-dot.on { background: var(--accent); box-shadow: 0 0 8px rgba(29,205,211,0.5); }
+    .ps-seg-label { font-size: 9.5px; font-weight: 700; color: var(--soft); transition: color .2s; }
+    .ps-seg-label.on { color: var(--accent); }
+    .ps-bar { flex: 1; height: 1px; background: rgba(122,143,160,0.25); }
+
+    /* Panel-titlar (ekki "Lestur vistaður" ✓-hausinn) */
+    .ps-panel-title {
+      margin: 2px 0 4px; text-align: center;
+      font-family: var(--serif); font-size: 22px; font-weight: 400;
+      letter-spacing: 0; line-height: 1.15; color: var(--text);
+    }
+
+    /* Sleppa-tengill á tóma orðahjálp-panelnum svo enginn festist */
+    .wh-skip {
+      display: block; width: 100%; margin-top: 14px; padding: 6px;
+      background: none; border: none; font-family: inherit;
+      font-size: 12px; color: var(--soft); text-decoration: underline;
+      cursor: pointer; text-align: center;
+    }
+    .wh-skip[hidden] { display: none; }
+
+    /* Skýr sjónræn aðgreining setningar og lokasíðu í journey */
+    .ps-divider { height: 1px; background: var(--line); margin: 16px 0; }
+    .ps-page-input { max-width: 120px; text-align: center; }
+
+    /* Villuboð í journey — mjúkt, aldrei tæknileg villa */
+    .post-save-error {
+      margin: 2px 0 10px; padding: 9px 12px; border-radius: var(--r-md);
+      background: rgba(255,107,107,0.09); border: 1px solid rgba(255,107,107,0.3);
+      color: var(--danger); font-size: 12.5px; font-weight: 700; text-align: center;
+    }
+    .post-save-error[hidden] { display: none; }
+
+    /* Lokastate — samantekt */
+    .ps-done-meta { color: var(--soft); font-size: 12.5px; line-height: 1.7; margin: 4px 0 12px; text-align: center; }
+    .ps-done-words { text-align: center; margin-bottom: 14px; }
+
+    /* Tvær aðgerðir eftir orðaniðurstöðu */
+    .wh-actions { display: grid; gap: 9px; margin-top: 14px; }
+
+    /* Boot-stíl hleðsla inni í flæðinu — birtist aðeins ef uppfletting er hæg */
+    .wh-loader { display: flex; flex-direction: column; align-items: center; gap: 11px; padding: 22px 0; }
+    .wh-loader-logo { font-size: 25px; font-weight: 900; letter-spacing: -0.02em; color: var(--text); }
+    .wh-loader-logo b { color: var(--accent); font-weight: 900; }
+    .wh-loader-mark {
+      width: 36px; height: 3px; border-radius: 999px; background: var(--accent);
+      animation: whLoaderPulse 1.25s ease-in-out infinite;
+    }
+    @keyframes whLoaderPulse { 0%,100% { opacity: .35; } 50% { opacity: 1; } }
+    @media (prefers-reduced-motion: reduce) { .wh-loader-mark { animation: none; opacity: .8; } }
+    .wh-loader-text { font-size: 10px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: var(--soft); }
+
     .wh-search { display: grid; grid-template-columns: 1fr auto; gap: 8px; margin-bottom: 4px; }
     .wh-input {
       width: 100%; border-radius: var(--r-sm); border: 1px solid var(--line);
@@ -2560,14 +2619,28 @@ body{font-family:'DM Sans','Manrope',-apple-system,BlinkMacSystemFont,sans-serif
       </section>
     </div>
 
-    <!-- Post-save popup -->
+    <!-- Post-save flæði — EITT overlay, EITT kort. Fastur haus (bók + framvinda)
+         og fjórir panelar: word → wordhelp → journey → done. Orðahjálp er panel
+         hér inni, ekki sér-app. Navigation á heima í child.html (PostSaveFlow),
+         orðalénið í wordhelp-child.js. -->
     <div id="post-save-overlay" class="post-save-overlay" aria-hidden="true">
       <section class="post-save-card" role="dialog" aria-modal="true" aria-labelledby="post-save-title">
-        <div class="post-save-icon" aria-hidden="true">&#10003;</div>
-        <h2 id="post-save-title">Lestur vistaður</h2>
 
-        <!-- SKREF 1 — orðaspurningin. Valfrjáls, en hún leiðir. -->
-        <div id="post-save-step-word" class="post-save-step">
+        <!-- Fastur haus: bók + samhengi + létt framvinda (rendrað einu sinni) -->
+        <div class="ps-shell">
+          <div class="ps-eyebrow">Lesturinn í dag</div>
+          <div class="ps-book" id="post-save-book-title">Lesturinn þinn</div>
+          <div class="ps-rail" id="post-save-rail" aria-hidden="true">
+            <span class="ps-seg"><span class="ps-dot on" data-seg="ord"></span><span class="ps-seg-label on" data-seg="ord">Orð</span></span>
+            <span class="ps-bar"></span>
+            <span class="ps-seg"><span class="ps-dot" data-seg="setning"></span><span class="ps-seg-label" data-seg="setning">Setning og síða</span></span>
+          </div>
+        </div>
+
+        <!-- PANEL 1 — orðaspurningin (leiðir) -->
+        <div id="post-save-step-word" class="post-save-step" data-step="word">
+          <div class="post-save-icon" aria-hidden="true">&#10003;</div>
+          <h2 id="post-save-title">Lestur vistaður</h2>
           <p class="post-save-sub">Sástu nýtt orð í lestrinum sem þú vilt skoða betur?</p>
           <div class="post-save-choice">
             <button id="post-save-word-yes" class="post-save-btn" type="button">Já, skoða orð</button>
@@ -2575,10 +2648,21 @@ body{font-family:'DM Sans','Manrope',-apple-system,BlinkMacSystemFont,sans-serif
           </div>
         </div>
 
-        <!-- SKREF 2 — ferðalagið -->
-        <div id="post-save-step-journey" class="post-save-step" hidden>
-          <p id="post-save-intro" class="post-save-sub">Bættu einu atriði við lestrarferðalagið.</p>
+        <!-- PANEL 2 — Orðahjálp (uppfletting + niðurstaða). Engin bakör. -->
+        <div id="post-save-step-wordhelp" class="post-save-step" data-step="wordhelp" hidden>
+          <h2 class="ps-panel-title">Skoða orð</h2>
+          <p class="post-save-sub">Sláðu inn orðið eins og það stendur í bókinni.</p>
+          <div class="wh-search">
+            <input id="wh-word" class="wh-input" type="text" autocomplete="off"
+                   autocapitalize="none" spellcheck="false" placeholder="t.d. ferðalöngum">
+            <button id="wh-go" class="post-save-btn wh-go" type="button">Leita</button>
+          </div>
+          <div id="wh-out" class="wh-out"></div>
+          <button id="wh-skip" class="wh-skip" type="button">Sleppa — áfram í setningu</button>
+        </div>
 
+        <!-- PANEL 3 — ferðalagið: setning OG lokasíða saman, sjónrænt aðskilin -->
+        <div id="post-save-step-journey" class="post-save-step" data-step="journey" hidden>
           <div id="post-save-words" class="post-save-words" hidden>
             <div class="post-save-words-label">Orðin sem þú skoðaðir</div>
             <div id="post-save-words-list"></div>
@@ -2589,40 +2673,36 @@ body{font-family:'DM Sans','Manrope',-apple-system,BlinkMacSystemFont,sans-serif
             <textarea id="post-save-note-input" rows="3" placeholder="T.d. Þau fundu hellinn."></textarea>
           </div>
 
+          <div class="ps-divider" aria-hidden="true"></div>
+
           <div class="post-save-field">
-            <label for="post-save-end-page">Ég endaði á bls.</label>
-            <input id="post-save-end-page" inputmode="numeric" placeholder="29">
+            <label for="post-save-end-page">Ég endaði á blaðsíðu</label>
+            <input id="post-save-end-page" class="ps-page-input" inputmode="numeric" placeholder="29">
           </div>
 
+          <div id="post-save-error" class="post-save-error" hidden></div>
+
           <div class="post-save-actions">
-            <button id="post-save-save-journey" class="post-save-btn" type="button">Vista lestrarferðalag</button>
+            <button id="post-save-save-journey" class="post-save-btn" type="button">Ljúka lestri</button>
             <button id="post-save-close" class="post-save-btn secondary" type="button">Loka</button>
           </div>
         </div>
 
+        <!-- PANEL 4 — lokastate: birtist AÐEINS eftir staðfesta vistun -->
+        <div id="post-save-step-done" class="post-save-step" data-step="done" hidden>
+          <div class="post-save-icon" aria-hidden="true">&#10003;</div>
+          <h2 class="ps-panel-title">Lestri lokið</h2>
+          <p id="post-save-done-summary" class="post-save-sub"></p>
+          <div id="post-save-done-meta" class="ps-done-meta"></div>
+          <div id="post-save-done-words" class="post-save-words ps-done-words" hidden>
+            <div id="post-save-done-words-list"></div>
+          </div>
+          <div class="post-save-actions">
+            <button id="post-save-to-shelf" class="post-save-btn" type="button">Áfram á bókahilluna</button>
+          </div>
+        </div>
+
         <div id="post-save-note" class="post-save-note">Vistað í lestrarferðalaginu.</div>
-      </section>
-    </div>
-
-    <!-- Orðahjálp — sér-overlay ofan á post-save. Post-save heldur sínu
-         ástandi (það er bara DOM), svo barnið missir ekkert við að skoða orð. -->
-    <div id="wh-overlay" class="post-save-overlay" aria-hidden="true">
-      <section class="post-save-card wh-card" role="dialog" aria-modal="true" aria-labelledby="wh-title">
-        <button id="wh-back" class="wh-back" type="button" aria-label="Til baka">&larr;</button>
-        <h2 id="wh-title">Skoða orð</h2>
-        <p class="post-save-sub">Sláðu inn orðið eins og það stendur í bókinni.</p>
-
-        <div class="wh-search">
-          <input id="wh-word" class="wh-input" type="text" autocomplete="off"
-                 autocapitalize="none" spellcheck="false" placeholder="t.d. ferðalöngum">
-          <button id="wh-go" class="post-save-btn wh-go" type="button">Leita</button>
-        </div>
-
-        <div id="wh-out" class="wh-out"></div>
-
-        <div class="post-save-actions" style="margin-top:14px">
-          <button id="wh-done" class="post-save-btn secondary" type="button">Búinn að skoða orð</button>
-        </div>
       </section>
     </div>
 
@@ -4975,7 +5055,9 @@ import { collection, query, where, onSnapshot, doc, getDocs }
         window.location.href = "index.html?skipChild=1";
       });
 
-      // ── Post-save popup ──
+      // ── Post-save flæði (PostSaveFlow) ──
+      // Einn stjóri á allri navigation: word -> wordhelp -> journey -> done.
+      // wordhelp-child.js á orðalénið og skráir sig með attachWordHelp({enter,reset,getLooked}).
       var postSaveOverlay = document.getElementById("post-save-overlay");
       var postSaveMandatory = false;
       var postSaveCloseBtn = document.getElementById("post-save-close");
@@ -4984,178 +5066,338 @@ import { collection, query, where, onSnapshot, doc, getDocs }
       var postSaveNoteInput = document.getElementById("post-save-note-input");
       var postSaveEndPageInput = document.getElementById("post-save-end-page");
 
-      function openPostSavePopup() {
-        if (!postSaveOverlay) return;
-        var setup = getChildReadingSetup();
-        postSaveMandatory = !!(setup && setup.bookId);
-        if (postSaveCloseBtn) postSaveCloseBtn.style.display = postSaveMandatory ? "none" : "";
-        var introEl = document.getElementById("post-save-intro");
-        if (introEl) introEl.textContent = postSaveMandatory
-          ? "Skráðu blaðsíðu og eina setningu til að ljúka lestrinum."
-          : "Bættu einu atriði við lestrarferðalagið.";
-        if (postSaveEndPageInput) {
-          postSaveEndPageInput.value = "";
-          postSaveEndPageInput.placeholder = setup && setup.pageFrom ? String(Number(setup.pageFrom) + 8) : "29";
-        }
-        if (postSaveNoteInput) postSaveNoteInput.value = "";
-        if (postSaveNote) postSaveNote.classList.remove("show");
-        if (postSaveJourneyBtn) { postSaveJourneyBtn.textContent = "Vista lestrarferðalag"; postSaveJourneyBtn.disabled = false; }
-
-        // Skref 1 leiðir. Orðaspurningin er valfrjáls en hún kemur fyrst —
-        // ef hún væri neðst innan um skyldureitina myndi enginn sjá hana.
-        var stepWord = document.getElementById("post-save-step-word");
-        var stepJourney = document.getElementById("post-save-step-journey");
-        if (stepWord) stepWord.hidden = false;
-        if (stepJourney) stepJourney.hidden = true;
-        var wordsBox = document.getElementById("post-save-words");
-        var wordsList = document.getElementById("post-save-words-list");
-        if (wordsBox) wordsBox.hidden = true;
-        if (wordsList) wordsList.innerHTML = "";
-
-        postSaveOverlay.classList.add("open");
-        postSaveOverlay.setAttribute("aria-hidden", "false");
+      function psEscHtml(s) {
+        return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+          return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+        });
       }
 
-      function closePostSavePopup(force) {
-        if (!postSaveOverlay) return;
-        if (postSaveMandatory && !force) return;
-        postSaveOverlay.classList.remove("open");
-        postSaveOverlay.setAttribute("aria-hidden", "true");
-        // Hreinsa context: næsta orðauppfletting utan lestrarflæðis á ekki að
-        // erfa gamla bók. WordHelp fellur þá í localStorage eða null (rétt).
-        try { window.__postSaveContext = null; } catch (e) {}
-      }
-
-      // Skref 1 -> skref 2. wordhelp-child.js hengir sig á "Já"-hnappinn;
-      // ef sú skrá er ekki hlaðin fellur hann hljóðlega í sama og "Nei".
-      window.__postSaveShowJourney = function () {
-        var sw = document.getElementById("post-save-step-word");
-        var sj = document.getElementById("post-save-step-journey");
-        if (sw) sw.hidden = true;
-        if (sj) sj.hidden = false;
-        setTimeout(function () { if (postSaveNoteInput) postSaveNoteInput.focus(); }, 60);
-      };
-      var wordNoBtn = document.getElementById("post-save-word-no");
-      if (wordNoBtn) wordNoBtn.addEventListener("click", function () { window.__postSaveShowJourney(); });
-
-      if (postSaveCloseBtn) postSaveCloseBtn.addEventListener("click", closePostSavePopup);
-      if (postSaveOverlay) postSaveOverlay.addEventListener("click", function (e) { if (e.target === postSaveOverlay) closePostSavePopup(); });
-
-      function updateBookshelfBookAfterReading(note, endPage) {
-        try {
-          // Nýr sannleikur: __postSaveContext (byggt við vistun úr réttum gögnum).
-          // Fallback í localStorage-setup aðeins ef context vantar (t.d. eldra flæði).
-          var ctx = window.__postSaveContext || null;
-          var setup = (ctx && ctx.bookId) ? { bookId: ctx.bookId, bookTitle: ctx.bookTitle, pageFrom: ctx.pageFrom } : getChildReadingSetup();
-          if (!setup || !setup.bookId) return false;
-          var allBooks = window._firestoreBooks || [];
-          var book = allBooks.find(function (item) { return item && String(item.id) === String(setup.bookId); });
-          if (!book) return false;
-
-          // Byrjunarsíða lotunnar = NÁKVÆMLEGA sú sem UI sýndi (fönguð við upphaf),
-          // ekki stale setup.pageFrom. Þannig telur lotan aðeins bilið sem lesið var NÚNA.
-          var startPage;
-          var _cap = window.__lxSessionStart;
-          var _capValid = _cap &&
-            String(_cap.bookId) === String(setup.bookId) &&   // strangt: sama bók
-            String(_cap.bookId) === String(book.id) &&         // og sama bók og við vistum
-            Number(_cap.page) > 0;
-          if (_capValid) {
-            startPage = Number(_cap.page);
-          } else {
-            // Fallback: sami útreikningur og birtingin (currentPageTo + 1, eða ferskt setup)
-            var realResumePage = book.currentPageTo ? Number(book.currentPageTo) + 1 : Number(book.currentPageFrom || 1);
-            var setupIsFresh = setup && setup.bookId === book.id && setup.pageFrom && setup.savedAt && (Date.now() - Number(setup.savedAt) < 5 * 60 * 1000);
-            startPage = setupIsFresh ? Number(setup.pageFrom) : realResumePage;
+      // Ef barnið breytir tölunni eftir að 20+ staðfesting birtist, núllstilla
+      // svo leiðrétt (lægri) tala fari ekki í gegn á gamalli staðfestingu.
+      if (postSaveEndPageInput) {
+        postSaveEndPageInput.addEventListener("input", function () {
+          if (postSaveJourneyBtn && postSaveJourneyBtn.dataset.pagesConfirmed) {
+            delete postSaveJourneyBtn.dataset.pagesConfirmed;
+            postSaveJourneyBtn.textContent = "Ljúka lestri";
           }
-          // Hreinsa ALLTAF eftir notkun → næsta lota / bókaskipti / refresh notar aldrei gamalt gildi
-          try { window.__lxSessionStart = null; } catch (e) {}
-          var finalPage = Number(endPage || 0);
-          var totalPages = Number(book.totalPages || 0);
-          var pagesRead = (startPage && finalPage && finalPage >= startPage) ? (finalPage - startPage + 1) : null;
-          var now = Date.now();
-          var pct = totalPages && finalPage ? Math.min(100, Math.max(0, Math.round((finalPage / totalPages) * 100))) : (book.progressPercent || 0);
-          var totalPagesRead = Number(book.totalPagesRead || 0);
-          if (pagesRead) totalPagesRead += pagesRead;
-          var wordsPerTextPage = Number(book.readingDifficultyWordsPerTextPage || (book.readingLoad && (book.readingLoad.wordsPerPageEstimate || book.readingLoad.wordsPerPage)) || book.wordsPerPage || 0) || null;
-          var progressWordsPerPage = Number(book.progressWordsPerBookPage || (book.scope && book.scope.progressWordsPerBookPage) || wordsPerTextPage || 0) || null;
-          var wordsReadEstimate = pagesRead && progressWordsPerPage ? Math.round(pagesRead * progressWordsPerPage) : null;
-          var sessionId = lastSavedSessionId || "";
-
-          var updateScript = document.createElement("script");
-          updateScript.type = "module";
-          updateScript.textContent = [
-            "import{getFirestore,doc,updateDoc,serverTimestamp}from'https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js';",
-            "import{initializeApp,getApps,getApp}from'https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js';",
-            "const app=getApps().length?getApp():initializeApp({apiKey:'AIzaSyAgTY3Uxd9_ZxixjqLj-sH8V3OhFAzg6DU',authDomain:'lesum-22e85.firebaseapp.com',projectId:'lesum-22e85',storageBucket:'upphatt-eu-storage',messagingSenderId:'204392598388',appId:'1:204392598388:web:2dbbe3f476cd78d2ffba21'});",
-            "const db=getFirestore(app);",
-            "const bookRef=doc(db,'books','" + setup.bookId + "');",
-            "const entries=" + JSON.stringify(book.journeyEntries || []) + ";",
-            "entries.unshift({date:'I dag',createdAt:Date.now(),pageFrom:" + (startPage || "null") + ",pageTo:" + (finalPage || "null") + ",pagesRead:" + (pagesRead || "null") + ",note:" + JSON.stringify(note || "") + ",reactions:[]});",
-            "updateDoc(bookRef,{",
-            "  status:" + (pct >= 100 ? "'finished'" : "'reading'") + ",",
-            "  currentPageFrom:" + (startPage || "null") + ",",
-            "  currentPageTo:" + (finalPage || "null") + ",",
-            "  progressPercent:" + pct + ",",
-            "  totalPagesRead:" + totalPagesRead + ",",
-            "  lastReadAt:" + now + ",",
-            "  note:" + JSON.stringify(note || "") + ",",
-            "  journeyEntries:entries,",
-            "  updatedAt:serverTimestamp()",
-            "}).then(()=>console.log('Book updated')).catch(e=>console.warn('Book update failed:',e));",
-            "const sessionId=" + JSON.stringify(sessionId) + ";",
-            "if(sessionId){",
-            "  const sessionRef=doc(db,'sessions',sessionId);",
-            "  updateDoc(sessionRef,{",
-            "    bookId:" + JSON.stringify(setup.bookId) + ",",
-            "    bookTitle:" + JSON.stringify(book.title || '') + ",",
-            "    pageFrom:" + (startPage || "null") + ",",
-            "    pageTo:" + (finalPage || "null") + ",",
-            "    pageStart:" + (startPage || "null") + ",",
-            "    pageEnd:" + (finalPage || "null") + ",",
-            "    pagesRead:" + (pagesRead || "null") + ",",
-            "    totalPages:" + (totalPages || "null") + ",",
-            "    wordsPerTextPage:" + (wordsPerTextPage || "null") + ",",
-            "    progressWordsPerBookPage:" + (progressWordsPerPage || "null") + ",",
-            "    wordsReadEstimate:" + (wordsReadEstimate || "null") + ",",
-            "    updatedAt:serverTimestamp()",
-            "  }).then(()=>console.log('Session updated with reading pages')).catch(e=>console.warn('Session page update failed:',e));",
-            "}"
-          ].join("\n");
-          document.head.appendChild(updateScript);
-          // Skrifa lokasíðu aftur í context — ef barn flettir upp orði EFTIR
-          // journey-save fær WordHelp þá réttа pageTo.
-          try {
-            if (window.__postSaveContext) {
-              window.__postSaveContext.pageTo = finalPage || null;
-            }
-          } catch (e) {}
-          return true;
-        } catch (e) { return false; }
+          var err = document.getElementById("post-save-error");
+          if (err && !err.hidden) { err.hidden = true; err.textContent = ""; }
+        });
       }
 
-      if (postSaveJourneyBtn) {
-        postSaveJourneyBtn.addEventListener("click", function () {
+      var PostSaveFlow = {
+        current: null,
+        wordHelp: null,   // { enter, reset, getLooked }  úr wordhelp-child.js
+        words: [],        // orð sem birtast í journey/done
+        committing: false,
+
+        _panels: function () {
+          return {
+            word: document.getElementById("post-save-step-word"),
+            wordhelp: document.getElementById("post-save-step-wordhelp"),
+            journey: document.getElementById("post-save-step-journey"),
+            done: document.getElementById("post-save-step-done")
+          };
+        },
+
+        _renderProgress: function (step) {
+          var onSetning = (step === "journey" || step === "done");
+          var rail = document.getElementById("post-save-rail");
+          if (!rail) return;
+          rail.querySelectorAll('[data-seg="setning"]').forEach(function (el) {
+            el.classList.toggle("on", onSetning);
+          });
+        },
+
+        goTo: function (step) {
+          this.current = step;
+          var p = this._panels();
+          Object.keys(p).forEach(function (k) { if (p[k]) p[k].hidden = (k !== step); });
+          this._renderProgress(step);
+          if (step === "wordhelp" && this.wordHelp && this.wordHelp.enter) this.wordHelp.enter();
+          if (step === "journey") {
+            if (postSaveJourneyBtn) {
+              postSaveJourneyBtn.disabled = false;
+              postSaveJourneyBtn.textContent = "Ljúka lestri";
+              delete postSaveJourneyBtn.dataset.pagesConfirmed;
+            }
+            var err = document.getElementById("post-save-error");
+            if (err) { err.hidden = true; err.textContent = ""; }
+            setTimeout(function () { if (postSaveNoteInput) postSaveNoteInput.focus(); }, 60);
+          }
+        },
+
+        // "Skoða annað orð" — orðalénið hreinsar leit, heldur _looked. Navigation óbreytt.
+        restartWordSearch: function () {
+          if (this.wordHelp && this.wordHelp.reset) this.wordHelp.reset();
+        },
+
+        // Orðahjálp kallar þetta á "Áfram í setningu" með getLooked().
+        renderWordChips: function (words) {
+          this.words = (words || []).slice();
+          var box = document.getElementById("post-save-words");
+          var list = document.getElementById("post-save-words-list");
+          if (!box || !list) return;
+          if (this.words.length) {
+            list.innerHTML = this.words.map(function (w) {
+              return '<span class="post-save-word-chip">' + psEscHtml(w) + "</span>";
+            }).join("");
+            box.hidden = false;
+          } else { list.innerHTML = ""; box.hidden = true; }
+        },
+
+        attachWordHelp: function (api) { this.wordHelp = api || null; },
+
+        open: function () {
+          if (!postSaveOverlay) return;
+          var ctx = window.__postSaveContext || null;
+          var setup = getChildReadingSetup();
+          postSaveMandatory = !!((ctx && ctx.bookId) || (setup && setup.bookId));
+          if (postSaveCloseBtn) postSaveCloseBtn.style.display = postSaveMandatory ? "none" : "";
+
+          var title = (ctx && ctx.bookTitle) || (setup && setup.bookTitle) || "Lesturinn þinn";
+          var titleEl = document.getElementById("post-save-book-title");
+          if (titleEl) titleEl.textContent = title;
+
+          if (postSaveEndPageInput) {
+            postSaveEndPageInput.value = "";
+            var pf = (ctx && ctx.pageFrom) || (setup && setup.pageFrom);
+            postSaveEndPageInput.placeholder = pf ? String(Number(pf) + 8) : "29";
+          }
+          if (postSaveNoteInput) postSaveNoteInput.value = "";
+          if (postSaveNote) postSaveNote.classList.remove("show");
+          if (postSaveJourneyBtn) {
+            postSaveJourneyBtn.textContent = "Ljúka lestri";
+            postSaveJourneyBtn.disabled = false;
+            delete postSaveJourneyBtn.dataset.pagesConfirmed;
+          }
+          var err = document.getElementById("post-save-error");
+          if (err) { err.hidden = true; err.textContent = ""; }
+          this.words = [];
+          this.renderWordChips([]);
+          this.committing = false;
+
+          this.goTo("word");
+          postSaveOverlay.classList.add("open");
+          postSaveOverlay.setAttribute("aria-hidden", "false");
+        },
+
+        close: function (force) {
+          if (!postSaveOverlay) return;
+          if (postSaveMandatory && !force) return;
+          postSaveOverlay.classList.remove("open");
+          postSaveOverlay.setAttribute("aria-hidden", "true");
+          // Hreinsa context: næsta orðauppfletting utan lestrarflæðis á ekki að erfa gamla bók.
+          try { window.__postSaveContext = null; } catch (e) {}
+        },
+
+        // Ljúka lestri: validation óbreytt -> satt await -> done AÐEINS eftir staðfest skrif.
+        commit: async function () {
+          if (this.committing) return;   // tvöföld vistun varin
+          var self = this;
           var note = postSaveNoteInput ? postSaveNoteInput.value.trim() : "";
           var endPage = postSaveEndPageInput ? postSaveEndPageInput.value.trim() : "";
-          if (!note) { alert("Skrifaðu eina setningu um hvað gerðist í bókinni."); return; }
-          if (!endPage) { alert("Settu inn blaðsíðuna sem þú endaðir á."); return; }
+          var errEl = document.getElementById("post-save-error");
+          function setErr(m) { if (errEl) { errEl.textContent = m; errEl.hidden = false; } }
+          function clrErr() { if (errEl) { errEl.hidden = true; errEl.textContent = ""; } }
+          clrErr();
 
-          updateBookshelfBookAfterReading(note, endPage);
+          if (!note) { setErr("Skrifaðu eina setningu um hvað gerðist í bókinni."); if (postSaveNoteInput) postSaveNoteInput.focus(); return; }
+          if (!endPage) { setErr("Settu inn blaðsíðuna sem þú endaðir á."); if (postSaveEndPageInput) postSaveEndPageInput.focus(); return; }
 
-          try {
-            localStorage.setItem("upphatt_last_reading_journey_entry", JSON.stringify({
-              childKey: childStorageKey, childName: childName,
-              note: note, endPage: endPage, timestamp: Date.now(), source: "post-save-popup"
-            }));
-          } catch (e) { /* no-op */ }
+          // ── SANNPRÓFUN BLAÐSÍÐU (óbreytt regla) ──
+          var _end = Number(endPage);
+          var _ctx = window.__postSaveContext || null;
+          var _books = window._firestoreBooks || [];
+          var _bk = _ctx && _ctx.bookId ? _books.find(function (b) { return b && String(b.id) === String(_ctx.bookId); }) : null;
+          var _cap = window.__lxSessionStart;
+          var _start = (_cap && Number(_cap.page) > 0) ? Number(_cap.page)
+            : (_ctx && _ctx.pageFrom ? Number(_ctx.pageFrom)
+              : (_bk && _bk.currentPageTo ? Number(_bk.currentPageTo) + 1 : null));
+          var _total = _bk ? Number(_bk.totalPages || 0) : 0;
 
+          if (!Number.isInteger(_end) || _end <= 0) { setErr("Skrifaðu blaðsíðuna sem heila tölu."); if (postSaveEndPageInput) { postSaveEndPageInput.focus(); postSaveEndPageInput.select(); } return; }
+          if (_start && _end < _start) { setErr("Þú byrjaðir á blaðsíðu " + _start + ". Hvaða blaðsíðu lastu síðast?"); if (postSaveEndPageInput) { postSaveEndPageInput.focus(); postSaveEndPageInput.select(); } return; }
+          if (_total > 0 && _end > _total) { setErr("Bókin er " + _total + " blaðsíður. Hvaða blaðsíðu lastu síðast?"); if (postSaveEndPageInput) { postSaveEndPageInput.focus(); postSaveEndPageInput.select(); } return; }
+          if (_start && (_end - _start + 1) >= 20 && !postSaveJourneyBtn.dataset.pagesConfirmed) {
+            postSaveJourneyBtn.dataset.pagesConfirmed = "1";
+            postSaveJourneyBtn.textContent = "Last þú " + (_end - _start + 1) + " bls.? Ýttu aftur";
+            return;
+          }
+          // ── /SANNPRÓFUN ──
+
+          this.committing = true;
+          if (postSaveJourneyBtn) { postSaveJourneyBtn.disabled = true; postSaveJourneyBtn.textContent = "Vistum…"; }
           triggerHaptic([8, 20, 8]);
-          postSaveJourneyBtn.textContent = "Vistað";
-          postSaveJourneyBtn.disabled = true;
-          if (postSaveNote) postSaveNote.classList.add("show");
-          setTimeout(function () { closePostSavePopup(true); }, 850);
+          try {
+            var res = await commitReadingJourney(note, endPage);  // Promise: resolve=staðfest, reject=mistókst
+            // localStorage AÐEINS eftir staðfest skrif
+            try {
+              localStorage.setItem("upphatt_last_reading_journey_entry", JSON.stringify({
+                childKey: childStorageKey, childName: childName,
+                note: note, endPage: endPage, timestamp: Date.now(), source: "post-save-popup"
+              }));
+            } catch (e) {}
+            self.committing = false;
+            self.renderDone(res, note);
+          } catch (e) {
+            // Nákvæm villa í console; mjúkt á skjá. Barnið helst á journey, reitir og orð óbreytt.
+            console.error("commitReadingJourney failed:", (e && e.code) || "", (e && e.message) || e);
+            self.committing = false;
+            if (postSaveJourneyBtn) { postSaveJourneyBtn.disabled = false; postSaveJourneyBtn.textContent = "Prófa aftur"; }
+            setErr("Ekki tókst að vista lesturinn. Prófaðu aftur.");
+          }
+        },
+
+        renderDone: function (res, note) {
+          var startP = res && res.startPage != null ? res.startPage : null;
+          var endP = res && res.finalPage != null ? res.finalPage : null;
+          var titleEl = document.getElementById("post-save-book-title");
+          var title = (window.__postSaveContext && window.__postSaveContext.bookTitle)
+            || (titleEl && titleEl.textContent) || "lesturinn";
+          var summaryEl = document.getElementById("post-save-done-summary");
+          if (summaryEl) {
+            summaryEl.innerHTML = 'Þú last <b style="color:var(--text);font-weight:600">' + psEscHtml(title) + "</b>"
+              + ((startP && endP) ? "<br>frá bls. " + startP + " til " + endP : "");
+          }
+          var nW = this.words.length;
+          var lines = [];
+          if (nW) lines.push(nW + " orð " + (nW === 1 ? "skoðað" : "skoðuð"));
+          if (note && note.trim()) lines.push("1 setning skrifuð");
+          var metaEl = document.getElementById("post-save-done-meta");
+          if (metaEl) metaEl.innerHTML = lines.map(function (l) { return "<div>" + psEscHtml(l) + "</div>"; }).join("");
+          var dw = document.getElementById("post-save-done-words");
+          var dwl = document.getElementById("post-save-done-words-list");
+          if (dw && dwl) {
+            if (nW) { dwl.innerHTML = this.words.map(function (w) { return '<span class="post-save-word-chip">' + psEscHtml(w) + "</span>"; }).join(""); dw.hidden = false; }
+            else { dwl.innerHTML = ""; dw.hidden = true; }
+          }
+          this.goTo("done");
+        }
+      };
+      window.PostSaveFlow = PostSaveFlow;
+
+      // Bakhjarlar fyrir eldri kallstaði (openPostSavePopup / closePostSavePopup / __postSaveShowJourney)
+      function openPostSavePopup() { PostSaveFlow.open(); }
+      function closePostSavePopup(force) { PostSaveFlow.close(force); }
+      window.__postSaveShowJourney = function () { PostSaveFlow.goTo("journey"); };
+
+      // ── Wiring ──
+      var wordYesBtn = document.getElementById("post-save-word-yes");
+      if (wordYesBtn) wordYesBtn.addEventListener("click", function () { PostSaveFlow.goTo("wordhelp"); });
+      var wordNoBtn = document.getElementById("post-save-word-no");
+      if (wordNoBtn) wordNoBtn.addEventListener("click", function () { PostSaveFlow.goTo("journey"); });
+      var whSkipBtn = document.getElementById("wh-skip");
+      if (whSkipBtn) whSkipBtn.addEventListener("click", function () { PostSaveFlow.goTo("journey"); });
+      var toShelfBtn = document.getElementById("post-save-to-shelf");
+      if (toShelfBtn) toShelfBtn.addEventListener("click", function () {
+        // Loka overlay OG fara raunverulega á bókahilluna svo merkið sé satt.
+        // Notum sama router og nav-stikan (go); föllum í nav-hnappinn ef hann vantar.
+        PostSaveFlow.close(true);
+        try {
+          if (typeof go === "function") { go("bookshelf"); return; }
+        } catch (e) { console.error("go('bookshelf') brást:", e); }
+        var navBtn = document.querySelector('[data-nav="bookshelf"]');
+        if (navBtn) navBtn.click();
+      });
+
+      if (postSaveCloseBtn) postSaveCloseBtn.addEventListener("click", function () { PostSaveFlow.close(); });
+      if (postSaveOverlay) postSaveOverlay.addEventListener("click", function (e) { if (e.target === postSaveOverlay) PostSaveFlow.close(); });
+
+      // Awaitable vistun. Skilar Promise sem resolve-ar AÐEINS þegar bæði nauðsynleg
+      // skrif (bók + lota) hafa staðfest saman í gegnum atómískt writeBatch — annars reject.
+      // Reject skilur ENGIN skrif eftir (atómískt), svo endurtekið tapp tvítelur/tvískrifar aldrei.
+      async function commitReadingJourney(note, endPage) {
+        // Nýr sannleikur: __postSaveContext. Fallback í localStorage-setup aðeins ef context vantar.
+        var ctx = window.__postSaveContext || null;
+        var setup = (ctx && ctx.bookId) ? { bookId: ctx.bookId, bookTitle: ctx.bookTitle, pageFrom: ctx.pageFrom } : getChildReadingSetup();
+        if (!setup || !setup.bookId) throw new Error("post-save: bookId vantar — get ekki vistað lestrarferðalag.");
+        var allBooks = window._firestoreBooks || [];
+        var book = allBooks.find(function (item) { return item && String(item.id) === String(setup.bookId); });
+        if (!book) throw new Error("post-save: bók fannst ekki í _firestoreBooks (" + setup.bookId + ").");
+
+        // Byrjunarsíða = nákvæmlega sú sem UI sýndi (fönguð við upphaf). MIKILVÆGT: við
+        // hreinsum __lxSessionStart EKKI hér heldur aðeins eftir staðfest skrif, svo retry
+        // reikni sömu byrjunarsíðu (annars myndi önnur tilraun fá ranga tölu).
+        var startPage;
+        var _cap = window.__lxSessionStart;
+        var _capValid = _cap &&
+          String(_cap.bookId) === String(setup.bookId) &&
+          String(_cap.bookId) === String(book.id) &&
+          Number(_cap.page) > 0;
+        if (_capValid) {
+          startPage = Number(_cap.page);
+        } else {
+          var realResumePage = book.currentPageTo ? Number(book.currentPageTo) + 1 : Number(book.currentPageFrom || 1);
+          var setupIsFresh = setup && setup.bookId === book.id && setup.pageFrom && setup.savedAt && (Date.now() - Number(setup.savedAt) < 5 * 60 * 1000);
+          startPage = setupIsFresh ? Number(setup.pageFrom) : realResumePage;
+        }
+        var finalPage = Number(endPage || 0);
+        var totalPages = Number(book.totalPages || 0);
+        var pagesRead = (startPage && finalPage && finalPage >= startPage) ? (finalPage - startPage + 1) : null;
+        var now = Date.now();
+        var pct = totalPages && finalPage ? Math.min(100, Math.max(0, Math.round((finalPage / totalPages) * 100))) : (book.progressPercent || 0);
+        var totalPagesRead = Number(book.totalPagesRead || 0);
+        if (pagesRead) totalPagesRead += pagesRead;
+        var wordsPerTextPage = Number(book.readingDifficultyWordsPerTextPage || (book.readingLoad && (book.readingLoad.wordsPerPageEstimate || book.readingLoad.wordsPerPage)) || book.wordsPerPage || 0) || null;
+        var progressWordsPerPage = Number(book.progressWordsPerBookPage || (book.scope && book.scope.progressWordsPerBookPage) || wordsPerTextPage || 0) || null;
+        var wordsReadEstimate = pagesRead && progressWordsPerPage ? Math.round(pagesRead * progressWordsPerPage) : null;
+        var sessionId = (ctx && ctx.sessionId) || lastSavedSessionId || "";
+
+        // Dynamic import → awaitable (ólíkt gamla injected-script sem var fire-and-forget).
+        var appMod = await import("https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js");
+        var fsMod = await import("https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js");
+        var app = appMod.getApps().length ? appMod.getApp() : appMod.initializeApp({ apiKey: "AIzaSyAgTY3Uxd9_ZxixjqLj-sH8V3OhFAzg6DU", authDomain: "lesum-22e85.firebaseapp.com", projectId: "lesum-22e85", storageBucket: "upphatt-eu-storage", messagingSenderId: "204392598388", appId: "1:204392598388:web:2dbbe3f476cd78d2ffba21" });
+        var db = fsMod.getFirestore(app);
+
+        // Afrit — mutera EKKI book.journeyEntries í minni, svo retry endurbyggi eins.
+        var entries = (book.journeyEntries || []).slice();
+        entries.unshift({ date: "I dag", createdAt: now, pageFrom: startPage || null, pageTo: finalPage || null, pagesRead: pagesRead || null, note: note || "", reactions: [] });
+
+        var batch = fsMod.writeBatch(db);
+        // NAUÐSYNLEGT SKRIF 1 — bókin (framvinda + lestrarferðalag/setning).
+        batch.update(fsMod.doc(db, "books", String(setup.bookId)), {
+          status: pct >= 100 ? "finished" : "reading",
+          currentPageFrom: startPage || null,
+          currentPageTo: finalPage || null,
+          progressPercent: pct,
+          totalPagesRead: totalPagesRead,
+          lastReadAt: now,
+          note: note || "",
+          journeyEntries: entries,
+          updatedAt: fsMod.serverTimestamp()
         });
+        // NAUÐSYNLEGT SKRIF 2 — lestrarlotan (blaðsíður). set+merge svo hún misheppnist
+        // ekki þótt lotu-skjalið sé óvænt ekki til; commit-ast samt atómískt með bókinni.
+        if (sessionId) {
+          batch.set(fsMod.doc(db, "sessions", String(sessionId)), {
+            bookId: setup.bookId,
+            bookTitle: book.title || "",
+            pageFrom: startPage || null,
+            pageTo: finalPage || null,
+            pageStart: startPage || null,
+            pageEnd: finalPage || null,
+            pagesRead: pagesRead || null,
+            totalPages: totalPages || null,
+            wordsPerTextPage: wordsPerTextPage || null,
+            progressWordsPerBookPage: progressWordsPerPage || null,
+            wordsReadEstimate: wordsReadEstimate || null,
+            updatedAt: fsMod.serverTimestamp()
+          }, { merge: true });
+        }
+
+        await batch.commit();  // ← reject hér ⇒ ekkert skrifað. Barnið helst á journey og má reyna aftur.
+
+        // AÐEINS eftir staðfest skrif: hreinsa upphafsföngun og uppfæra context (fyrir WordHelp síðar).
+        try { window.__lxSessionStart = null; } catch (e) {}
+        try { if (window.__postSaveContext) window.__postSaveContext.pageTo = finalPage || null; } catch (e) {}
+
+        return { startPage: startPage || null, finalPage: finalPage || null, pagesRead: pagesRead };
+      }
+
+      // "Ljúka lestri" — öll validation, satt await og lokastate búa í PostSaveFlow.commit().
+      if (postSaveJourneyBtn) {
+        postSaveJourneyBtn.addEventListener("click", function () { PostSaveFlow.commit(); });
       }
 
       // ── Book picker modal ──

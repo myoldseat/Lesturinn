@@ -1087,14 +1087,53 @@ body{font-family:'DM Sans','Manrope',-apple-system,BlinkMacSystemFont,sans-serif
     .wh-out { margin-top: 14px; }
     .wh-msg { color: var(--soft); font-size: 13px; line-height: 1.5; text-align: center; padding: 14px 4px; }
     .wh-msg b { color: var(--text); }
-    .wh-lemma { font-family: var(--serif); font-size: 24px; font-weight: 400; color: var(--text); line-height: 1.1; }
-    .wh-pos { font-size: 11px; font-weight: 800; color: var(--soft); text-transform: uppercase; letter-spacing: .5px; margin-top: 3px; }
-    .wh-simple { font-size: 16px; line-height: 1.55; color: var(--text); margin: 13px 0; }
-    .wh-ex { border-left: 2px solid rgba(29,205,211,.22); padding-left: 11px; margin: 12px 0; }
-    .wh-ex-l { font-size: 14px; line-height: 1.5; color: var(--text); margin: 3px 0; }
-    .wh-ex-l + .wh-ex-l { color: var(--soft); }
-    .wh-ino { font-size: 11px; color: var(--soft); line-height: 1.5; margin-top: 10px; }
-    .wh-ino a { color: var(--soft); }
+    #wh-search-head[hidden] { display: none; }
+    .wh-search[hidden] { display: none; }
+
+    /* Svar-kortið: orðið + orðflokkur + merking sem EIN eining (hetja skjásins). */
+    .wh-card {
+      background: rgba(29,205,211,0.10); border: 1px solid rgba(29,205,211,0.28);
+      border-radius: 20px; padding: 22px 20px; text-align: center;
+      box-shadow: 0 0 34px rgba(29,205,211,0.06);
+    }
+    .wh-lemma { font-family: var(--serif); font-size: 29px; font-weight: 400; color: var(--text); line-height: 1.05; }
+    .wh-pos { font-size: 9.5px; font-weight: 800; color: var(--accent); text-transform: uppercase; letter-spacing: 1.4px; margin-top: 6px; }
+    .wh-meaning { font-size: 18px; font-weight: 500; line-height: 1.5; color: var(--text); margin-top: 15px; }
+    .wh-meaning-fallback { font-size: 14px; font-weight: 400; color: var(--soft); }
+    .wh-meaning-fallback b { color: var(--text); }
+
+    /* Dæmi: eitt strik utan um BÁÐAR setningarnar (þær vinna saman). Engin merki, engar gæsalappir. */
+    .wh-ex-block { margin: 16px 3px 0; text-align: left; }
+    .wh-ex-lab { font-size: 11px; font-weight: 800; letter-spacing: .8px; text-transform: uppercase; color: var(--soft); margin-bottom: 9px; }
+    .wh-ex-wrap { border-left: 2px solid rgba(29,205,211,0.4); padding-left: 13px; }
+    .wh-ex-1 { font-size: 14.5px; line-height: 1.45; color: var(--text); }
+    .wh-ex-2 { font-size: 13.5px; line-height: 1.4; color: var(--soft); margin-top: 8px; }
+    /* Smellanlegt samheiti í dæmi 2 — lítur út fyrir að vera snertanlegt orð. */
+    .wh-syn { color: var(--accent); font-weight: 700; text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
+    /* Bakör aftur í fyrra orð úr samheita-keðjunni (nefnir orðið sem það fer í). */
+    .wh-back-word { display: block; text-align: left; font-size: 12px; color: var(--soft); text-decoration: underline; text-underline-offset: 2px; cursor: pointer; margin-bottom: 12px; }
+
+    /* Aukatenglar (beyging fyrst), litlir og keppa ekki. */
+    .wh-micro { display: flex; flex-direction: column; align-items: center; gap: 9px; margin: 16px 0 0; }
+    .wh-micro-link { font-size: 12px; color: var(--soft); text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
+
+    /* Aðgerðir hlið við hlið → passa á einn skjá. Áfram = sterki, fyllti teal-hnappurinn. */
+    .wh-actions { display: grid; grid-template-columns: 1fr 1.25fr; gap: 9px; margin-top: 16px; }
+    .wh-secondary {
+      border-radius: 13px; padding: 13px 8px; font-family: inherit;
+      font-size: 12px; font-weight: 700; color: var(--soft);
+      background: transparent; border: 1px solid var(--line); cursor: pointer;
+    }
+    .wh-primary {
+      border-radius: 13px; padding: 13px 10px; font-family: inherit;
+      font-size: 13.5px; font-weight: 800; color: #04222a;
+      background: var(--accent); border: none; cursor: pointer;
+      box-shadow: 0 5px 18px rgba(29,205,211,0.26);
+    }
+
+    /* Heimild: sýnileg en "ósýnileg" — pínulítil, grá, neðst. Bara lagalegt. */
+    .wh-attrib { margin-top: 12px; font-size: 9px; line-height: 1.45; color: rgba(122,143,160,0.55); text-align: center; }
+    .wh-attrib a { color: rgba(122,143,160,0.7); }
     /* Merkingaval — sama mynstur og labbið, en barnvænt: merking, ekki orðflokkur */
     .wh-pick-label { font-size: 10px; font-weight: 800; color: var(--soft); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 8px; }
     .wh-opt {
@@ -2650,12 +2689,14 @@ body{font-family:'DM Sans','Manrope',-apple-system,BlinkMacSystemFont,sans-serif
 
         <!-- PANEL 2 — Orðahjálp (uppfletting + niðurstaða). Engin bakör. -->
         <div id="post-save-step-wordhelp" class="post-save-step" data-step="wordhelp" hidden>
-          <h2 class="ps-panel-title">Skoða orð</h2>
-          <p class="post-save-sub">Sláðu inn orðið eins og það stendur í bókinni.</p>
-          <div class="wh-search">
-            <input id="wh-word" class="wh-input" type="text" autocomplete="off"
-                   autocapitalize="none" spellcheck="false" placeholder="t.d. ferðalöngum">
-            <button id="wh-go" class="post-save-btn wh-go" type="button">Leita</button>
+          <div id="wh-search-head">
+            <h2 class="ps-panel-title">Skoða orð</h2>
+            <p class="post-save-sub">Sláðu inn orðið eins og það stendur í bókinni.</p>
+            <div class="wh-search">
+              <input id="wh-word" class="wh-input" type="text" autocomplete="off"
+                     autocapitalize="none" spellcheck="false" placeholder="t.d. ferðalöngum">
+              <button id="wh-go" class="post-save-btn wh-go" type="button">Leita</button>
+            </div>
           </div>
           <div id="wh-out" class="wh-out"></div>
           <button id="wh-skip" class="wh-skip" type="button">Sleppa — áfram í setningu</button>

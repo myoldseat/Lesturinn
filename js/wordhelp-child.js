@@ -282,7 +282,7 @@ function render(opts) {
 
     <div class="wh-attrib">${esc(src.text || '')}
       ${src.url ? `<br><a href="${esc(src.url)}" target="_blank" rel="noopener">Íslensk nútímamálsorðabók</a> · Árnastofnun · CC BY-SA 4.0` : ''}
-      <br>Skýringin er einfölduð fyrir börn. <a href="https://upphatt.is/heimildir.html" target="_blank" rel="noopener">Sjá hvernig</a>
+      <br>Skýringin er einfölduð fyrir börn. <a href="/heimildir.html" target="_blank" rel="noopener">Sjá hvernig</a>
     </div>`;
 
   const other = $('wh-other');

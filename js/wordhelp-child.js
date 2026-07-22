@@ -81,32 +81,34 @@ let _word = '';            // það sem barnið sló inn
 let _busy = false;
 const _looked = [];        // orð skoðuð í þessari lotu -> kubbar á skrefi 2
 
-// ── Overlay ─────────────────────────────────────────────────────────
-function open() {
-  const o = $('wh-overlay');
-  if (!o) return;
-  $('wh-word').value = '';
-  $('wh-out').innerHTML = '';
-  _last = null; _word = '';
-  o.classList.add('open');
-  o.setAttribute('aria-hidden', 'false');
-  setTimeout(() => $('wh-word') && $('wh-word').focus(), 80);
-}
+// ── Panel (Orðahjálp er nú panel í post-save kortinu, ekki sér-overlay) ──
+// Navigation á heima í child.html (PostSaveFlow). Þessi skrá á aðeins orðalénið
+// og afhendir stjóranum þrjú föll: enter / reset / getLooked.
 
-function close() {
-  const o = $('wh-overlay');
-  if (o) { o.classList.remove('open'); o.setAttribute('aria-hidden', 'true'); }
-  // Kubbar á skrefi 2 — barnið sér hvað það skoðaði.
-  if (_looked.length) {
-    const box = $('post-save-words'), list = $('post-save-words-list');
-    if (box && list) {
-      list.innerHTML = _looked.map((w) =>
-        `<span class="post-save-word-chip">${esc(w)}</span>`).join('');
-      box.hidden = false;
-    }
-  }
-  if (window.__postSaveShowJourney) window.__postSaveShowJourney();
+const LOADER_DELAY = 250;   // ekki sýna loader ef svar kemur strax → ekkert flökt
+const LOADER_MIN   = 400;   // ef hann birtist, halda a.m.k. svona lengi → ekkert blikk
+let _loaderTimer = null;
+let _loaderShownAt = 0;
+
+const LOADER_HTML =
+  '<div class="wh-loader">'
+  + '<div class="wh-loader-logo"><b>Upp</b>Hátt</div>'
+  + '<div class="wh-loader-mark"></div>'
+  + '<div class="wh-loader-text">Finn orðið þitt…</div>'
+  + '</div>';
+
+// Hreinsar núverandi leit en HELDUR _looked (fyrri orð lotunnar). Fókus aftur í
+// reitinn. Notað bæði við inngöngu í panelinn og af "Skoða annað orð".
+function reset() {
+  if ($('wh-word')) $('wh-word').value = '';
+  if ($('wh-out')) $('wh-out').innerHTML = '';
+  const skip = $('wh-skip');
+  if (skip) skip.hidden = false;
+  _last = null; _word = '';
+  setTimeout(() => $('wh-word') && $('wh-word').focus(), 60);
 }
+function enter() { reset(); }                 // fyrsta innganga = sama hreina ástand
+function getLooked() { return _looked.slice(); }
 
 // ── Leit ────────────────────────────────────────────────────────────
 async function search(id, sense) {
@@ -116,22 +118,45 @@ async function search(id, sense) {
   if (!word) { msg('Sláðu inn orð fyrst.'); return; }
   if (_busy) return;
   _word = word; _busy = true;
-  $('wh-go').disabled = true;
-  msg('Leita…');
+  if ($('wh-go')) $('wh-go').disabled = true;
+
+  // Seinkuð hleðsla: boot-stíll birtist AÐEINS ef uppflettingin er hæg (>250ms).
+  _loaderShownAt = 0;
+  _loaderTimer = setTimeout(() => {
+    _loaderShownAt = Date.now();
+    if ($('wh-out')) $('wh-out').innerHTML = LOADER_HTML;
+  }, LOADER_DELAY);
+
+  let result = null, failed = false;
   try {
-    const r = (await lookupWord({
+    result = (await lookupWord({
       mode: 'easy', word,
       ...(id != null ? { id, sense } : {})
     })).data;
-    _last = { ...r, word };
-    render();
   } catch (e) {
     // TÆKNIN brást (Vertex 429, net, o.s.frv.) — EKKI orðið. Að segja "fundum
     // ekki orðið" hér kennir barninu ranglega að rétt orð sé rangt. Mjúkt og
     // satt: reyndu aftur. Nákvæma villan fer í console fyrir okkur, aldrei á skjá.
-    msg('Þetta virkaði ekki alveg núna.<br>Prófaðu aftur eftir smá.');
+    failed = true;
     console.error('lookupWordHelp', e);
   }
+
+  // Slökkva á væntanlegum loader; ef hann NÁÐI að birtast, halda lágmarkstíma
+  // svo hann blikki ekki inn og út.
+  clearTimeout(_loaderTimer);
+  if (_loaderShownAt) {
+    const wait = LOADER_MIN - (Date.now() - _loaderShownAt);
+    if (wait > 0) await new Promise((r) => setTimeout(r, wait));
+  }
+  _loaderShownAt = 0;
+
+  if (failed) {
+    msg('Þetta virkaði ekki alveg núna.<br>Prófaðu aftur eftir smá.');
+  } else {
+    _last = { ...result, word };
+    render();
+  }
+
   _busy = false;
   if ($('wh-go')) $('wh-go').disabled = false;
 }
@@ -188,7 +213,12 @@ function render() {
       ${src.url ? `<br><a href="${esc(src.url)}" target="_blank" rel="noopener">Íslensk nútímamálsorðabók</a> · Árnastofnun · CC BY-SA 4.0` : ''}
       <br><span class="wh-changes">Skýringin er einfölduð fyrir börn. <a href="https://upphatt.is/heimildir.html" target="_blank" rel="noopener">Sjá hvernig</a></span>
     </div>
-    <div id="wh-save-note"></div>`;
+    <div id="wh-save-note"></div>
+
+    <div class="wh-actions">
+      <button class="post-save-btn secondary" id="wh-again" type="button">Skoða annað orð</button>
+      <button class="post-save-btn" id="wh-next" type="button">Áfram í setningu</button>
+    </div>`;
 
   const other = $('wh-other');
   if (other) other.addEventListener('click', () => {
@@ -196,6 +226,30 @@ function render() {
   });
   const para = $('wh-para');
   if (para) para.addEventListener('click', paradigm);
+
+  // Niðurstaða til staðar → engin þörf á "Sleppa" tenglinum lengur.
+  const skip = $('wh-skip');
+  if (skip) skip.hidden = true;
+
+  // Samstundis í _looked (dedup) svo getLooked() sé rétt STRAX, óháð því hvenær
+  // save() (Firestore) klárast. save() ýtir líka en hoppar yfir ef þegar til.
+  if (r.lemma && !_looked.includes(r.lemma)) _looked.push(r.lemma);
+
+  // Tvær skýrar aðgerðir eftir niðurstöðu. Navigation fer í gegnum PostSaveFlow.
+  const again = $('wh-again');
+  if (again) again.addEventListener('click', () => {
+    if (window.PostSaveFlow) window.PostSaveFlow.restartWordSearch();  // hreinsar leit, HELDUR _looked
+    else reset();
+  });
+  const next = $('wh-next');
+  if (next) next.addEventListener('click', () => {
+    if (window.PostSaveFlow) {
+      window.PostSaveFlow.renderWordChips(getLooked());
+      window.PostSaveFlow.goTo('journey');
+    } else if (window.__postSaveShowJourney) {
+      window.__postSaveShowJourney();
+    }
+  });
 
   save();   // sjálfvirkt — barnið á ekki að þurfa að muna að vista
 }
@@ -622,15 +676,15 @@ function injectBeygingModal() {
 
 // ── Tengja ──────────────────────────────────────────────────────────
 function wire() {
-  if (!$('wh-overlay')) return;          // eldri child.html — gerum ekkert
+  if (!$('post-save-step-wordhelp')) return;   // eldri child.html — gerum ekkert
   injectBeygingModal();
-  const yes = $('post-save-word-yes');
-  if (yes) yes.addEventListener('click', open);
   $('wh-go').addEventListener('click', () => search());
   $('wh-word').addEventListener('keydown', (e) => { if (e.key === 'Enter') search(); });
-  $('wh-back').addEventListener('click', close);
-  $('wh-done').addEventListener('click', close);
-  $('wh-overlay').addEventListener('click', (e) => { if (e.target === $('wh-overlay')) close(); });
+  // Skrá orðalénið hjá flæðisstjóranum. Navigation (Já-hnappur, panel-skipti,
+  // "Skoða annað orð", "Áfram í setningu") á heima í child.html / PostSaveFlow.
+  if (window.PostSaveFlow && window.PostSaveFlow.attachWordHelp) {
+    window.PostSaveFlow.attachWordHelp({ enter, reset, getLooked });
+  }
 }
 
 if (document.readyState === 'loading')

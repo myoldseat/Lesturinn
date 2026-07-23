@@ -103,6 +103,7 @@ function childPos(label) {
 
 const LOADER_DELAY = 250;   // ekki sýna loader ef svar kemur strax → ekkert flökt
 const LOADER_MIN   = 400;   // ef hann birtist, halda a.m.k. svona lengi → ekkert blikk
+const LOOKUP_TIMEOUT = 15000;  // þak á bið: hangandi kall má ekki festa barnið
 let _loaderTimer = null;
 let _loaderShownAt = 0;
 
@@ -143,6 +144,9 @@ async function search(id, sense, forceWord) {
   if ($('wh-go')) $('wh-go').disabled = true;
 
   // Seinkuð hleðsla: boot-stíll birtist AÐEINS ef uppflettingin er hæg (>250ms).
+  // "Sleppa" helst sýnilegt á meðan: barn á aldrei að vera fast í bið án útgöngu.
+  const loadSkip = $('wh-skip');
+  if (loadSkip) loadSkip.hidden = false;
   _loaderShownAt = 0;
   _loaderTimer = setTimeout(() => {
     _loaderShownAt = Date.now();
@@ -151,10 +155,11 @@ async function search(id, sense, forceWord) {
 
   let result = null, failed = false;
   try {
-    result = (await lookupWord({
-      mode: 'easy', word,
-      ...(id != null ? { id, sense } : {})
-    })).data;
+    // Þak á bið: hangandi net má ekki snúa hleðslunni endalaust.
+    result = (await Promise.race([
+      lookupWord({ mode: 'easy', word, ...(id != null ? { id, sense } : {}) }),
+      new Promise((_, rej) => setTimeout(() => rej(new Error('wordhelp timeout')), LOOKUP_TIMEOUT))
+    ])).data;
   } catch (e) {
     // TÆKNIN brást (Vertex 429, net, o.s.frv.) — EKKI orðið. Að segja "fundum
     // ekki orðið" hér kennir barninu ranglega að rétt orð sé rangt. Mjúkt og
@@ -172,18 +177,37 @@ async function search(id, sense, forceWord) {
   }
   _loaderShownAt = 0;
 
-  if (failed) {
+  try {
+    if (failed) {
+      msg('Þetta virkaði ekki alveg núna.<br>Prófaðu aftur eftir smá.');
+    } else {
+      _last = { ...result, word };
+      render();
+    }
+  } catch (e) {
+    // Jafnvel þótt birtingin sjálf klikki (gölluð gögn) á barnið að fá leið út,
+    // ekki auðan eða frosinn skjá.
+    console.error('wordhelp render', e);
     msg('Þetta virkaði ekki alveg núna.<br>Prófaðu aftur eftir smá.');
-  } else {
-    _last = { ...result, word };
-    render();
+  } finally {
+    // ALLTAF losa: annars hunsar search() þöglar allar frekari leitir (frysting).
+    _busy = false;
+    clearTimeout(_loaderTimer);
+    _loaderShownAt = 0;
+    if ($('wh-go')) $('wh-go').disabled = false;
   }
-
-  _busy = false;
-  if ($('wh-go')) $('wh-go').disabled = false;
 }
 
-function msg(html) { $('wh-out').innerHTML = `<div class="wh-msg">${html}</div>`; }
+// Sérhvert msg-ástand (villa, ekki-fannst, tómt) á ALDREI að vera blindgata:
+// tryggjum að leitarreiturinn (reyna aftur) OG "Sleppa — áfram í setningu"
+// (halda áfram) séu sýnileg. Annars getur misheppnuð uppfletting fest barnið.
+function msg(html) {
+  const head = $('wh-search-head');
+  if (head) head.hidden = false;
+  const skip = $('wh-skip');
+  if (skip) skip.hidden = false;
+  $('wh-out').innerHTML = `<div class="wh-msg">${html}</div>`;
+}
 
 // ── Samheiti í dæmi 2 ────────────────────────────────────────────────
 // Dæmin tvö eru oftast sama setning með einu orði skipt út (veifaði→vinkaði).
@@ -230,6 +254,12 @@ function render(opts) {
 
   // Fleiri en ein merking og engin valin -> barnið velur. Ekkert AI-kall enn.
   if (r.needsChoice) {
+    // Útgönguleið: ef engin merking passar á barnið að geta leitað að öðru orði
+    // eða haldið áfram. Án þessa er valskjárinn blindgata.
+    const chHead = $('wh-search-head');
+    if (chHead) chHead.hidden = false;
+    const chSkip = $('wh-skip');
+    if (chSkip) chSkip.hidden = false;
     $('wh-out').innerHTML = `
       <div class="wh-pick-label">Hvaða orð meinarðu?</div>
       ${r.options.map((o) => `
@@ -282,7 +312,7 @@ function render(opts) {
 
     <div class="wh-attrib">${esc(src.text || '')}
       ${src.url ? `<br><a href="${esc(src.url)}" target="_blank" rel="noopener">Íslensk nútímamálsorðabók</a> · Árnastofnun · CC BY-SA 4.0` : ''}
-      <br>Skýringin er einfölduð fyrir börn. <a href="https://app.upphatt.is/heimildir" target="_blank" rel="noopener">Sjá hvernig</a>
+      <br>Skýringin er einfölduð fyrir börn. <a href="/heimildir" target="_blank" rel="noopener">Sjá hvernig</a>
     </div>`;
 
   const other = $('wh-other');

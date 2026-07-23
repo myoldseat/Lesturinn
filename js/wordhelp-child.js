@@ -307,7 +307,7 @@ function render(opts) {
 
     <div class="wh-actions">
       <button class="wh-secondary" id="wh-again" type="button">Skoða annað orð</button>
-      <button class="wh-primary" id="wh-next" type="button">Áfram í setningu</button>
+      <button class="wh-primary" id="wh-next" type="button">Áfram</button>
     </div>
 
     <div class="wh-attrib">${esc(src.text || '')}

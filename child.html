@@ -1131,9 +1131,10 @@ body{font-family:'DM Sans','Manrope',-apple-system,BlinkMacSystemFont,sans-serif
       box-shadow: 0 5px 18px rgba(29,205,211,0.26);
     }
 
-    /* Heimild: sýnileg en "ósýnileg" — pínulítil, grá, neðst. Bara lagalegt. */
-    .wh-attrib { margin-top: 12px; font-size: 9px; line-height: 1.45; color: rgba(122,143,160,0.55); text-align: center; }
-    .wh-attrib a { color: rgba(122,143,160,0.7); }
+    /* Heimild: lágstemmd en LÆSILEG. 9px/0.55 var undir læsileikamörkum —
+       tenglar verða að sjást sem tenglar (undirstrikun) og textinn að lesast. */
+    .wh-attrib { margin-top: 14px; font-size: 11px; line-height: 1.55; color: rgba(122,143,160,0.85); text-align: center; }
+    .wh-attrib a { color: var(--soft); text-decoration: underline; text-underline-offset: 2px; }
     /* Merkingaval — sama mynstur og labbið, en barnvænt: merking, ekki orðflokkur */
     .wh-pick-label { font-size: 10px; font-weight: 800; color: var(--soft); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 8px; }
     .wh-opt {

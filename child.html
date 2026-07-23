@@ -1008,8 +1008,6 @@ body{font-family:'DM Sans','Manrope',-apple-system,BlinkMacSystemFont,sans-serif
       text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;
     }
     /* ── ORÐAHJÁLP ── */
-    .wh-card { text-align: left; padding-top: 20px; }
-    .wh-card h2 { text-align: center; }
     /* ── Fastur haus (shell): bók + samhengi + framvinda ── */
     .ps-shell { text-align: left; margin: 0 0 16px; }
     .ps-eyebrow {
@@ -1060,9 +1058,6 @@ body{font-family:'DM Sans','Manrope',-apple-system,BlinkMacSystemFont,sans-serif
     .ps-done-meta { color: var(--soft); font-size: 12.5px; line-height: 1.7; margin: 4px 0 12px; text-align: center; }
     .ps-done-words { text-align: center; margin-bottom: 14px; }
 
-    /* Tvær aðgerðir eftir orðaniðurstöðu */
-    .wh-actions { display: grid; gap: 9px; margin-top: 14px; }
-
     /* Boot-stíl hleðsla inni í flæðinu — birtist aðeins ef uppfletting er hæg */
     .wh-loader { display: flex; flex-direction: column; align-items: center; gap: 11px; padding: 22px 0; }
     .wh-loader-logo { font-size: 25px; font-weight: 900; letter-spacing: -0.02em; color: var(--text); }
@@ -1093,36 +1088,37 @@ body{font-family:'DM Sans','Manrope',-apple-system,BlinkMacSystemFont,sans-serif
     /* Svar-kortið: orðið + orðflokkur + merking sem EIN eining (hetja skjásins). */
     .wh-card {
       background: rgba(29,205,211,0.10); border: 1px solid rgba(29,205,211,0.28);
-      border-radius: 20px; padding: 22px 20px; text-align: center;
+      border-radius: 20px; padding: 30px 24px; text-align: center;
       box-shadow: 0 0 34px rgba(29,205,211,0.06);
     }
-    .wh-lemma { font-family: var(--serif); font-size: 29px; font-weight: 400; color: var(--text); line-height: 1.05; }
-    .wh-pos { font-size: 9.5px; font-weight: 800; color: var(--accent); text-transform: uppercase; letter-spacing: 1.4px; margin-top: 6px; }
-    .wh-meaning { font-size: 18px; font-weight: 500; line-height: 1.5; color: var(--text); margin-top: 15px; }
+    .wh-lemma { font-family: var(--serif); font-size: 32px; font-weight: 400; color: var(--text); line-height: 1.05; }
+    .wh-pos { font-size: 9.5px; font-weight: 800; color: var(--accent); text-transform: uppercase; letter-spacing: 1.4px; margin-top: 7px; }
+    .wh-meaning { font-size: 19px; font-weight: 500; line-height: 1.5; color: var(--text); margin-top: 19px; }
     .wh-meaning-fallback { font-size: 14px; font-weight: 400; color: var(--soft); }
     .wh-meaning-fallback b { color: var(--text); }
 
     /* Dæmi: eitt strik utan um BÁÐAR setningarnar (þær vinna saman). Engin merki, engar gæsalappir. */
-    .wh-ex-block { margin: 16px 3px 0; text-align: left; }
-    .wh-ex-lab { font-size: 11px; font-weight: 800; letter-spacing: .8px; text-transform: uppercase; color: var(--soft); margin-bottom: 9px; }
-    .wh-ex-wrap { border-left: 2px solid rgba(29,205,211,0.4); padding-left: 13px; }
-    .wh-ex-1 { font-size: 14.5px; line-height: 1.45; color: var(--text); }
-    .wh-ex-2 { font-size: 13.5px; line-height: 1.4; color: var(--soft); margin-top: 8px; }
+    .wh-ex-block { margin: 24px 3px 0; text-align: left; }
+    .wh-ex-lab { font-size: 11px; font-weight: 800; letter-spacing: .8px; text-transform: uppercase; color: var(--soft); margin-bottom: 11px; }
+    .wh-ex-wrap { border-left: 2px solid rgba(29,205,211,0.4); padding-left: 14px; }
+    .wh-ex-1 { font-size: 15.5px; line-height: 1.5; color: var(--text); }
+    .wh-ex-2 { font-size: 14px; line-height: 1.45; color: var(--soft); margin-top: 10px; }
     /* Smellanlegt samheiti í dæmi 2 — lítur út fyrir að vera snertanlegt orð. */
     .wh-syn { color: var(--accent); font-weight: 700; text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
     /* Bakör aftur í fyrra orð úr samheita-keðjunni (nefnir orðið sem það fer í). */
     .wh-back-word { display: block; text-align: left; font-size: 12px; color: var(--soft); text-decoration: underline; text-underline-offset: 2px; cursor: pointer; margin-bottom: 12px; }
 
     /* Aukatenglar (beyging fyrst), litlir og keppa ekki. */
-    .wh-micro { display: flex; flex-direction: column; align-items: center; gap: 9px; margin: 16px 0 0; }
+    .wh-micro { display: flex; flex-direction: column; align-items: center; gap: 11px; margin: 22px 0 0; }
     .wh-micro-link { font-size: 12px; color: var(--soft); text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
 
-    /* Aðgerðir hlið við hlið → passa á einn skjá. Áfram = sterki, fyllti teal-hnappurinn. */
-    .wh-actions { display: grid; grid-template-columns: 1fr 1.25fr; gap: 9px; margin-top: 16px; }
+    /* Aðgerðir hlið við hlið → passa á einn skjá. Áfram = sterki, fyllti teal-hnappurinn.
+       "Skoða annað orð" fær teal ramma svo hún lesist líka sem hnappur (ekki texti). */
+    .wh-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 22px; }
     .wh-secondary {
       border-radius: 13px; padding: 13px 8px; font-family: inherit;
-      font-size: 12px; font-weight: 700; color: var(--soft);
-      background: transparent; border: 1px solid var(--line); cursor: pointer;
+      font-size: 12.5px; font-weight: 700; color: var(--accent);
+      background: transparent; border: 1px solid rgba(29,205,211,0.5); cursor: pointer;
     }
     .wh-primary {
       border-radius: 13px; padding: 13px 10px; font-family: inherit;
@@ -1133,7 +1129,7 @@ body{font-family:'DM Sans','Manrope',-apple-system,BlinkMacSystemFont,sans-serif
 
     /* Heimild: lágstemmd en LÆSILEG. 9px/0.55 var undir læsileikamörkum —
        tenglar verða að sjást sem tenglar (undirstrikun) og textinn að lesast. */
-    .wh-attrib { margin-top: 14px; font-size: 11px; line-height: 1.55; color: rgba(122,143,160,0.85); text-align: center; }
+    .wh-attrib { margin-top: 18px; font-size: 11px; line-height: 1.55; color: rgba(122,143,160,0.85); text-align: center; }
     .wh-attrib a { color: var(--soft); text-decoration: underline; text-underline-offset: 2px; }
     /* Merkingaval — sama mynstur og labbið, en barnvænt: merking, ekki orðflokkur */
     .wh-pick-label { font-size: 10px; font-weight: 800; color: var(--soft); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 8px; }

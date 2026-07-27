@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="is">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="Upphátt">
+<meta name="theme-color" content="#07101e">
+<link rel="apple-touch-icon" href="/icon-teale.png">
+<title>UppHátt · Push smoke-test</title>
+<style>
+  :root{--bg:#07101e;--panel:#0d1a2e;--line:rgba(29,205,211,.18);--text:#d9e5ef;--soft:#7f93a8;--accent:#1dccd3;--ok:#37d67a;--bad:#ff6b6b;--warn:#f4c04d}
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+  .wrap{max-width:460px;margin:0 auto;padding:22px 16px 60px}
+  h1{font-size:19px;margin:0 0 2px}
+  .sub{color:var(--soft);font-size:13px;margin:0 0 16px}
+  .env{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px}
+  .chip{font-size:11px;font-weight:700;padding:4px 9px;border-radius:999px;border:1px solid var(--line);color:var(--soft)}
+  .chip.on{color:var(--bg);background:var(--accent);border-color:var(--accent)}
+  .chip.warn{color:var(--warn);border-color:rgba(244,192,77,.4)}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:12px}
+  .step{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--accent);margin-bottom:6px}
+  .card h2{font-size:15px;margin:0 0 4px}
+  .card p{margin:0 0 12px;color:var(--soft);font-size:13px}
+  button{width:100%;border:0;border-radius:11px;padding:13px;font-size:15px;font-weight:800;background:var(--accent);color:#04222b;cursor:pointer}
+  button:disabled{opacity:.4;cursor:default}
+  button.ghost{background:transparent;border:1px solid var(--line);color:var(--text)}
+  .block{background:rgba(255,107,107,.08);border-color:rgba(255,107,107,.4)}
+  .ios-help{background:rgba(244,192,77,.08);border-color:rgba(244,192,77,.35)}
+  .ios-help ol{margin:8px 0 0;padding-left:18px;color:var(--text);font-size:13px}
+  .crit{list-style:none;padding:0;margin:6px 0 0}
+  .crit li{display:flex;gap:8px;font-size:12.5px;color:var(--soft);padding:5px 0;border-top:1px solid rgba(255,255,255,.05)}
+  .crit b{color:var(--text);font-weight:800;min-width:96px;display:inline-block}
+  .tok{font:12px/1.4 ui-monospace,Menlo,monospace;color:var(--accent);word-break:break-all}
+  .log{background:#081524;border:1px solid var(--line);border-radius:12px;padding:10px;font:12px/1.5 ui-monospace,Menlo,monospace;white-space:pre-wrap;word-break:break-word;color:var(--soft);max-height:230px;overflow:auto}
+  .log .ok{color:var(--ok)}.log .bad{color:var(--bad)}.log .warn{color:var(--warn)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Push smoke-test</h1>
+  <p class="sub">Keyrist <b>innan uppsetts UppHátt</b> (opnað af heimaskjá). Ekki í venjulegum Safari-flipa.</p>
+
+  <div class="env" id="env"></div>
+
+  <!-- Hindrun: iOS án uppsetningar -->
+  <div class="card block" id="blocker" hidden>
+    <div class="step" style="color:var(--bad)">Stöðvað</div>
+    <h2>Opnaðu innan uppsetts UppHátt</h2>
+    <p style="color:var(--text)">Á iPhone má aðeins biðja um push-leyfi þegar síðan keyrir sem heimaskjá-vefforrit. Bættu UppHátt á heimaskjá (Deila → Á heimaskjá), opnaðu appið þaðan, og farðu svo á þennan skjá innan appsins.</p>
+  </div>
+
+  <div class="card">
+    <div class="step">Skref 1</div>
+    <h2>Skrá service worker</h2>
+    <p>Skráir /firebase-messaging-sw.js.</p>
+    <button id="btnSw">Skrá service worker</button>
+  </div>
+
+  <div class="card">
+    <div class="step">Skref 2</div>
+    <h2>Leyfi og token</h2>
+    <p>Biður um tilkynningaleyfi, sækir FCM-token og skráir það undir þínum uid. Stærsta iOS-óvissan.</p>
+    <button id="btnToken" disabled>Biðja um leyfi og sækja token</button>
+    <div id="tokenView" hidden style="margin-top:10px">
+      <div class="tok" id="tokenMasked"></div>
+      <button class="ghost" id="btnCopy" style="margin-top:8px">Afrita fullt token</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="step">Skref 3</div>
+    <h2>Senda test-push</h2>
+    <p>Kallar sendTestPush án breytu. Backend sækir þitt token og sendir föst skilaboð.</p>
+    <button id="btnSend" disabled>Senda test-push á þetta tæki</button>
+  </div>
+
+  <div class="card">
+    <div class="step">Væntanleg niðurstaða</div>
+    <h2>Hvað telst árangur</h2>
+    <ul class="crit">
+      <li><b>Foreground</b> Skjár opinn: skeytið birtist í atburðaskránni („FOREGROUND ✔“). Engin kerfistilkynning sjálfgefið — það er <i>eðlilegt</i>, ekki bilun.</li>
+      <li><b>Bakgrunnur</b> App í bakgrunni / læst: service worker sýnir kerfistilkynningu. Þetta er aðal-iOS-prófið.</li>
+      <li><b>Smellt</b> Ýtt á tilkynninguna: opnar/fókusar deep-link (/).</li>
+    </ul>
+  </div>
+
+  <div class="step" style="margin:18px 0 6px">Atburðaskrá</div>
+  <div class="log" id="log">Bíð…</div>
+</div>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js';
+import { getAuth, signInAnonymously, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js';
+import { getFirestore, doc, setDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js';
+import { getFunctions, httpsCallable } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-functions.js';
+import { getMessaging, getToken, onMessage, isSupported } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-messaging.js';
+
+// ⚠️ SETUP: Web Push certificate lykill úr Firebase console
+// (Project settings → Cloud Messaging → Web configuration → Web Push certificates → Generate key pair)
+const VAPID_KEY = 'BBNSBZMGS8fXplpQYDRg0yYm6K8btDEwp5QxcWivg9VEX2pe-ko-ncKpIyLb_QLNyMmjD7LRC9T5FXFHOo3PZgo';
+
+const app = initializeApp({
+  apiKey: 'AIzaSyAgTY3Uxd9_ZxixjqLj-sH8V3OhFAzg6DU',
+  authDomain: 'lesum-22e85.firebaseapp.com',
+  projectId: 'lesum-22e85',
+  storageBucket: 'lesum-22e85.firebasestorage.app',
+  messagingSenderId: '204392598388',
+  appId: '1:204392598388:web:2dbbe3f476cd78d2ffba21'
+});
+const auth = getAuth(app);
+const db = getFirestore(app);
+const functions = getFunctions(app, 'europe-west1');
+
+const logEl = document.getElementById('log');
+let swReg = null, messaging = null, currentToken = null, uid = null;
+
+function log(msg, cls){ const t=new Date().toLocaleTimeString('is-IS');
+  logEl.innerHTML += `\n<span class="${cls||''}">[${t}] ${msg}</span>`; logEl.scrollTop=logEl.scrollHeight; }
+function mask(t){ return t.length>20 ? t.slice(0,10)+'…'+t.slice(-8)+'  ('+t.length+' stafir)' : t; }
+
+// ── Umhverfi ──
+const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const envEl = document.getElementById('env');
+function chip(l,on,warn){ const s=document.createElement('span'); s.className='chip'+(on?' on':'')+(warn?' warn':''); s.textContent=l; envEl.appendChild(s); }
+chip(isIOS ? 'iOS' : 'ekki-iOS', false);
+chip(isStandalone ? 'uppsett (standalone)' : 'ekki uppsett', isStandalone, !isStandalone);
+chip('Notification: ' + (('Notification' in window) ? Notification.permission : 'ekki til'), false, !('Notification' in window));
+
+// iOS + ekki uppsett => stöðva. Push getur ekki virkað; ekki mistúlka sem bilun.
+const blocked = isIOS && !isStandalone;
+if (blocked) {
+  document.getElementById('blocker').hidden = false;
+  ['btnSw','btnToken','btnSend'].forEach(id=>document.getElementById(id).disabled = true);
+  log('iOS án uppsetningar — opnaðu innan uppsetts UppHátt.', 'warn');
+}
+
+onAuthStateChanged(auth, (u)=>{ if(u){ uid=u.uid; log('Auth í lagi (uid '+u.uid.slice(0,6)+'…).','ok'); } });
+signInAnonymously(auth).catch(e=>log('Auth villa: '+e.message,'bad'));
+
+// ── Skref 1 ──
+document.getElementById('btnSw').addEventListener('click', async ()=>{
+  if(blocked) return;
+  try{
+    if(!('serviceWorker' in navigator)){ log('serviceWorker ekki studdur.','bad'); return; }
+    if(!(await isSupported())){ log('FCM messaging ekki stutt hér.','bad'); return; }
+    swReg = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+    await navigator.serviceWorker.ready;
+    messaging = getMessaging(app);
+    onMessage(messaging, (payload)=>{
+      const d = payload.data || {};
+      log('FOREGROUND ✔ — skeyti móttekið í síðunni: '+(d.title||'')+' / '+(d.body||''),'ok');
+    });
+    log('Service worker virkur.','ok');
+    document.getElementById('btnToken').disabled = false;
+  }catch(e){ log('SW villa: '+e.message,'bad'); }
+});
+
+// ── Skref 2 ──
+document.getElementById('btnToken').addEventListener('click', async ()=>{
+  if(blocked) return;
+  try{
+    if(VAPID_KEY.startsWith('PASTE_')){ log('Settu VAPID_KEY inn fyrst (sjá SETUP).','bad'); return; }
+    if(!uid){ log('Bíð eftir auth…','warn'); return; }
+    const perm = await Notification.requestPermission();
+    log('Notification.permission = '+perm, perm==='granted'?'ok':'warn');
+    if(perm!=='granted'){ log('Ekki spurt aftur — kveiktu handvirkt í stillingum ef þarf.','warn'); return; }
+    currentToken = await getToken(messaging, { vapidKey: VAPID_KEY, serviceWorkerRegistration: swReg });
+    if(!currentToken){ log('Ekkert token skilaði sér.','bad'); return; }
+    // Skrá undir uid — backend sækir héðan, client sendir token aldrei sem argument.
+    await setDoc(doc(db,'smokeTokens',uid), {
+      token: currentToken,
+      platform: isIOS ? 'ios' : 'other',
+      standalone: isStandalone,
+      updatedAt: serverTimestamp()
+    }, { merge: true });
+    document.getElementById('tokenMasked').textContent = mask(currentToken);
+    document.getElementById('tokenView').hidden = false;
+    document.getElementById('btnSend').disabled = false;
+    log('Token náðist og skráð undir uid ✔','ok');
+  }catch(e){ log('Token villa: '+e.message,'bad'); }
+});
+
+document.getElementById('btnCopy').addEventListener('click', async ()=>{
+  try{ await navigator.clipboard.writeText(currentToken||''); log('Fullt token afritað.','ok'); }
+  catch(_){ log('Afritun mistókst.','warn'); }
+});
+
+// ── Skref 3 ──
+document.getElementById('btnSend').addEventListener('click', async ()=>{
+  if(blocked) return;
+  try{
+    log('Kalla sendTestPush (engin breyta send)…');
+    const res = await httpsCallable(functions,'sendTestPush')();  // ← ekkert token/title/body frá client
+    const d = res.data || {};
+    if(d.ok){
+      log('Sent ✔ (messageId '+String(d.messageId).slice(-8)+').','ok');
+      log('Foreground: sjáðu „FOREGROUND ✔“ hér. Bakgrunnur: læstu skjánum núna og bíddu eftir kerfistilkynningu.','warn');
+    } else if(d.invalidToken){ log('Token ógilt ('+d.code+') — sæktu nýtt í skrefi 2.','bad'); }
+    else log('Óvænt svar: '+JSON.stringify(d),'warn');
+  }catch(e){ log('Send villa: '+(e.code||e.message),'bad'); }
+});
+</script>
+</body>
+</html>

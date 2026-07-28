@@ -76,6 +76,7 @@
     <h2>Senda test-push</h2>
     <p>Kallar sendTestPush án breytu. Backend sækir þitt token og sendir föst skilaboð.</p>
     <button id="btnSend" disabled>Senda test-push á þetta tæki</button>
+    <button id="btnSendDelay" class="ghost" disabled style="margin-top:8px">Senda eftir 10 sek (fyrir bakgrunns-próf)</button>
   </div>
 
   <div class="card">
@@ -181,6 +182,7 @@ document.getElementById('btnToken').addEventListener('click', async ()=>{
     document.getElementById('tokenMasked').textContent = mask(currentToken);
     document.getElementById('tokenView').hidden = false;
     document.getElementById('btnSend').disabled = false;
+    document.getElementById('btnSendDelay').disabled = false;
     log('Token náðist og skráð undir uid ✔','ok');
   }catch(e){ log('Token villa: '+e.message,'bad'); }
 });
@@ -191,7 +193,7 @@ document.getElementById('btnCopy').addEventListener('click', async ()=>{
 });
 
 // ── Skref 3 ──
-document.getElementById('btnSend').addEventListener('click', async ()=>{
+async function doSend(){
   if(blocked) return;
   try{
     log('Kalla sendTestPush (engin breyta send)…');
@@ -199,10 +201,34 @@ document.getElementById('btnSend').addEventListener('click', async ()=>{
     const d = res.data || {};
     if(d.ok){
       log('Sent ✔ (messageId '+String(d.messageId).slice(-8)+').','ok');
-      log('Foreground: sjáðu „FOREGROUND ✔“ hér. Bakgrunnur: læstu skjánum núna og bíddu eftir kerfistilkynningu.','warn');
+      log('Foreground: sjáðu „FOREGROUND ✔“ hér. Bakgrunnur: skeytið á að birtast sem kerfistilkynning á lásskjá.','warn');
     } else if(d.invalidToken){ log('Token ógilt ('+d.code+') — sæktu nýtt í skrefi 2.','bad'); }
     else log('Óvænt svar: '+JSON.stringify(d),'warn');
   }catch(e){ log('Send villa: '+(e.code||e.message),'bad'); }
+}
+
+document.getElementById('btnSend').addEventListener('click', doSend);
+
+// Töf-hnappur fyrir bakgrunns-próf: telur niður svo þú náir að læsa símanum áður en push kemur.
+document.getElementById('btnSendDelay').addEventListener('click', ()=>{
+  if(blocked) return;
+  const btn = document.getElementById('btnSendDelay');
+  const btnNow = document.getElementById('btnSend');
+  const label = 'Senda eftir 10 sek (fyrir bakgrunns-próf)';
+  let n = 10;
+  btn.disabled = true; btnNow.disabled = true;
+  log('Sending eftir '+n+' sek — LÆSTU SÍMANUM NÚNA.','warn');
+  btn.textContent = 'Sendi eftir '+n+' sek…';
+  const tick = setInterval(()=>{
+    n--;
+    if(n>0){ btn.textContent = 'Sendi eftir '+n+' sek…'; }
+    else{
+      clearInterval(tick);
+      btn.textContent = label;
+      btn.disabled = false; btnNow.disabled = false;
+      doSend();
+    }
+  }, 1000);
 });
 </script>
 </body>

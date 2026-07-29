@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="is">
 <head>
 <meta charset="utf-8">
@@ -5019,35 +5019,61 @@ async function upsertToken(token, enabled) {
 }
 
 let busy = false;
-async function enablePush() {
-  const m = ('Notification' in window) ? await getMessagingIfSupported() : null;
-  if (!m) { setOn(false); setState('Push ekki stutt á þessu tæki'); return; }
-  setState('Bið um leyfi…');
-  let perm; try { perm = await Notification.requestPermission(); } catch { perm = 'default'; }
-  if (perm !== 'granted') {
+async function enablePush(permission) {
+  if (permission === 'denied') {
     setOn(false); setState('Leyfi hafnað');
-    setHint('Leyfðu tilkynningar fyrir UppHátt í stillingum vafrans/heimaskjá-appsins og reyndu aftur.');
+    setHint('Leyfi fyrir tilkynningar var hafnað. Leyfðu tilkynningar fyrir UppHátt í stillingum vafrans/heimaskjá-appsins og reyndu aftur.');
     return;
   }
+  if (permission !== 'granted') {
+    setOn(false); setState('Leyfi ekki veitt');
+    setHint('Tilkynningaleyfi var ekki veitt. Reyndu aftur og veldu að leyfa tilkynningar.');
+    return;
+  }
+
+  const m = ('Notification' in window) ? await getMessagingIfSupported() : null;
+  if (!m) { setOn(false); setState('Push ekki stutt á þessu tæki'); return; }
+
   setHint('');
   try {
     const token = await currentToken();
     if (!token) throw new Error('no-token');
     await upsertToken(token, true);
     setOn(true); setState('Virkar á þessu tæki');
-  } catch { setOn(false); setState('Token-skráning mistókst'); }
+  } catch (err) {
+    console.error('[push] Token-skráning mistókst', err);
+    setOn(false); setState('Token-skráning mistókst');
+  }
 }
 async function disablePush() {
-  try { const token = await currentToken(); if (token) await upsertToken(token, false); } catch { /* þögult */ }
+  try { const token = await currentToken(); if (token) await upsertToken(token, false); }
+  catch (err) { console.error('[push] Slökkvun mistókst', err); }
   setOn(false); setState('Slökkt á þessu tæki');
 }
 
 if (toggle) toggle.addEventListener('click', async () => {
   if (busy) return; busy = true;
+  let permissionPromise = null;
   try {
     const turningOn = !toggle.classList.contains('on');
-    if (!(await waitForAuthAndFamily())) { setState('Innskráningu vantar'); return; }
-    if (turningOn) await enablePush(); else await disablePush();
+    if (turningOn) {
+      if (!('Notification' in window)) { setOn(false); setState('Push ekki stutt á þessu tæki'); return; }
+      setState('Bið um leyfi…');
+      permissionPromise = Notification.requestPermission();
+    }
+
+    if (!(await waitForAuthAndFamily())) { setOn(false); setState('Innskráningu vantar'); return; }
+    if (turningOn) {
+      let permission = 'default';
+      try { permission = await permissionPromise; }
+      catch (err) { console.error('[push] Leyfisbeiðni mistókst', err); }
+      await enablePush(permission);
+    } else {
+      await disablePush();
+    }
+  } catch (err) {
+    console.error('[push] Push-stilling mistókst', err);
+    setOn(false); setState('Push mistókst');
   } finally { busy = false; }
 });
 
@@ -5062,7 +5088,7 @@ if (toggle) toggle.addEventListener('click', async () => {
     const snap = await getDoc(doc(db, 'users', auth.currentUser.uid, 'pushTokens', await sha256Hex(token)));
     const on = snap.exists() && snap.data().enabled === true;
     setOn(on); setState(on ? 'Virkar á þessu tæki' : 'Slökkt á þessu tæki');
-  } catch { setOn(false); setState('Ekki virkt'); }
+  } catch (err) { console.error('[push] Upphafsstaða mistókst', err); setOn(false); setState('Ekki virkt'); }
 })();
 
 // Deep-link: /parent.html?session=<id> — hint, ekki authorization.

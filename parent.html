@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="is">
 <head>
 <meta charset="utf-8">
@@ -1220,9 +1220,9 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
         <div>
           <div class="st-sec">Tilkynningar</div>
           <div class="st-group">
-            <div class="st-row">
+            <div class="st-row" id="st-push-row" role="button" tabindex="0" style="cursor:pointer">
               <div><div class="st-lbl">Fá tilkynningu þegar barnið lýkur lestri</div><div class="st-sub">Stilling fyrir þetta tæki</div></div>
-              <button type="button" id="st-push-toggle" class="st-switch" role="switch" aria-checked="false"><span class="st-knob"></span></button>
+              <button type="button" id="st-push-toggle" class="st-switch" role="switch" aria-checked="false" tabindex="-1" style="pointer-events:none"><span class="st-knob"></span></button>
             </div>
             <div class="st-row"><span class="st-sub">Staða: <b id="st-push-state">Ekki virkt</b>.</span></div>
             <div class="st-row" id="st-push-hint" hidden><span class="st-sub" style="color:var(--muted)"></span></div>
@@ -4969,13 +4969,12 @@ import {
   getMessagingIfSupported, getToken, VAPID_KEY
 } from './js/firebase-config.js';
 
-const $ = (id) => document.getElementById(id);
-const toggle = $('st-push-toggle');
-const stateEl = $('st-push-state');
-const hintRow = $('st-push-hint');
-const setState = (t) => { if (stateEl) stateEl.textContent = t; };
-const setOn = (on) => { if (!toggle) return; toggle.classList.toggle('on', on); toggle.setAttribute('aria-checked', on ? 'true' : 'false'); };
-const setHint = (t) => { if (!hintRow) return; if (t) { hintRow.hidden = false; hintRow.querySelector('span').textContent = t; } else hintRow.hidden = true; };
+const byId = (id) => document.getElementById(id);
+// Re-query í hvert sinn — ekkert stale reference þótt DOM sé endurteiknað.
+const setState = (t) => { const e = byId('st-push-state'); if (e) e.textContent = t; };
+const setOn = (on) => { const t = byId('st-push-toggle'); if (!t) return; t.classList.toggle('on', on); t.setAttribute('aria-checked', on ? 'true' : 'false'); };
+const setHint = (t) => { const r = byId('st-push-hint'); if (!r) return; if (t) { r.hidden = false; const sp = r.querySelector('span'); if (sp) sp.textContent = t; } else r.hidden = true; };
+const isOn = () => { const t = byId('st-push-toggle'); return t ? t.classList.contains('on') : false; };
 
 async function sha256Hex(str) {
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
@@ -5019,62 +5018,60 @@ async function upsertToken(token, enabled) {
 }
 
 let busy = false;
-async function enablePush(permission) {
-  if (permission === 'denied') {
-    setOn(false); setState('Leyfi hafnað');
-    setHint('Leyfi fyrir tilkynningar var hafnað. Leyfðu tilkynningar fyrir UppHátt í stillingum vafrans/heimaskjá-appsins og reyndu aftur.');
-    return;
-  }
-  if (permission !== 'granted') {
-    setOn(false); setState('Leyfi ekki veitt');
-    setHint('Tilkynningaleyfi var ekki veitt. Reyndu aftur og veldu að leyfa tilkynningar.');
-    return;
-  }
-
-  const m = ('Notification' in window) ? await getMessagingIfSupported() : null;
+// Keyrt EFTIR að leyfi er fengið — async vinnan má nú taka tíma (gesture er ekki lengur þörf).
+async function finishEnable() {
+  if (!(await waitForAuthAndFamily())) { setOn(false); setState('Innskráningu vantar'); return; }
+  const m = await getMessagingIfSupported();
   if (!m) { setOn(false); setState('Push ekki stutt á þessu tæki'); return; }
-
-  setHint('');
   try {
     const token = await currentToken();
     if (!token) throw new Error('no-token');
     await upsertToken(token, true);
     setOn(true); setState('Virkar á þessu tæki');
-  } catch (err) {
-    console.error('[push] Token-skráning mistókst', err);
-    setOn(false); setState('Token-skráning mistókst');
-  }
+  } catch { setOn(false); setState('Token-skráning mistókst'); }
 }
 async function disablePush() {
-  try { const token = await currentToken(); if (token) await upsertToken(token, false); }
-  catch (err) { console.error('[push] Slökkvun mistókst', err); }
+  try { const token = await currentToken(); if (token) await upsertToken(token, false); } catch { /* þögult */ }
   setOn(false); setState('Slökkt á þessu tæki');
 }
 
-if (toggle) toggle.addEventListener('click', async () => {
+// Event DELEGATION á document — virkar þótt elementið sé endurteiknað eða listener
+// hafi ekki tengst beint. Grípur tap hvar sem er á push-röðinni (stórt tap-target).
+async function onPushActivate() {
   if (busy) return; busy = true;
-  let permissionPromise = null;
   try {
-    const turningOn = !toggle.classList.contains('on');
-    if (turningOn) {
-      if (!('Notification' in window)) { setOn(false); setState('Push ekki stutt á þessu tæki'); return; }
-      setState('Bið um leyfi…');
-      permissionPromise = Notification.requestPermission();
-    }
+    const turningOn = !isOn();
+    if (!turningOn) { await disablePush(); return; }
 
-    if (!(await waitForAuthAndFamily())) { setOn(false); setState('Innskráningu vantar'); return; }
-    if (turningOn) {
-      let permission = 'default';
-      try { permission = await permissionPromise; }
-      catch (err) { console.error('[push] Leyfisbeiðni mistókst', err); }
-      await enablePush(permission);
-    } else {
-      await disablePush();
+    // iOS-KRÍTÍSKT: requestPermission VERÐUR að vera fyrsta await í gesture-inu.
+    if (!('Notification' in window) || !('serviceWorker' in navigator)) {
+      setOn(false); setState('Push ekki stutt á þessu tæki'); console.warn('[push] ekki stutt'); return;
     }
+    setState('Bið um leyfi…');
+    let perm; try { perm = await Notification.requestPermission(); } catch (e) { perm = 'default'; console.error('[push] requestPermission kastaði', e); }
+    if (perm === 'denied') {
+      setOn(false); setState('Leyfi hafnað');
+      setHint('Leyfðu tilkynningar fyrir UppHátt í stillingum vafrans/heimaskjá-appsins og reyndu aftur.');
+      console.warn('[push] leyfi denied'); return;
+    }
+    if (perm !== 'granted') {
+      setOn(false); setState('Leyfi ekki veitt'); console.warn('[push] leyfi ekki veitt:', perm); return;
+    }
+    setHint('');
+    await finishEnable();
   } catch (err) {
-    console.error('[push] Push-stilling mistókst', err);
-    setOn(false); setState('Push mistókst');
+    setOn(false); setState('Villa við skráningu'); console.error('[push] onPushActivate villa', err);
   } finally { busy = false; }
+}
+
+document.addEventListener('click', (e) => {
+  if (e.target && e.target.closest && e.target.closest('#st-push-row')) onPushActivate();
+});
+// Lyklaborð/aðgengi: Enter/Bil á röðinni
+document.addEventListener('keydown', (e) => {
+  if ((e.key === 'Enter' || e.key === ' ') && e.target && e.target.closest && e.target.closest('#st-push-row')) {
+    e.preventDefault(); onPushActivate();
+  }
 });
 
 // Upphafsstaða — ALDREI biðja um leyfi hér; aðeins lesa ef þegar granted.
@@ -5088,7 +5085,7 @@ if (toggle) toggle.addEventListener('click', async () => {
     const snap = await getDoc(doc(db, 'users', auth.currentUser.uid, 'pushTokens', await sha256Hex(token)));
     const on = snap.exists() && snap.data().enabled === true;
     setOn(on); setState(on ? 'Virkar á þessu tæki' : 'Slökkt á þessu tæki');
-  } catch (err) { console.error('[push] Upphafsstaða mistókst', err); setOn(false); setState('Ekki virkt'); }
+  } catch { setOn(false); setState('Ekki virkt'); }
 })();
 
 // Deep-link: /parent.html?session=<id> — hint, ekki authorization.

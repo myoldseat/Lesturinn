@@ -42,3 +42,24 @@ export const auth      = getAuth(app);
 export const db        = getFirestore(app);
 export const storage   = getStorage(app);
 export const functions = getFunctions(app, 'europe-west1');
+
+// ─── Messaging (FASI 2 push) — LAZY: EKKI getMessaging við module-import ───
+import {
+  getMessaging, getToken, deleteToken, onMessage, isSupported
+} from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-messaging.js';
+
+export { getToken, deleteToken, onMessage, isSupported };
+
+// Public web push certificate — SAMI og smoke-test notaði (single source of truth).
+export const VAPID_KEY =
+  'BBNSBZMGS8fXplpQYDRg0yYm6K8btDEwp5QxcWivg9VEX2pe-ko-ncKpIyLb_QLNyMmjD7LRC9T5FXFHOo3PZgo';
+
+// Kall EFTIR support-check + notendasmell. Skilar null ef push er ekki stutt.
+// getMessaging(app) keyrir aðeins hér, aldrei við import.
+let _messaging = null;
+export async function getMessagingIfSupported() {
+  if (_messaging) return _messaging;
+  try { if (!(await isSupported())) return null; } catch { return null; }
+  _messaging = getMessaging(app);
+  return _messaging;
+}

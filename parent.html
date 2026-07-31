@@ -2038,6 +2038,10 @@ if (openAddChildPopup) window.openAddChildPopup = openAddChildPopup;
 if (closeAddChildPopup) window.closeAddChildPopup = closeAddChildPopup;
 if (logout) {
   window.logout = async function parentLogoutToIndex() {
+    // FASI 2.1: slökkva á token ÞESSA tækis MEÐAN auth.currentUser er enn til (account-switch vörn).
+    // Best-effort + tímamark inni í fallinu; frýs aldrei útskráninguna. Snertir ekki notificationsPreferred.
+    try { await (window.disableParentPushForLogout ? window.disableParentPushForLogout() : Promise.resolve()); }
+    catch (e) { console.error('[push] logout disable wrapper', e); }
     try { await logout(); }
     finally { window.location.replace('index.html'); }
   };
@@ -4538,6 +4542,7 @@ async function bootParentGate() {
   onAuthStateChanged(auth, async (user) => {
     if (!user) {
       _teardownParentListeners();
+      window.__pushLoginReady = false;   // FASI 2.1: núllstilla push-latch við útskráningu/auth-fall
       /* Engin hörð redirect enn — login-form parent helst (dev + núverandi hegðun).
          Redirect-á-index kemur í Skref 4 (gáttin). */
       showParentLogin();
@@ -4556,6 +4561,12 @@ async function bootParentGate() {
     S.guestRole   = id.guestRole || null;
     S.parentName  = id.name || S.parentName || null;
     S.roleName    = id.roleName || S.roleName || null;
+    /* FASI 2.1: push-sync er FIRE-AND-FORGET — má ALDREI blokka login/render.
+       auth + S.familyId eru tilbúin hér. Latch svo (deferred) push-módúllinn nái
+       þessu líka við allra-fyrstu hleðslu. Öll villa er gripin inni í sync-fallinu. */
+    window.__pushLoginReady = true;
+    try { window.syncParentPushOnLogin && window.syncParentPushOnLogin(); }
+    catch (e) { console.error('[push] login-sync kickoff', e); }
     /* Sækja "Hvað kallar barnið þig?" snemma svo _listenerName() hafi það strax */
     if (id.role === 'parent' && user && user.uid) {
       getDoc(doc(db, 'users', user.uid))
@@ -5017,6 +5028,112 @@ async function upsertToken(token, enabled) {
   await setDoc(ref, data, { merge: true });
 }
 
+// ── FASI 2.1: Varanleg push-ósk notanda (per-reikningur; aðgreind frá tækjastöðu) ──
+// Skrifar AÐEINS á users/{uid} með merge — snertir enga aðra user-reiti.
+async function setNotificationsPreferred(value) {
+  await setDoc(
+    doc(db, 'users', auth.currentUser.uid),
+    { notificationsPreferred: value === true, updatedAt: serverTimestamp() },
+    { merge: true }
+  );
+}
+
+// Best-effort tímamark — svo logout-slökkvun frjósi aldrei útskráninguna.
+function withTimeout(promise, ms) {
+  return Promise.race([
+    promise,
+    new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), ms))
+  ]);
+}
+
+// ── FASI 2.1: Login-drifin push-sync ──
+// Fire-and-forget: heldur ALDREI login/render í gíslingu; öll villa gripin hér inni.
+// ALDREI requestPermission hér. Keyrt úr onAuthStateChanged þegar auth + familyId eru tilbúin.
+let _pushSyncing = false;
+let _pushSyncPending = false;
+// Coalescing: sync sem er beðið um MEÐAN annað er í gangi dettur EKKI — það er merkt pending
+// og keyrt nákvæmlega einu sinni enn þegar það fyrra klárast. Þannig getur rétt/nýrri sync
+// aldrei glatast undir _pushSyncing-vörninni. _pushSyncing er ALLTAF hreinsað í finally.
+async function syncPushOnLogin() {
+  if (_pushSyncing) { _pushSyncPending = true; return; }
+  _pushSyncing = true;
+  try {
+    do { _pushSyncPending = false; await _runPushSyncOnce(); } while (_pushSyncPending);
+  } catch (e) {
+    console.error('[push] sync: coalescing lykkja kastaði', e);
+  } finally {
+    _pushSyncing = false;
+  }
+}
+async function _runPushSyncOnce() {
+  try {
+    if (!auth.currentUser || !famId()) { console.warn('[push] sync: auth/fjölskylda ekki tilbúin — sleppi'); return; }
+    if (!('Notification' in window)) { setOn(false); setState('Push ekki stutt á þessu tæki'); return; }
+
+    // A. Lesa varanlegu óskina (eitt lítið users/{uid} read við login).
+    let preferred = false;
+    try {
+      const us = await getDoc(doc(db, 'users', auth.currentUser.uid));
+      preferred = us.exists() && us.data().notificationsPreferred === true;
+    } catch (e) {
+      console.error('[push] sync: lestur notificationsPreferred mistókst', e);
+      setOn(false); setState('Ekki virkt'); return;   // fail-safe: aldrei falskt "virkt"
+    }
+
+    // B. Engin ósk → ekkert token-flæði, enginn leyfis-gluggi.
+    if (!preferred) { setOn(false); setState('Ekki virkt'); setHint(''); return; }
+
+    // D. Ósk til staðar en tækið hefur ekki leyfi → mildur CTA, ALDREI sjálfvirk beiðni.
+    const perm = Notification.permission;
+    if (perm !== 'granted') {
+      setOn(false);
+      if (perm === 'denied') {
+        setState('Leyfi hafnað');
+        setHint('Leyfðu tilkynningar fyrir UppHátt í stillingum vafrans/heimaskjá-appsins og reyndu aftur.');
+      } else {
+        setState('Virkja á þessu tæki');
+        setHint('Ýttu á tilkynninga-röðina til að virkja á þessu tæki.');
+      }
+      return;
+    }
+
+    // C. Ósk + leyfi → endurskrá token hljóðlega, ferskir familyIds, enabled:true.
+    const m = await getMessagingIfSupported();
+    if (!m) { setOn(false); setState('Push ekki stutt á þessu tæki'); return; }
+    let token = null;
+    try { token = await currentToken(); }
+    catch (e) { console.error('[push] sync: currentToken mistókst', e); }
+    if (!token) { setOn(false); setState('Ekki virkt á þessu tæki'); return; }
+    try {
+      await upsertToken(token, true);
+      setOn(true); setState('Virkar á þessu tæki'); setHint('');
+    } catch (e) {
+      console.error('[push] sync: token upsert mistókst', e);
+      setOn(false); setState('Ekki virkt á þessu tæki');
+    }
+  } catch (e) {
+    console.error('[push] sync: óvænt villa', e);
+    try { setOn(false); setState('Ekki virkt'); } catch (_) {}
+  }
+}
+
+// ── FASI 2.1: Account-switch vörn — slökkva á token ÞESSA tækis við útskráningu ──
+// Keyrt í logout-wrapper MEÐAN auth.currentUser er enn til (rules leyfa aðeins eigin skrif).
+// Snertir EKKI notificationsPreferred. Best-effort + stutt tímamark; frýs aldrei logout.
+async function disableCurrentPushTokenForLogout() {
+  try {
+    if (!auth.currentUser) return;
+    if (!('Notification' in window) || Notification.permission !== 'granted') return;
+    const work = (async () => {
+      const token = await currentToken();
+      if (token) await upsertToken(token, false);
+    })().catch((e) => console.error('[push] logout disable (async) mistókst', e));
+    await withTimeout(work, 2500).catch((e) => console.error('[push] logout disable tímamark', e));
+  } catch (e) {
+    console.error('[push] logout disable mistókst (held áfram með útskráningu)', e);
+  }
+}
+
 let busy = false;
 // Keyrt EFTIR að leyfi er fengið — async vinnan má nú taka tíma (gesture er ekki lengur þörf).
 async function finishEnable() {
@@ -5028,11 +5145,42 @@ async function finishEnable() {
     if (!token) throw new Error('no-token');
     await upsertToken(token, true);
     setOn(true); setState('Virkar á þessu tæki');
-  } catch { setOn(false); setState('Token-skráning mistókst'); }
+    // Tækið er raunverulega virkt hér (rofi helst ON). Varanlega óskin: reyna, eitt stutt
+    // retry, og mild SÝNILEG viðvörun ef hvort tveggja bregst — svo notandi haldi ekki ranglega
+    // að óskin hafi vistast varanlega. Bökkum ALDREI út virkri token-skráningu.
+    let preferredOk = true;
+    try {
+      await setNotificationsPreferred(true);
+    } catch (e1) {
+      console.error('[push] preferred:true mistókst — reyni einu sinni aftur', e1);
+      try {
+        await new Promise((r) => setTimeout(r, 600));   // eitt stutt retry
+        await setNotificationsPreferred(true);
+      } catch (e2) {
+        preferredOk = false;
+        console.error('[push] preferred:true mistókst eftir retry (tæki samt virkt)', e2);
+        setHint('Kveikt á þessu tæki. Tókst ekki að vista óskina varanlega — gæti þurft að kveikja aftur eftir næstu innskráningu.');
+      }
+    }
+    // Staðfesting — AÐEINS við handvirka virkjun (ekki login-sync) og aðeins ef óskin vistaðist
+    // (annars stendur viðvörunin hér að ofan). Deilir #st-push-hint með viðvöruninni.
+    if (preferredOk) {
+      setHint('Tilkynningar eru virkar á þessu tæki. Þær geta borist þótt UppHátt sé ekki opið. Ef tilkynningar hætta að berast skaltu opna UppHátt og athuga stillinguna undir Tilkynningar.');
+    }
+  } catch (e) { console.error('[push] enable: token-skráning mistókst', e); setOn(false); setState('Token-skráning mistókst'); }
 }
 async function disablePush() {
-  try { const token = await currentToken(); if (token) await upsertToken(token, false); } catch { /* þögult */ }
-  setOn(false); setState('Slökkt á þessu tæki');
+  let token = null;
+  try { token = await currentToken(); }
+  catch (e) { console.error('[push] disable: currentToken mistókst', e); }
+  if (token) {
+    try { await upsertToken(token, false); }
+    catch (e) { console.error('[push] disable: enabled:false mistókst', e); }
+  }
+  // Óskin slokknar ÓHÁÐ því hvort token fékkst — svo login endurvirkji ekki hljóðlega.
+  try { await setNotificationsPreferred(false); }
+  catch (e) { console.error('[push] disable: preferred:false mistókst', e); }
+  setOn(false); setState('Slökkt á þessu tæki'); setHint('');   // hreinsa staðfestingu/viðvörun þegar slökkt er
 }
 
 // Event DELEGATION á document — virkar þótt elementið sé endurteiknað eða listener
@@ -5074,19 +5222,19 @@ document.addEventListener('keydown', (e) => {
   }
 });
 
-// Upphafsstaða — ALDREI biðja um leyfi hér; aðeins lesa ef þegar granted.
-(async () => {
+// FASI 2.1: Upphafsstaða — AÐEINS synchronous stuðnings-athugun. ENGIN token-uppfletting hér.
+// Raunveruleg staða er sett af login-drifnu syncPushOnLogin() (sjá onAuthStateChanged).
+// Gamli page-load-IIFE-inn (sem las token-stöðu of snemma, á undan innskráningu) er FJARLÆGÐUR.
+(() => {
   if (!('Notification' in window)) { setState('Push ekki stutt á þessu tæki'); return; }
-  if (Notification.permission !== 'granted') { setOn(false); setState('Ekki virkt'); return; }
-  if (!(await waitForAuthAndFamily())) return;
-  try {
-    const token = await currentToken();
-    if (!token) { setOn(false); setState('Ekki virkt'); return; }
-    const snap = await getDoc(doc(db, 'users', auth.currentUser.uid, 'pushTokens', await sha256Hex(token)));
-    const on = snap.exists() && snap.data().enabled === true;
-    setOn(on); setState(on ? 'Virkar á þessu tæki' : 'Slökkt á þessu tæki');
-  } catch { setOn(false); setState('Ekki virkt'); }
+  setOn(false); setState('Ekki virkt');   // login-sync uppfærir um leið og fjölskylda er tilbúin
 })();
+
+// ── FASI 2.1: Brýr milli script-hluta (push-módúll ↔ onAuthStateChanged ↔ logout-wrapper) ──
+window.syncParentPushOnLogin = syncPushOnLogin;
+window.disableParentPushForLogout = disableCurrentPushTokenForLogout;
+// Catch-up: ef innskráning gerðist ÁÐUR en þessi (deferred) módúll hlóðst, keyrum sync einu sinni núna.
+if (window.__pushLoginReady === true) syncPushOnLogin();
 
 // Deep-link: /parent.html?session=<id> — hint, ekki authorization.
 (async () => {

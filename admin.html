@@ -679,6 +679,57 @@ html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sa
         <span class="admin-calib-ico" aria-hidden="true">🔔</span>
         <span class="admin-calib-body"><strong>Push-test</strong><span>Tilkynningapróf</span></span>
       </a>
+
+      <!-- FASI 3A: barna-push próf (sendChildTestPush) — sannreynir samþykki → tæki → send -->
+      <details class="admin-calib-link" id="child-push-test" style="display:block;flex-direction:column;align-items:stretch">
+        <summary style="cursor:pointer;list-style:none;display:flex;align-items:center;gap:10px">
+          <span class="admin-calib-ico" aria-hidden="true">📨</span>
+          <span class="admin-calib-body"><strong>Barna-push próf</strong><span>sendChildTestPush</span></span>
+        </summary>
+        <div style="display:flex;flex-direction:column;gap:6px;padding:10px 2px 2px">
+          <input id="cpt-family" type="text" placeholder="familyId" autocomplete="off" spellcheck="false"
+                 style="padding:7px 9px;border-radius:8px;border:1px solid rgba(122,187,218,.28);background:rgba(255,255,255,.03);color:#e6eef6;font-size:12px">
+          <input id="cpt-child" type="text" placeholder="childKey" autocomplete="off" spellcheck="false"
+                 style="padding:7px 9px;border-radius:8px;border:1px solid rgba(122,187,218,.28);background:rgba(255,255,255,.03);color:#e6eef6;font-size:12px">
+          <button id="cpt-send" type="button"
+                  style="padding:8px 10px;border-radius:8px;border:1px solid rgba(29,205,211,.4);background:rgba(29,205,211,.14);color:#1dcdd3;font-weight:800;font-size:12px;cursor:pointer">Senda prufu-push</button>
+          <div id="cpt-result" style="font-size:12px;color:#9fb3c6;min-height:16px;line-height:1.35"></div>
+        </div>
+      </details>
+      <script>
+      (function(){
+        var btn = document.getElementById('cpt-send');
+        if (!btn) return;
+        function fmt(d){
+          d = d || {};
+          var m = {
+            'sent':            '✅ Sent (' + d.sent + '/' + d.attempted + ')',
+            'sent_partial':    '⚠️ Sent að hluta (' + d.sent + '/' + d.attempted + ')',
+            'no-active-device':'📵 Ekkert virkt tæki fyrir þetta barn',
+            'not-approved':    '🚫 Foreldri hefur ekki samþykkt (parentApproved)',
+            'type-disabled':   '🚫 Tegund slökkt (' + (d.flag || '') + ')',
+            'invalid-token':   '❌ Token ógilt — tæki slökkt',
+            'bad-request':     '❌ Vantar familyId/childKey'
+          };
+          return m[d.status] || ('Niðurstaða: ' + (d.status || 'óþekkt'));
+        }
+        btn.addEventListener('click', async function(){
+          var fam = (document.getElementById('cpt-family').value || '').trim();
+          var ck  = (document.getElementById('cpt-child').value || '').trim();
+          var out = document.getElementById('cpt-result');
+          if (!fam || !ck) { out.textContent = 'familyId + childKey krafist'; return; }
+          out.textContent = 'Sendi…';
+          btn.disabled = true;
+          try {
+            var fn = firebase.app().functions('europe-west1').httpsCallable('sendChildTestPush');
+            var res = await fn({ familyId: fam, childKey: ck });
+            out.textContent = fmt(res && res.data);
+          } catch (e) {
+            out.textContent = 'Villa: ' + (e && e.message ? e.message : String(e));
+          } finally { btn.disabled = false; }
+        });
+      })();
+      </script>
       <div class="admin-side-bottom">
         <div class="admin-side-card">
           <h4>Admin hamur</h4>
@@ -1067,6 +1118,7 @@ const TABS = [
   { id:'insights',  icon:'📈', label:'Innsýn' },
   { id:'pilotAdmin', icon:'🧭', label:'Pilot' },
   { id:'pilot',     icon:'🎧', label:'Vitni' },
+  { id:'rolling',   icon:'📅', label:'Rúllandi' },
   { id:'wordLab',   icon:'🔬', label:'Orðahjálp' }
 ];
 
@@ -2592,6 +2644,146 @@ function adminPatternFilterHtml() {
 // RENDER
 // ══════════════════════════════════════════
 
+// ══════ FASI 3A+: RÚLLANDI COHORT FLIPI ══════
+// ══ RÚLLANDI COHORT (rolling pilot — dagur 0 = fyrsti lestur per fjölskyldu) ══
+const ROLL_WEEK_MS = 7 * 24 * 3600 * 1000;
+let _rollingFamilies = [];
+try { const _r = JSON.parse(localStorage.getItem('upphatt_rolling_families') || 'null'); if (Array.isArray(_r)) _rollingFamilies = _r; } catch (e) {}
+function _persistRolling(){ try { localStorage.setItem('upphatt_rolling_families', JSON.stringify(_rollingFamilies)); } catch (e) {} }
+
+function _rollListenedSessionIds(){
+  const set = new Set();
+  (_listenEvents || []).forEach(ev => { if (ev && ev.sessionDocId) set.add(ev.sessionDocId); });
+  return set;
+}
+
+function computeRollingCohort(fids){
+  const now = Date.now();
+  const listened = _rollListenedSessionIds();
+  const perFamily = [];
+  let notStarted = 0;
+  fids.forEach(fid => {
+    const sess = (_sessions || []).filter(s => s.familyId === fid);
+    const times = sess.map(getAdminSessionTime).filter(t => t > 0).sort((a,b)=>a-b);
+    if (!times.length){ notStarted++; perFamily.push({ fid, day0: 0, weeksElapsed: 0, started: false, reads: 0, readsInWeeks: 0, listenedReads: 0, active: {} }); return; }
+    const day0 = times[0];
+    const weeksElapsed = Math.max(0, Math.floor((now - day0) / ROLL_WEEK_MS));
+    const active = {};
+    let readsInWeeks = 0, listenedReads = 0;
+    sess.forEach(s => {
+      const t = getAdminSessionTime(s);
+      if (!(t > 0)) return;
+      const w = Math.floor((t - day0) / ROLL_WEEK_MS);   // 0 = vika 1
+      if (w >= 0){ active[w] = true; if (w < weeksElapsed) readsInWeeks++; }
+      if (s._docId && listened.has(s._docId)) listenedReads++;
+    });
+    perFamily.push({ fid, day0, weeksElapsed, started: true, reads: sess.length, readsInWeeks, listenedReads, active });
+  });
+
+  function weekStat(n){
+    let qualified = 0, activeCount = 0;
+    perFamily.forEach(f => { if (f.started && f.weeksElapsed >= n){ qualified++; if (f.active[n-1]) activeCount++; } });
+    return { qualified, activeCount };
+  }
+  const totalFamilyWeeks  = perFamily.reduce((a,f)=> a + (f.started ? f.weeksElapsed : 0), 0);
+  const totalReadsInWeeks = perFamily.reduce((a,f)=> a + (f.started ? (f.readsInWeeks||0) : 0), 0);
+  const totalReads        = perFamily.reduce((a,f)=> a + (f.started ? f.reads : 0), 0);
+  const totalListened     = perFamily.reduce((a,f)=> a + (f.started ? (f.listenedReads||0) : 0), 0);
+
+  return {
+    perFamily, notStarted,
+    startedCount: perFamily.filter(f=>f.started).length,
+    week1: weekStat(1), week2: weekStat(2), week4: weekStat(4),
+    totalFamilyWeeks,
+    readsPerFamilyWeek: totalFamilyWeeks ? (totalReadsInWeeks / totalFamilyWeeks) : 0,
+    totalReads, totalListened,
+    listenedPct: totalReads ? (100 * totalListened / totalReads) : 0
+  };
+}
+
+function _rollScopeFids(){
+  if (_rollingFamilies.length) return _rollingFamilies.slice();
+  return [...new Set((_sessions||[]).map(s=>s.familyId).filter(Boolean))];
+}
+
+function _rollPicker(){
+  const stats = {};
+  (_sessions||[]).forEach(s => {
+    const f = s.familyId; if (!f) return;
+    (stats[f] || (stats[f] = { n:0, last:0 }));
+    stats[f].n++; const t = getAdminSessionTime(s); if (t > stats[f].last) stats[f].last = t;
+  });
+  const fams = (typeof _plKnownFamilies === 'function') ? _plKnownFamilies(stats) : [];
+  if (!fams.length) return '<div class="pl-famhint">Engar fjölskyldur hlaðnar enn.</div>';
+  const sel = new Set(_rollingFamilies);
+  const showAll = !_rollingFamilies.length;
+  const started = new Set((_sessions||[]).map(s=>s.familyId).filter(Boolean));
+  const rows = fams.map(f => {
+    const tags = `${f.inPilots ? '<b class="pl-source pilot">P</b>' : ''}${f.inUsers ? '<b class="pl-source user">skráð</b>' : ''}${f.pilotGroup ? '<b class="pl-source group">'+esc(f.pilotGroup)+'</b>' : ''}`;
+    return `<label class="pl-famrow"><input type="checkbox" value="${esc(f.fid)}" ${(showAll||sel.has(f.fid))?'checked':''}><span class="c">${esc(f.code)}</span><span class="s">${f.n||0} lotur · ${started.has(f.fid)?'byrjuð':'<i>óbyrjuð</i>'} ${tags}</span></label>`;
+  }).join('');
+  const count = _rollingFamilies.length ? (_rollingFamilies.length+' valdar') : ('allar byrjaðar — '+_rollScopeFids().length);
+  return `<details class="pl-fampick" open><summary>Fjölskyldur í rúllandi cohort: <b>${count}</b></summary>
+    <div class="pl-famhint">Veldu fjölskyldur — líka þær sem eru EKKI merktar „pilot". Óbyrjuð fjölskylda gengur sjálfkrafa inn þegar hún les fyrst (dagur 0 = fyrsti lestur).</div>
+    <div class="pl-famlist">${rows}</div>
+    <div class="pl-fambtns"><button onclick="applyRollingFamilies()">Nota val</button><button class="ghost" onclick="clearRollingFamilies()">Allar byrjaðar</button></div>
+  </details>`;
+}
+
+window.applyRollingFamilies = function(){
+  const boxes = [...document.querySelectorAll('#rolling-content .pl-famlist input[type=checkbox]')];
+  const picked = boxes.filter(b=>b.checked).map(b=>b.value);
+  _rollingFamilies = (picked.length === boxes.length) ? [] : picked;
+  _persistRolling(); renderRollingCohortTab();
+};
+window.clearRollingFamilies = function(){ _rollingFamilies = []; _persistRolling(); renderRollingCohortTab(); };
+
+function _rollWeekColor(pct){ return pct>=50 ? '#4ade80' : pct>=30 ? '#fbbf24' : '#f87171'; }
+
+function renderRollingCohortTab(){
+  const el = document.getElementById('admin-content');
+  if (!el) return;
+  const R = computeRollingCohort(_rollScopeFids());
+  const card = 'flex:1;min-width:150px;background:rgba(255,255,255,.03);border:1px solid rgba(122,187,218,.16);border-radius:14px;padding:12px 14px';
+  const wk = (label, w) => {
+    const pct = w.qualified ? Math.round(100*w.activeCount/w.qualified) : 0;
+    const sub = w.qualified ? (w.activeCount+'/'+w.qualified+' hæfra') : 'engin hæf enn';
+    return `<div style="${card}"><div style="font-size:11px;color:#9fb3c6">${label}</div><div style="font-size:22px;font-weight:800;color:${w.qualified?_rollWeekColor(pct):'#9fb3c6'}">${w.qualified?pct+'%':'—'}</div><div style="font-size:11px;color:#9fb3c6">${sub}</div></div>`;
+  };
+  const kpi = (label, val, sub) => `<div style="${card}"><div style="font-size:11px;color:#9fb3c6">${label}</div><div style="font-size:22px;font-weight:800;color:#e6eef6">${val}</div><div style="font-size:11px;color:#9fb3c6">${sub}</div></div>`;
+  const fmtDate = (ms) => ms ? new Date(ms).toISOString().slice(0,10) : '—';
+  const mark = (f, n) => f.weeksElapsed>=n ? (f.active[n-1] ? '✅' : '·') : '–';
+
+  const famRows = R.perFamily.slice()
+    .sort((a,b)=> (b.started?1:0)-(a.started?1:0) || a.day0 - b.day0)
+    .map((f, i) => {
+      const code = (typeof shortAnonFamilyId==='function') ? shortAnonFamilyId(f.fid, i) : String(f.fid).slice(0,6);
+      if (!f.started) return `<tr><td>${esc(code)}</td><td colspan="6" style="color:#9fb3c6"><i>óbyrjuð — engin lota enn</i></td></tr>`;
+      return `<tr><td>${esc(code)}</td><td>${fmtDate(f.day0)}</td><td class="num">${f.weeksElapsed}</td><td>${mark(f,1)}</td><td>${mark(f,2)}</td><td>${mark(f,4)}</td><td class="num">${f.reads} <span style="color:#9fb3c6">(${f.listenedReads||0}♪)</span></td></tr>`;
+    }).join('');
+
+  el.innerHTML = `
+    <div id="rolling-content">
+      <div style="margin-bottom:12px"><h2 style="margin:0 0 4px">Rúllandi cohort</h2>
+        <div style="font-size:12px;color:#9fb3c6">Dagur 0 = fyrsti lestur hverrar fjölskyldu. Vikur mældar frá eigin upphafi — svo hægt sé að bera saman fjölskyldur sem byrjuðu á ólíkum tíma.</div></div>
+      ${_rollPicker()}
+      <div style="display:flex;flex-wrap:wrap;gap:10px;margin:14px 0">
+        ${wk('Virk í viku 1', R.week1)}
+        ${wk('Virk í viku 2', R.week2)}
+        ${wk('Virk í viku 4', R.week4)}
+        ${kpi('Fjölskylduvikur alls', R.totalFamilyWeeks, R.startedCount+' byrjaðar · '+R.notStarted+' óbyrjaðar')}
+        ${kpi('Upplestrar á fjölskylduviku', R.readsPerFamilyWeek.toFixed(1), R.totalReads+' lotur alls')}
+        ${kpi('Upplestrar sem fékk hlustun', (R.totalReads?Math.round(R.listenedPct):0)+'%', R.totalListened+'/'+R.totalReads+' · frá schema-uppfærslu')}
+      </div>
+      <div style="overflow-x:auto"><table class="pa-table" style="width:100%;border-collapse:collapse;font-size:13px">
+        <thead><tr style="text-align:left;color:#9fb3c6"><th>Fjölskylda</th><th>Dagur 0</th><th class="num">Vikur</th><th>V1</th><th>V2</th><th>V4</th><th class="num">Lestrar (♪ hlustað)</th></tr></thead>
+        <tbody>${famRows || '<tr><td colspan="7">Engar fjölskyldur valdar.</td></tr>'}</tbody>
+      </table></div>
+      <div class="pl-famhint" style="margin-top:10px">✅ = virk þá viku · &nbsp;·&nbsp; = hæf en óvirk · &nbsp;–&nbsp; = ekki hæf enn (vikan ekki liðin). ♪ = fjöldi þessara lestra sem fékk hlustun (nákvæmt aðeins frá og með nýja listenEvents-schema-inu).</div>
+    </div>`;
+}
+
+
 function renderContent() {
   const el = document.getElementById('admin-content');
   if (_activeTab === 'overview')  el.innerHTML = renderOverview();
@@ -2600,6 +2792,7 @@ function renderContent() {
   if (_activeTab === 'insights')  el.innerHTML = renderInsights();
   if (_activeTab === 'pilotAdmin') renderPilotAdminTab();
   if (_activeTab === 'pilot')     renderPilotTab();
+  if (_activeTab === 'rolling')   renderRollingCohortTab();
   if (_activeTab === 'wordLab')   renderWordLabTab();
 }
 

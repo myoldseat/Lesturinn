@@ -1545,7 +1545,7 @@ body{font-family:'DM Sans','Manrope',-apple-system,BlinkMacSystemFont,sans-serif
 .analysis-cell-meta{font-size:10px;color:var(--soft)}
 .analysis-boundary{display:flex;gap:8px;align-items:flex-start;background:rgba(255,180,0,.06);border:1px solid rgba(255,180,0,.18);border-radius:10px;padding:9px 11px;margin-top:8px;font-size:11px;color:#f0c060;line-height:1.4}
 .analysis-boundary-icon{flex:0 0 auto;font-size:12px;margin-top:1px}
-.analysis-question{text-align:center;margin:14px 0 10px;font-size:13px;color:var(--text);font-weight:600}.analysis-layout{margin:13px 0 12px;border:1px solid var(--line);background:rgba(7,16,30,.42);border-radius:12px;padding:11px}.analysis-layout-title{font-size:12px;font-weight:900;color:var(--text);margin-bottom:3px}.analysis-layout-sub{font-size:11.5px;color:var(--soft);line-height:1.35;margin-bottom:9px}.analysis-layout-options{display:grid;grid-template-columns:1fr 1fr;gap:7px}.analysis-layout-option{border:1px solid var(--line);background:rgba(255,255,255,.025);color:var(--soft);border-radius:10px;padding:8px;text-align:left;font:inherit;cursor:pointer}.analysis-layout-option strong{display:block;color:var(--text);font-size:12px;margin-bottom:2px}.analysis-layout-option span{display:block;font-size:10.5px;line-height:1.25}.analysis-layout-option.active{border-color:rgba(29,205,211,.55);background:rgba(29,205,211,.12);color:var(--accent)}.analysis-layout-option.active strong{color:var(--accent)}.analysis-layout-result{margin-top:9px;font-size:12px;color:var(--soft);line-height:1.35}.analysis-layout-result strong{color:var(--accent)}
+.analysis-question{text-align:center;margin:14px 0 10px;font-size:13px;color:var(--text);font-weight:600}.analysis-layout{margin:13px 0 12px;border:1px solid var(--line);background:rgba(7,16,30,.42);border-radius:12px;padding:11px}.analysis-layout-title{font-size:12px;font-weight:900;color:var(--text);margin-bottom:3px}.analysis-layout-sub{font-size:11.5px;color:var(--soft);line-height:1.35;margin-bottom:9px}.analysis-layout-options{display:grid;grid-template-columns:1fr 1fr;gap:7px}.analysis-layout-option{border:1px solid var(--line);background:rgba(255,255,255,.025);color:var(--soft);border-radius:10px;padding:8px;text-align:left;font:inherit;cursor:pointer}.analysis-layout-option strong{display:block;color:var(--text);font-size:12px;margin-bottom:2px}.analysis-layout-option span{display:block;font-size:10.5px;line-height:1.25}.analysis-layout-option.active{border-color:rgba(29,205,211,.55);background:rgba(29,205,211,.12);color:var(--accent)}.analysis-layout-option.active strong{color:var(--accent)}.analysis-layout-result{margin-top:9px;font-size:12px;color:var(--soft);line-height:1.35}.analysis-layout-result strong{color:var(--accent)}.analysis-layout-option.layout-card{display:flex;flex-direction:column;gap:0}.layout-card-art{display:block;background:rgba(4,10,20,.5);border-radius:9px;padding:6px 5px;margin-bottom:7px}.layout-card-art svg{display:block;width:100%;height:auto}.analysis-layout-option.layout-card>strong{font-size:12.5px;margin-bottom:2px}.analysis-layout-option.layout-card .layout-note{display:block;font-size:10.5px;line-height:1.3;color:var(--soft)}.analysis-layout-options{gap:10px}.analysis-layout-option.active{box-shadow:0 0 0 1px rgba(29,205,211,.16) inset,0 0 14px rgba(29,205,211,.14)}.analysis-layout-option.active .layout-note{color:#9fdfe4}
 
 .confirm-actions{display:flex;flex-direction:column;gap:7px}
 .confirm-actions .dialog-btn{margin-top:0}
@@ -2537,6 +2537,43 @@ body{font-family:'DM Sans','Manrope',-apple-system,BlinkMacSystemFont,sans-serif
         <button id="home-btn" class="home-btn child-top-hidden" type="button" aria-label="Go home"></button>
       </header>
 
+      <!-- FASI 3A Skref 2: barna-push borði. Sýndur aðeins fyrir barns-aðgerðanleg ástönd. -->
+      <style>
+        .child-push-banner{display:flex;align-items:center;gap:10px;width:100%;margin:0 0 12px;padding:11px 14px;border-radius:14px;border:1px solid rgba(29,205,211,.32);background:rgba(29,205,211,.10);color:var(--accent,#1dcdd3);font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;font-size:14px;font-weight:800;cursor:pointer;-webkit-tap-highlight-color:transparent;text-align:left}
+        .child-push-banner:active{transform:scale(.99)}
+        .child-push-banner .cpb-icon{font-size:16px;line-height:1}
+        .child-push-banner.denied{border-color:rgba(255,180,120,.32);background:rgba(255,170,110,.10);color:#ffb976;cursor:default}
+      </style>
+      <button type="button" id="child-push-banner" class="child-push-banner" hidden>
+        <span class="cpb-icon" aria-hidden="true">🔔</span>
+        <span class="cpb-text" id="child-push-text">Virkja tilkynningar</span>
+      </button>
+      <script>
+      (function(){
+        var b = document.getElementById('child-push-banner');
+        if (b) b.addEventListener('click', function(){
+          // Aðeins 'needs-permission' ræsir leyfisbeiðni (fyrsta await í gesture, iOS).
+          if (window.__childPushState === 'needs-permission' && window.enableChildPush) window.enableChildPush();
+        });
+        window._renderChildPushBanner = function(state){
+          var el = document.getElementById('child-push-banner');
+          var t  = document.getElementById('child-push-text');
+          if (!el) return;
+          // Sýna AÐEINS þegar barnið getur brugðist við. Fela 'on'/'parent-off'/'unsupported'
+          // (nöldrum ekki á barnið þótt foreldri hafi ekki kveikt — það er ekki þeirra ákvörðun).
+          var show = (state === 'needs-permission' || state === 'denied');
+          el.hidden = !show;
+          if (!show) return;
+          el.classList.toggle('denied', state === 'denied');
+          if (t) t.textContent = (state === 'denied')
+            ? 'Tilkynningar: leyfi hafnað — leyfðu þær í stillingum tækisins'
+            : 'Virkja tilkynningar';
+        };
+        // Catch-up: ef Skref 1 er þegar búið að setja stöðu áður en þessi renderer var til.
+        if (window.__childPushState) window._renderChildPushBanner(window.__childPushState);
+      })();
+      </script>
+
       <!-- Resume card: hero book display with cover, replaces old book-pill -->
       <button id="resume-card" class="resume-card empty" type="button" aria-label="Velja bók">
         <div class="resume-tag" id="resume-tag">Veldu bók</div>
@@ -2874,15 +2911,15 @@ body{font-family:'DM Sans','Manrope',-apple-system,BlinkMacSystemFont,sans-serif
   <div class="analysis-question">Virðist þetta vera dæmigerð síða í bókinni?</div>
 
     <div class="analysis-layout" id="analysisLayoutPicker">
-    <div class="analysis-layout-title">Uppbygging bokar</div>
-    <div class="analysis-layout-sub">Veldu þetta til ad leidretta lesin ord i framvindu. Bladsidur teljast afram obreyttar.</div>
+    <div class="analysis-layout-title">Hvernig lítur bókin út?</div>
+    <div class="analysis-layout-sub">Veldu myndina sem líkist bókinni best. Þetta hjálpar UppHátt að áætla orðafjölda á hverri síðu. Mælingin er áætluð og er aðeins notuð til að fylgjast með framförum barnsins yfir tíma.</div>
     <div class="analysis-layout-options" id="bookLayoutOptions">
-      <button class="analysis-layout-option" type="button" data-layout="mostlyText"><strong>Flestar sidur texti</strong><span>Telja ord nastum obreytt.</span></button>
-      <button class="analysis-layout-option active" type="button" data-layout="regularIllustrated"><strong>Myndir reglulega</strong><span>Texti a flestum sidum.</span></button>
-      <button class="analysis-layout-option" type="button" data-layout="manyFullPageImages"><strong>Margar myndasidur</strong><span>Framvinda leidrett meira.</span></button>
-      <button class="analysis-layout-option" type="button" data-layout="irregularIllustrated"><strong>Mjog ojofn bok</strong><span>Thettar, lettar og tomar sidur.</span></button>
+      <button class="analysis-layout-option layout-card" type="button" data-layout="mostlyText"><span class="layout-card-art" aria-hidden="true"><svg viewBox="0 0 300 116" width="100%" role="img"><title>Uppbygging bókar</title><ellipse cx="72" cy="108" rx="60" ry="4" fill="#000" opacity="0.28"/><rect x="8" y="8" width="128" height="94" rx="7" fill="#0d2036"/><rect x="13" y="13" width="57" height="84" fill="#f3eee1"/><rect x="18" y="18" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="18" y="22.6" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="18" y="27.2" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="18" y="31.8" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="18" y="36.4" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="18" y="41" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="18" y="45.6" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="18" y="50.2" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="18" y="54.8" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="18" y="59.4" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="18" y="64" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="18" y="68.6" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="18" y="73.2" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="18" y="77.8" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="18" y="82.4" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="18" y="87" width="28.2" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="74" y="13" width="57" height="84" fill="#f3eee1"/><rect x="79" y="18" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="79" y="22.6" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="79" y="27.2" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="79" y="31.8" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="79" y="36.4" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="79" y="41" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="79" y="45.6" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="79" y="50.2" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="79" y="54.8" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="79" y="59.4" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="79" y="64" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="79" y="68.6" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="79" y="73.2" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="79" y="77.8" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="79" y="82.4" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="79" y="87" width="28.2" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="70.5" y="13" width="3" height="84" fill="#000" opacity="0.14"/><rect x="8" y="8" width="128" height="94" rx="7" fill="none" stroke="#0a1626" stroke-width="1"/><ellipse cx="228" cy="108" rx="60" ry="4" fill="#000" opacity="0.28"/><rect x="164" y="8" width="128" height="94" rx="7" fill="#0d2036"/><rect x="169" y="13" width="57" height="84" fill="#f3eee1"/><rect x="174" y="18" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="174" y="22.6" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="174" y="27.2" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="174" y="31.8" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="174" y="36.4" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="174" y="41" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="174" y="45.6" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="174" y="50.2" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="174" y="54.8" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="174" y="59.4" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="174" y="64" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="174" y="68.6" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="174" y="73.2" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="174" y="77.8" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="174" y="82.4" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="174" y="87" width="28.2" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="230" y="13" width="57" height="84" fill="#f3eee1"/><rect x="235" y="18" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="235" y="22.6" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="235" y="27.2" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="235" y="31.8" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="235" y="36.4" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="235" y="41" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="235" y="45.6" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="235" y="50.2" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="235" y="54.8" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="235" y="59.4" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="235" y="64" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="235" y="68.6" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="235" y="73.2" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="235" y="77.8" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="235" y="82.4" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="235" y="87" width="28.2" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="226.5" y="13" width="3" height="84" fill="#000" opacity="0.14"/><rect x="164" y="8" width="128" height="94" rx="7" fill="none" stroke="#0a1626" stroke-width="1"/></svg></span><strong>Aðallega texti</strong><span class="layout-note">Flestar síður eru svipaðar þessari.</span></button>
+      <button class="analysis-layout-option layout-card active" type="button" data-layout="regularIllustrated"><span class="layout-card-art" aria-hidden="true"><svg viewBox="0 0 300 116" width="100%" role="img"><title>Uppbygging bókar</title><ellipse cx="72" cy="108" rx="60" ry="4" fill="#000" opacity="0.28"/><rect x="8" y="8" width="128" height="94" rx="7" fill="#0d2036"/><rect x="13" y="13" width="57" height="84" fill="#f3eee1"/><rect x="18" y="18" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="18" y="22.6" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="18" y="27.2" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="18" y="31.8" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="18" y="36.4" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="18" y="41" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="18" y="45.6" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="18" y="50.2" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="18" y="54.8" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="18" y="59.4" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="18" y="64" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="18" y="68.6" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="18" y="73.2" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="18" y="77.8" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="18" y="82.4" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="18" y="87" width="28.2" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="74" y="13" width="57" height="84" fill="#f3eee1"/><rect x="79" y="18" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="79" y="22.6" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="79" y="27.2" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="79" y="31.8" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="79" y="36.4" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="79" y="41" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="79" y="45.6" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="79" y="50.2" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="79" y="54.8" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="79" y="59.4" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="79" y="64" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="79" y="68.6" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="79" y="73.2" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="79" y="77.8" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="79" y="82.4" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="79" y="87" width="28.2" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="70.5" y="13" width="3" height="84" fill="#000" opacity="0.14"/><rect x="8" y="8" width="128" height="94" rx="7" fill="none" stroke="#0a1626" stroke-width="1"/><ellipse cx="228" cy="108" rx="60" ry="4" fill="#000" opacity="0.28"/><rect x="164" y="8" width="128" height="94" rx="7" fill="#0d2036"/><rect x="169" y="13" width="57" height="84" fill="#f3eee1"/><rect x="174" y="18" width="47" height="37" rx="2.5" fill="#cfe3ef" stroke="#a9c8d8" stroke-width="0.6"/><circle cx="213" cy="25" r="4" fill="#f4d97a"/><path d="M174 55 Q190.45 34.65 202.2 43.16 T221 44.64 L221 55 Z" fill="#bcd9a8" opacity="0.95"/><rect x="174" y="59" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="174" y="63.6" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="174" y="68.2" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="174" y="72.8" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="174" y="77.4" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="174" y="82" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="174" y="86.6" width="28.2" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="230" y="13" width="57" height="84" fill="#f3eee1"/><rect x="235" y="18" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="235" y="22.6" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="235" y="27.2" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="235" y="31.8" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="235" y="36.4" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="235" y="41" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="235" y="45.6" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="235" y="50.2" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="235" y="54.8" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="235" y="59.4" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="235" y="64" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="235" y="68.6" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="235" y="73.2" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="235" y="77.8" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="235" y="82.4" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="235" y="87" width="28.2" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="226.5" y="13" width="3" height="84" fill="#000" opacity="0.14"/><rect x="164" y="8" width="128" height="94" rx="7" fill="none" stroke="#0a1626" stroke-width="1"/></svg></span><strong>Myndir af og til</strong><span class="layout-note">Aðallega texti, ein mynd inn á milli.</span></button>
+      <button class="analysis-layout-option layout-card" type="button" data-layout="manyFullPageImages"><span class="layout-card-art" aria-hidden="true"><svg viewBox="0 0 300 116" width="100%" role="img"><title>Uppbygging bókar</title><ellipse cx="72" cy="108" rx="60" ry="4" fill="#000" opacity="0.28"/><rect x="8" y="8" width="128" height="94" rx="7" fill="#0d2036"/><rect x="13" y="13" width="57" height="84" fill="#f3eee1"/><rect x="18" y="18" width="47" height="74" rx="2.5" fill="#cfe3ef" stroke="#a9c8d8" stroke-width="0.6"/><circle cx="57" cy="25" r="4" fill="#f4d97a"/><path d="M18 92 Q34.45 51.3 46.2 68.32 T65 71.28 L65 92 Z" fill="#bcd9a8" opacity="0.95"/><rect x="74" y="13" width="57" height="84" fill="#f3eee1"/><rect x="79" y="18" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="79" y="22.6" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="79" y="27.2" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="79" y="31.8" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="79" y="36.4" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="79" y="41" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="79" y="45.6" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="79" y="50.2" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="79" y="54.8" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="79" y="59.4" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="79" y="64" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="79" y="68.6" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="79" y="73.2" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="79" y="77.8" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="79" y="82.4" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="79" y="87" width="28.2" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="70.5" y="13" width="3" height="84" fill="#000" opacity="0.14"/><rect x="8" y="8" width="128" height="94" rx="7" fill="none" stroke="#0a1626" stroke-width="1"/><ellipse cx="228" cy="108" rx="60" ry="4" fill="#000" opacity="0.28"/><rect x="164" y="8" width="128" height="94" rx="7" fill="#0d2036"/><rect x="169" y="13" width="57" height="84" fill="#f3eee1"/><rect x="174" y="18" width="47" height="37" rx="2.5" fill="#cfe3ef" stroke="#a9c8d8" stroke-width="0.6"/><circle cx="213" cy="25" r="4" fill="#f4d97a"/><path d="M174 55 Q190.45 34.65 202.2 43.16 T221 44.64 L221 55 Z" fill="#bcd9a8" opacity="0.95"/><rect x="174" y="59" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="174" y="63.6" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="174" y="68.2" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="174" y="72.8" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="174" y="77.4" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="174" y="82" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="174" y="86.6" width="28.2" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="230" y="13" width="57" height="84" fill="#f3eee1"/><rect x="235" y="18" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="235" y="22.6" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="235" y="27.2" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="235" y="31.8" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="235" y="36.4" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="235" y="41" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="235" y="45.6" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="235" y="50.2" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="235" y="54.8" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="235" y="59.4" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="235" y="64" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="235" y="68.6" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="235" y="73.2" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="235" y="77.8" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="235" y="82.4" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="235" y="87" width="28.2" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="226.5" y="13" width="3" height="84" fill="#000" opacity="0.14"/><rect x="164" y="8" width="128" height="94" rx="7" fill="none" stroke="#0a1626" stroke-width="1"/></svg></span><strong>Margar myndasíður</strong><span class="layout-note">Heilar og hálfar myndasíður reglulega.</span></button>
+      <button class="analysis-layout-option layout-card" type="button" data-layout="irregularIllustrated"><span class="layout-card-art" aria-hidden="true"><svg viewBox="0 0 300 116" width="100%" role="img"><title>Uppbygging bókar</title><ellipse cx="72" cy="108" rx="60" ry="4" fill="#000" opacity="0.28"/><rect x="8" y="8" width="128" height="94" rx="7" fill="#0d2036"/><rect x="13" y="13" width="57" height="84" fill="#f3eee1"/><rect x="18" y="18" width="47" height="53.28" rx="2.5" fill="#cfe3ef" stroke="#a9c8d8" stroke-width="0.6"/><circle cx="57" cy="25" r="4" fill="#f4d97a"/><path d="M18 71.28 Q34.45 41.98 46.2 54.23 T65 56.36 L65 71.28 Z" fill="#bcd9a8" opacity="0.95"/><rect x="18" y="75.28" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="18" y="79.88" width="28.2" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="74" y="13" width="57" height="84" fill="#f3eee1"/><rect x="79" y="18" width="47" height="53.28" rx="2.5" fill="#cfe3ef" stroke="#a9c8d8" stroke-width="0.6"/><circle cx="118" cy="25" r="4" fill="#f4d97a"/><path d="M79 71.28 Q95.45 41.98 107.2 54.23 T126 56.36 L126 71.28 Z" fill="#bcd9a8" opacity="0.95"/><rect x="79" y="75.28" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="79" y="79.88" width="28.2" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="70.5" y="13" width="3" height="84" fill="#000" opacity="0.14"/><rect x="8" y="8" width="128" height="94" rx="7" fill="none" stroke="#0a1626" stroke-width="1"/><ellipse cx="228" cy="108" rx="60" ry="4" fill="#000" opacity="0.28"/><rect x="164" y="8" width="128" height="94" rx="7" fill="#0d2036"/><rect x="169" y="13" width="57" height="84" fill="#f3eee1"/><rect x="174" y="18" width="47" height="53.28" rx="2.5" fill="#cfe3ef" stroke="#a9c8d8" stroke-width="0.6"/><circle cx="213" cy="25" r="4" fill="#f4d97a"/><path d="M174 71.28 Q190.45 41.98 202.2 54.23 T221 56.36 L221 71.28 Z" fill="#bcd9a8" opacity="0.95"/><rect x="174" y="75.28" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="174" y="79.88" width="28.2" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="230" y="13" width="57" height="84" fill="#f3eee1"/><rect x="235" y="18" width="47" height="53.28" rx="2.5" fill="#cfe3ef" stroke="#a9c8d8" stroke-width="0.6"/><circle cx="274" cy="25" r="4" fill="#f4d97a"/><path d="M235 71.28 Q251.45 41.98 263.2 54.23 T282 56.36 L282 71.28 Z" fill="#bcd9a8" opacity="0.95"/><rect x="235" y="75.28" width="47" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="235" y="79.88" width="28.2" height="2.4" rx="1.2" fill="#c3bba7"/><rect x="226.5" y="13" width="3" height="84" fill="#000" opacity="0.14"/><rect x="164" y="8" width="128" height="94" rx="7" fill="none" stroke="#0a1626" stroke-width="1"/></svg></span><strong>Aðallega myndir</strong><span class="layout-note">Dæmigerð myndabók með stuttum texta.</span></button>
     </div>
-    <div class="analysis-layout-result" id="layoutProgressMeta"></div>
+    <div class="analysis-layout-result" id="layoutProgressMeta" style="display:none"></div>
   </div>
 <div class="confirm-actions">
     <button class="dialog-btn confirm-typical" id="confirmTypical">✓ Já, þetta passar</button>
@@ -3510,6 +3547,9 @@ document.querySelectorAll('[data-nav]').forEach(b => {
 });
 
 async function childLogout(){
+  // FASI 3A: slökkva á push-tæki barnsins ÁÐUR en signOut (meðan claims eru gild).
+  try { if (window.disableChildPushForLogout) await window.disableChildPushForLogout(); }
+  catch(e){ console.error('[push] child logout disable', e); }
   const child=getChildSession();
   try{
     sessionStorage.setItem('upphatt_skip_child_redirect_once','1');
@@ -5390,7 +5430,7 @@ import { collection, query, where, onSnapshot, doc, getDocs }
 
         // Afrit — mutera EKKI book.journeyEntries í minni, svo retry endurbyggi eins.
         var entries = (book.journeyEntries || []).slice();
-        entries.unshift({ date: "I dag", createdAt: now, pageFrom: startPage || null, pageTo: finalPage || null, pagesRead: pagesRead || null, note: note || "", reactions: [] });
+        entries.unshift({ type: "reading", sessionId: sessionId || null, date: "I dag", createdAt: now, pageFrom: startPage || null, pageTo: finalPage || null, pagesRead: pagesRead || null, note: note || "", reactions: [] });
 
         var batch = fsMod.writeBatch(db);
         // NAUÐSYNLEGT SKRIF 1 — bókin (framvinda + lestrarferðalag/setning).
@@ -8743,6 +8783,169 @@ import { collection, query, where, getDocs, doc, getDoc, addDoc, onSnapshot, ser
 })();
 </script>
 <script type="module" src="js/wordhelp-child.js"></script>
+<script type="module">
+/* ── FASI 3A — barnatoken-lag (Skref 1: ósýnilega lagið) ──
+   deviceId + lazy messaging + login-drifin device-sync (§2) + logout-disable.
+   Notar window._child (auth, db, ensureAuth). Fire-and-forget; blokkar aldrei síðuna.
+   Borði/DOM kemur í Skref 2 — hér er setPushUI(state) stubbuð (geymir stöðu + kallar
+   window._renderChildPushBanner ef það er til). */
+import { getMessaging, getToken, isSupported } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-messaging.js';
+import { doc, getDoc, setDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js';
+
+const VAPID_KEY = 'BBNSBZMGS8fXplpQYDRg0yYm6K8btDEwp5QxcWivg9VEX2pe-ko-ncKpIyLb_QLNyMmjD7LRC9T5FXFHOo3PZgo';
+
+const _c = window._child;
+if (_c) {
+  const db = _c.db;
+  const auth = _c.auth;
+
+  // deviceId — stöðugt UUID per tæki (localStorage). Token roterar; deviceId ekki.
+  function deviceId() {
+    let id = null;
+    try { id = localStorage.getItem('upphatt_deviceId'); } catch (e) {}
+    if (!id) {
+      id = (crypto.randomUUID && crypto.randomUUID()) ||
+        ('dev-' + Date.now() + '-' + Math.random().toString(16).slice(2));
+      try { localStorage.setItem('upphatt_deviceId', id); } catch (e) {}
+    }
+    return id;
+  }
+
+  async function sha256Hex(str) {
+    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+    return [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, '0')).join('');
+  }
+
+  function platform() {
+    const ua = navigator.userAgent;
+    if (/iphone|ipad|ipod/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)) return 'ios';
+    if (/android/i.test(ua)) return 'android';
+    return 'web';
+  }
+
+  // Lazy messaging á barnasíðunnar EIGIN app (child.html importar ekki firebase-config.js).
+  let _messaging = null;
+  async function messagingIfSupported() {
+    if (_messaging) return _messaging;
+    try { if (!(await isSupported())) return null; } catch (e) { return null; }
+    try { _messaging = getMessaging(auth.app); } catch (e) { console.error('[push] getMessaging', e); return null; }
+    return _messaging;
+  }
+  async function swReg() {
+    if (!('serviceWorker' in navigator)) return null;
+    const reg = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+    await navigator.serviceWorker.ready;
+    return reg;
+  }
+  async function currentToken() {
+    const m = await messagingIfSupported();
+    if (!m) return null;
+    return getToken(m, { vapidKey: VAPID_KEY, serviceWorkerRegistration: await swReg() });
+  }
+
+  const devRef = (fid) => doc(db, 'families', fid, 'pushDevices', deviceId());
+  const cfgRef = (fid, ck) => doc(db, 'families', fid, 'children', ck, 'pushSettings', 'config');
+
+  async function parentApprovedFor(fid, ck) {
+    try {
+      const s = await getDoc(cfgRef(fid, ck));
+      return s.exists() && s.data().parentApproved === true;
+    } catch (e) { console.error('[push] lestur pushSettings', e); return false; }
+  }
+
+  // Skref 2 fyllir þetta með raunverulegu DOM. Í Skref 1: geymir stöðu + kallar hook ef til.
+  function setPushUI(state) {
+    window.__childPushState = state;
+    if (typeof window._renderChildPushBanner === 'function') { try { window._renderChildPushBanner(state); } catch (e) {} }
+  }
+
+  let _session = null;   // { familyId, childKey } síðasta staðfesta barns
+
+  // §2 — login-drifin device-sync. Fire-and-forget; skrifar aldrei skjal án tokens;
+  // ef skjal er til endurbindur það ALLTAF við mig (lokar systkina-leka).
+  async function syncChildPushDevice(session) {
+    try {
+      const fid = session.familyId, ck = session.childKey;
+      if (!fid || !ck) return;
+      const supported = ('Notification' in window) && ('serviceWorker' in navigator);
+      if (!supported) { setPushUI('unsupported'); return; }
+      const approved = await parentApprovedFor(fid, ck);
+      const granted = ('Notification' in window) && Notification.permission === 'granted';
+
+      let snap = null;
+      try { snap = await getDoc(devRef(fid)); } catch (e) { console.error('[push] lestur pushDevices', e); }
+      const exists = snap && snap.exists();
+
+      // Sækja token AÐEINS ef við megum kveikja.
+      let token = null;
+      if (approved && granted) {
+        try { token = await currentToken(); } catch (e) { console.error('[push] currentToken', e); }
+      }
+
+      if (approved && granted && token) {
+        const tokenHash = await sha256Hex(token);
+        const base = { activeChildKey: ck, token, tokenHash, enabled: true, updatedAt: serverTimestamp(), lastSeenAt: serverTimestamp() };
+        try {
+          if (exists) await setDoc(devRef(fid), base, { merge: true });
+          else await setDoc(devRef(fid), { ...base, mode: 'singleChild', platform: platform(), createdAt: serverTimestamp() });
+          setPushUI('on');
+        } catch (e) { console.error('[push] skrif (enable)', e); setPushUI('needs-permission'); }
+        return;
+      }
+
+      // Getum ekki kveikt → ef skjal er til, endurbindur við mig + slökkt (leyft: enabled:false).
+      if (exists) {
+        try { await setDoc(devRef(fid), { activeChildKey: ck, enabled: false, updatedAt: serverTimestamp() }, { merge: true }); }
+        catch (e) { console.error('[push] skrif (rebind/disable)', e); }
+      }
+      setPushUI(approved ? 'needs-permission' : 'parent-off');
+    } catch (e) {
+      console.error('[push] syncChildPushDevice', e);
+    }
+  }
+
+  // Handvirk virkjun (borði-smellur, wire-að í Skref 2).
+  // requestPermission VERÐUR að vera fyrsta await í smellinum (iOS).
+  async function enableChildPush() {
+    if (!_session) { console.warn('[push] enable: engin session'); return; }
+    if (!('Notification' in window) || !('serviceWorker' in navigator)) { setPushUI('unsupported'); return; }
+    let perm;
+    try { perm = await Notification.requestPermission(); } catch (e) { perm = 'default'; console.error('[push] requestPermission', e); }
+    if (perm !== 'granted') { setPushUI(perm === 'denied' ? 'denied' : 'needs-permission'); return; }
+    await syncChildPushDevice(_session);   // nú granted → skrifar enabled:true ef samþykki
+  }
+
+  // Logout-disable — kallað úr childLogout ÁÐUR en signOut. Best-effort + 2,5s tímamark.
+  async function disableChildPushForLogout() {
+    try {
+      if (!_session) return;
+      const fid = _session.familyId, ck = _session.childKey;
+      const work = (async () => {
+        let snap = null;
+        try { snap = await getDoc(devRef(fid)); } catch (e) {}
+        if (snap && snap.exists()) {
+          await setDoc(devRef(fid), { activeChildKey: ck, enabled: false, updatedAt: serverTimestamp() }, { merge: true });
+        }
+      })().catch((e) => console.error('[push] logout disable (async)', e));
+      await Promise.race([work, new Promise((r) => setTimeout(r, 2500))]);
+    } catch (e) { console.error('[push] logout disable', e); }
+  }
+
+  window.enableChildPush = enableChildPush;
+  window.disableChildPushForLogout = disableChildPushForLogout;
+
+  // Trigger: eftir staðfest barn-login (ekki viewer). Fire-and-forget; endurnýtir ensureAuth.
+  (async () => {
+    try {
+      const session = await _c.ensureAuth();
+      if (session && !session.viewer && session.role === 'child' && session.familyId && session.childKey) {
+        _session = { familyId: session.familyId, childKey: session.childKey };
+        syncChildPushDevice(_session);
+      }
+    } catch (e) { /* ekki innskráð / viewer / rangt hlutverk — ekkert push */ }
+  })();
+}
+</script>
 </body>
 </html>
 

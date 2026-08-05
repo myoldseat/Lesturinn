@@ -1392,6 +1392,10 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-f
       <span id="rs-code" style="color:#1dcdd3;font-weight:700;font-size:14px;letter-spacing:.05em"></span>
       <button type="button" class="lx-inv-copy" onclick="readerCopyCode()" style="margin-left:auto">Afrita</button>
     </div>
+    <div class="rs-act" id="rs-push-row" role="button" tabindex="0" style="cursor:pointer" onclick="readerTogglePush()">
+      <div><div class="rs-l">Leyfa tilkynningar</div><div class="rs-d">Barnið fær tilkynningu þegar hlustað er á lestur þess</div></div>
+      <button type="button" id="rs-push-toggle" class="st-switch" role="switch" aria-checked="false" tabindex="-1" style="pointer-events:none"><span class="st-knob"></span></button>
+    </div>
     <div class="rs-act" onclick="readerDownload()"><div class="rs-l">Sækja gögn lesarans</div><span class="rs-chev">›</span></div>
     <div class="rs-act" onclick="readerDeleteAudio()"><div><div class="rs-l">Eyða hljóðupptökum</div><div class="rs-d">Heldur framvindu — eyðir aðeins hljóðinu</div></div><span class="rs-chev">›</span></div>
     <div class="rs-act" onclick="readerClearReading()"><div><div class="rs-l">Hreinsa lestrarsögu</div><div class="rs-d">Eyðir lotum, bókum og framvindu</div></div><span class="rs-chev">›</span></div>
@@ -1968,6 +1972,7 @@ const libMod   = await import('./js/lib.js').catch(e => { console.error('lib.js:
 
 const { initAuth, openAddChildPopup, closeAddChildPopup, logout } = authMod;
 const writeListenEvent = libMod.writeListenEvent || (async () => false);
+const commitReadingMessage = libMod.commitReadingMessage || (async () => false);
 const S = stateMod.S || {};
 const { db, collection, onSnapshot, query, where, doc, getDoc, setDoc, updateDoc, deleteDoc, serverTimestamp, auth, storage, ref, getDownloadURL, signInWithEmailAndPassword, onAuthStateChanged, functions, httpsCallable } = fbMod;
 let firestoreDeleteDoc = deleteDoc;
@@ -2136,12 +2141,25 @@ window.sendEntryReply = async function(btn) {
     const entries = book.journeyEntries.map(e => ({
       ...e, reactions: Array.isArray(e.reactions) ? [...e.reactions] : []
     }));
+    // Varanlegt auðkenni kommentsins er commentId (búið til hér). entryIndex er aðeins
+    // notað transient til að finna mark-entry í fersku array-i — aldrei vistað.
+    const commentId = (crypto.randomUUID && crypto.randomUUID()) ||
+      ('c_' + Date.now() + '_' + Math.random().toString(36).slice(2, 10));
     const name = _listenerName();
     entries[entryIndex] = {
       ...entries[entryIndex],
-      reactions: [...(entries[entryIndex].reactions || []), { name, text, createdAt: Date.now() }]
+      reactions: [...(entries[entryIndex].reactions || []), { commentId, name, text, createdAt: Date.now() }]
     };
-    await updateDoc(doc(db, 'books', bookId), { journeyEntries: entries, updatedAt: serverTimestamp() });
+    // FASI 3C: reaction + commentEvents/{commentId} í SAMA atóm-batch (lib.js á batchinn á eigin db).
+    const ok = await commitReadingMessage({
+      bookId, entries, commentId,
+      familyId: book.familyId || S.familyId,
+      childKey: book.childKey,                              // authoritative → rétt barn í fjölbarna-fjölskyldu
+      senderName: name,
+      senderRole: S.role || null,
+      entrySessionId: entries[entryIndex].sessionId || null // stöðugt entry-handle EF til (annars null)
+    });
+    if (!ok) { toast('Villa við vistun'); return; }
     book.journeyEntries = entries;
     input.value = '';
     toast('Sent ✓');
@@ -2258,7 +2276,7 @@ function render() {
   const cb = books.filter(b => b.childKey === _selectedChild);
 
   renderChildren(children);
-  renderReading(cb);
+  renderReading(cb, cs);
   renderAudioHero(cs);
   renderWeek(cs);
   renderStreak(cs);
@@ -2287,11 +2305,27 @@ function renderChildren(children) {
   document.querySelectorAll('[data-child-row]').forEach(r => { r.innerHTML = html; });
 }
 
+/* ── FASI: sameiginleg bók-uppfletting fyrir lestrarlotu (bookId → bookTitle → null) ── */
+function _sessionBook(session, books){
+  if (!session || !books || !books.length) return null;
+  const sid = (session.bookId != null) ? String(session.bookId) : '';
+  if (sid){ const b = books.find(bk => String(bk.id || bk._docId) === sid); if (b) return b; }
+  const st = session.bookTitle || '';
+  if (st){ const b = books.find(bk => (bk.title||'') === st); if (b) return b; }
+  return null;   // EKKERT reading[0]-fallback hér — það er hlutverk render-fallanna
+}
+function _latestAudioSession(sessions){
+  const wa = (sessions||[]).filter(s => s.hasAudio && (s.audioPath || CLIP_KEYS.some(k => s[k])));
+  if (!wa.length) return null;
+  return wa.slice().sort((a,b) => (b.timestamp||0) - (a.timestamp||0))[0];
+}
+
 /* ── Að lesa — ferkanturt hero ── */
-function renderReading(books) {
+function renderReading(books, sessions) {
   const el = document.getElementById('p-now-reading');
   if (!el) return;
-  const hero = books.filter(b => b.status === 'reading').sort((a,b) => bTs(b,'lastReadAt') - bTs(a,'lastReadAt'))[0];
+  const hero = _sessionBook(_latestAudioSession(sessions), books)
+    || books.filter(b => b.status === 'reading').sort((a,b) => bTs(b,'lastReadAt') - bTs(a,'lastReadAt'))[0];
   if (!hero) {
     el.innerHTML = `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;padding:16px;text-align:center">
       <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.5" style="margin-bottom:8px"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5Z"/></svg>
@@ -2834,7 +2868,8 @@ function setHtml(id, value) { const el = document.getElementById(id); if (el) el
 function renderJourneyPreview(sessions, books) {
   const el = document.getElementById('p-journey-card');
   if (!el) return;
-  const hero = books.filter(b => b.status === 'reading').sort((a,b) => bTs(b,'lastReadAt') - bTs(a,'lastReadAt'))[0];
+  const hero = _sessionBook(_latestAudioSession(sessions), books)
+    || books.filter(b => b.status === 'reading').sort((a,b) => bTs(b,'lastReadAt') - bTs(a,'lastReadAt'))[0];
   if (!hero || !hero.journeyEntries || hero.journeyEntries.length === 0) {
     el.style.display = 'none';
     return;
@@ -3165,15 +3200,16 @@ window.pickBook = function(bookId) {
 
 /* ── Ferðalag flipi — chat stíll með komment þráð ── */
 function renderJourney(books) {
-  const activeBooks = books.filter(b => b.status === 'reading')
-    .sort((a,b) => bTs(b,'lastReadAt') - bTs(a,'lastReadAt'));
-  const multiBook = activeBooks.length > 1;
+  const _jbTs = (b) => bTs(b,'lastReadAt') || bTs(b,'celebratedAt') || bTs(b,'updatedAt') || 0;
+  const journeyBooks = books.filter(b => b.status === 'reading' || b.status === 'finished')
+    .sort((a,b) => _jbTs(b) - _jbTs(a));
+  const multiBook = journeyBooks.length > 1;
 
-  /* Staðfesta/frumstilla valda bók */
-  if (!_selectedBookId[_selectedChild] || !activeBooks.find(b => b.id === _selectedBookId[_selectedChild])) {
-    _selectedBookId[_selectedChild] = activeBooks[0]?.id || null;
+  /* Staðfesta/frumstilla — haldið vali á lokinni bók ef hún er enn í ferðalaginu */
+  if (!_selectedBookId[_selectedChild] || !journeyBooks.find(b => b.id === _selectedBookId[_selectedChild])) {
+    _selectedBookId[_selectedChild] = journeyBooks[0]?.id || null;
   }
-  const hero = activeBooks.find(b => b.id === _selectedBookId[_selectedChild]) || activeBooks[0];
+  const hero = journeyBooks.find(b => b.id === _selectedBookId[_selectedChild]) || journeyBooks[0];
 
   /* Hero cover */
   const heroEl = document.getElementById('jm-book-hero');
@@ -3183,51 +3219,39 @@ function renderJourney(books) {
     const coverHtml = coverSrc
       ? `<img src="${esc(coverSrc)}" style="width:48px;height:68px;border-radius:7px;object-fit:cover;box-shadow:0 4px 10px rgba(0,0,0,.3)" onerror="this.outerHTML='<div class=rd-cover style=width:48px;height:68px;font-size:18px;border-radius:7px;background:linear-gradient(145deg,${c1},${c2})><span>${esc((hero.title||'?')[0])}</span></div>'">`
       : `<div class="rd-cover" style="width:48px;height:68px;font-size:18px;border-radius:7px;background:linear-gradient(145deg,${c1},${c2})"><span>${esc((hero.title||'?')[0])}</span></div>`;
-    const pct = hero.progressPercent || 0;
-    const pg = hero.currentPageTo ? `bls. ${hero.currentPageTo} af ${hero.totalPages||'?'}` : '';
+    const isDone = hero.status === 'finished';
+    const pct = isDone ? 100 : (hero.progressPercent || 0);
+    const pg = hero.currentPageTo ? `bls. ${hero.currentPageTo} af ${hero.totalPages||'?'}`
+             : (isDone && hero.totalPages ? `bls. ${hero.totalPages} af ${hero.totalPages}` : '');
+    const doneTag = isDone ? `<span class="rd-load-pill" style="background:rgba(74,222,128,.14);border-color:rgba(74,222,128,.3);color:#4ade80">Lokið \u2713</span>` : '';
 
-    /* Ef fleiri bækur — allt hero tappable */
-    if (multiBook) {
-      heroEl.style.cursor = 'pointer';
-      heroEl.style.webkitTapHighlightColor = 'transparent';
-      heroEl.onclick = () => window.openBookDropdown();
-    } else {
-      heroEl.style.cursor = '';
-      heroEl.style.webkitTapHighlightColor = '';
-      heroEl.onclick = null;
-    }
-
-    /* Chevron staflaður yfir % þegar fleiri bækur */
-    const pctCol = multiBook
-      ? `<div style="display:flex;flex-direction:column;align-items:center;gap:0px;min-width:28px">
-           <span style="font-size:20px;line-height:1;color:var(--accent)">⌄</span>
-           <span class="rd-pct" style="min-width:auto">${pct}%</span>
-         </div>`
-      : `<div class="rd-pct">${pct}%</div>`;
+    /* Ekkert falið chevron — sýnileg pill-röð sér um bók-val */
+    heroEl.style.cursor = ''; heroEl.style.webkitTapHighlightColor = ''; heroEl.onclick = null;
 
     const rlLabel2 = hero.readingLoadLabel || null;
     const rlPill2 = rlLabel2 ? `<span class="rd-load-pill">${esc(rlLabel2)}</span>` : '';
     heroEl.innerHTML = `<div class="jn-hero-cover">${coverHtml}</div>
       <div class="jn-hero-info">
         <div class="rd-title" style="font-size:15px">${esc(hero.title)}</div>
-        <div class="rd-meta">${pg}${rlPill2}</div>
-        <div class="rd-prog" style="margin-top:4px"><div class="rd-bar"><div class="rd-fill" style="width:${pct}%"></div></div>${pctCol}</div>
+        <div class="rd-meta">${pg}${rlPill2}${doneTag}</div>
+        <div class="rd-prog" style="margin-top:4px"><div class="rd-bar"><div class="rd-fill" style="width:${pct}%"></div></div><div class="rd-pct">${pct}%</div></div>
       </div>`;
 
-    /* Hint lína neðan hero — "N bækur í gangi" */
-    let hintEl = document.getElementById('jn-book-hint');
-    if (!hintEl) {
-      hintEl = document.createElement('div');
-      hintEl.id = 'jn-book-hint';
-      heroEl.after(hintEl);
-    }
+    /* Sýnileg pill-röð: bók-val (Að lesa + Lokið), virk upplýst — skýrara en falið chevron. */
+    let pillsEl = document.getElementById('jn-book-pills');
+    if (!pillsEl){ pillsEl = document.createElement('div'); pillsEl.id = 'jn-book-pills'; heroEl.after(pillsEl); }
+    const legacyHint = document.getElementById('jn-book-hint'); if (legacyHint) legacyHint.style.display = 'none';
     if (multiBook) {
-      Object.assign(hintEl.style, { display:'', fontSize:'11px', color:'var(--muted)', textAlign:'center', padding:'0 0 4px', cursor:'pointer', letterSpacing:'.01em', webkitTapHighlightColor:'transparent' });
-      hintEl.textContent = `${activeBooks.length} bækur í gangi — veldu bók`;
-      hintEl.onclick = () => window.openBookDropdown();
-      _updateBookDropdown(activeBooks, hero.id);
+      Object.assign(pillsEl.style, { display:'flex', gap:'6px', overflowX:'auto', padding:'8px 0 2px', scrollbarWidth:'none', webkitTapHighlightColor:'transparent' });
+      pillsEl.innerHTML = journeyBooks.map(b => {
+        const on = b.id === hero.id, bd = b.status === 'finished';
+        return `<button type="button" onclick="pickBook('${esc(b.id)}')" style="flex:0 0 auto;display:flex;flex-direction:column;gap:1px;padding:6px 10px;border-radius:12px;border:1px solid ${on?'var(--accent)':'rgba(122,187,218,.22)'};background:${on?'rgba(29,205,211,.14)':'rgba(255,255,255,.03)'};cursor:pointer;text-align:left">
+          <span style="font-size:12px;font-weight:700;color:${on?'var(--accent)':'#e6eef6'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:130px">${esc(b.title||'B\u00f3k')}</span>
+          <span style="font-size:10px;color:${bd?'#4ade80':'var(--muted)'}">${bd?'Loki\u00f0':'A\u00f0 lesa'}</span>
+        </button>`;
+      }).join('');
     } else {
-      hintEl.style.display = 'none';
+      pillsEl.style.display = 'none';
     }
   }
 
@@ -3479,15 +3503,8 @@ function renderAudioHero(sessions) {
   _heroTotalSecs = latest.seconds || (clips.length * 60);
 
   const books = (S.books||[]).filter(b => b.childKey === _selectedChild);
-  const sTime = latest.timestamp || 0;
-  let bookTitle = '';
-  if (books.length > 0) {
-    const closest = books
-      .filter(b => b.status==='reading' || b.status==='finished')
-      .sort((a,b) => Math.abs(bTs(a,'lastReadAt')-sTime) - Math.abs(bTs(b,'lastReadAt')-sTime))[0];
-    if (closest) bookTitle = closest.title || '';
-  }
-  const title = bookTitle || latest.title || 'Nýjasta lestur';
+  const anchorBook = _sessionBook(latest, books);
+  const title = (anchorBook && anchorBook.title) || latest.bookTitle || latest.title || 'Nýjasta lestur';
   const mins = Math.round(_heroTotalSecs / 60);
   const date = latest.date ? fmtDateShort(latest.date) : 'í dag';
 
@@ -3635,6 +3652,7 @@ async function _heroPlayClip(index) {
         familyId: S.familyId,
         childKey: _heroSession.childKey,
         listenerName: _listenerName(),
+        listenerId: auth.currentUser ? auth.currentUser.uid : null,
         sessionDocId: _heroSession._docId,
       }).catch(e => console.warn('hero listen-event:', e));
     }
@@ -3806,6 +3824,7 @@ window.playSessionClip = async function(docId, clipIndex) {
       familyId: S.familyId,
       childKey: session.childKey,
       listenerName: _listenerName(),
+      listenerId: auth.currentUser ? auth.currentUser.uid : null,
       sessionDocId: docId,
     }).catch(e => console.warn('listen-event:', e));
   } catch(e) {
@@ -4348,8 +4367,60 @@ function openReaderSheet(key, name, code){
   const n=document.getElementById('rs-name'); if(n) n.textContent=_rdName;
   const c=document.getElementById('rs-code'); if(c) c.textContent=_rdCode;
   document.getElementById('reader-sheet')?.classList.add('show');
+  _loadReaderPush(key);
 }
 window.openReaderSheet=openReaderSheet;
+
+/* ── FASI 3A: per-barn samþykki foreldris → families/{fid}/children/{ck}/pushSettings/config ── */
+let _rdPushBusy = false;
+function _setReaderPushToggle(on){
+  const t = document.getElementById('rs-push-toggle');
+  if (!t) return;
+  t.classList.toggle('on', !!on);
+  t.setAttribute('aria-checked', on ? 'true' : 'false');
+}
+async function _loadReaderPush(key){
+  const row = document.getElementById('rs-push-row');
+  // Samþykki er foreldra-ákvörðun — fela fyrir guest-role (rules leyfa hvort eð er aðeins foreldri).
+  if (row) row.style.display = (S.role === 'parent') ? '' : 'none';
+  if (S.role !== 'parent') return;
+  _setReaderPushToggle(false);
+  if (row) row.style.opacity = '0.6';
+  try {
+    if (!S.familyId || !key) return;
+    const snap = await getDoc(doc(db, 'families', S.familyId, 'children', key, 'pushSettings', 'config'));
+    _setReaderPushToggle(snap.exists() && snap.data().parentApproved === true);
+  } catch (e) { console.error('[push] lestur pushSettings (parent)', e); }
+  finally { if (row) row.style.opacity = ''; }
+}
+async function readerTogglePush(){
+  if (_rdPushBusy) return;
+  const key = _rdKey;
+  if (!S.familyId || !key || !auth.currentUser) { toast('Innskráningu vantar'); return; }
+  const t = document.getElementById('rs-push-toggle');
+  const turningOn = !(t && t.classList.contains('on'));
+  _rdPushBusy = true;
+  _setReaderPushToggle(turningOn);   // bjartsýn uppfærsla
+  try {
+    const ref = doc(db, 'families', S.familyId, 'children', key, 'pushSettings', 'config');
+    const snap = await getDoc(ref);
+    // Fyrsta skrift setur sjálfgefin tegunda-gildi (contract): listening=true, reminders=false.
+    const data = { parentApproved: turningOn, updatedAt: serverTimestamp(), updatedBy: auth.currentUser.uid };
+    if (!snap.exists()) {
+      data.listeningNotifications = true; data.readingReminders = false; data.commentNotifications = true;
+    } else if (turningOn && snap.data().commentNotifications === undefined) {
+      // Sjálf-heilun: eldri fjölskyldur án reitsins fá komment-tilkynningar við næstu virkjun push.
+      data.commentNotifications = true;
+    }
+    await setDoc(ref, data, { merge: true });
+    toast(turningOn ? 'Tilkynningar leyfðar' : 'Tilkynningar teknar úr sambandi');
+  } catch (e) {
+    console.error('[push] skrif pushSettings (parent)', e);
+    _setReaderPushToggle(!turningOn);   // bakka við villu — rofinn segir aldrei ósatt
+    toast('Villa — reyndu aftur');
+  } finally { _rdPushBusy = false; }
+}
+window.readerTogglePush = readerTogglePush;
 function closeReaderSheet(){ document.getElementById('reader-sheet')?.classList.remove('show'); }
 window.closeReaderSheet=closeReaderSheet;
 async function readerCopyCode(){ if(!_rdCode) return; try{ await navigator.clipboard?.writeText(_rdCode); toast('Kóði afritaður'); }catch(e){ toast(_rdCode); } }

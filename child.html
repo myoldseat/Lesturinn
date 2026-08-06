@@ -8913,15 +8913,24 @@ if (_c) {
       if (approved && granted && !token) { setPushUI('token-failed'); return; }
 
       if (approved && granted && token) {
-        const tokenHash = await sha256Hex(token);
+        console.info('[push] skrif: byrja — fid', fid, 'ck', ck, 'exists?', exists);
+        let tokenHash;
+        try { tokenHash = await sha256Hex(token); console.info('[push] skrif: tokenHash OK', (tokenHash||'').length); }
+        catch (e) { console.error('[push] skrif: sha256Hex FÉLL —', e && e.message, e); setPushUI('registration-failed'); return; }
         const base = { activeChildKey: ck, token, tokenHash, enabled: true, updatedAt: serverTimestamp(), lastSeenAt: serverTimestamp() };
+        // setDoc getur HANGIÐ (storage/IndexedDB blokkað eða bakendi næst ekki) → borðinn frýs á „Virkja…".
+        // 10s tímamörk → köstum svo það falli í registration-failed með sýnilegri villu.
+        const writeTimeout = new Promise((_, rej) => setTimeout(() => rej(new Error('setDoc-timeout-10s')), 10000));
         try {
-          if (exists) await setDoc(devRef(fid), base, { merge: true });
-          else await setDoc(devRef(fid), { ...base, mode: 'singleChild', platform: platform(), createdAt: serverTimestamp() });
+          const write = exists
+            ? setDoc(devRef(fid), base, { merge: true })
+            : setDoc(devRef(fid), { ...base, mode: 'singleChild', platform: platform(), createdAt: serverTimestamp() });
+          await Promise.race([ write, writeTimeout ]);
+          console.info('[push] skrif: setDoc OK → on');
           setPushUI('on');
         } catch (e) {
-          // Skrif-villa (t.d. Firestore-regla hafnar → activeChildKey/childKey misræmi eða samþykki undir öðrum lykli).
-          // EKKI 'needs-permission' — það faldi raunverulegu villuna. Loggum kóðann svo við sjáum 'permission-denied'.
+          // Skrif-villa (t.d. Firestore-regla hafnar → activeChildKey/childKey misræmi eða samþykki undir öðrum lykli;
+          // eða setDoc-timeout ef storage/bakendi hangir). EKKI 'needs-permission' — það faldi raunverulegu villuna.
           console.error('[push] skrif (enable) —', e && e.code, e && e.message, 'activeChildKey=', ck, e);
           setPushUI('registration-failed');
         }

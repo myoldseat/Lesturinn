@@ -2542,7 +2542,10 @@ body{font-family:'DM Sans','Manrope',-apple-system,BlinkMacSystemFont,sans-serif
         .child-push-banner{display:flex;align-items:center;gap:10px;width:100%;margin:0 0 12px;padding:11px 14px;border-radius:14px;border:1px solid rgba(29,205,211,.32);background:rgba(29,205,211,.10);color:var(--accent,#1dcdd3);font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;font-size:14px;font-weight:800;cursor:pointer;-webkit-tap-highlight-color:transparent;text-align:left}
         .child-push-banner:active{transform:scale(.99)}
         .child-push-banner .cpb-icon{font-size:16px;line-height:1}
+        .child-push-banner{transition:opacity .45s ease}
         .child-push-banner.denied{border-color:rgba(255,180,120,.32);background:rgba(255,170,110,.10);color:#ffb976;cursor:default}
+        .child-push-banner.ok{border-color:rgba(120,220,150,.42);background:rgba(110,210,140,.12);color:#7ddca0;cursor:default}
+        .child-push-banner.fade-out{opacity:0}
       </style>
       <button type="button" id="child-push-banner" class="child-push-banner" hidden>
         <span class="cpb-icon" aria-hidden="true">🔔</span>
@@ -2561,15 +2564,36 @@ body{font-family:'DM Sans','Manrope',-apple-system,BlinkMacSystemFont,sans-serif
           catch (e) { console.error('[push] enable (click)', e);
             if (window._renderChildPushBanner) window._renderChildPushBanner('registration-failed'); }
         });
+        var _pushBannerTimer = null;
         window._renderChildPushBanner = function(state){
           var el = document.getElementById('child-push-banner');
           var t  = document.getElementById('child-push-text');
           if (!el) return;
-          // Sýna AÐEINS þegar barnið getur brugðist við. Fela 'on'/'parent-off'/'unsupported'
+
+          // 'on' → jákvæð staðfesting: grænn „virkjað ✓" borði sem hverfur mjúklega
+          // (barnið sér að það tókst — betra en að borðinn snöggslokkni).
+          if (state === 'on') {
+            if (_pushBannerTimer) { clearTimeout(_pushBannerTimer); _pushBannerTimer = null; }
+            el.classList.remove('denied', 'fade-out');
+            el.classList.add('ok');
+            el.hidden = false;
+            if (t) t.textContent = 'Tilkynningar virkjaðar ✓';
+            _pushBannerTimer = setTimeout(function(){
+              el.classList.add('fade-out');
+              _pushBannerTimer = setTimeout(function(){
+                el.hidden = true; el.classList.remove('ok', 'fade-out');
+              }, 500);
+            }, 2500);
+            return;
+          }
+
+          // Sýna AÐEINS þegar barnið getur brugðist við. Fela 'parent-off'/'unsupported'
           // (nöldrum ekki á barnið þótt foreldri hafi ekki kveikt — það er ekki þeirra ákvörðun).
           var show = (state === 'needs-permission' || state === 'denied' ||
                       state === 'requesting' || state === 'registering' ||
                       state === 'token-failed' || state === 'registration-failed');
+          if (_pushBannerTimer) { clearTimeout(_pushBannerTimer); _pushBannerTimer = null; }
+          el.classList.remove('ok', 'fade-out');
           el.hidden = !show;
           if (!show) return;
           el.classList.toggle('denied', state === 'denied');

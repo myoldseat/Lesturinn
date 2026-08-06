@@ -2551,9 +2551,15 @@ body{font-family:'DM Sans','Manrope',-apple-system,BlinkMacSystemFont,sans-serif
       <script>
       (function(){
         var b = document.getElementById('child-push-banner');
-        if (b) b.addEventListener('click', function(){
-          // Aðeins 'needs-permission' ræsir leyfisbeiðni (fyrsta await í gesture, iOS).
-          if (window.__childPushState === 'needs-permission' && window.enableChildPush) window.enableChildPush();
+        if (b) b.addEventListener('click', async function(){
+          // Smellanlegt í öllum stöðum sem MEGA reyna aftur; læst meðan verið er að vinna.
+          var s = window.__childPushState;
+          if (s === 'denied' || s === 'requesting' || s === 'registering') return;
+          if (!window.enableChildPush) return;
+          // requestPermission VERÐUR að vera fyrsta await inni í enableChildPush (iOS) — engin await hér á undan.
+          try { await window.enableChildPush(); }
+          catch (e) { console.error('[push] enable (click)', e);
+            if (window._renderChildPushBanner) window._renderChildPushBanner('registration-failed'); }
         });
         window._renderChildPushBanner = function(state){
           var el = document.getElementById('child-push-banner');
@@ -2561,13 +2567,21 @@ body{font-family:'DM Sans','Manrope',-apple-system,BlinkMacSystemFont,sans-serif
           if (!el) return;
           // Sýna AÐEINS þegar barnið getur brugðist við. Fela 'on'/'parent-off'/'unsupported'
           // (nöldrum ekki á barnið þótt foreldri hafi ekki kveikt — það er ekki þeirra ákvörðun).
-          var show = (state === 'needs-permission' || state === 'denied');
+          var show = (state === 'needs-permission' || state === 'denied' ||
+                      state === 'requesting' || state === 'registering' ||
+                      state === 'token-failed' || state === 'registration-failed');
           el.hidden = !show;
           if (!show) return;
           el.classList.toggle('denied', state === 'denied');
-          if (t) t.textContent = (state === 'denied')
-            ? 'Tilkynningar: leyfi hafnað — leyfðu þær í stillingum tækisins'
-            : 'Virkja tilkynningar';
+          var TXT = {
+            'needs-permission':    'Virkja tilkynningar',
+            'requesting':          'Bið um leyfi…',
+            'registering':         'Virkja…',
+            'denied':              'Tilkynningar: leyfi hafnað — leyfðu þær í stillingum tækisins',
+            'token-failed':        'Náði ekki að tengjast — ýttu til að reyna aftur',
+            'registration-failed': 'Skráning mistókst — ýttu til að reyna aftur'
+          };
+          if (t) t.textContent = TXT[state] || 'Virkja tilkynningar';
         };
         // Catch-up: ef Skref 1 er þegar búið að setja stöðu áður en þessi renderer var til.
         if (window.__childPushState) window._renderChildPushBanner(window.__childPushState);
@@ -8879,8 +8893,12 @@ if (_c) {
       // Sækja token AÐEINS ef við megum kveikja.
       let token = null;
       if (approved && granted) {
-        try { token = await currentToken(); } catch (e) { console.error('[push] currentToken', e); }
+        try { token = await currentToken(); }
+        catch (e) { console.error('[push] currentToken —', e && e.code, e && e.message, e); }
       }
+
+      // Granted EN token náðist ekki → EKKI leyfisvandi. Sýnum token-failed í stað needs-permission.
+      if (approved && granted && !token) { setPushUI('token-failed'); return; }
 
       if (approved && granted && token) {
         const tokenHash = await sha256Hex(token);
@@ -8889,7 +8907,12 @@ if (_c) {
           if (exists) await setDoc(devRef(fid), base, { merge: true });
           else await setDoc(devRef(fid), { ...base, mode: 'singleChild', platform: platform(), createdAt: serverTimestamp() });
           setPushUI('on');
-        } catch (e) { console.error('[push] skrif (enable)', e); setPushUI('needs-permission'); }
+        } catch (e) {
+          // Skrif-villa (t.d. Firestore-regla hafnar → activeChildKey/childKey misræmi eða samþykki undir öðrum lykli).
+          // EKKI 'needs-permission' — það faldi raunverulegu villuna. Loggum kóðann svo við sjáum 'permission-denied'.
+          console.error('[push] skrif (enable) —', e && e.code, e && e.message, 'activeChildKey=', ck, e);
+          setPushUI('registration-failed');
+        }
         return;
       }
 
@@ -8907,12 +8930,17 @@ if (_c) {
   // Handvirk virkjun (borði-smellur, wire-að í Skref 2).
   // requestPermission VERÐUR að vera fyrsta await í smellinum (iOS).
   async function enableChildPush() {
-    if (!_session) { console.warn('[push] enable: engin session'); return; }
+    if (!_session) { console.warn('[push] enable: engin session'); setPushUI('needs-permission'); return; }
     if (!('Notification' in window) || !('serviceWorker' in navigator)) { setPushUI('unsupported'); return; }
+    console.info('[push] permission FYRIR beiðni:', ('Notification' in window) ? Notification.permission : 'n/a');
+    setPushUI('requesting');
     let perm;
+    // requestPermission = FYRSTA await í user-gesture (iOS). Engin await á undan.
     try { perm = await Notification.requestPermission(); } catch (e) { perm = 'default'; console.error('[push] requestPermission', e); }
+    console.info('[push] permission EFTIR beiðni:', perm);
     if (perm !== 'granted') { setPushUI(perm === 'denied' ? 'denied' : 'needs-permission'); return; }
-    await syncChildPushDevice(_session);   // nú granted → skrifar enabled:true ef samþykki
+    setPushUI('registering');
+    await syncChildPushDevice(_session);   // granted → token-failed / registration-failed / on (ekki lengur needs-permission við villu)
   }
 
   // Logout-disable — kallað úr childLogout ÁÐUR en signOut. Best-effort + 2,5s tímamark.

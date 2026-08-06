@@ -1,0 +1,2 @@
+Þessi skrá er aðeins til að prófa GitHub Pages deployment.
+Má eyða hvenær sem er.

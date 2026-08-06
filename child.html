@@ -8853,8 +8853,20 @@ if (_c) {
   }
   async function currentToken() {
     const m = await messagingIfSupported();
-    if (!m) return null;
-    return getToken(m, { vapidKey: VAPID_KEY, serviceWorkerRegistration: await swReg() });
+    if (!m) { console.warn('[push] getToken: messaging ekki stutt'); return null; }
+    const reg = await swReg();
+    console.info('[push] getToken: byrja — swReg?', !!reg, 'VAPID.len', (VAPID_KEY||'').length);
+    // getToken getur HANGIÐ endalaust (VAPID/FCM svar kemur ekki) → borðinn frýs á „Virkja…".
+    // 15s tímamörk → köstum svo flæðið falli í token-failed með sýnilegri villu í stað frosts.
+    const withTimeout = new Promise((_, rej) => setTimeout(() => rej(new Error('getToken-timeout-15s')), 15000));
+    try {
+      const t = await Promise.race([ getToken(m, { vapidKey: VAPID_KEY, serviceWorkerRegistration: reg }), withTimeout ]);
+      console.info('[push] getToken: OK — token.len', (t||'').length);
+      return t;
+    } catch (e) {
+      console.error('[push] getToken: FÉLL —', e && e.code, e && e.message, e);
+      throw e;   // syncChildPushDevice fangar → token-failed (ekki needs-permission)
+    }
   }
 
   const devRef = (fid) => doc(db, 'families', fid, 'pushDevices', deviceId());

@@ -2338,7 +2338,7 @@ function renderReading(books, sessions) {
   const rlPill = rlLabel ? `<span class="rd-load-pill">${esc(rlLabel)}</span>` : '';
   const c1 = hero.c1||'#6a3140', c2 = hero.c2||'#c08a36';
   const letter = esc((hero.title||'?')[0]);
-  const coverSrc = hero.coverUrl || hero.coverBase64;
+  const coverSrc = bookCoverSrc(hero);
   const coverHtml = coverSrc
     ? `<img src="${esc(coverSrc)}" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none';this.parentNode.innerHTML+='<span style=font-size:30px;font-weight:700;color:rgba(255,255,255,.9)>${letter}</span>'">`
     : `<span style="font-size:30px;font-weight:700;color:rgba(255,255,255,.9)">${letter}</span>`;
@@ -3199,6 +3199,22 @@ window.pickBook = function(bookId) {
 };
 
 /* ── Ferðalag flipi — chat stíll með komment þráð ── */
+function _updateJourneyPickerArrows() {
+  const el = document.getElementById('jn-book-pills');
+  if (!el) return;
+  const prev = document.getElementById('jn-pick-prev');
+  const next = document.getElementById('jn-pick-next');
+  const fadeL = document.getElementById('jn-pick-fadeL');
+  const fadeR = document.getElementById('jn-pick-fadeR');
+  const overflow = (el.scrollWidth - el.clientWidth) > 2;
+  const showPrev = overflow && el.scrollLeft > 1;
+  const showNext = overflow && el.scrollLeft < (el.scrollWidth - el.clientWidth - 1);
+  if (prev) prev.style.display = showPrev ? 'flex' : 'none';
+  if (next) next.style.display = showNext ? 'flex' : 'none';
+  if (fadeL) fadeL.style.opacity = showPrev ? '1' : '0';
+  if (fadeR) fadeR.style.opacity = showNext ? '1' : '0';
+}
+
 function renderJourney(books) {
   const _jbTs = (b) => bTs(b,'lastReadAt') || bTs(b,'celebratedAt') || bTs(b,'updatedAt') || 0;
   const journeyBooks = books.filter(b => b.status === 'reading' || b.status === 'finished')
@@ -3215,7 +3231,7 @@ function renderJourney(books) {
   const heroEl = document.getElementById('jm-book-hero');
   if (heroEl && hero) {
     const c1 = hero.c1||'#2b8f91', c2 = hero.c2||'#0a2341';
-    const coverSrc = hero.coverUrl || hero.coverBase64;
+    const coverSrc = bookCoverSrc(hero);
     const coverHtml = coverSrc
       ? `<img src="${esc(coverSrc)}" style="width:48px;height:68px;border-radius:7px;object-fit:cover;box-shadow:0 4px 10px rgba(0,0,0,.3)" onerror="this.outerHTML='<div class=rd-cover style=width:48px;height:68px;font-size:18px;border-radius:7px;background:linear-gradient(145deg,${c1},${c2})><span>${esc((hero.title||'?')[0])}</span></div>'">`
       : `<div class="rd-cover" style="width:48px;height:68px;font-size:18px;border-radius:7px;background:linear-gradient(145deg,${c1},${c2})"><span>${esc((hero.title||'?')[0])}</span></div>`;
@@ -3238,20 +3254,57 @@ function renderJourney(books) {
       </div>`;
 
     /* Sýnileg pill-röð: bók-val (Að lesa + Lokið), virk upplýst — skýrara en falið chevron. */
+    let pickWrap = document.getElementById('jn-book-picker');
     let pillsEl = document.getElementById('jn-book-pills');
-    if (!pillsEl){ pillsEl = document.createElement('div'); pillsEl.id = 'jn-book-pills'; heroEl.after(pillsEl); }
+    if (!pickWrap) {
+      pickWrap = document.createElement('div');
+      pickWrap.id = 'jn-book-picker';
+      pickWrap.style.cssText = 'position:relative';
+      if (!pillsEl) { pillsEl = document.createElement('div'); pillsEl.id = 'jn-book-pills'; }
+      pickWrap.appendChild(pillsEl);
+      const fade = (id, side) => { const d = document.createElement('div'); d.id = id; d.style.cssText = 'position:absolute;'+side+':0;top:0;bottom:8px;width:26px;pointer-events:none;opacity:0;transition:opacity .15s;z-index:1;background:linear-gradient('+(side==='left'?'90':'270')+'deg,var(--bg),rgba(7,16,30,0))'; return d; };
+      const arrow = (id, dir) => {
+        const b = document.createElement('button');
+        b.id = id; b.type = 'button';
+        b.setAttribute('aria-label', dir < 0 ? 'Fyrri b\u00e6kur' : 'Fleiri b\u00e6kur');
+        b.style.cssText = 'position:absolute;top:34px;transform:translateY(-50%);'+(dir<0?'left:-4px':'right:-4px')+';z-index:2;width:26px;height:26px;padding:0;border-radius:50%;border:1px solid rgba(122,187,218,.35);background:rgba(13,24,42,.9);color:#e6eef6;display:none;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.4)';
+        b.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="'+(dir<0?'15 18 9 12 15 6':'9 18 15 12 9 6')+'"/></svg>';
+        b.addEventListener('click', () => { const el = document.getElementById('jn-book-pills'); if (el) el.scrollBy({ left: dir * Math.max(140, el.clientWidth*0.8), behavior:'smooth' }); });
+        return b;
+      };
+      pickWrap.appendChild(fade('jn-pick-fadeL','left'));
+      pickWrap.appendChild(fade('jn-pick-fadeR','right'));
+      pickWrap.appendChild(arrow('jn-pick-prev',-1));
+      pickWrap.appendChild(arrow('jn-pick-next', 1));
+      heroEl.after(pickWrap);
+    }
     const legacyHint = document.getElementById('jn-book-hint'); if (legacyHint) legacyHint.style.display = 'none';
     if (multiBook) {
-      Object.assign(pillsEl.style, { display:'flex', gap:'6px', overflowX:'auto', padding:'8px 0 2px', scrollbarWidth:'none', webkitTapHighlightColor:'transparent' });
+      pickWrap.style.display = '';
+      Object.assign(pillsEl.style, { display:'flex', gap:'6px', overflowX:'auto', padding:'8px 2px 4px', scrollbarWidth:'none', webkitTapHighlightColor:'transparent', scrollBehavior:'smooth' });
       pillsEl.innerHTML = journeyBooks.map(b => {
         const on = b.id === hero.id, bd = b.status === 'finished';
-        return `<button type="button" onclick="pickBook('${esc(b.id)}')" style="flex:0 0 auto;display:flex;flex-direction:column;gap:1px;padding:6px 10px;border-radius:12px;border:1px solid ${on?'var(--accent)':'rgba(122,187,218,.22)'};background:${on?'rgba(29,205,211,.14)':'rgba(255,255,255,.03)'};cursor:pointer;text-align:left">
-          <span style="font-size:12px;font-weight:700;color:${on?'var(--accent)':'#e6eef6'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:130px">${esc(b.title||'B\u00f3k')}</span>
-          <span style="font-size:10px;color:${bd?'#4ade80':'var(--muted)'}">${bd?'Loki\u00f0':'A\u00f0 lesa'}</span>
+        const bc1 = b.c1||'#2b8f91', bc2 = b.c2||'#0a2341';
+        const bletter = esc((b.title||'?')[0]);
+        const src = bookCoverSrc(b);
+        const statusTxt = bd ? 'Loki\u00f0' : 'A\u00f0 lesa';
+        const label = esc(b.title||'B\u00f3k') + ' \u2013 ' + statusTxt;
+        const coverHtml = src
+          ? `<img src="${esc(src)}" alt="" style="width:42px;height:60px;border-radius:6px;object-fit:cover;display:block" onerror="this.outerHTML='<div class=rd-cover style=width:42px;height:60px;font-size:15px;border-radius:6px;background:linear-gradient(145deg,${bc1},${bc2})><span>${bletter}</span></div>'">`
+          : `<div class="rd-cover" style="width:42px;height:60px;font-size:15px;border-radius:6px;background:linear-gradient(145deg,${bc1},${bc2})"><span>${bletter}</span></div>`;
+        return `<button type="button" onclick="pickBook('${esc(b.id)}')" aria-label="${label}" aria-current="${on?'true':'false'}" title="${esc(b.title||'B\u00f3k')}" style="flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px;border-radius:10px;border:1px solid ${on?'var(--accent)':'transparent'};background:${on?'rgba(29,205,211,.14)':'transparent'};box-shadow:${on?'0 0 0 1px var(--accent),0 0 10px rgba(29,205,211,.35)':'none'};cursor:pointer">
+          ${coverHtml}
+          <span style="font-size:9px;line-height:1;color:${bd?'#4ade80':'var(--muted)'}">${statusTxt}</span>
         </button>`;
       }).join('');
+      if (!pillsEl._arrowsWired) {
+        pillsEl._arrowsWired = true;
+        pillsEl.addEventListener('scroll', _updateJourneyPickerArrows, { passive:true });
+        window.addEventListener('resize', _updateJourneyPickerArrows, { passive:true });
+      }
+      requestAnimationFrame(_updateJourneyPickerArrows);
     } else {
-      pillsEl.style.display = 'none';
+      pickWrap.style.display = 'none';
     }
   }
 
@@ -3882,7 +3935,10 @@ function renderParentBookshelfChildren() {
   }
 }
 
-function _pbCoverSrc(b) { return b.coverUrl || b.coverBase64 || b.coverImage || b.imageUrl || ''; }
+/* Eitt sannleiksgildi fyrir k\u00e1pu-uppruna alls sta\u00f0ar (Fer\u00f0alag, N\u00fana a\u00f0 lesa, B\u00f3kasafn). */
+function bookCoverSrc(b) { return (b && (b.coverUrl || b.coverBase64 || b.coverImage || b.imageUrl)) || ''; }
+/* Bakvi\u00f0-samh\u00e6fni: eldra heiti \u2014 m\u00e1 fjarl\u00e6gja \u00ed dropdown-hreinsun. */
+function _pbCoverSrc(b) { return bookCoverSrc(b); }
 function _pbBookId(b) { return String(b.id || b._docId || ''); }
 
 function _pbCard(b) {
